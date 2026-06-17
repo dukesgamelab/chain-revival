@@ -23,6 +23,7 @@ var _target_cell: Vector2i = Vector2i(-999, -999)
 
 func _ready() -> void:
 	_setup_astar()
+	queue_redraw()
 
 
 func _setup_astar() -> void:
@@ -33,11 +34,7 @@ func _setup_astar() -> void:
 	_astar.default_compute_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
 	_astar.default_estimate_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
 	_astar.update()
-
-	# Every placeholder tile is walkable for now.
-	for y in range(grid_height):
-		for x in range(grid_width):
-			_astar.set_point_solid(Vector2i(x, y), false)
+	# All interior cells are walkable by default after update(); no extra setup needed.
 
 
 func is_in_bounds(cell: Vector2i) -> bool:

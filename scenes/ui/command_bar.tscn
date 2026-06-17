@@ -4,16 +4,6 @@
 
 [node name="CommandBar" type="Control"]
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("1_cmdbar")
-
-[node name="Panel" type="PanelContainer" parent="."]
-layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
@@ -21,6 +11,15 @@ anchor_bottom = 1.0
 offset_top = -96.0
 grow_horizontal = 2
 grow_vertical = 0
+script = ExtResource("1_cmdbar")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
 layout_mode = 2
@@ -41,7 +40,10 @@ text = "Run To"
 
 [node name="StatusLabel" type="Label" parent="Panel/Margin/HBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Select a soldier, then choose a command."
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_font_sizes/font_size = 18
+text = "WASD moves selected soldier."
 vertical_alignment = 1
