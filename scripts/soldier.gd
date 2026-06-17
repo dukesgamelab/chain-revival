@@ -5,6 +5,10 @@ extends Node2D
 const TEXTURE_USA := preload("res://assets/sprites/soldier_usa.svg")
 const TEXTURE_GERMANY := preload("res://assets/sprites/soldier_germany.svg")
 
+## Visual-only sprite shift so feet sit on the tile center (Node2D stays on grid center).
+const SPRITE_OFFSET_STANDING := Vector2(0, -24)
+const SPRITE_OFFSET_PRONE := Vector2(0, -10)
+
 signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i)
 signal movement_finished(team_id: int, soldier_id: int)
 
@@ -74,20 +78,22 @@ func _apply_dead_visual(is_selected: bool) -> void:
 	_weapon_badge.visible = false
 	_selection_marker.visible = false
 	_sprite.scale = Vector2.ONE
-	_sprite.position = Vector2(0, -24)
+	_sprite.position = Vector2.ZERO
+	_sprite.offset = SPRITE_OFFSET_STANDING
 	_sprite.texture = TEXTURE_USA if team_id == Team.USA else TEXTURE_GERMANY
 	_sprite.modulate = Color(0.38, 0.38, 0.38, 0.85)
 
 
 func _apply_position_visual(state: SoldierState) -> void:
+	_sprite.position = Vector2.ZERO
 	if state.position_state == PositionState.DOWN:
 		_sprite.scale = Vector2(1.15, 0.42)
-		_sprite.position = Vector2(0, -10)
+		_sprite.offset = SPRITE_OFFSET_PRONE
 		_facing_arrow.visible = false
 		_prone_marker.visible = true
 	else:
 		_sprite.scale = Vector2.ONE
-		_sprite.position = Vector2(0, -24)
+		_sprite.offset = SPRITE_OFFSET_STANDING
 		_facing_arrow.visible = true
 		_prone_marker.visible = false
 

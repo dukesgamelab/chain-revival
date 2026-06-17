@@ -26,8 +26,6 @@ visible = false
 
 texture = ExtResource("2_sprite")
 
-offset = Vector2(0, -24)
-
 
 
 [node name="FacingArrow" type="Line2D" parent="."]

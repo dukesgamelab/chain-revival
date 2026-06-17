@@ -596,6 +596,7 @@ func _apply_move_command(cmd: MoveCommand) -> void:
 		_command_bar.show_status("No path to that tile.")
 		return
 
+	_log_move_order(cmd.target_cell, path, soldier_state)
 	_iso_map.show_path(path, cmd.target_cell)
 	_command_bar.show_status(
 		"%s Soldier %d %s to %s — click another tile to redirect."
@@ -782,10 +783,43 @@ func _on_soldier_step_reached(team_id: int, soldier_id: int, tile: Vector2i, ste
 
 func _on_soldier_movement_finished(team_id: int, soldier_id: int) -> void:
 	_get_fireteam(team_id).on_soldier_finished_moving(soldier_id)
+	var state: SoldierState = _get_fireteam(team_id).get_soldier(soldier_id)
+	var view: Soldier = _get_view(team_id, soldier_id)
+	_log_move_complete(soldier_id, state, view)
 	if team_id == _session.active_team_id and not _any_active_team_soldier_moving():
 		_iso_map.clear_path()
 	_refresh_all_views()
 	_command_bar.show_status("%s Soldier %d move complete." % [Team.display_name(team_id), soldier_id])
+
+
+func _log_move_order(clicked_tile: Vector2i, path: Array[Vector2i], state: SoldierState) -> void:
+	var path_final := path[path.size() - 1] if not path.is_empty() else Vector2i(-1, -1)
+	GameLog.log_system(
+		"Move order: clicked=%s path_final=%s soldier_grid=%s soldier_world=%s"
+		% [clicked_tile, path_final, state.grid_position, _soldier_world_pos(state)],
+	)
+
+
+func _log_move_complete(soldier_id: int, state: SoldierState, view: Soldier) -> void:
+	if state == null:
+		return
+	var world_pos := view.position if view != null else _soldier_world_pos(state)
+	GameLog.log_system(
+		"Move complete: soldier=%d grid=%s world=%s cell_at_world=%s"
+		% [
+			soldier_id,
+			state.grid_position,
+			world_pos,
+			IsometricGrid.world_to_cell_at_point(world_pos),
+		],
+	)
+
+
+func _soldier_world_pos(state: SoldierState) -> Vector2:
+	var view: Soldier = _get_view(state.team_id, state.soldier_id)
+	if view != null:
+		return view.position
+	return IsometricGrid.grid_to_world(state.grid_position)
 
 
 func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode: int) -> void:
