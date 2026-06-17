@@ -49,6 +49,16 @@ func on_soldier_reached_tile(soldier_id: int, tile: Vector2i, step_from: Vector2
 		state.facing_direction = FacingDirection.from_step(step_from)
 
 
+func face_toward_tile(soldier_id: int, target_cell: Vector2i) -> bool:
+	var state := get_soldier(soldier_id)
+	if state == null:
+		return false
+	if target_cell == state.grid_position:
+		return false
+	state.facing_direction = FacingDirection.toward_cell(state.grid_position, target_cell)
+	return true
+
+
 func on_soldier_finished_moving(soldier_id: int) -> void:
 	var state := get_soldier(soldier_id)
 	if state == null:

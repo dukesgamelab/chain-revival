@@ -13,3 +13,9 @@ visible = false
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_sprite")
 offset = Vector2(0, -24)
+
+[node name="FacingArrow" type="Line2D" parent="."]
+position = Vector2(0, -30)
+width = 3.0
+default_color = Color(1, 0.95, 0.2, 1)
+points = PackedVector2Array(0, 0, 14, 0)

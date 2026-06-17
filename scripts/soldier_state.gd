@@ -39,8 +39,7 @@ static func from_dict(data: Dictionary) -> SoldierState:
 		int(data.get("soldier_id", 1)),
 		Vector2i(int(data.get("grid_x", 0)), int(data.get("grid_y", 0))),
 	)
-	state.facing_direction = Vector2i(
-		int(data.get("facing_x", 0)),
-		int(data.get("facing_y", -1)),
+	state.facing_direction = FacingDirection.normalize(
+		Vector2i(int(data.get("facing_x", 0)), int(data.get("facing_y", -1))),
 	)
 	return state

@@ -1,3 +1,4 @@
+class_name GameSave
 extends RefCounted
 ## JSON save/load for soldier positions during a session (separate from map files).
 

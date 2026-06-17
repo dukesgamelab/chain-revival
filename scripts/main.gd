@@ -12,14 +12,15 @@ const MapDataClass := preload("res://scripts/map_data.gd")
 @onready var _camera: Camera2D = $Camera2D
 @onready var _command_bar: CommandBar = $UI/CommandBar
 
-## Authoritative map gameplay data.
-var _map_data: MapData = null
+## Authoritative map gameplay data (reloaded from JSON in _load_map_data).
+var _map_data = MapDataClass.create_default()
 
-## Authoritative soldier gameplay data.
-var _fireteam = null
+## Authoritative soldier gameplay data (rebuilt from spawn points on start).
+var _fireteam = FireteamClass.new([])
 
 var _soldier_views: Dictionary = {}
 var _run_to_mode: bool = false
+var _face_direction_mode: bool = false
 var _block_edit_mode: bool = false
 
 
@@ -55,6 +56,7 @@ func _init_fireteam_from_spawns() -> void:
 func _connect_command_bar() -> void:
 	_command_bar.soldier_selected.connect(_on_soldier_selected)
 	_command_bar.run_to_mode_changed.connect(_on_run_to_mode_changed)
+	_command_bar.face_direction_mode_changed.connect(_on_face_direction_mode_changed)
 	_command_bar.save_requested.connect(_on_save_requested)
 	_command_bar.load_requested.connect(_on_load_requested)
 	_command_bar.map_save_requested.connect(_on_map_save_requested)
@@ -82,6 +84,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
+	if _face_direction_mode:
+		_order_face_selected(target_cell)
+		get_viewport().set_input_as_handled()
+		return
+
 	if not _run_to_mode:
 		return
 
@@ -93,7 +100,9 @@ func _toggle_block_edit_mode() -> void:
 	_block_edit_mode = not _block_edit_mode
 	if _block_edit_mode:
 		_command_bar.clear_run_to_mode()
+		_command_bar.clear_face_direction_mode()
 		_run_to_mode = false
+		_face_direction_mode = false
 		_command_bar.show_status("Block Edit ON — click tiles to toggle walls. Press B to exit.")
 	else:
 		_command_bar.show_status("Block Edit OFF.")
@@ -104,7 +113,7 @@ func _toggle_blocked_tile(cell: Vector2i) -> void:
 		_command_bar.show_status("That tile is outside the map.")
 		return
 
-	var is_now_blocked := _map_data.toggle_blocked(cell)
+	var is_now_blocked: bool = _map_data.toggle_blocked(cell)
 	_iso_map.apply_map_data(_map_data)
 
 	if is_now_blocked:
@@ -125,9 +134,10 @@ func _spawn_fireteam_views() -> void:
 
 func _refresh_all_views() -> void:
 	for state in _fireteam.soldiers:
-		var view: Soldier = _soldier_views[state.soldier_id]
-		var is_selected := state.soldier_id == _fireteam.selected_soldier_id
-		view.sync_from_state(state, is_selected)
+		var soldier_state: SoldierState = state
+		var view: Soldier = _soldier_views[soldier_state.soldier_id]
+		var is_selected: bool = soldier_state.soldier_id == _fireteam.selected_soldier_id
+		view.sync_from_state(soldier_state, is_selected)
 
 
 func _get_view(soldier_id: int) -> Soldier:
@@ -140,11 +150,11 @@ func _on_soldier_selected(soldier_id: int) -> void:
 
 
 func _order_run_to_selected(target_cell: Vector2i) -> void:
-	var state := _fireteam.get_selected()
+	var state: SoldierState = _fireteam.get_selected()
 	if state == null:
 		return
 
-	var view := _get_view(state.soldier_id)
+	var view: Soldier = _get_view(state.soldier_id)
 	if view != null and view.is_moving():
 		_command_bar.show_status("Soldier %d is already moving." % state.soldier_id)
 		return
@@ -157,7 +167,7 @@ func _order_run_to_selected(target_cell: Vector2i) -> void:
 			_command_bar.show_status("That tile is outside the map.")
 		return
 
-	var path := _iso_map.find_path(state.grid_position, target_cell)
+	var path: Array[Vector2i] = _iso_map.find_path(state.grid_position, target_cell)
 	if path.is_empty():
 		_command_bar.show_status("No path to that tile.")
 		return
@@ -167,6 +177,26 @@ func _order_run_to_selected(target_cell: Vector2i) -> void:
 	view.follow_path(path)
 	_command_bar.clear_run_to_mode()
 	_command_bar.show_status("Soldier %d running to %s." % [state.soldier_id, target_cell])
+
+
+func _order_face_selected(target_cell: Vector2i) -> void:
+	var state: SoldierState = _fireteam.get_selected()
+	if state == null:
+		return
+
+	if target_cell == state.grid_position:
+		_command_bar.show_status("Click a different tile to choose facing.")
+		return
+
+	if not _fireteam.face_toward_tile(state.soldier_id, target_cell):
+		_command_bar.show_status("Could not face that direction.")
+		return
+
+	_refresh_all_views()
+	_command_bar.clear_face_direction_mode()
+	_command_bar.show_status(
+		"Soldier %d facing %s." % [state.soldier_id, FacingDirection.direction_name(state.facing_direction)],
+	)
 
 
 func _on_soldier_step_reached(soldier_id: int, tile: Vector2i, step_delta: Vector2i) -> void:
@@ -184,6 +214,16 @@ func _on_run_to_mode_changed(is_active: bool, soldier_id: int) -> void:
 	_run_to_mode = is_active
 	if is_active:
 		_block_edit_mode = false
+		_face_direction_mode = false
+		_fireteam.select_soldier(soldier_id)
+		_refresh_all_views()
+
+
+func _on_face_direction_mode_changed(is_active: bool, soldier_id: int) -> void:
+	_face_direction_mode = is_active
+	if is_active:
+		_block_edit_mode = false
+		_run_to_mode = false
 		_fireteam.select_soldier(soldier_id)
 		_refresh_all_views()
 
@@ -221,14 +261,17 @@ func _on_map_load_requested() -> void:
 
 func _sync_views_after_load() -> void:
 	for state in _fireteam.soldiers:
-		var view := _get_view(state.soldier_id)
+		var soldier_state: SoldierState = state
+		var view: Soldier = _get_view(soldier_state.soldier_id)
 		if view == null:
 			continue
 		view.stop_movement()
-		view.sync_from_state(state, state.soldier_id == _fireteam.selected_soldier_id)
+		var is_selected: bool = soldier_state.soldier_id == _fireteam.selected_soldier_id
+		view.sync_from_state(soldier_state, is_selected)
 
 	_iso_map.clear_path()
 	_command_bar.clear_run_to_mode()
+	_command_bar.clear_face_direction_mode()
 	_refresh_all_views()
 	_command_bar.set_selected_soldier(_fireteam.selected_soldier_id)
 
