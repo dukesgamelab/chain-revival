@@ -6,6 +6,8 @@ signal soldier_selected(soldier_id: int)
 signal run_to_mode_changed(is_active: bool, soldier_id: int)
 signal save_requested
 signal load_requested
+signal map_save_requested
+signal map_load_requested
 
 @onready var _rows: Array[SoldierCommandRow] = [
 	%Row1,
@@ -25,6 +27,8 @@ func _ready() -> void:
 
 	%SaveButton.pressed.connect(func() -> void: save_requested.emit())
 	%LoadButton.pressed.connect(func() -> void: load_requested.emit())
+	%MapSaveButton.pressed.connect(func() -> void: map_save_requested.emit())
+	%MapLoadButton.pressed.connect(func() -> void: map_load_requested.emit())
 
 	_select_soldier(1, false)
 

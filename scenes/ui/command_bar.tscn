@@ -77,6 +77,18 @@ custom_minimum_size = Vector2(64, 24)
 layout_mode = 2
 text = "Load"
 
+[node name="MapSaveButton" type="Button" parent="Panel/Margin/HBox/UtilityButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 24)
+layout_mode = 2
+text = "Map Save"
+
+[node name="MapLoadButton" type="Button" parent="Panel/Margin/HBox/UtilityButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 24)
+layout_mode = 2
+text = "Map Load"
+
 [node name="StatusLabel" type="Label" parent="Panel/Margin/HBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 0)

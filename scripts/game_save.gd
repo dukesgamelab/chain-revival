@@ -1,16 +1,12 @@
-class_name GameSave
 extends RefCounted
-## JSON save/load for map size and fireteam soldier positions.
+## JSON save/load for soldier positions during a session (separate from map files).
 
 const DEFAULT_PATH := "user://savegame.json"
 
 
-static func save_game(fireteam: Fireteam, map: IsometricMap, file_path: String = DEFAULT_PATH) -> bool:
+static func save_game(fireteam, map_data, file_path: String = DEFAULT_PATH) -> bool:
 	var data := {
-		"map": {
-			"grid_width": map.grid_width,
-			"grid_height": map.grid_height,
-		},
+		"map_name": map_data.map_name,
 		"fireteam": fireteam.to_dict(),
 	}
 	var json_text := JSON.stringify(data, "\t")
@@ -22,7 +18,7 @@ static func save_game(fireteam: Fireteam, map: IsometricMap, file_path: String =
 	return true
 
 
-static func load_game(fireteam: Fireteam, map: IsometricMap, file_path: String = DEFAULT_PATH) -> bool:
+static func load_game(fireteam, file_path: String = DEFAULT_PATH) -> bool:
 	if not FileAccess.file_exists(file_path):
 		push_error("GameSave: no save file at %s" % file_path)
 		return false
@@ -37,11 +33,6 @@ static func load_game(fireteam: Fireteam, map: IsometricMap, file_path: String =
 		return false
 
 	var data: Dictionary = parsed
-	var map_data: Dictionary = data.get("map", {})
-	map.grid_width = int(map_data.get("grid_width", map.grid_width))
-	map.grid_height = int(map_data.get("grid_height", map.grid_height))
-	map.rebuild_pathfinding()
-
 	var fireteam_data: Dictionary = data.get("fireteam", {})
 	fireteam.load_from_dict(fireteam_data)
 	return true
