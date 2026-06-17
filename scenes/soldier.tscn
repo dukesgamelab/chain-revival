@@ -13,9 +13,3 @@ visible = false
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_sprite")
 offset = Vector2(0, -24)
-
-[node name="ClickArea" type="Area2D" parent="."]
-collision_layer = 1
-collision_mask = 0
-
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ClickArea"]

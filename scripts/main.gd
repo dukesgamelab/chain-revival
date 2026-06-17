@@ -1,135 +1,159 @@
 extends Node2D
-## Root scene: owns the map, soldier, camera, and command bar.
-## Routes mouse clicks to selection or movement depending on command mode.
+## Root scene: connects map rendering, fireteam gameplay state, soldier views, and the command bar.
 
 const SoldierScene := preload("res://scenes/soldier.tscn")
+const FireteamClass := preload("res://scripts/fireteam.gd")
+const GameSaveClass := preload("res://scripts/game_save.gd")
 
-@export var starting_grid_cell := Vector2i(10, 10)
+## Default spawn formation near map center (logical grid cells).
+const DEFAULT_START_CELLS: Array[Vector2i] = [
+	Vector2i(9, 10),
+	Vector2i(10, 10),
+	Vector2i(11, 10),
+	Vector2i(12, 10),
+]
 
 @onready var _world: Node2D = $World
 @onready var _iso_map: IsometricMap = $World/IsometricMap
-@onready var _soldiers: Node2D = $World/Soldiers
+@onready var _soldiers_root: Node2D = $World/Soldiers
 @onready var _camera: Camera2D = $Camera2D
 @onready var _command_bar: CommandBar = $UI/CommandBar
 
-var _selected_soldier: Soldier = null
+## Gameplay state (no rendering).
+var _fireteam = FireteamClass.new(DEFAULT_START_CELLS)
+
+## soldier_id -> Soldier view node.
+var _soldier_views: Dictionary = {}
+
 var _run_to_mode: bool = false
 
 
 func _ready() -> void:
-	_command_bar.run_to_mode_changed.connect(_on_run_to_mode_changed)
+	_camera.make_current()
+	_connect_command_bar()
 	_center_camera_on_map()
-	_spawn_starting_soldier()
-	_command_bar.show_status("WASD moves selected soldier. Run To + click also works.")
+	_spawn_fireteam_views()
+	_refresh_all_views()
+	_command_bar.set_selected_soldier(_fireteam.selected_soldier_id)
 
 
-## Keyboard and map clicks use _unhandled_input so UI buttons are never misread as map clicks.
+func _connect_command_bar() -> void:
+	_command_bar.soldier_selected.connect(_on_soldier_selected)
+	_command_bar.run_to_mode_changed.connect(_on_run_to_mode_changed)
+	_command_bar.save_requested.connect(_on_save_requested)
+	_command_bar.load_requested.connect(_on_load_requested)
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		_handle_keyboard(event)
-		return
-
 	if not (event is InputEventMouseButton):
 		return
 	var mouse_event := event as InputEventMouseButton
 	if not mouse_event.pressed or mouse_event.button_index != MOUSE_BUTTON_LEFT:
 		return
+	if not _run_to_mode:
+		return
 
 	var world_click := _get_world_mouse_local()
-
-	if _run_to_mode and _selected_soldier != null:
-		var target_cell := IsometricGrid.world_to_grid(world_click)
-		_move_selected_to_cell(target_cell)
-		get_viewport().set_input_as_handled()
-		return
-
-	var clicked_soldier := _pick_soldier_at(world_click)
-	if clicked_soldier != null:
-		_select_soldier(clicked_soldier)
-		get_viewport().set_input_as_handled()
-
-
-func _handle_keyboard(event: InputEventKey) -> void:
-	if not event.pressed or event.echo:
-		return
-	if _selected_soldier == null:
-		return
-
-	var offset := Vector2i.ZERO
-	match event.keycode:
-		KEY_W:
-			offset = Vector2i(0, -1)
-		KEY_S:
-			offset = Vector2i(0, 1)
-		KEY_A:
-			offset = Vector2i(-1, 0)
-		KEY_D:
-			offset = Vector2i(1, 0)
-		_:
-			return
-
-	var target_cell := _selected_soldier.grid_pos + offset
-	_move_selected_to_cell(target_cell)
+	var target_cell := IsometricGrid.world_to_grid(world_click)
+	_order_run_to_selected(target_cell)
 	get_viewport().set_input_as_handled()
 
 
-func _spawn_starting_soldier() -> void:
-	var soldier: Soldier = SoldierScene.instantiate()
-	soldier.set_grid_position(starting_grid_cell)
-	soldier.movement_finished.connect(_on_soldier_movement_finished)
-	_soldiers.add_child(soldier)
-	_select_soldier(soldier)
+func _spawn_fireteam_views() -> void:
+	for state in _fireteam.soldiers:
+		var view: Soldier = SoldierScene.instantiate()
+		view.soldier_id = state.soldier_id
+		view.movement_step_reached.connect(_on_soldier_step_reached)
+		view.movement_finished.connect(_on_soldier_movement_finished)
+		_soldiers_root.add_child(view)
+		_soldier_views[state.soldier_id] = view
 
 
-func _select_soldier(soldier: Soldier) -> void:
-	if _selected_soldier != null:
-		_selected_soldier.set_selected(false)
-
-	_selected_soldier = soldier
-	_selected_soldier.set_selected(true)
-	_command_bar.show_status("Soldier selected. Use WASD or Run To.")
+func _refresh_all_views() -> void:
+	for state in _fireteam.soldiers:
+		var view: Soldier = _soldier_views[state.soldier_id]
+		var is_selected := state.soldier_id == _fireteam.selected_soldier_id
+		view.sync_from_state(state, is_selected)
 
 
-func _move_selected_to_cell(target_cell: Vector2i) -> void:
-	if _selected_soldier == null:
+func _get_view(soldier_id: int) -> Soldier:
+	return _soldier_views.get(soldier_id) as Soldier
+
+
+func _on_soldier_selected(soldier_id: int) -> void:
+	_fireteam.select_soldier(soldier_id)
+	_refresh_all_views()
+
+
+func _order_run_to_selected(target_cell: Vector2i) -> void:
+	var state := _fireteam.get_selected()
+	if state == null:
 		return
-	if _selected_soldier.is_moving():
-		_command_bar.show_status("Soldier is already moving.")
+
+	var view := _get_view(state.soldier_id)
+	if view != null and view.is_moving():
+		_command_bar.show_status("Soldier %d is already moving." % state.soldier_id)
 		return
-	if target_cell == _selected_soldier.grid_pos:
+	if target_cell == state.grid_position:
 		return
 	if not _iso_map.is_in_bounds(target_cell):
 		_command_bar.show_status("That tile is outside the map.")
 		return
 
-	var path := _iso_map.find_path(_selected_soldier.grid_pos, target_cell)
+	var path := _iso_map.find_path(state.grid_position, target_cell)
 	if path.is_empty():
 		_command_bar.show_status("No path to that tile.")
 		return
 
+	_fireteam.order_path(state.soldier_id, path)
 	_iso_map.show_path(path, target_cell)
-	_selected_soldier.follow_path(path)
-	_command_bar.set_run_to_active(false)
-	_command_bar.show_status("Moving to %s." % target_cell)
+	view.follow_path(path)
+	_command_bar.clear_run_to_mode()
+	_command_bar.show_status("Soldier %d running to %s." % [state.soldier_id, target_cell])
 
 
-func _pick_soldier_at(local_world_pos: Vector2) -> Soldier:
-	var space := get_world_2d().direct_space_state
-	var params := PhysicsPointQueryParameters2D.new()
-	params.position = _world.to_global(local_world_pos)
-	params.collide_with_areas = true
-	params.collide_with_bodies = false
-	params.collision_mask = 1
+func _on_soldier_step_reached(soldier_id: int, tile: Vector2i, step_delta: Vector2i) -> void:
+	_fireteam.on_soldier_reached_tile(soldier_id, tile, step_delta)
 
-	for hit in space.intersect_point(params):
-		var area := hit.collider as Area2D
-		if area == null:
+
+func _on_soldier_movement_finished(soldier_id: int) -> void:
+	_fireteam.on_soldier_finished_moving(soldier_id)
+	_iso_map.clear_path()
+	_refresh_all_views()
+	_command_bar.show_status("Soldier %d move complete." % soldier_id)
+
+
+func _on_run_to_mode_changed(is_active: bool, soldier_id: int) -> void:
+	_run_to_mode = is_active
+	if is_active:
+		_fireteam.select_soldier(soldier_id)
+		_refresh_all_views()
+
+
+func _on_save_requested() -> void:
+	if GameSaveClass.save_game(_fireteam, _iso_map):
+		_command_bar.show_status("Game saved.")
+	else:
+		_command_bar.show_status("Save failed.")
+
+
+func _on_load_requested() -> void:
+	if not GameSaveClass.load_game(_fireteam, _iso_map):
+		_command_bar.show_status("Load failed.")
+		return
+
+	for state in _fireteam.soldiers:
+		var view := _get_view(state.soldier_id)
+		if view == null:
 			continue
-		var soldier := area.get_parent() as Soldier
-		if soldier != null:
-			return soldier
+		view.stop_movement()
+		view.sync_from_state(state, state.soldier_id == _fireteam.selected_soldier_id)
 
-	return null
+	_iso_map.clear_path()
+	_command_bar.clear_run_to_mode()
+	_refresh_all_views()
+	_command_bar.set_selected_soldier(_fireteam.selected_soldier_id)
+	_command_bar.show_status("Game loaded.")
 
 
 func _get_world_mouse_local() -> Vector2:
@@ -137,17 +161,7 @@ func _get_world_mouse_local() -> Vector2:
 
 
 func _center_camera_on_map() -> void:
-	var map_center_cell := Vector2i(_iso_map.grid_width / 2, _iso_map.grid_height / 2)
-	_camera.position = IsometricGrid.grid_to_world(map_center_cell) + Vector2(0.0, -60.0)
-
-
-func _on_run_to_mode_changed(is_active: bool) -> void:
-	_run_to_mode = is_active
-	if is_active and _selected_soldier == null:
-		_command_bar.set_run_to_active(false)
-		_command_bar.show_status("Select a soldier first.")
-
-
-func _on_soldier_movement_finished() -> void:
-	_iso_map.clear_path()
-	_command_bar.show_status("Move complete. WASD or Run To for next move.")
+	var cx := floori(_iso_map.grid_width / 2.0)
+	var cy := floori(_iso_map.grid_height / 2.0)
+	var map_center_cell := Vector2i(cx, cy)
+	_camera.position = IsometricGrid.grid_to_world(map_center_cell) + Vector2(0.0, -90.0)

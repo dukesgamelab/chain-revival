@@ -1,50 +1,76 @@
 class_name CommandBar
 extends Control
-## Bottom command bar inspired by Chain of Command.
-## For now it only exposes a "Run To" movement command.
+## Bottom command bar with one row per soldier (Chain of Command style).
 
-signal run_to_mode_changed(is_active: bool)
+signal soldier_selected(soldier_id: int)
+signal run_to_mode_changed(is_active: bool, soldier_id: int)
+signal save_requested
+signal load_requested
 
-@onready var _panel: PanelContainer = $Panel
-@onready var _run_to_button: Button = %RunToButton
+@onready var _rows: Array[SoldierCommandRow] = [
+	%Row1,
+	%Row2,
+	%Row3,
+	%Row4,
+]
 @onready var _status_label: Label = %StatusLabel
 
-var _run_to_active: bool = false
+var _selected_soldier_id: int = 1
+var _run_to_soldier_id: int = -1
 
 
 func _ready() -> void:
-	_run_to_button.toggled.connect(_on_run_to_toggled)
-	show_status("WASD moves selected soldier.")
+	for row in _rows:
+		row.run_to_toggled.connect(_on_row_run_to_toggled)
+
+	%SaveButton.pressed.connect(func() -> void: save_requested.emit())
+	%LoadButton.pressed.connect(func() -> void: load_requested.emit())
+
+	_select_soldier(1, false)
 
 
-func is_run_to_active() -> bool:
-	return _run_to_active
+func set_selected_soldier(soldier_id: int) -> void:
+	_select_soldier(soldier_id, false)
 
 
-## True when the mouse is over the bottom bar (clicks should go to UI, not the map).
-func is_pointer_over_bar() -> bool:
-	return _panel.get_global_rect().has_point(get_viewport().get_mouse_position())
-
-
-func set_run_to_active(is_active: bool) -> void:
-	_run_to_active = is_active
-	_run_to_button.set_pressed_no_signal(is_active)
-	run_to_mode_changed.emit(_run_to_active)
-	_update_status_for_mode()
+func clear_run_to_mode() -> void:
+	_run_to_soldier_id = -1
+	for row in _rows:
+		row.set_run_to_pressed(false)
+	run_to_mode_changed.emit(false, _selected_soldier_id)
+	_update_status()
 
 
 func show_status(text: String) -> void:
 	_status_label.text = text
 
 
-func _on_run_to_toggled(toggled_on: bool) -> void:
-	_run_to_active = toggled_on
-	run_to_mode_changed.emit(_run_to_active)
-	_update_status_for_mode()
-
-
-func _update_status_for_mode() -> void:
-	if _run_to_active:
-		show_status("Run To: click a destination tile.")
+func _on_row_run_to_toggled(soldier_id: int, is_pressed: bool) -> void:
+	if is_pressed:
+		# Only one Run To button stays pressed at a time.
+		for row in _rows:
+			if row.soldier_id != soldier_id:
+				row.set_run_to_pressed(false)
+		_run_to_soldier_id = soldier_id
+		_select_soldier(soldier_id, true)
+		run_to_mode_changed.emit(true, soldier_id)
 	else:
-		show_status("Command mode cleared.")
+		if _run_to_soldier_id == soldier_id:
+			_run_to_soldier_id = -1
+		run_to_mode_changed.emit(false, soldier_id)
+
+	_update_status()
+
+
+func _select_soldier(soldier_id: int, from_run_to: bool) -> void:
+	_selected_soldier_id = soldier_id
+	soldier_selected.emit(soldier_id)
+	if not from_run_to:
+		_update_status()
+
+
+func _update_status() -> void:
+	if _run_to_soldier_id > 0:
+		show_status("Soldier %d: Run To — click a destination tile." % _run_to_soldier_id)
+	else:
+		show_status("Soldier %d selected. Press Run To to move." % _selected_soldier_id)

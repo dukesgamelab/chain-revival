@@ -22,6 +22,11 @@ var _target_cell: Vector2i = Vector2i(-999, -999)
 
 
 func _ready() -> void:
+	rebuild_pathfinding()
+	queue_redraw()
+
+
+func rebuild_pathfinding() -> void:
 	_setup_astar()
 	queue_redraw()
 
@@ -56,7 +61,7 @@ func find_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
 	var raw_path := _astar.get_id_path(from_cell, to_cell)
 	var path: Array[Vector2i] = []
 	for cell in raw_path:
-		path.append(cell)
+		path.append(Vector2i(cell))
 	return path
 
 
