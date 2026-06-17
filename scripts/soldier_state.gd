@@ -27,6 +27,9 @@ var movement_mode: int = MovementModeClass.RUN
 var fire_control_state: int = FireControlStateClass.HOLD_FIRE
 var stress: float = 0.0
 var last_shot_msec: int = 0
+var fire_ready_after_msec: int = 0
+var engaged_target_team_id: int = -1
+var engaged_target_soldier_id: int = -1
 
 
 func _init(id: int = 1, start_cell: Vector2i = Vector2i.ZERO, team: int = Team.USA) -> void:
@@ -69,9 +72,25 @@ func activity_status_label() -> String:
 		return "Dead"
 	if is_moving:
 		return MovementModeClass.status_name(movement_mode)
+	if fire_ready_after_msec > Time.get_ticks_msec():
+		return "Aiming"
 	if position_state == PositionStateClass.DOWN:
 		return "Prone"
 	return "Idle"
+
+
+func set_engaged_target(target_team_id: int, target_soldier_id: int) -> void:
+	engaged_target_team_id = target_team_id
+	engaged_target_soldier_id = target_soldier_id
+
+
+func clear_engaged_target() -> void:
+	engaged_target_team_id = -1
+	engaged_target_soldier_id = -1
+
+
+func reset_fire_prep() -> void:
+	fire_ready_after_msec = 0
 
 
 func clear_path() -> void:
@@ -84,6 +103,9 @@ func assign_path(path: Array[Vector2i]) -> void:
 		return
 	current_path = path.duplicate()
 	is_moving = current_path.size() > 1
+	if is_moving:
+		reset_fire_prep()
+		clear_engaged_target()
 
 
 func to_dict() -> Dictionary:

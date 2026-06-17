@@ -15,6 +15,7 @@ const COVER_BASE_HIT_CHANCE := 0.50
 const MIN_HIT_CHANCE := 0.10
 const DISTANCE_PENALTY := 0.05
 const AUTO_FIRE_SCAN_INTERVAL := 0.5
+const FIRE_PREP_DELAY_SEC := 1.0
 
 
 static func resolve_shot(
@@ -30,6 +31,13 @@ static func resolve_shot(
 	result.target_id = target.soldier_id
 
 	if shooter.is_dead:
+		return result
+	if shooter.is_moving:
+		if not auto_engagement:
+			result.messages.append("Cannot fire while moving")
+		return result
+	if not _is_fire_prep_complete(shooter):
+		result.on_cooldown = true
 		return result
 	if target.is_dead:
 		result.messages.append("Target already dead")
@@ -262,18 +270,58 @@ static func try_auto_engagement(
 	var empty := CombatShotResult.new()
 	if shooter == null or shooter.is_dead:
 		return empty
+	if shooter.is_moving:
+		return empty
 	if not ignore_fire_control and shooter.fire_control_state != FireControlStateClass.FIRE_AT_WILL:
 		return empty
 	if shooter.ammo_current <= 0:
 		return empty
-	if not _can_fire_yet(shooter, shooter.get_weapon_data()):
-		return empty
 
-	var target := find_closest_visible_enemy(game_state, shooter)
+	var target: SoldierStateClass = null
+	if ignore_fire_control:
+		target = _get_engaged_target(game_state, shooter)
+	else:
+		target = find_closest_visible_enemy(game_state, shooter)
+
 	if target == null:
 		return empty
 
+	if not _ensure_fire_prep_started(shooter):
+		return empty
+	if not _can_fire_yet(shooter, shooter.get_weapon_data()):
+		return empty
+
 	return resolve_shot(game_state, shooter, target, true)
+
+
+static func begin_fire_prep(shooter: SoldierStateClass) -> void:
+	shooter.fire_ready_after_msec = Time.get_ticks_msec() + int(FIRE_PREP_DELAY_SEC * 1000.0)
+
+
+static func _ensure_fire_prep_started(shooter: SoldierStateClass) -> bool:
+	if _is_fire_prep_complete(shooter):
+		return true
+	if shooter.fire_ready_after_msec <= 0:
+		begin_fire_prep(shooter)
+	return false
+
+
+static func _is_fire_prep_complete(shooter: SoldierStateClass) -> bool:
+	if shooter.fire_ready_after_msec <= 0:
+		return false
+	return Time.get_ticks_msec() >= shooter.fire_ready_after_msec
+
+
+static func _get_engaged_target(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> SoldierStateClass:
+	if shooter.engaged_target_team_id < 0 or shooter.engaged_target_soldier_id < 0:
+		return null
+	var target := game_state.get_soldier(shooter.engaged_target_team_id, shooter.engaged_target_soldier_id)
+	if target == null or target.is_dead:
+		return null
+	return target
 
 
 ## Open LOS uses a high base chance; cover and distance reduce it more aggressively.

@@ -132,6 +132,12 @@ func _is_soldier_in_manual_fire_at(shooter: SoldierState) -> bool:
 	return shooter.soldier_id == _fire_at_soldier_id
 
 
+func _clear_manual_fire_at_targets() -> void:
+	for shooter in _get_manual_fire_at_shooters():
+		shooter.clear_engaged_target()
+		shooter.reset_fire_prep()
+
+
 func _affirm_fire_at_ui() -> void:
 	if not _fire_at_mode:
 		return
@@ -142,6 +148,7 @@ func _affirm_fire_at_ui() -> void:
 
 
 func _exit_fire_at_mode(message: String = "") -> void:
+	_clear_manual_fire_at_targets()
 	_fire_at_mode = false
 	_squad_fire_at_mode = false
 	_fire_at_engaged = false
@@ -432,6 +439,22 @@ func _refresh_all_views() -> void:
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
+			var is_selected: bool = (
+				soldier_state.team_id == active_team
+				and soldier_state.soldier_id == active_fireteam.selected_soldier_id
+			)
+			_sync_soldier_view(soldier_state.team_id, soldier_state.soldier_id, is_selected)
+
+	_ensure_active_selection_alive()
+	_refresh_command_bar()
+
+
+func _refresh_selection_marks() -> void:
+	var active_team: int = _session.active_team_id
+	var active_fireteam: Fireteam = _session.get_active_fireteam()
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
 			var view: Soldier = _get_view(soldier_state.team_id, soldier_state.soldier_id)
 			if view == null:
 				continue
@@ -439,10 +462,34 @@ func _refresh_all_views() -> void:
 				soldier_state.team_id == active_team
 				and soldier_state.soldier_id == active_fireteam.selected_soldier_id
 			)
-			view.sync_from_state(soldier_state, is_selected)
+			view.set_selected(is_selected)
 
-	_ensure_active_selection_alive()
-	_refresh_command_bar()
+
+func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false) -> void:
+	var soldier_state: SoldierState = _get_fireteam(team_id).get_soldier(soldier_id)
+	if soldier_state == null:
+		return
+	var view: Soldier = _get_view(team_id, soldier_id)
+	if view == null:
+		return
+	view.sync_from_state(soldier_state, is_selected)
+
+
+func _refresh_armed_movement_views(soldier_id: int) -> void:
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	var active_team: int = _session.active_team_id
+	if soldier_id == CommandBar.SQUAD_ID:
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if not soldier_state.is_alive():
+				continue
+			var is_selected := soldier_state.soldier_id == fireteam.selected_soldier_id
+			_sync_soldier_view(active_team, soldier_state.soldier_id, is_selected)
+		_refresh_command_bar()
+	elif soldier_id > 0:
+		var is_selected := soldier_id == fireteam.selected_soldier_id
+		_sync_soldier_view(active_team, soldier_id, is_selected)
+		_refresh_command_bar()
 
 
 func _refresh_command_bar() -> void:
@@ -454,12 +501,24 @@ func _refresh_command_bar() -> void:
 
 
 func _update_command_bar_hit_columns() -> void:
+	if not _should_update_hit_columns():
+		return
 	var fireteam: Fireteam = _session.get_active_fireteam()
 	var hit_pcts: Array = []
 	for state in fireteam.soldiers:
 		var soldier_state: SoldierState = state
 		hit_pcts.append(_hit_pct_for_command_row(soldier_state))
 	_command_bar.update_hit_columns(hit_pcts)
+
+
+func _should_update_hit_columns() -> bool:
+	if _fire_at_mode:
+		return true
+	for state in _session.get_active_fireteam().soldiers:
+		var soldier_state: SoldierState = state
+		if soldier_state.is_alive() and soldier_state.fire_control_state == FireControlStateClass.FIRE_AT_WILL:
+			return true
+	return false
 
 
 func _hit_pct_for_command_row(soldier_state: SoldierState) -> float:
@@ -731,19 +790,43 @@ func _apply_fire_command(cmd: FireCommand) -> void:
 		_command_bar.show_status("No available soldiers to fire.")
 		return
 
-	var summary_lines: Array[String] = []
+	var halted_any := false
 	for shooter in shooters:
-		var result: CombatShotResult = CombatSystem.resolve_shot(_game_state, shooter, target)
-		summary_lines.append_array(_finalize_shot_result(result, shooter, target))
+		if _halt_soldier_for_combat(shooter):
+			halted_any = true
+		shooter.set_engaged_target(cmd.target_team_id, cmd.target_soldier_id)
+		CombatSystem.begin_fire_prep(shooter)
+		fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
 
-	_ensure_active_selection_alive()
-	_refresh_all_views()
+	if halted_any and cmd.team_id == _session.active_team_id:
+		_iso_map.clear_path()
+		_command_bar.clear_move_targeting()
+		_move_targeting = false
+		_squad_move_targeting = false
+
+	for shooter in shooters:
+		var is_selected := (
+			shooter.team_id == _session.active_team_id
+			and shooter.soldier_id == _session.get_active_fireteam().selected_soldier_id
+		)
+		_sync_soldier_view(shooter.team_id, shooter.soldier_id, is_selected)
+
+	_refresh_command_bar()
 	_affirm_fire_at_ui()
+	_command_bar.show_status(
+		"Taking aim at %s Soldier %d — firing in %.0fs."
+		% [Team.display_name(target.team_id), target.soldier_id, CombatSystem.FIRE_PREP_DELAY_SEC],
+	)
 
-	if summary_lines.is_empty():
-		_command_bar.show_status("Could not fire.")
-	else:
-		_command_bar.show_status("\n".join(summary_lines.slice(-3)))
+
+func _halt_soldier_for_combat(state: SoldierState) -> bool:
+	var view: Soldier = _get_view(state.team_id, state.soldier_id)
+	var was_moving := state.is_moving or (view != null and view.is_moving())
+	if view != null and view.is_moving():
+		view.stop_movement()
+		state.grid_position = IsometricGrid.world_to_cell_at_point(view.position)
+	state.clear_path()
+	return was_moving
 
 
 func _finalize_shot_result(
@@ -788,15 +871,36 @@ func _on_soldier_movement_finished(team_id: int, soldier_id: int) -> void:
 	_log_move_complete(soldier_id, state, view)
 	if team_id == _session.active_team_id and not _any_active_team_soldier_moving():
 		_iso_map.clear_path()
-	_refresh_all_views()
+	var is_selected := (
+		team_id == _session.active_team_id
+		and soldier_id == _session.get_active_fireteam().selected_soldier_id
+	)
+	_sync_soldier_view(team_id, soldier_id, is_selected)
+	_ensure_active_selection_alive()
+	_refresh_command_bar()
 	_command_bar.show_status("%s Soldier %d move complete." % [Team.display_name(team_id), soldier_id])
 
 
 func _log_move_order(clicked_tile: Vector2i, path: Array[Vector2i], state: SoldierState) -> void:
 	var path_final := path[path.size() - 1] if not path.is_empty() else Vector2i(-1, -1)
+	call_deferred(
+		"_emit_move_order_log",
+		clicked_tile,
+		path_final,
+		state.grid_position,
+		_soldier_world_pos(state),
+	)
+
+
+func _emit_move_order_log(
+	clicked_tile: Vector2i,
+	path_final: Vector2i,
+	soldier_grid: Vector2i,
+	soldier_world: Vector2,
+) -> void:
 	GameLog.log_system(
 		"Move order: clicked=%s path_final=%s soldier_grid=%s soldier_world=%s"
-		% [clicked_tile, path_final, state.grid_position, _soldier_world_pos(state)],
+		% [clicked_tile, path_final, soldier_grid, soldier_world],
 	)
 
 
@@ -804,11 +908,20 @@ func _log_move_complete(soldier_id: int, state: SoldierState, view: Soldier) -> 
 	if state == null:
 		return
 	var world_pos := view.position if view != null else _soldier_world_pos(state)
+	call_deferred(
+		"_emit_move_complete_log",
+		soldier_id,
+		state.grid_position,
+		world_pos,
+	)
+
+
+func _emit_move_complete_log(soldier_id: int, grid_pos: Vector2i, world_pos: Vector2) -> void:
 	GameLog.log_system(
 		"Move complete: soldier=%d grid=%s world=%s cell_at_world=%s"
 		% [
 			soldier_id,
-			state.grid_position,
+			grid_pos,
 			world_pos,
 			IsometricGrid.world_to_cell_at_point(world_pos),
 		],
@@ -836,7 +949,8 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 		if soldier_id > 0:
 			_session.get_active_fireteam().select_soldier(soldier_id)
 		var arm_message := _arm_movement_mode(soldier_id, movement_mode)
-		_refresh_all_views()
+		_refresh_selection_marks()
+		_refresh_armed_movement_views(soldier_id)
 		if not arm_message.is_empty():
 			_command_bar.show_status(arm_message)
 

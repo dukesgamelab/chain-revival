@@ -18,11 +18,15 @@ extends Node2D
 var map_data: MapData = null
 
 var _astar := AStarGrid2D.new()
-var _path_cells: Array[Vector2i] = []
-var _target_cell: Vector2i = Vector2i(-999, -999)
+var _path_overlay: IsometricPathOverlay
 
 
 func _ready() -> void:
+	_path_overlay = IsometricPathOverlay.new()
+	_path_overlay.z_index = 2
+	_path_overlay.path_color = path_color
+	_path_overlay.target_color = target_color
+	add_child(_path_overlay)
 	queue_redraw()
 
 
@@ -30,6 +34,7 @@ func _ready() -> void:
 func apply_map_data(data: MapData) -> void:
 	map_data = data
 	rebuild_pathfinding()
+	_path_overlay.configure_bounds_check(func(cell: Vector2i) -> bool: return is_walkable(cell))
 	queue_redraw()
 
 
@@ -75,15 +80,13 @@ func find_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
 
 
 func show_path(cells: Array[Vector2i], target: Vector2i) -> void:
-	_path_cells = cells.duplicate()
-	_target_cell = target
-	queue_redraw()
+	_path_overlay.path_color = path_color
+	_path_overlay.target_color = target_color
+	_path_overlay.set_path(cells, target)
 
 
 func clear_path() -> void:
-	_path_cells.clear()
-	_target_cell = Vector2i(-999, -999)
-	queue_redraw()
+	_path_overlay.clear_path()
 
 
 func _draw() -> void:
@@ -92,7 +95,6 @@ func _draw() -> void:
 	_draw_grass_border()
 	_draw_tiles()
 	_draw_spawn_markers()
-	_draw_path_overlay()
 
 
 ## Decorative grass diamonds outside the playable map (not used for pathfinding).
@@ -160,17 +162,3 @@ func _draw_spawn_diamond(cell: Vector2i, color: Color) -> void:
 		inset.append(center + (point - center) * 0.72)
 	draw_colored_polygon(inset, color)
 
-
-func _draw_path_overlay() -> void:
-	for i in range(_path_cells.size()):
-		if i == 0:
-			continue
-		var cell := _path_cells[i]
-		var center := IsometricGrid.grid_to_world(cell)
-		var corners := IsometricGrid.diamond_corners(center)
-		draw_colored_polygon(corners, path_color)
-
-	if is_in_bounds(_target_cell) and is_walkable(_target_cell):
-		var target_center := IsometricGrid.grid_to_world(_target_cell)
-		var target_corners := IsometricGrid.diamond_corners(target_center)
-		draw_colored_polygon(target_corners, target_color)

@@ -111,10 +111,10 @@ func set_stress(stress: float) -> void:
 
 
 func set_hit_pct(hit_pct: float) -> void:
-	if hit_pct < 0.0:
-		_hit_label.text = "—"
-	else:
-		_hit_label.text = "%d%%" % int(round(clampf(hit_pct, 0.0, 100.0)))
+	var text := "—" if hit_pct < 0.0 else "%d%%" % int(round(clampf(hit_pct, 0.0, 100.0)))
+	if _hit_label.text == text:
+		return
+	_hit_label.text = text
 
 
 func set_row_enabled(enabled: bool) -> void:

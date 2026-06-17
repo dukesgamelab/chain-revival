@@ -24,6 +24,7 @@ var _is_moving: bool = false
 var _previous_grid_pos: Vector2i = Vector2i.ZERO
 var _is_dead: bool = false
 var _speed_multiplier: float = 1.0
+var _applied_position_state: int = -1
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _selection_marker: Polygon2D = $SelectionMarker
@@ -31,6 +32,10 @@ var _speed_multiplier: float = 1.0
 @onready var _dead_marker: Line2D = $DeadMarker
 @onready var _prone_marker: Line2D = $ProneMarker
 @onready var _weapon_badge: Label = $WeaponBadge
+
+
+func _ready() -> void:
+	set_process(false)
 
 
 ## Apply authoritative gameplay state to this sprite (position, facing, selection).
@@ -72,6 +77,7 @@ func _apply_team_color(is_selected: bool) -> void:
 
 
 func _apply_dead_visual(is_selected: bool) -> void:
+	_applied_position_state = -1
 	_facing_arrow.visible = false
 	_prone_marker.visible = false
 	_dead_marker.visible = true
@@ -85,6 +91,9 @@ func _apply_dead_visual(is_selected: bool) -> void:
 
 
 func _apply_position_visual(state: SoldierState) -> void:
+	if not _is_dead and state.position_state == _applied_position_state:
+		return
+	_applied_position_state = state.position_state
 	_sprite.position = Vector2.ZERO
 	if state.position_state == PositionState.DOWN:
 		_sprite.scale = Vector2(1.15, 0.42)
@@ -114,6 +123,7 @@ func stop_movement() -> void:
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
+	set_process(false)
 
 
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
@@ -127,6 +137,7 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	_previous_grid_pos = _path[0]
 	position = IsometricGrid.grid_to_world(_path[0])
 	_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
+	set_process(true)
 
 
 func _process(delta: float) -> void:
@@ -159,6 +170,7 @@ func _advance_path_step() -> void:
 
 	if _path_index >= _path.size():
 		_is_moving = false
+		set_process(false)
 		movement_finished.emit(team_id, soldier_id)
 	else:
 		_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
