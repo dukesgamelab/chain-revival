@@ -20,10 +20,12 @@ signal map_load_requested
 	%Row4,
 ]
 @onready var _status_label: Label = %StatusLabel
+@onready var _team_label: Label = %TeamLabel
 
 var _selected_soldier_id: int = 1
 var _run_to_soldier_id: int = -1
 var _fire_at_soldier_id: int = -1
+var _active_team_id: int = Team.BLUE
 
 
 func _ready() -> void:
@@ -40,6 +42,18 @@ func _ready() -> void:
 	%MapLoadButton.pressed.connect(func() -> void: map_load_requested.emit())
 
 	_select_soldier(1, false)
+
+
+func set_active_team(team_id: int) -> void:
+	_active_team_id = team_id
+	_team_label.text = Team.display_name(team_id)
+	_team_label.add_theme_color_override(
+		"font_color",
+		Team.COLOR_BLUE if team_id == Team.BLUE else Team.COLOR_RED,
+	)
+	clear_run_to_mode()
+	clear_fire_at_mode()
+	_update_status()
 
 
 func set_selected_soldier(soldier_id: int) -> void:
@@ -142,13 +156,14 @@ func _select_soldier(soldier_id: int, from_command: bool) -> void:
 
 
 func _update_status() -> void:
+	var team_name := Team.display_name(_active_team_id)
 	if _fire_at_soldier_id == SQUAD_ID:
-		show_status("Fireteam: Fire At — click tiles to aim. Click Fire At again to cancel.")
+		show_status("%s Fireteam: Fire At — click tiles to aim." % team_name)
 	elif _fire_at_soldier_id > 0:
-		show_status("Fire At — click tiles to aim Soldier %d. Click Fire At again to cancel." % _fire_at_soldier_id)
+		show_status("%s Fire At — aim Soldier %d." % [team_name, _fire_at_soldier_id])
 	elif _run_to_soldier_id == SQUAD_ID:
-		show_status("Fireteam: Run To — click tiles to move. Click Run To again to cancel.")
+		show_status("%s Fireteam: Run To — click tiles to move." % team_name)
 	elif _run_to_soldier_id > 0:
-		show_status("Soldier %d: Run To — click tiles to move. Click Run To again to cancel." % _run_to_soldier_id)
+		show_status("%s Soldier %d: Run To — click tiles to move." % [team_name, _run_to_soldier_id])
 	else:
-		show_status("Soldier %d selected. Use Fire At or Run To." % _selected_soldier_id)
+		show_status("%s team — Soldier %d selected. Press 1/2 to switch teams." % [team_name, _selected_soldier_id])

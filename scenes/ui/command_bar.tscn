@@ -34,6 +34,15 @@ theme_override_constants/margin_bottom = 8
 layout_mode = 2
 theme_override_constants/separation = 16
 
+[node name="TeamLabel" type="Label" parent="Panel/Margin/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.75, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Blue"
+vertical_alignment = 1
+
 [node name="SoldierRows" type="VBoxContainer" parent="Panel/Margin/HBox"]
 layout_mode = 2
 theme_override_constants/separation = 4

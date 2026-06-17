@@ -4,16 +4,18 @@ extends RefCounted
 
 const SOLDIER_COUNT := 4
 
+var team_id: int = Team.BLUE
 var soldiers: Array[SoldierState] = []
 var selected_soldier_id: int = 1
 
 
-func _init(start_cells: Array[Vector2i] = []) -> void:
+func _init(team: int = Team.BLUE, start_cells: Array[Vector2i] = []) -> void:
+	team_id = team
 	soldiers.clear()
 	for i in range(SOLDIER_COUNT):
 		var soldier_id := i + 1
 		var cell := start_cells[i] if i < start_cells.size() else Vector2i(10, 10)
-		soldiers.append(SoldierState.new(soldier_id, cell))
+		soldiers.append(SoldierState.new(soldier_id, cell, team_id))
 
 
 func get_soldier(soldier_id: int) -> SoldierState:
@@ -71,17 +73,20 @@ func to_dict() -> Dictionary:
 	for state in soldiers:
 		soldier_data.append(state.to_dict())
 	return {
+		"team_id": team_id,
 		"selected_soldier_id": selected_soldier_id,
 		"soldiers": soldier_data,
 	}
 
 
 func load_from_dict(data: Dictionary) -> void:
+	team_id = int(data.get("team_id", team_id))
 	selected_soldier_id = int(data.get("selected_soldier_id", 1))
 	var soldier_data: Array = data.get("soldiers", [])
 	for i in range(min(SOLDIER_COUNT, soldier_data.size())):
 		var entry: Dictionary = soldier_data[i]
 		var state := SoldierState.from_dict(entry)
 		state.soldier_id = i + 1
+		state.team_id = team_id
 		state.clear_path()
 		soldiers[i] = state

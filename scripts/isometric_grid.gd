@@ -26,7 +26,17 @@ static func grid_to_world(grid: Vector2i) -> Vector2:
 	return Vector2(x, y)
 
 
-## Convert a world position (anywhere on the map) to the grid cell underneath it.
+## Screen-space direction for a grid facing step (for arrow/sprite visuals only).
+static func grid_facing_to_screen(facing: Vector2i) -> Vector2:
+	return grid_to_world(facing) - grid_to_world(Vector2i.ZERO)
+
+
+## Line2D rotation in degrees (local +X arrow) for a grid facing on this isometric map.
+static func grid_facing_to_degrees(facing: Vector2i) -> float:
+	var screen_dir := grid_facing_to_screen(facing)
+	if screen_dir.length_squared() < 0.001:
+		return 0.0
+	return rad_to_deg(screen_dir.angle())
 ## Fast approximation — use world_to_cell_at_point() for mouse picking.
 static func world_to_grid(world: Vector2) -> Vector2i:
 	var half_w := TILE_WIDTH * 0.5

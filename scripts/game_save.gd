@@ -5,10 +5,10 @@ extends RefCounted
 const DEFAULT_PATH := "user://savegame.json"
 
 
-static func save_game(fireteam, map_data, file_path: String = DEFAULT_PATH) -> bool:
+static func save_game(session: GameSession, map_data: MapData, file_path: String = DEFAULT_PATH) -> bool:
 	var data := {
 		"map_name": map_data.map_name,
-		"fireteam": fireteam.to_dict(),
+		"session": session.to_dict(),
 	}
 	var json_text := JSON.stringify(data, "\t")
 	var file := FileAccess.open(file_path, FileAccess.WRITE)
@@ -19,7 +19,7 @@ static func save_game(fireteam, map_data, file_path: String = DEFAULT_PATH) -> b
 	return true
 
 
-static func load_game(fireteam, file_path: String = DEFAULT_PATH) -> bool:
+static func load_game(session: GameSession, file_path: String = DEFAULT_PATH) -> bool:
 	if not FileAccess.file_exists(file_path):
 		push_error("GameSave: no save file at %s" % file_path)
 		return false
@@ -34,6 +34,13 @@ static func load_game(fireteam, file_path: String = DEFAULT_PATH) -> bool:
 		return false
 
 	var data: Dictionary = parsed
-	var fireteam_data: Dictionary = data.get("fireteam", {})
-	fireteam.load_from_dict(fireteam_data)
+	if data.has("session"):
+		session.load_from_dict(data.get("session", {}))
+		return true
+
+	# Legacy single-fireteam save format.
+	var legacy: Dictionary = data.get("fireteam", {})
+	if legacy.is_empty():
+		return false
+	session.blue_team.load_from_dict(legacy)
 	return true
