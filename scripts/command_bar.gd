@@ -60,6 +60,15 @@ func set_selected_soldier(soldier_id: int) -> void:
 	_select_soldier(soldier_id, false)
 
 
+## Sync one command row with live soldier gameplay data.
+func sync_soldier_row(row_index: int, state: SoldierState) -> void:
+	if row_index < 0 or row_index >= _rows.size():
+		return
+	var row: SoldierCommandRow = _rows[row_index]
+	row.set_ammo(state.ammo_current)
+	row.set_row_enabled(state.is_alive())
+
+
 func clear_run_to_mode() -> void:
 	_run_to_soldier_id = -1
 	_squad_row.set_run_to_pressed(false)
@@ -149,6 +158,9 @@ func _on_row_fire_at_toggled(soldier_id: int, is_pressed: bool) -> void:
 
 
 func _select_soldier(soldier_id: int, from_command: bool) -> void:
+	var row_index := soldier_id - 1
+	if row_index >= 0 and row_index < _rows.size() and not _rows[row_index].is_interactive():
+		return
 	_selected_soldier_id = soldier_id
 	soldier_selected.emit(soldier_id)
 	if not from_command:
@@ -158,9 +170,9 @@ func _select_soldier(soldier_id: int, from_command: bool) -> void:
 func _update_status() -> void:
 	var team_name := Team.display_name(_active_team_id)
 	if _fire_at_soldier_id == SQUAD_ID:
-		show_status("%s Fireteam: Fire At — click tiles to aim." % team_name)
+		show_status("%s Fireteam: Fire At — click an enemy soldier." % team_name)
 	elif _fire_at_soldier_id > 0:
-		show_status("%s Fire At — aim Soldier %d." % [team_name, _fire_at_soldier_id])
+		show_status("%s Soldier %d: Fire At — click an enemy soldier." % [team_name, _fire_at_soldier_id])
 	elif _run_to_soldier_id == SQUAD_ID:
 		show_status("%s Fireteam: Run To — click tiles to move." % team_name)
 	elif _run_to_soldier_id > 0:

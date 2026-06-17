@@ -3,6 +3,7 @@ extends Node2D
 
 const SoldierScene := preload("res://scenes/soldier.tscn")
 const GameSessionClass := preload("res://scripts/game_session.gd")
+const GameStateClass := preload("res://scripts/game_state.gd")
 const GameSaveClass := preload("res://scripts/game_save.gd")
 const MapDataClass := preload("res://scripts/map_data.gd")
 
@@ -15,12 +16,14 @@ const MapDataClass := preload("res://scripts/map_data.gd")
 
 var _map_data = MapDataClass.create_default()
 var _session: GameSession = GameSessionClass.new([], [])
+var _game_state: GameState
 
 var _soldier_views: Dictionary = {}
 var _run_to_mode: bool = false
 var _squad_run_to_mode: bool = false
 var _fire_at_mode: bool = false
 var _squad_fire_at_mode: bool = false
+var _fire_at_soldier_id: int = 1
 var _block_edit_mode: bool = false
 
 
@@ -33,10 +36,9 @@ func _ready() -> void:
 	_iso_map.apply_map_data(_map_data)
 	_center_camera_on_map()
 	_spawn_all_soldier_views()
-	_refresh_all_views()
 	_command_bar.set_active_team(_session.active_team_id)
-	_command_bar.set_selected_soldier(_session.get_active_fireteam().selected_soldier_id)
-	_command_bar.show_status("Press 1 = Blue, 2 = Red. WASD pans. B = Block Edit.")
+	_refresh_all_views()
+	_command_bar.show_status("Press 1 = Blue, 2 = Red. Fire At: click enemies. Empty ground cancels.")
 
 
 func _load_map_data() -> void:
@@ -51,6 +53,7 @@ func _init_session_from_spawns() -> void:
 	if red_spawns.is_empty():
 		red_spawns = [Vector2i(33, 32), Vector2i(34, 32), Vector2i(35, 32), Vector2i(36, 32)]
 	_session = GameSessionClass.new(blue_spawns, red_spawns)
+	_game_state = GameStateClass.new(_session, _map_data)
 
 
 func _connect_command_bar() -> void:
@@ -92,15 +95,29 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if _fire_at_mode:
-		var face_cmd := FaceCommand.new()
-		face_cmd.team_id = _session.active_team_id
-		face_cmd.target_cell = target_cell
+		var target_soldier: SoldierState = _game_state.find_living_soldier_at_cell(target_cell)
+		if target_soldier == null:
+			_command_bar.clear_fire_at_mode()
+			_fire_at_mode = false
+			_squad_fire_at_mode = false
+			_command_bar.show_status("Targeting cancelled.")
+			get_viewport().set_input_as_handled()
+			return
+		if target_soldier.team_id == _session.active_team_id:
+			_command_bar.show_status("Cannot shoot friendlies.")
+			get_viewport().set_input_as_handled()
+			return
+
+		var fire_cmd := FireCommand.new()
+		fire_cmd.team_id = _session.active_team_id
+		fire_cmd.target_team_id = target_soldier.team_id
+		fire_cmd.target_soldier_id = target_soldier.soldier_id
 		if _squad_fire_at_mode:
-			face_cmd.scope = FaceCommand.Scope.SQUAD
+			fire_cmd.scope = FireCommand.Scope.SQUAD
 		else:
-			face_cmd.scope = FaceCommand.Scope.SINGLE
-			face_cmd.soldier_id = _session.get_active_fireteam().selected_soldier_id
-		_apply_face_command(face_cmd)
+			fire_cmd.scope = FireCommand.Scope.SINGLE
+			fire_cmd.soldier_id = _fire_at_soldier_id
+		_apply_fire_command(fire_cmd)
 		get_viewport().set_input_as_handled()
 		return
 
@@ -189,6 +206,24 @@ func _refresh_all_views() -> void:
 			)
 			view.sync_from_state(soldier_state, is_selected)
 
+	_ensure_active_selection_alive()
+	_refresh_command_bar()
+
+
+func _refresh_command_bar() -> void:
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	for i in range(fireteam.soldiers.size()):
+		var soldier_state: SoldierState = fireteam.soldiers[i]
+		_command_bar.sync_soldier_row(i, soldier_state)
+
+
+func _ensure_active_selection_alive() -> void:
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	var selected: SoldierState = fireteam.get_selected()
+	if selected == null or selected.is_dead:
+		fireteam.select_first_alive()
+		_command_bar.set_selected_soldier(fireteam.selected_soldier_id)
+
 
 func _view_key(team_id: int, soldier_id: int) -> String:
 	return Team.soldier_key(team_id, soldier_id)
@@ -265,6 +300,9 @@ func _execute_move_for_soldier(
 	state: SoldierState,
 	target_cell: Vector2i,
 ) -> Array[Vector2i]:
+	if state.is_dead:
+		return []
+
 	var view: Soldier = _get_view(state.team_id, state.soldier_id)
 	var start_cell: Vector2i = state.grid_position
 
@@ -289,62 +327,43 @@ func _execute_move_for_soldier(
 	return path
 
 
-## Apply a FaceCommand to the active team's soldier(s).
-func _apply_face_command(cmd: FaceCommand) -> void:
-	var fireteam := _get_fireteam(cmd.team_id)
+## Apply a FireCommand through CombatSystem (UI issues command, system resolves outcome).
+func _apply_fire_command(cmd: FireCommand) -> void:
+	var target: SoldierState = _game_state.get_soldier(cmd.target_team_id, cmd.target_soldier_id)
+	if target == null or target.is_dead:
+		_command_bar.show_status("Invalid target.")
+		return
 
-	if cmd.scope == FaceCommand.Scope.SQUAD:
-		var faced_count := 0
+	var fireteam: Fireteam = _get_fireteam(cmd.team_id)
+	var shooters: Array[SoldierState] = []
+	if cmd.scope == FireCommand.Scope.SQUAD:
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
-			if soldier_state.grid_position == cmd.target_cell:
-				continue
-			if fireteam.face_toward_tile(soldier_state.soldier_id, cmd.target_cell):
-				faced_count += 1
-		if faced_count == 0:
-			_command_bar.show_status("Click a different tile to choose facing.")
-			return
-		_refresh_all_views()
-		var selected_state: SoldierState = fireteam.get_selected()
-		if selected_state != null:
-			_log_facing_debug(selected_state, cmd.target_cell)
-		_command_bar.show_status(
-			"%s fireteam facing toward %s — click another tile to re-aim." % [Team.display_name(cmd.team_id), cmd.target_cell],
-		)
+			if soldier_state.is_alive():
+				shooters.append(soldier_state)
+	else:
+		var shooter: SoldierState = fireteam.get_soldier(cmd.soldier_id)
+		if shooter != null and shooter.is_alive():
+			shooters.append(shooter)
+
+	if shooters.is_empty():
+		_command_bar.show_status("No available soldiers to fire.")
 		return
 
-	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
-	if soldier_state == null:
-		return
-	if cmd.target_cell == soldier_state.grid_position:
-		_command_bar.show_status("Click a different tile to choose facing.")
-		return
-	if not fireteam.face_toward_tile(cmd.soldier_id, cmd.target_cell):
-		_command_bar.show_status("Could not face that direction.")
-		return
+	var summary_lines: Array[String] = []
+	for shooter in shooters:
+		var result: CombatShotResult = CombatSystem.resolve_shot(_game_state, shooter, target)
+		for line in result.messages:
+			GameLog.log_combat(line)
+			summary_lines.append(line)
 
+	_ensure_active_selection_alive()
 	_refresh_all_views()
-	_log_facing_debug(soldier_state, cmd.target_cell)
-	_command_bar.show_status(
-		"%s Soldier %d facing %s — click another tile to re-aim."
-		% [Team.display_name(cmd.team_id), cmd.soldier_id, FacingDirection.direction_name(soldier_state.facing_direction)],
-	)
 
-
-func _log_facing_debug(soldier_state: SoldierState, target_cell: Vector2i) -> void:
-	var grid_facing: Vector2i = soldier_state.facing_direction
-	var visual_dir: Vector2 = IsometricGrid.grid_facing_to_screen(grid_facing)
-	var debug_text := (
-		"Facing debug | pos=%s target=%s grid=%s visual=%s (%.0f°)"
-		% [
-			soldier_state.grid_position,
-			target_cell,
-			FacingDirection.direction_name(grid_facing),
-			visual_dir,
-			IsometricGrid.grid_facing_to_degrees(grid_facing),
-		]
-	)
-	print(debug_text)
+	if summary_lines.is_empty():
+		_command_bar.show_status("Could not fire.")
+	else:
+		_command_bar.show_status("\n".join(summary_lines.slice(-3)))
 
 
 func _on_soldier_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i) -> void:
@@ -374,6 +393,7 @@ func _on_run_to_mode_changed(is_active: bool, soldier_id: int) -> void:
 func _on_fire_at_mode_changed(is_active: bool, soldier_id: int) -> void:
 	_fire_at_mode = is_active
 	_squad_fire_at_mode = is_active and soldier_id == CommandBar.SQUAD_ID
+	_fire_at_soldier_id = soldier_id if is_active else 1
 	if is_active:
 		_block_edit_mode = false
 		_run_to_mode = false
@@ -408,6 +428,7 @@ func _on_map_save_requested() -> void:
 
 func _on_map_load_requested() -> void:
 	_map_data = MapDataClass.load_from_file()
+	_game_state.map_data = _map_data
 	_iso_map.apply_map_data(_map_data)
 	_camera.set_map_size(_map_data.width, _map_data.height)
 	_center_camera_on_map()

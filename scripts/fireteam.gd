@@ -30,21 +30,30 @@ func get_selected() -> SoldierState:
 
 
 func select_soldier(soldier_id: int) -> void:
-	if get_soldier(soldier_id) == null:
+	var state := get_soldier(soldier_id)
+	if state == null or state.is_dead:
 		return
 	selected_soldier_id = soldier_id
 
 
+func select_first_alive() -> void:
+	for state in soldiers:
+		var soldier_state: SoldierState = state
+		if soldier_state.is_alive():
+			selected_soldier_id = soldier_state.soldier_id
+			return
+
+
 func order_path(soldier_id: int, path: Array[Vector2i]) -> void:
 	var state := get_soldier(soldier_id)
-	if state == null:
+	if state == null or state.is_dead:
 		return
 	state.assign_path(path)
 
 
 func on_soldier_reached_tile(soldier_id: int, tile: Vector2i, step_from: Vector2i) -> void:
 	var state := get_soldier(soldier_id)
-	if state == null:
+	if state == null or state.is_dead:
 		return
 	state.grid_position = tile
 	if step_from != Vector2i.ZERO:
@@ -53,7 +62,7 @@ func on_soldier_reached_tile(soldier_id: int, tile: Vector2i, step_from: Vector2
 
 func face_toward_tile(soldier_id: int, target_cell: Vector2i) -> bool:
 	var state := get_soldier(soldier_id)
-	if state == null:
+	if state == null or state.is_dead:
 		return false
 	if target_cell == state.grid_position:
 		return false

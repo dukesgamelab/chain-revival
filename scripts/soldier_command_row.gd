@@ -13,11 +13,13 @@ signal fire_at_toggled(soldier_id: int, is_pressed: bool)
 @onready var _fire_at_button: Button = %FireAtButton
 @onready var _run_to_button: Button = %RunToButton
 
+var _row_enabled: bool = true
+
 
 func _ready() -> void:
 	_dots_label.text = _make_dots(soldier_id)
 	_ammo_label.text = str(ammo_count)
-	_fire_at_button.tooltip_text = "Face this soldier toward a map tile (shooting comes later)."
+	_fire_at_button.tooltip_text = "Enter targeting mode — click an enemy to shoot."
 	_fire_at_button.toggled.connect(_on_fire_at_toggled)
 	_run_to_button.toggled.connect(_on_run_to_toggled)
 
@@ -27,8 +29,25 @@ func set_run_to_pressed(is_pressed: bool) -> void:
 
 
 func set_fire_at_pressed(is_pressed: bool) -> void:
+	if not _row_enabled:
+		return
 	_fire_at_button.set_pressed_no_signal(is_pressed)
 	_update_fire_at_highlight(is_pressed)
+
+
+func set_ammo(ammo_current: int) -> void:
+	_ammo_label.text = str(ammo_current)
+
+
+func set_row_enabled(enabled: bool) -> void:
+	_row_enabled = enabled
+	_fire_at_button.disabled = not enabled
+	_run_to_button.disabled = not enabled
+	modulate = Color.WHITE if enabled else Color(0.45, 0.45, 0.45, 1.0)
+
+
+func is_interactive() -> bool:
+	return _row_enabled
 
 
 func is_run_to_pressed() -> bool:
@@ -40,10 +59,14 @@ func is_fire_at_pressed() -> bool:
 
 
 func _on_run_to_toggled(is_pressed: bool) -> void:
+	if not _row_enabled:
+		return
 	run_to_toggled.emit(soldier_id, is_pressed)
 
 
 func _on_fire_at_toggled(is_pressed: bool) -> void:
+	if not _row_enabled:
+		return
 	_update_fire_at_highlight(is_pressed)
 	fire_at_toggled.emit(soldier_id, is_pressed)
 

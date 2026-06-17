@@ -1,21 +1,28 @@
-[gd_scene load_steps=3 format=3 uid="uid://bqx7soldier01"]
-
-[ext_resource type="Script" path="res://scripts/soldier.gd" id="1_soldier"]
-[ext_resource type="Texture2D" path="res://assets/sprites/soldier_placeholder.svg" id="2_sprite"]
-
-[node name="Soldier" type="Node2D"]
-script = ExtResource("1_soldier")
-
-[node name="SelectionMarker" type="Polygon2D" parent="."]
-color = Color(0.9, 0.12, 0.12, 0.85)
-visible = false
-
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("2_sprite")
-offset = Vector2(0, -24)
-
-[node name="FacingArrow" type="Line2D" parent="."]
-position = Vector2(0, -30)
-width = 3.0
-default_color = Color(1, 0.95, 0.2, 1)
-points = PackedVector2Array(0, 0, 14, 0)
+[gd_scene load_steps=3 format=3 uid="uid://bqx7soldier01"]
+
+[ext_resource type="Script" path="res://scripts/soldier.gd" id="1_soldier"]
+[ext_resource type="Texture2D" path="res://assets/sprites/soldier_placeholder.svg" id="2_sprite"]
+
+[node name="Soldier" type="Node2D"]
+script = ExtResource("1_soldier")
+
+[node name="SelectionMarker" type="Polygon2D" parent="."]
+color = Color(0.9, 0.12, 0.12, 0.85)
+visible = false
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_sprite")
+offset = Vector2(0, -24)
+
+[node name="FacingArrow" type="Line2D" parent="."]
+position = Vector2(0, -30)
+width = 3.0
+default_color = Color(1, 0.95, 0.2, 1)
+points = PackedVector2Array(0, 0, 14, 0)
+
+[node name="DeadMarker" type="Line2D" parent="."]
+visible = false
+position = Vector2(0, -28)
+width = 4.0
+default_color = Color(0.15, 0.15, 0.15, 1)
+points = PackedVector2Array(-10, -10, 10, 10, 0, 0, -10, 10, 10, -10)

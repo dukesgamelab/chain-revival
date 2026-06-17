@@ -25,6 +25,7 @@ window/stretch/aspect="expand"
 
 [autoload]
 
+AudioManager="*res://scenes/audio_manager.tscn"
 GameLog="*res://scripts/game_log.gd"
 
 [input]
