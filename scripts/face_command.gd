@@ -1,6 +1,6 @@
 class_name FaceCommand
 extends RefCounted
-## Multiplayer-ready facing order issued by UI (Fire At).
+## Multiplayer-ready facing order issued by UI (Face button).
 
 enum Scope { SINGLE, SQUAD }
 

@@ -3,6 +3,9 @@ extends RefCounted
 ## Pure gameplay data for one soldier. No rendering references.
 
 const DEFAULT_AMMO_MAX := 200
+const MovementModeClass := preload("res://scripts/movement_mode.gd")
+const PositionStateClass := preload("res://scripts/position_state.gd")
+const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 
 var soldier_id: int = 1
 var team_id: int = Team.BLUE
@@ -13,6 +16,9 @@ var is_moving: bool = false
 var ammo_current: int = DEFAULT_AMMO_MAX
 var ammo_max: int = DEFAULT_AMMO_MAX
 var is_dead: bool = false
+var position_state: int = PositionStateClass.UP
+var movement_mode: int = MovementModeClass.RUN
+var fire_control_state: int = FireControlStateClass.FIRE_AT_WILL
 
 
 func _init(id: int = 1, start_cell: Vector2i = Vector2i.ZERO, team: int = Team.BLUE) -> void:
@@ -50,6 +56,9 @@ func to_dict() -> Dictionary:
 		"ammo_current": ammo_current,
 		"ammo_max": ammo_max,
 		"is_dead": is_dead,
+		"position_state": position_state,
+		"movement_mode": movement_mode,
+		"fire_control_state": fire_control_state,
 	}
 
 
@@ -65,4 +74,7 @@ static func from_dict(data: Dictionary) -> SoldierState:
 	state.ammo_current = int(data.get("ammo_current", DEFAULT_AMMO_MAX))
 	state.ammo_max = int(data.get("ammo_max", DEFAULT_AMMO_MAX))
 	state.is_dead = bool(data.get("is_dead", false))
+	state.position_state = int(data.get("position_state", PositionStateClass.UP))
+	state.movement_mode = int(data.get("movement_mode", MovementModeClass.RUN))
+	state.fire_control_state = int(data.get("fire_control_state", FireControlStateClass.FIRE_AT_WILL))
 	return state

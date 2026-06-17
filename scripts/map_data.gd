@@ -1,58 +1,87 @@
 class_name MapData
 extends RefCounted
-## Pure map gameplay data: size, blocked tiles, and team spawn points.
-## Kept separate from scene nodes so maps can be shared in multiplayer later.
+## Pure map gameplay data: size, map objects, and team spawn points.
 
 const DEFAULT_FILE := "res://maps/test_map.json"
 const DEFAULT_WIDTH := 60
 const DEFAULT_HEIGHT := 60
+const MapObjectRegistryClass := preload("res://scripts/map_object_registry.gd")
 
 var map_name: String = "test_map"
 var width: int = DEFAULT_WIDTH
 var height: int = DEFAULT_HEIGHT
-var blocked_tiles: Array[Vector2i] = []
 var team_1_spawn_points: Array[Vector2i] = []
 var team_2_spawn_points: Array[Vector2i] = []
 
-var _blocked_lookup: Dictionary = {}
+## Legacy list kept in sync with movement-blocking objects for older saves.
+var blocked_tiles: Array[Vector2i] = []
+
+var _object_lookup: Dictionary = {}
 
 
 func _init() -> void:
-	_rebuild_blocked_lookup()
+	_rebuild_blocked_tiles_list()
 
 
 func is_in_bounds(cell: Vector2i) -> bool:
 	return cell.x >= 0 and cell.y >= 0 and cell.x < width and cell.y < height
 
 
+func get_object_type(cell: Vector2i) -> String:
+	return str(_object_lookup.get(cell, ""))
+
+
+func get_object_def(cell: Vector2i) -> MapObjectDef:
+	var type_id := get_object_type(cell)
+	if type_id.is_empty():
+		return null
+	return MapObjectRegistryClass.get_def(type_id)
+
+
+func has_object(cell: Vector2i) -> bool:
+	return _object_lookup.has(cell)
+
+
 func is_blocked(cell: Vector2i) -> bool:
-	return _blocked_lookup.has(cell)
+	var object_def := get_object_def(cell)
+	return object_def != null and object_def.blocks_movement
 
 
 func is_walkable(cell: Vector2i) -> bool:
 	return is_in_bounds(cell) and not is_blocked(cell)
 
 
-## Flip a tile between walkable and blocked. Returns the new blocked state.
+func set_object(cell: Vector2i, type_id: String) -> void:
+	if not is_in_bounds(cell):
+		return
+	if type_id.is_empty():
+		clear_object(cell)
+		return
+	_object_lookup[cell] = type_id
+	_rebuild_blocked_tiles_list()
+
+
+func clear_object(cell: Vector2i) -> void:
+	_object_lookup.erase(cell)
+	_rebuild_blocked_tiles_list()
+
+
+## Flip a tree (or other default blocked object) on this tile. Returns true if now blocked.
 func toggle_blocked(cell: Vector2i) -> bool:
 	if not is_in_bounds(cell):
 		return false
 	if is_blocked(cell):
-		set_blocked(cell, false)
+		clear_object(cell)
 		return false
-	set_blocked(cell, true)
+	set_object(cell, MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE)
 	return true
 
 
 func set_blocked(cell: Vector2i, blocked: bool) -> void:
-	if not is_in_bounds(cell):
-		return
-	if blocked and not is_blocked(cell):
-		blocked_tiles.append(cell)
-		_blocked_lookup[cell] = true
-	elif not blocked and is_blocked(cell):
-		blocked_tiles.erase(cell)
-		_blocked_lookup.erase(cell)
+	if blocked:
+		set_object(cell, MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE)
+	else:
+		clear_object(cell)
 
 
 func to_dict() -> Dictionary:
@@ -60,6 +89,7 @@ func to_dict() -> Dictionary:
 		"map_name": map_name,
 		"width": width,
 		"height": height,
+		"map_objects": _objects_to_json(),
 		"blocked_tiles": _cells_to_json(blocked_tiles),
 		"team_1_spawn_points": _cells_to_json(team_1_spawn_points),
 		"team_2_spawn_points": _cells_to_json(team_2_spawn_points),
@@ -71,14 +101,21 @@ static func from_dict(data: Dictionary) -> MapData:
 	map_data.map_name = str(data.get("map_name", "test_map"))
 	map_data.width = int(data.get("width", DEFAULT_WIDTH))
 	map_data.height = int(data.get("height", DEFAULT_HEIGHT))
-	map_data.blocked_tiles = _cells_from_json(data.get("blocked_tiles", []))
 	map_data.team_1_spawn_points = _cells_from_json(data.get("team_1_spawn_points", []))
 	map_data.team_2_spawn_points = _cells_from_json(data.get("team_2_spawn_points", []))
-	map_data._rebuild_blocked_lookup()
+	map_data._object_lookup.clear()
+
+	var raw_objects: Variant = data.get("map_objects", [])
+	if raw_objects is Array and not raw_objects.is_empty():
+		map_data._load_objects_from_json(raw_objects)
+	else:
+		for cell in _cells_from_json(data.get("blocked_tiles", [])):
+			map_data.set_object(cell, MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE)
+
+	map_data._rebuild_blocked_tiles_list()
 	return map_data
 
 
-## Default map used when no JSON file exists yet.
 static func create_default() -> MapData:
 	var map_data := MapData.new()
 	map_data.map_name = "test_map"
@@ -96,16 +133,15 @@ static func create_default() -> MapData:
 		Vector2i(35, 32),
 		Vector2i(36, 32),
 	]
-	map_data.blocked_tiles = generate_tree_obstacles(
+	for cell in generate_tree_obstacles(
 		map_data.width,
 		map_data.height,
 		map_data.team_1_spawn_points + map_data.team_2_spawn_points,
-	)
-	map_data._rebuild_blocked_lookup()
+	):
+		map_data.set_object(cell, MapObjectRegistryClass.TYPE_TREE)
 	return map_data
 
 
-## Place static tree groves across the map (blocked tiles). Deterministic layout.
 static func generate_tree_obstacles(
 	map_width: int,
 	map_height: int,
@@ -142,7 +178,6 @@ static func generate_tree_obstacles(
 	for center in grove_centers:
 		for dx in range(-1, 2):
 			for dy in range(-1, 2):
-				# Skip some corners so groves look less like solid squares.
 				if absi(dx) == 1 and absi(dy) == 1 and (center.x + center.y) % 2 == 0:
 					continue
 				var cell: Vector2i = center + Vector2i(dx, dy)
@@ -193,6 +228,31 @@ static func load_from_file(file_path: String = DEFAULT_FILE) -> MapData:
 	return from_dict(parsed)
 
 
+func _objects_to_json() -> Array:
+	var result: Array = []
+	for cell in _object_lookup.keys():
+		var type_id: String = _object_lookup[cell]
+		result.append({"x": cell.x, "y": cell.y, "type": type_id})
+	return result
+
+
+func _load_objects_from_json(raw: Array) -> void:
+	_object_lookup.clear()
+	for entry in raw:
+		if entry is Dictionary:
+			var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
+			var type_id := str(entry.get("type", MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE))
+			if is_in_bounds(cell):
+				_object_lookup[cell] = type_id
+
+
+func _rebuild_blocked_tiles_list() -> void:
+	blocked_tiles.clear()
+	for cell in _object_lookup.keys():
+		if is_blocked(cell):
+			blocked_tiles.append(cell)
+
+
 static func _cells_to_json(cells: Array[Vector2i]) -> Array:
 	var result: Array = []
 	for cell in cells:
@@ -207,9 +267,3 @@ static func _cells_from_json(raw: Variant) -> Array[Vector2i]:
 			if entry is Dictionary:
 				cells.append(Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0))))
 	return cells
-
-
-func _rebuild_blocked_lookup() -> void:
-	_blocked_lookup.clear()
-	for cell in blocked_tiles:
-		_blocked_lookup[cell] = true

@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://c14uyvmy1frdd" path="res://scenes/ui/command_bar.tscn" id="3_cmdbar"]
 [ext_resource type="Script" path="res://scripts/map_camera.gd" id="4_camera"]
 [ext_resource type="Script" path="res://scripts/map_background.gd" id="5_bg"]
+[ext_resource type="Script" path="res://scripts/los_visualizer.gd" id="6_losviz"]
 
 [node name="Main" type="Node2D" unique_id=358126869]
 script = ExtResource("1_main")
@@ -19,6 +20,12 @@ script = ExtResource("5_bg")
 script = ExtResource("2_isomap")
 
 [node name="Soldiers" type="Node2D" parent="World" unique_id=1271929810]
+
+[node name="Tracers" type="Node2D" parent="World"]
+z_index = 8
+
+[node name="LosVisualizer" type="Node2D" parent="World"]
+script = ExtResource("6_losviz")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=419418723]
 zoom = Vector2(0.55, 0.55)

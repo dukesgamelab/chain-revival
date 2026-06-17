@@ -1,15 +1,13 @@
 class_name LineOfFire
 extends RefCounted
-## Grid line-of-fire checks for combat (trees / blocked tiles block shots).
+## Grid line-of-fire helpers. Blocking checks delegate to LOSSystem.
+
+const LOSSystemClass := preload("res://scripts/los_system.gd")
+const MapDataClass := preload("res://scripts/map_data.gd")
 
 
-static func is_blocked(from_cell: Vector2i, to_cell: Vector2i, map_data: MapData) -> bool:
-	for cell in grid_line(from_cell, to_cell):
-		if cell == from_cell or cell == to_cell:
-			continue
-		if map_data.is_blocked(cell):
-			return true
-	return false
+static func is_blocked(from_cell: Vector2i, to_cell: Vector2i, map_data: MapDataClass) -> bool:
+	return LOSSystemClass.is_shot_blocked(from_cell, to_cell, map_data)
 
 
 ## Bresenham line through grid cells from start to end (inclusive).

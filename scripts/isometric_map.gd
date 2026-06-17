@@ -131,7 +131,11 @@ func _draw_tiles() -> void:
 			var corners := IsometricGrid.diamond_corners(center)
 
 			if map_data.is_blocked(cell):
-				draw_colored_polygon(corners, blocked_color)
+				var object_def := map_data.get_object_def(cell)
+				var fill := blocked_color
+				if object_def != null and object_def.provides_cover:
+					fill = blocked_color.lerp(Color(0.22, 0.48, 0.18, 1.0), 0.25)
+				draw_colored_polygon(corners, fill)
 				draw_polyline(corners, blocked_outline, 1.0, true)
 			else:
 				var fill := tile_color_a if (x + y) % 2 == 0 else tile_color_b

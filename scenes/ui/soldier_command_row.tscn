@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/soldier_command_row.gd" id="1_row"]
 
 [node name="SoldierCommandRow" type="HBoxContainer"]
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 script = ExtResource("1_row")
 
 [node name="DotPanel" type="PanelContainer" parent="."]
@@ -34,14 +34,54 @@ vertical_alignment = 1
 
 [node name="FireAtButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 24)
+custom_minimum_size = Vector2(52, 24)
 layout_mode = 2
 toggle_mode = true
 text = "Fire At"
 
+[node name="HoldFireButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+text = "Hold Fire"
+
+[node name="FireAtWillButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(68, 24)
+layout_mode = 2
+text = "Fire At Will"
+
 [node name="RunToButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 24)
+custom_minimum_size = Vector2(52, 24)
 layout_mode = 2
 toggle_mode = true
 text = "Run To"
+
+[node name="WalkToButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 24)
+layout_mode = 2
+toggle_mode = true
+text = "Walk To"
+
+[node name="CrawlToButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+toggle_mode = true
+text = "Crawl To"
+
+[node name="FaceButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 24)
+layout_mode = 2
+toggle_mode = true
+text = "Face"
+
+[node name="PositionButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 24)
+layout_mode = 2
+toggle_mode = true
+text = "Down"
