@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bqx7soldier01"]
+[gd_scene load_steps=3 format=3 uid="uid://bqx7soldier01"]
 
 [ext_resource type="Script" path="res://scripts/soldier.gd" id="1_soldier"]
 [ext_resource type="Texture2D" path="res://assets/sprites/soldier_placeholder.svg" id="2_sprite"]
@@ -6,6 +6,16 @@
 [node name="Soldier" type="Node2D"]
 script = ExtResource("1_soldier")
 
+[node name="SelectionMarker" type="Polygon2D" parent="."]
+color = Color(0.9, 0.12, 0.12, 0.85)
+visible = false
+
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_sprite")
 offset = Vector2(0, -24)
+
+[node name="ClickArea" type="Area2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ClickArea"]
