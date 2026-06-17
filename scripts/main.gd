@@ -34,6 +34,7 @@ var _move_soldier_id: int = 1
 var _fire_at_mode: bool = false
 var _squad_fire_at_mode: bool = false
 var _fire_at_soldier_id: int = 1
+var _fire_at_engaged: bool = false
 var _face_mode: bool = false
 var _face_soldier_id: int = 1
 var _block_edit_mode: bool = false
@@ -52,7 +53,7 @@ func _ready() -> void:
 	_log_fireteam_loadouts()
 	_command_bar.set_active_team(_session.active_team_id)
 	_refresh_all_views()
-	_command_bar.show_status("Press 1 = USA, 2 = Germany. Fire At: click enemies or auto-engages. Right-click cancels.")
+	_command_bar.show_status("Press 1 = USA, 2 = Germany. Fire At: click an enemy to open fire. Right-click cancels.")
 
 
 func _log_fireteam_loadouts() -> void:
@@ -74,7 +75,7 @@ func _process(delta: float) -> void:
 	if _auto_fire_timer < CombatSystem.AUTO_FIRE_SCAN_INTERVAL:
 		return
 	_auto_fire_timer = 0.0
-	if _fire_at_mode:
+	if _fire_at_mode and _fire_at_engaged:
 		_process_fire_at_mode()
 	_process_fire_at_will()
 
@@ -122,7 +123,7 @@ func _get_manual_fire_at_shooters() -> Array[SoldierState]:
 
 
 func _is_soldier_in_manual_fire_at(shooter: SoldierState) -> bool:
-	if not _fire_at_mode or shooter.team_id != _session.active_team_id:
+	if not _fire_at_mode or not _fire_at_engaged or shooter.team_id != _session.active_team_id:
 		return false
 	if _squad_fire_at_mode:
 		return true
@@ -141,7 +142,9 @@ func _affirm_fire_at_ui() -> void:
 func _exit_fire_at_mode(message: String = "") -> void:
 	_fire_at_mode = false
 	_squad_fire_at_mode = false
+	_fire_at_engaged = false
 	_los_visualizer.hide_preview()
+	_command_bar.set_fire_at_engaged(false)
 	_command_bar.clear_fire_at_mode()
 	if not message.is_empty():
 		_command_bar.show_status(message)
@@ -300,6 +303,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			fire_cmd.scope = FireCommand.Scope.SINGLE
 			fire_cmd.soldier_id = _fire_at_soldier_id
 		_apply_fire_command(fire_cmd)
+		_begin_fire_at_engagement()
 		get_viewport().set_input_as_handled()
 		return
 
@@ -336,6 +340,7 @@ func _switch_active_team(team_id: int) -> void:
 	_squad_move_targeting = false
 	_fire_at_mode = false
 	_squad_fire_at_mode = false
+	_fire_at_engaged = false
 	_face_mode = false
 	_command_bar.set_active_team(team_id)
 	var fireteam: Fireteam = _session.get_active_fireteam()
@@ -355,6 +360,7 @@ func _toggle_block_edit_mode() -> void:
 		_squad_move_targeting = false
 		_fire_at_mode = false
 		_squad_fire_at_mode = false
+		_fire_at_engaged = false
 		_face_mode = false
 		_command_bar.show_status("Block Edit ON — click tiles to toggle walls. Press B to exit.")
 	else:
@@ -704,6 +710,7 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 		_block_edit_mode = false
 		_fire_at_mode = false
 		_squad_fire_at_mode = false
+		_fire_at_engaged = false
 		_face_mode = false
 		if soldier_id > 0:
 			_session.get_active_fireteam().select_soldier(soldier_id)
@@ -713,20 +720,32 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 			_command_bar.show_status(arm_message)
 
 
+func _begin_fire_at_engagement() -> void:
+	if _fire_at_engaged:
+		return
+	_fire_at_engaged = true
+	_auto_fire_timer = CombatSystem.AUTO_FIRE_SCAN_INTERVAL
+	_command_bar.set_fire_at_engaged(true)
+	_affirm_fire_at_ui()
+
+
 func _on_fire_at_mode_changed(is_active: bool, soldier_id: int) -> void:
 	_fire_at_mode = is_active
 	_squad_fire_at_mode = is_active and soldier_id == CommandBar.SQUAD_ID
 	_fire_at_soldier_id = soldier_id if is_active else 1
 	if is_active:
+		_fire_at_engaged = false
+		_command_bar.set_fire_at_engaged(false)
 		_block_edit_mode = false
 		_move_targeting = false
 		_squad_move_targeting = false
 		_face_mode = false
-		_auto_fire_timer = CombatSystem.AUTO_FIRE_SCAN_INTERVAL
 		if soldier_id > 0:
 			_session.get_active_fireteam().select_soldier(soldier_id)
 			_refresh_all_views()
 	else:
+		_fire_at_engaged = false
+		_command_bar.set_fire_at_engaged(false)
 		_los_visualizer.hide_preview()
 
 
@@ -739,6 +758,7 @@ func _on_face_mode_changed(is_active: bool, soldier_id: int) -> void:
 		_squad_move_targeting = false
 		_fire_at_mode = false
 		_squad_fire_at_mode = false
+		_fire_at_engaged = false
 		if soldier_id > 0:
 			_session.get_active_fireteam().select_soldier(soldier_id)
 			_refresh_all_views()

@@ -9,10 +9,10 @@ const GERMANY := 2
 const BLUE := USA
 const RED := GERMANY
 
-const COLOR_USA := Color(0.35, 0.72, 0.38, 1.0)
-const COLOR_GERMANY := Color(0.58, 0.58, 0.62, 1.0)
-const COLOR_USA_SELECTED := Color(0.50, 0.88, 0.52, 1.0)
-const COLOR_GERMANY_SELECTED := Color(0.72, 0.72, 0.76, 1.0)
+const COLOR_USA := Color(0.24, 0.55, 0.25, 1.0)
+const COLOR_GERMANY := Color(0.43, 0.43, 0.47, 1.0)
+const COLOR_USA_SELECTED := Color(0.32, 0.68, 0.34, 1.0)
+const COLOR_GERMANY_SELECTED := Color(0.58, 0.58, 0.62, 1.0)
 
 const COLOR_BLUE := COLOR_USA
 const COLOR_RED := COLOR_GERMANY

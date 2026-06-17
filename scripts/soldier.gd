@@ -2,6 +2,9 @@ class_name Soldier
 extends Node2D
 ## Visual representation of one soldier. Reads gameplay data from SoldierState via sync_from_state().
 
+const TEXTURE_USA := preload("res://assets/sprites/soldier_usa.svg")
+const TEXTURE_GERMANY := preload("res://assets/sprites/soldier_germany.svg")
+
 signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i)
 signal movement_finished(team_id: int, soldier_id: int)
 
@@ -57,7 +60,11 @@ func set_selected(is_selected: bool) -> void:
 
 
 func _apply_team_color(is_selected: bool) -> void:
-	_sprite.modulate = Team.soldier_color(team_id, is_selected)
+	_sprite.texture = TEXTURE_USA if team_id == Team.USA else TEXTURE_GERMANY
+	if is_selected:
+		_sprite.modulate = Color(1.14, 1.14, 1.08, 1.0)
+	else:
+		_sprite.modulate = Color.WHITE
 
 
 func _apply_dead_visual(is_selected: bool) -> void:
@@ -68,6 +75,7 @@ func _apply_dead_visual(is_selected: bool) -> void:
 	_selection_marker.visible = false
 	_sprite.scale = Vector2.ONE
 	_sprite.position = Vector2(0, -24)
+	_sprite.texture = TEXTURE_USA if team_id == Team.USA else TEXTURE_GERMANY
 	_sprite.modulate = Color(0.38, 0.38, 0.38, 0.85)
 
 

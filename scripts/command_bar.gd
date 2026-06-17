@@ -32,6 +32,7 @@ var _fire_at_soldier_id: int = -1
 var _face_soldier_id: int = -1
 var _active_team_id: int = Team.USA
 var _soldier_weapon_names: Array[String] = ["", "", "", ""]
+var _fire_at_engaged: bool = false
 
 
 func _ready() -> void:
@@ -103,6 +104,7 @@ func clear_move_targeting() -> void:
 
 func clear_fire_at_mode() -> void:
 	_fire_at_soldier_id = -1
+	_fire_at_engaged = false
 	_squad_row.set_fire_at_pressed(false)
 	for row in _rows:
 		row.set_fire_at_pressed(false)
@@ -122,6 +124,11 @@ func affirm_fire_at_pressed(squad: bool, soldier_id: int) -> void:
 		_squad_row.set_fire_at_pressed(false)
 		for row in _rows:
 			row.set_fire_at_pressed(row.soldier_id == soldier_id)
+	_update_status()
+
+
+func set_fire_at_engaged(engaged: bool) -> void:
+	_fire_at_engaged = engaged
 	_update_status()
 
 
@@ -272,12 +279,21 @@ func _movement_label(mode: int) -> String:
 func _update_status() -> void:
 	var team_name := Team.display_name(_active_team_id)
 	if _fire_at_soldier_id == SQUAD_ID:
-		show_status("%s Fireteam: Fire At — click enemies or auto-engages. Right-click cancels." % team_name)
+		if _fire_at_engaged:
+			show_status("%s Fireteam: Fire At — auto-engaging in-range enemies. Right-click cancels." % team_name)
+		else:
+			show_status("%s Fireteam: Fire At — click an enemy to open fire. Right-click cancels." % team_name)
 	elif _fire_at_soldier_id > 0:
-		show_status(
-			"%s Soldier %d: Fire At — click enemies or auto-engages. Right-click cancels."
-			% [team_name, _fire_at_soldier_id],
-		)
+		if _fire_at_engaged:
+			show_status(
+				"%s Soldier %d: Fire At — auto-engaging in-range enemies. Right-click cancels."
+				% [team_name, _fire_at_soldier_id],
+			)
+		else:
+			show_status(
+				"%s Soldier %d: Fire At — click an enemy to open fire. Right-click cancels."
+				% [team_name, _fire_at_soldier_id],
+			)
 	elif _face_soldier_id > 0:
 		show_status("%s Soldier %d: Face — click a tile." % [team_name, _face_soldier_id])
 	elif _move_target_soldier_id == SQUAD_ID:
