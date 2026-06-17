@@ -143,12 +143,12 @@ func _select_soldier(soldier_id: int, from_command: bool) -> void:
 
 func _update_status() -> void:
 	if _fire_at_soldier_id == SQUAD_ID:
-		show_status("Fireteam: Fire At — click a map tile to face all soldiers.")
+		show_status("Fireteam: Fire At — click tiles to aim. Click Fire At again to cancel.")
 	elif _fire_at_soldier_id > 0:
-		show_status("Fire At — click a map tile to face Soldier %d." % _fire_at_soldier_id)
+		show_status("Fire At — click tiles to aim Soldier %d. Click Fire At again to cancel." % _fire_at_soldier_id)
 	elif _run_to_soldier_id == SQUAD_ID:
-		show_status("Fireteam: Run To — click a destination tile for all soldiers.")
+		show_status("Fireteam: Run To — click tiles to move. Click Run To again to cancel.")
 	elif _run_to_soldier_id > 0:
-		show_status("Soldier %d: Run To — click a destination tile." % _run_to_soldier_id)
+		show_status("Soldier %d: Run To — click tiles to move. Click Run To again to cancel." % _run_to_soldier_id)
 	else:
 		show_status("Soldier %d selected. Use Fire At or Run To." % _selected_soldier_id)

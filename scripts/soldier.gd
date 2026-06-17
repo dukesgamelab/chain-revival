@@ -7,7 +7,7 @@ signal movement_finished(soldier_id: int)
 
 var soldier_id: int = 1
 
-@export var move_speed := 140.0
+@export var move_speed := 95.0
 
 var _path: Array[Vector2i] = []
 var _path_index: int = 0

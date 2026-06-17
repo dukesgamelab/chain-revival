@@ -27,12 +27,44 @@ static func grid_to_world(grid: Vector2i) -> Vector2:
 
 
 ## Convert a world position (anywhere on the map) to the grid cell underneath it.
+## Fast approximation — use world_to_cell_at_point() for mouse picking.
 static func world_to_grid(world: Vector2) -> Vector2i:
 	var half_w := TILE_WIDTH * 0.5
 	var half_h := TILE_HEIGHT * 0.5
 	var gx := (world.x / half_w + world.y / half_h) * 0.5
 	var gy := (world.y / half_h - world.x / half_w) * 0.5
 	return Vector2i(int(floor(gx)), int(floor(gy)))
+
+
+## Pick the tile diamond that actually contains this world point (for mouse clicks).
+static func world_to_cell_at_point(world: Vector2) -> Vector2i:
+	var approx := world_to_grid(world)
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			var cell := Vector2i(approx.x + dx, approx.y + dy)
+			if contains_point(cell, world):
+				return cell
+
+	# Fallback: nearest tile center (e.g. click on a gap between diamonds).
+	var best_cell := approx
+	var best_dist := INF
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			var cell := Vector2i(approx.x + dx, approx.y + dy)
+			var dist := world.distance_squared_to(grid_to_world(cell))
+			if dist < best_dist:
+				best_dist = dist
+				best_cell = cell
+	return best_cell
+
+
+## True when world lies inside the diamond for this grid cell.
+static func contains_point(cell: Vector2i, world: Vector2) -> bool:
+	var center := grid_to_world(cell)
+	var local := world - center
+	var half_w := TILE_WIDTH * 0.5
+	var half_h := TILE_HEIGHT * 0.5
+	return absf(local.x) / half_w + absf(local.y) / half_h <= 1.0
 
 
 ## Return the four corners of a tile diamond for _draw() or CollisionPolygon2D.

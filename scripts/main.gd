@@ -81,7 +81,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	var world_click := _get_world_mouse_local()
-	var target_cell := IsometricGrid.world_to_grid(world_click)
+	var target_cell := IsometricGrid.world_to_cell_at_point(world_click)
 
 	if _block_edit_mode:
 		_toggle_blocked_tile(target_cell)
@@ -171,18 +171,27 @@ func _on_soldier_selected(soldier_id: int) -> void:
 
 func _order_run_to_soldier(state: SoldierState, target_cell: Vector2i) -> Array[Vector2i]:
 	var view: Soldier = _get_view(state.soldier_id)
+	var start_cell: Vector2i = state.grid_position
+
+	# New order while moving: stop and repath from the tile under the soldier.
 	if view != null and view.is_moving():
-		return []
-	if target_cell == state.grid_position:
+		view.stop_movement()
+		start_cell = IsometricGrid.world_to_cell_at_point(view.position)
+		state.grid_position = start_cell
+		state.clear_path()
+
+	if target_cell == start_cell:
 		return []
 	if not _map_data.is_walkable(target_cell):
 		return []
 
-	var path: Array[Vector2i] = _iso_map.find_path(state.grid_position, target_cell)
+	var path: Array[Vector2i] = _iso_map.find_path(start_cell, target_cell)
 	if path.is_empty():
 		return []
 
 	_fireteam.order_path(state.soldier_id, path)
+	if view == null:
+		return path
 	view.follow_path(path)
 	return path
 
@@ -203,15 +212,11 @@ func _order_run_to_selected(target_cell: Vector2i) -> void:
 	if path.is_empty():
 		if target_cell == state.grid_position:
 			return
-		if _get_view(state.soldier_id) != null and _get_view(state.soldier_id).is_moving():
-			_command_bar.show_status("Soldier %d is already moving." % state.soldier_id)
-		else:
-			_command_bar.show_status("No path to that tile.")
+		_command_bar.show_status("No path to that tile.")
 		return
 
 	_iso_map.show_path(path, target_cell)
-	_command_bar.clear_run_to_mode()
-	_command_bar.show_status("Soldier %d running to %s." % [state.soldier_id, target_cell])
+	_command_bar.show_status("Soldier %d running to %s — click another tile to redirect." % [state.soldier_id, target_cell])
 
 
 func _order_run_to_all(target_cell: Vector2i) -> void:
@@ -233,8 +238,7 @@ func _order_run_to_all(target_cell: Vector2i) -> void:
 		return
 
 	_iso_map.show_path([], target_cell)
-	_command_bar.clear_run_to_mode()
-	_command_bar.show_status("Fireteam running to %s (%d soldiers)." % [target_cell, ordered_count])
+	_command_bar.show_status("Fireteam running to %s — click another tile to redirect." % target_cell)
 
 
 func _order_fire_at_selected(target_cell: Vector2i) -> void:
@@ -251,9 +255,8 @@ func _order_fire_at_selected(target_cell: Vector2i) -> void:
 		return
 
 	_refresh_all_views()
-	_command_bar.clear_fire_at_mode()
 	_command_bar.show_status(
-		"Soldier %d facing %s." % [state.soldier_id, FacingDirection.direction_name(state.facing_direction)],
+		"Soldier %d facing %s — click another tile to re-aim." % [state.soldier_id, FacingDirection.direction_name(state.facing_direction)],
 	)
 
 
@@ -271,8 +274,7 @@ func _order_fire_at_all(target_cell: Vector2i) -> void:
 		return
 
 	_refresh_all_views()
-	_command_bar.clear_fire_at_mode()
-	_command_bar.show_status("Fireteam facing toward %s." % target_cell)
+	_command_bar.show_status("Fireteam facing toward %s — click another tile to re-aim." % target_cell)
 
 
 func _on_soldier_step_reached(soldier_id: int, tile: Vector2i, step_delta: Vector2i) -> void:
