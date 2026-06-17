@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bqx7soldier01"]
+
+[ext_resource type="Script" path="res://scripts/soldier.gd" id="1_soldier"]
+[ext_resource type="Texture2D" path="res://assets/sprites/soldier_placeholder.svg" id="2_sprite"]
+
+[node name="Soldier" type="Node2D"]
+script = ExtResource("1_soldier")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_sprite")
+offset = Vector2(0, -24)
