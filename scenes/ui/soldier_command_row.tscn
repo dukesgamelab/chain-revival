@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://de3x1dvmgpbea"]
+[gd_scene load_steps=2 format=3 uid="uid://de3x1dvmgpbea"]
 
 [ext_resource type="Script" path="res://scripts/soldier_command_row.gd" id="1_row"]
 
@@ -19,15 +19,25 @@ text = "•"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="AmmoButton" type="Button" parent="."]
-unique_name_in_owner = true
+[node name="AmmoPanel" type="PanelContainer" parent="."]
 custom_minimum_size = Vector2(40, 24)
 layout_mode = 2
-toggle_mode = true
-flat = true
+
+[node name="AmmoLabel" type="Label" parent="AmmoPanel"]
+unique_name_in_owner = true
+layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
 theme_override_font_sizes/font_size = 14
 text = "200"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FireAtButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 24)
+layout_mode = 2
+toggle_mode = true
+text = "Fire At"
 
 [node name="RunToButton" type="Button" parent="."]
 unique_name_in_owner = true

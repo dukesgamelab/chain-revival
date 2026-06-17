@@ -53,6 +53,7 @@ func follow_path(path: Array[Vector2i]) -> void:
 	_path_index = 1
 	_is_moving = true
 	_previous_grid_pos = _path[0]
+	position = IsometricGrid.grid_to_world(_path[0])
 	_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
 
 
@@ -65,19 +66,30 @@ func _process(delta: float) -> void:
 	var step_delta := _path[_path_index] - _previous_grid_pos
 	_apply_facing(FacingDirection.from_step(step_delta))
 
-	if distance < 1.0:
-		position = _move_target_world
-		movement_step_reached.emit(soldier_id, _path[_path_index], step_delta)
-		_previous_grid_pos = _path[_path_index]
-		_path_index += 1
+	if distance <= 0.001:
+		_advance_path_step()
+		return
 
-		if _path_index >= _path.size():
-			_is_moving = false
-			movement_finished.emit(soldier_id)
-		else:
-			_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
+	var move_amount := move_speed * delta
+	if move_amount >= distance:
+		position = _move_target_world
+		_advance_path_step()
 	else:
-		position += to_target.normalized() * move_speed * delta
+		position += to_target.normalized() * move_amount
+
+
+func _advance_path_step() -> void:
+	var step_delta := _path[_path_index] - _previous_grid_pos
+	position = _move_target_world
+	movement_step_reached.emit(soldier_id, _path[_path_index], step_delta)
+	_previous_grid_pos = _path[_path_index]
+	_path_index += 1
+
+	if _path_index >= _path.size():
+		_is_moving = false
+		movement_finished.emit(soldier_id)
+	else:
+		_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
 
 
 ## Rotate the placeholder arrow to match authoritative grid facing.
