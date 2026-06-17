@@ -89,9 +89,38 @@ func clear_path() -> void:
 func _draw() -> void:
 	if map_data == null:
 		return
+	_draw_grass_border()
 	_draw_tiles()
 	_draw_spawn_markers()
 	_draw_path_overlay()
+
+
+## Decorative grass diamonds outside the playable map (not used for pathfinding).
+func _draw_grass_border() -> void:
+	var border := IsometricGrid.MAP_VISUAL_BORDER
+	for ring in range(1, border + 1):
+		var x_min := -ring
+		var x_max := map_data.width - 1 + ring
+		var y_min := -ring
+		var y_max := map_data.height - 1 + ring
+		for x in range(x_min, x_max + 1):
+			_draw_grass_cell(Vector2i(x, y_min))
+			if y_max != y_min:
+				_draw_grass_cell(Vector2i(x, y_max))
+		for y in range(y_min + 1, y_max):
+			_draw_grass_cell(Vector2i(x_min, y))
+			if x_max != x_min:
+				_draw_grass_cell(Vector2i(x_max, y))
+
+
+func _draw_grass_cell(cell: Vector2i) -> void:
+	if map_data.is_in_bounds(cell):
+		return
+	var center := IsometricGrid.grid_to_world(cell)
+	var corners := IsometricGrid.diamond_corners(center)
+	var fill := tile_color_a if (cell.x + cell.y) % 2 == 0 else tile_color_b
+	draw_colored_polygon(corners, fill)
+	draw_polyline(corners, tile_outline, 1.0, true)
 
 
 func _draw_tiles() -> void:

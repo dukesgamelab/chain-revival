@@ -13,6 +13,9 @@ const TILE_WIDTH := 64
 ## Full height of one tile diamond (top point to bottom point).
 const TILE_HEIGHT := 32
 
+## Extra grass rings drawn outside the playable map (visual only, not walkable).
+const MAP_VISUAL_BORDER := 12
+
 
 ## Convert a grid cell to the world-space CENTER of that tile.
 static func grid_to_world(grid: Vector2i) -> Vector2:
@@ -42,3 +45,36 @@ static func diamond_corners(center: Vector2) -> PackedVector2Array:
 		center + Vector2(0.0, half_h),    # bottom
 		center + Vector2(-half_w, 0.0),   # left
 	])
+
+
+## World-space bounding box that fully contains every tile on the map.
+## Pass border_cells to include decorative grass rings outside the playable grid.
+static func get_map_world_bounds(map_width: int, map_height: int, border_cells: int = 0) -> Rect2:
+	if map_width <= 0 or map_height <= 0:
+		return Rect2()
+
+	var corner_cells := [
+		Vector2i(-border_cells, -border_cells),
+		Vector2i(map_width - 1 + border_cells, -border_cells),
+		Vector2i(-border_cells, map_height - 1 + border_cells),
+		Vector2i(map_width - 1 + border_cells, map_height - 1 + border_cells),
+	]
+	var min_x := INF
+	var max_x := -INF
+	var min_y := INF
+	var max_y := -INF
+	for cell in corner_cells:
+		var world := grid_to_world(cell)
+		min_x = minf(min_x, world.x)
+		max_x = maxf(max_x, world.x)
+		min_y = minf(min_y, world.y)
+		max_y = maxf(max_y, world.y)
+
+	var half_w := TILE_WIDTH * 0.5
+	var half_h := TILE_HEIGHT * 0.5
+	return Rect2(
+		min_x - half_w,
+		min_y - half_h,
+		(max_x - min_x) + TILE_WIDTH,
+		(max_y - min_y) + TILE_HEIGHT,
+	)

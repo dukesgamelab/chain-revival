@@ -7,9 +7,10 @@ const GameSaveClass := preload("res://scripts/game_save.gd")
 const MapDataClass := preload("res://scripts/map_data.gd")
 
 @onready var _world: Node2D = $World
+@onready var _map_background: Node2D = $World/MapBackground
 @onready var _iso_map: IsometricMap = $World/IsometricMap
 @onready var _soldiers_root: Node2D = $World/Soldiers
-@onready var _camera: Camera2D = $Camera2D
+@onready var _camera: MapCamera = $Camera2D
 @onready var _command_bar: CommandBar = $UI/CommandBar
 
 ## Authoritative map gameplay data (reloaded from JSON in _load_map_data).
@@ -27,6 +28,7 @@ var _block_edit_mode: bool = false
 
 
 func _ready() -> void:
+	RenderingServer.set_default_clear_color(Color(0.22, 0.38, 0.18, 1.0))
 	_camera.make_current()
 	_load_map_data()
 	_init_fireteam_from_spawns()
@@ -36,7 +38,7 @@ func _ready() -> void:
 	_spawn_fireteam_views()
 	_refresh_all_views()
 	_command_bar.set_selected_soldier(_fireteam.selected_soldier_id)
-	_command_bar.show_status("Press B for Block Edit. Use Fire At or Run To on any row.")
+	_command_bar.show_status("WASD/arrows pan. Scroll zoom. Drag with MMB/RMB. B = Block Edit.")
 
 
 func _load_map_data() -> void:
@@ -47,10 +49,10 @@ func _init_fireteam_from_spawns() -> void:
 	var spawn_cells: Array[Vector2i] = _map_data.team_1_spawn_points
 	if spawn_cells.is_empty():
 		spawn_cells = [
-			Vector2i(9, 10),
-			Vector2i(10, 10),
-			Vector2i(11, 10),
-			Vector2i(12, 10),
+			Vector2i(28, 30),
+			Vector2i(29, 30),
+			Vector2i(30, 30),
+			Vector2i(31, 30),
 		]
 	_fireteam = FireteamClass.new(spawn_cells)
 
@@ -335,6 +337,7 @@ func _on_map_save_requested() -> void:
 func _on_map_load_requested() -> void:
 	_map_data = MapDataClass.load_from_file()
 	_iso_map.apply_map_data(_map_data)
+	_camera.set_map_size(_map_data.width, _map_data.height)
 	_center_camera_on_map()
 	_sync_views_after_load()
 	_command_bar.show_status("Map loaded from res://maps/test_map.json")
@@ -358,13 +361,28 @@ func _sync_views_after_load() -> void:
 
 
 func _get_world_mouse_local() -> Vector2:
+	# get_global_mouse_position() includes the active Camera2D transform (pan + zoom).
 	return _world.to_local(get_global_mouse_position())
 
 
 func _center_camera_on_map() -> void:
 	if _map_data == null:
 		return
-	var cx := floori(_map_data.width / 2.0)
-	var cy := floori(_map_data.height / 2.0)
-	var map_center_cell := Vector2i(cx, cy)
-	_camera.position = IsometricGrid.grid_to_world(map_center_cell) + Vector2(0.0, -90.0)
+	_camera.set_map_size(_map_data.width, _map_data.height)
+	var focus_cell: Vector2i = _get_camera_focus_cell()
+	_map_background.set_center_cell(focus_cell)
+	_camera.reset_to_default_view(IsometricGrid.grid_to_world(focus_cell))
+
+
+## Average fireteam spawn position, or map center if spawns are missing.
+func _get_camera_focus_cell() -> Vector2i:
+	var spawns: Array[Vector2i] = _map_data.team_1_spawn_points
+	if spawns.is_empty():
+		return Vector2i(
+			floori(_map_data.width / 2.0),
+			floori(_map_data.height / 2.0),
+		)
+	var sum := Vector2i.ZERO
+	for cell in spawns:
+		sum += cell
+	return Vector2i(floori(float(sum.x) / spawns.size()), floori(float(sum.y) / spawns.size()))
