@@ -19,6 +19,7 @@ static func get_weapon(weapon_id: String) -> WeaponDataClass:
 			return WeaponDataClass.new(
 				ID_M1_GARAND, "M1 Garand", WeaponTypeClass.RIFLE,
 				18, 0.10, 1, 80,
+				0.0, 0, 4.0,
 			)
 		ID_BAR:
 			return WeaponDataClass.new(
@@ -34,6 +35,7 @@ static func get_weapon(weapon_id: String) -> WeaponDataClass:
 			return WeaponDataClass.new(
 				ID_KAR98K, "Kar98k", WeaponTypeClass.RIFLE,
 				18, 0.10, 1, 80,
+				0.0, 0, 4.0,
 			)
 		ID_MG42:
 			return WeaponDataClass.new(

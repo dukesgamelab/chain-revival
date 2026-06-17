@@ -14,6 +14,7 @@ signal save_requested
 signal load_requested
 signal map_save_requested
 signal map_load_requested
+signal center_camera_requested
 
 @onready var _squad_row: SquadCommandRow = %SquadRow
 @onready var _rows: Array[SoldierCommandRow] = [
@@ -22,8 +23,9 @@ signal map_load_requested
 	%Row3,
 	%Row4,
 ]
-@onready var _status_label: Label = %StatusLabel
 @onready var _team_label: Label = %TeamLabel
+
+var _status_hud: StatusHud
 
 var _selected_soldier_id: int = 1
 var _move_target_soldier_id: int = -1
@@ -36,8 +38,12 @@ var _fire_at_engaged: bool = false
 
 
 func _ready() -> void:
+	var ui := get_parent()
+	if ui != null:
+		_status_hud = ui.get_node("StatusHud") as StatusHud
 	_squad_row.move_mode_toggled.connect(_on_squad_move_mode_toggled)
 	_squad_row.fire_at_toggled.connect(_on_squad_fire_at_toggled)
+	_squad_row.center_requested.connect(func() -> void: center_camera_requested.emit())
 
 	for row in _rows:
 		row.move_mode_toggled.connect(_on_row_move_mode_toggled)
@@ -77,7 +83,7 @@ func sync_selected_soldier(soldier_id: int) -> void:
 
 
 ## Sync one command row with live soldier gameplay data.
-func sync_soldier_row(row_index: int, state: SoldierState) -> void:
+func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0) -> void:
 	if row_index < 0 or row_index >= _rows.size():
 		return
 	var row: SoldierCommandRow = _rows[row_index]
@@ -87,9 +93,16 @@ func sync_soldier_row(row_index: int, state: SoldierState) -> void:
 	row.set_row_enabled(state.is_alive())
 	row.set_position_state(state.position_state)
 	row.set_fire_control_state(state.fire_control_state)
+	row.set_activity_status(state.activity_status_label())
+	row.set_stress(state.stress)
+	row.set_hit_pct(hit_pct)
 	row.set_move_button_enabled(MovementMode.RUN, MovementMode.is_allowed(state.position_state, MovementMode.RUN))
-	row.set_move_button_enabled(MovementMode.WALK, MovementMode.is_allowed(state.position_state, MovementMode.WALK))
 	row.set_move_button_enabled(MovementMode.CRAWL, MovementMode.is_allowed(state.position_state, MovementMode.CRAWL))
+
+
+func update_hit_columns(hit_pcts: Array) -> void:
+	for i in range(min(_rows.size(), hit_pcts.size())):
+		_rows[i].set_hit_pct(float(hit_pcts[i]))
 
 
 func clear_move_targeting() -> void:
@@ -141,7 +154,8 @@ func clear_face_mode() -> void:
 
 
 func show_status(text: String) -> void:
-	_status_label.text = text
+	if _status_hud != null:
+		_status_hud.show_status(text)
 
 
 func _on_squad_move_mode_toggled(movement_mode: int, is_pressed: bool) -> void:
@@ -268,8 +282,6 @@ func _select_soldier(soldier_id: int, from_command: bool, notify: bool = true) -
 
 func _movement_label(mode: int) -> String:
 	match mode:
-		MovementMode.WALK:
-			return "Walk To"
 		MovementMode.CRAWL:
 			return "Crawl To"
 		_:
@@ -295,7 +307,7 @@ func _update_status() -> void:
 				% [team_name, _fire_at_soldier_id],
 			)
 	elif _face_soldier_id > 0:
-		show_status("%s Soldier %d: Face — click a tile." % [team_name, _face_soldier_id])
+		show_status("%s Soldier %d: Face... — click a tile or enemy. Right-click cancels." % [team_name, _face_soldier_id])
 	elif _move_target_soldier_id == SQUAD_ID:
 		show_status(
 			"%s Fireteam: %s — click tiles to move."

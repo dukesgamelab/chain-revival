@@ -9,6 +9,7 @@ const MapDataClass := preload("res://scripts/map_data.gd")
 const MovementModeClass := preload("res://scripts/movement_mode.gd")
 const PositionStateClass := preload("res://scripts/position_state.gd")
 const FireControlCommandClass := preload("res://scripts/fire_control_command.gd")
+const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 const LosVisualizerClass := preload("res://scripts/los_visualizer.gd")
 const FireteamLoadoutClass := preload("res://scripts/fireteam_loadout.gd")
 const LOSSystemClass := preload("res://scripts/los_system.gd")
@@ -70,6 +71,7 @@ func _log_fireteam_loadouts() -> void:
 
 func _process(delta: float) -> void:
 	_update_los_preview()
+	_update_command_bar_hit_columns()
 
 	_auto_fire_timer += delta
 	if _auto_fire_timer < CombatSystem.AUTO_FIRE_SCAN_INTERVAL:
@@ -225,11 +227,30 @@ func _init_session_from_spawns() -> void:
 	var blue_spawns: Array[Vector2i] = _map_data.team_1_spawn_points
 	var red_spawns: Array[Vector2i] = _map_data.team_2_spawn_points
 	if blue_spawns.is_empty():
-		blue_spawns = [Vector2i(28, 30), Vector2i(29, 30), Vector2i(30, 30), Vector2i(31, 30)]
+		blue_spawns = MapDataClass.default_usa_spawn_points()
 	if red_spawns.is_empty():
-		red_spawns = [Vector2i(33, 32), Vector2i(34, 32), Vector2i(35, 32), Vector2i(36, 32)]
+		red_spawns = MapDataClass.default_germany_spawn_points()
 	_session = GameSessionClass.new(blue_spawns, red_spawns)
+	_apply_initial_fireteam_setup()
 	_game_state = GameStateClass.new(_session, _map_data)
+
+
+func _apply_initial_fireteam_setup() -> void:
+	var usa_team: Fireteam = _session.blue_team
+	var germany_team: Fireteam = _session.red_team
+	for i in range(mini(usa_team.soldiers.size(), germany_team.soldiers.size())):
+		var usa_soldier: SoldierState = usa_team.soldiers[i]
+		var germany_soldier: SoldierState = germany_team.soldiers[i]
+		usa_soldier.facing_direction = FacingDirection.toward_cell(
+			usa_soldier.grid_position,
+			germany_soldier.grid_position,
+		)
+		germany_soldier.facing_direction = FacingDirection.toward_cell(
+			germany_soldier.grid_position,
+			usa_soldier.grid_position,
+		)
+		usa_soldier.fire_control_state = FireControlStateClass.HOLD_FIRE
+		germany_soldier.fire_control_state = FireControlStateClass.HOLD_FIRE
 
 
 func _connect_command_bar() -> void:
@@ -243,6 +264,7 @@ func _connect_command_bar() -> void:
 	_command_bar.load_requested.connect(_on_load_requested)
 	_command_bar.map_save_requested.connect(_on_map_save_requested)
 	_command_bar.map_load_requested.connect(_on_map_load_requested)
+	_command_bar.center_camera_requested.connect(_on_center_camera_requested)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -269,6 +291,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if mouse_event.button_index == MOUSE_BUTTON_RIGHT:
 		if _fire_at_mode:
 			_exit_fire_at_mode("Targeting cancelled.")
+			get_viewport().set_input_as_handled()
+			return
+		if _face_mode:
+			_face_mode = false
+			_command_bar.clear_face_mode()
+			_command_bar.show_status("Facing cancelled.")
 			get_viewport().set_input_as_handled()
 		return
 
@@ -308,10 +336,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if _face_mode:
+		var face_target_cell := target_cell
+		var face_target_soldier: SoldierState = _find_living_soldier_at_mouse()
+		if face_target_soldier != null:
+			face_target_cell = face_target_soldier.grid_position
 		var face_cmd := FaceCommand.new()
 		face_cmd.team_id = _session.active_team_id
 		face_cmd.soldier_id = _face_soldier_id
-		face_cmd.target_cell = target_cell
+		face_cmd.target_cell = face_target_cell
 		_apply_face_command(face_cmd)
 		get_viewport().set_input_as_handled()
 		return
@@ -417,7 +449,62 @@ func _refresh_command_bar() -> void:
 	var fireteam: Fireteam = _session.get_active_fireteam()
 	for i in range(fireteam.soldiers.size()):
 		var soldier_state: SoldierState = fireteam.soldiers[i]
-		_command_bar.sync_soldier_row(i, soldier_state)
+		var hit_pct := _hit_pct_for_command_row(soldier_state)
+		_command_bar.sync_soldier_row(i, soldier_state, hit_pct)
+
+
+func _update_command_bar_hit_columns() -> void:
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	var hit_pcts: Array = []
+	for state in fireteam.soldiers:
+		var soldier_state: SoldierState = state
+		hit_pcts.append(_hit_pct_for_command_row(soldier_state))
+	_command_bar.update_hit_columns(hit_pcts)
+
+
+func _hit_pct_for_command_row(soldier_state: SoldierState) -> float:
+	if not _should_show_hit_pct(soldier_state):
+		return -1.0
+	return CombatSystem.hit_pct_vs_faced_enemy(_game_state, soldier_state)
+
+
+func _should_show_hit_pct(soldier_state: SoldierState) -> bool:
+	if soldier_state.is_dead:
+		return false
+	if soldier_state.fire_control_state == FireControlStateClass.FIRE_AT_WILL:
+		return true
+	return _is_soldier_in_fire_at_scope(soldier_state)
+
+
+func _is_soldier_in_fire_at_scope(soldier_state: SoldierState) -> bool:
+	if not _fire_at_mode or soldier_state.team_id != _session.active_team_id:
+		return false
+	if _squad_fire_at_mode:
+		return true
+	return soldier_state.soldier_id == _fire_at_soldier_id
+
+
+func _on_center_camera_requested() -> void:
+	_center_camera_on_active_fireteam()
+
+
+func _center_camera_on_active_fireteam() -> void:
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	var sum := Vector2i.ZERO
+	var count := 0
+	for state in fireteam.soldiers:
+		var soldier_state: SoldierState = state
+		if not soldier_state.is_alive():
+			continue
+		sum += soldier_state.grid_position
+		count += 1
+	if count == 0:
+		_command_bar.show_status("No living soldiers to center on.")
+		return
+	var center_cell := Vector2i(floori(float(sum.x) / count), floori(float(sum.y) / count))
+	_map_background.set_center_cell(center_cell)
+	_camera.reset_to_default_view(IsometricGrid.grid_to_world(center_cell))
+	_command_bar.show_status("Camera centered on %s fireteam." % Team.display_name(_session.active_team_id))
 
 
 func _repair_fireteam_selection(fireteam: Fireteam) -> bool:

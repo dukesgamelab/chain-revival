@@ -10,6 +10,14 @@ script = ExtResource("1_row")
 custom_minimum_size = Vector2(36, 24)
 layout_mode = 2
 
+[node name="AllLabel" type="Label" parent="DotSpacer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
+theme_override_font_sizes/font_size = 11
+text = "All"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="WeaponSpacer" type="PanelContainer" parent="."]
 custom_minimum_size = Vector2(88, 24)
 layout_mode = 2
@@ -25,27 +33,12 @@ layout_mode = 2
 toggle_mode = true
 text = "Fire At"
 
-[node name="HoldFireSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(58, 24)
-layout_mode = 2
-
-[node name="FireAtWillSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(68, 24)
-layout_mode = 2
-
 [node name="RunToButton" type="Button" parent="."]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(52, 24)
 layout_mode = 2
 toggle_mode = true
 text = "Run To"
-
-[node name="WalkToButton" type="Button" parent="."]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(56, 24)
-layout_mode = 2
-toggle_mode = true
-text = "Walk To"
 
 [node name="CrawlToButton" type="Button" parent="."]
 unique_name_in_owner = true
@@ -54,10 +47,64 @@ layout_mode = 2
 toggle_mode = true
 text = "Crawl To"
 
-[node name="FaceSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(44, 24)
+[node name="CenterButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 24)
 layout_mode = 2
+text = "Center"
 
 [node name="PositionSpacer" type="PanelContainer" parent="."]
 custom_minimum_size = Vector2(44, 24)
 layout_mode = 2
+
+[node name="GrenadeSpacer" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+
+[node name="AssaultSpacer" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+
+[node name="FireAtWillSpacer" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(68, 24)
+layout_mode = 2
+
+[node name="HoldFireSpacer" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+
+[node name="StatusHeader" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(64, 24)
+layout_mode = 2
+
+[node name="StatusHeaderLabel" type="Label" parent="StatusHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.78, 1)
+theme_override_font_sizes/font_size = 10
+text = "Status"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StressHeader" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(48, 24)
+layout_mode = 2
+
+[node name="StressHeaderLabel" type="Label" parent="StressHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.78, 1)
+theme_override_font_sizes/font_size = 10
+text = "Stress"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HitHeader" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(48, 24)
+layout_mode = 2
+
+[node name="HitHeaderLabel" type="Label" parent="HitHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.78, 1)
+theme_override_font_sizes/font_size = 10
+text = "Hit %"
+horizontal_alignment = 1
+vertical_alignment = 1

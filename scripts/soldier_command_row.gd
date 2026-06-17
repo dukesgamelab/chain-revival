@@ -1,6 +1,6 @@
 class_name SoldierCommandRow
 extends HBoxContainer
-## One soldier row: weapon, ammo, fire control, Fire At, move modes, Face, and posture.
+## One soldier row: weapon, ammo, commands, status, stress, and hit chance.
 
 signal move_mode_toggled(soldier_id: int, movement_mode: int, is_pressed: bool)
 signal fire_at_toggled(soldier_id: int, is_pressed: bool)
@@ -14,13 +14,17 @@ signal fire_control_selected(soldier_id: int, fire_control_state: int)
 @onready var _weapon_label: Label = %WeaponLabel
 @onready var _ammo_label: Label = %AmmoLabel
 @onready var _fire_at_button: Button = %FireAtButton
-@onready var _hold_fire_button: Button = %HoldFireButton
-@onready var _fire_at_will_button: Button = %FireAtWillButton
 @onready var _run_to_button: Button = %RunToButton
-@onready var _walk_to_button: Button = %WalkToButton
 @onready var _crawl_to_button: Button = %CrawlToButton
 @onready var _face_button: Button = %FaceButton
 @onready var _position_button: Button = %PositionButton
+@onready var _grenade_button: Button = %GrenadeButton
+@onready var _assault_button: Button = %AssaultButton
+@onready var _fire_at_will_button: Button = %FireAtWillButton
+@onready var _hold_fire_button: Button = %HoldFireButton
+@onready var _status_label: Label = %StatusLabel
+@onready var _stress_label: Label = %StressLabel
+@onready var _hit_label: Label = %HitLabel
 
 var _row_enabled: bool = true
 var _move_buttons: Dictionary = {}
@@ -31,19 +35,21 @@ func _ready() -> void:
 	_dots_label.text = _make_dots(soldier_id)
 	_move_buttons = {
 		MovementMode.RUN: _run_to_button,
-		MovementMode.WALK: _walk_to_button,
 		MovementMode.CRAWL: _crawl_to_button,
 	}
 	_fire_at_button.tooltip_text = "Enter targeting mode — click an enemy to shoot."
+	_run_to_button.tooltip_text = "Run to a tile — click the map."
+	_crawl_to_button.tooltip_text = "Crawl to a tile — click the map."
+	_face_button.tooltip_text = "Face a direction — click a tile or enemy (no firing)."
+	_position_button.tooltip_text = "Toggle standing (Up) or prone (Down)."
+	_grenade_button.tooltip_text = "Grenades — coming soon."
+	_assault_button.tooltip_text = "Assault — coming soon."
 	_hold_fire_button.tooltip_text = "Hold Fire — move and face freely, manual Fire At only."
 	_fire_at_will_button.tooltip_text = "Fire At Will — automatically engage visible enemies."
-	_face_button.tooltip_text = "Face a direction — click a tile."
-	_position_button.tooltip_text = "Toggle standing (Up) or prone (Down)."
 	_fire_at_button.toggled.connect(_on_fire_at_toggled)
 	_hold_fire_button.pressed.connect(_on_hold_fire_pressed)
 	_fire_at_will_button.pressed.connect(_on_fire_at_will_pressed)
 	_run_to_button.toggled.connect(_on_move_toggled.bind(MovementMode.RUN))
-	_walk_to_button.toggled.connect(_on_move_toggled.bind(MovementMode.WALK))
 	_crawl_to_button.toggled.connect(_on_move_toggled.bind(MovementMode.CRAWL))
 	_face_button.toggled.connect(_on_face_toggled)
 	_position_button.toggled.connect(_on_position_toggled)
@@ -96,6 +102,21 @@ func set_ammo(ammo_current: int, ammo_max: int) -> void:
 	_ammo_label.text = "%d" % ammo_current
 
 
+func set_activity_status(text: String) -> void:
+	_status_label.text = text
+
+
+func set_stress(stress: float) -> void:
+	_stress_label.text = "%d%%" % int(round(clampf(stress, 0.0, 100.0)))
+
+
+func set_hit_pct(hit_pct: float) -> void:
+	if hit_pct < 0.0:
+		_hit_label.text = "—"
+	else:
+		_hit_label.text = "%d%%" % int(round(clampf(hit_pct, 0.0, 100.0)))
+
+
 func set_row_enabled(enabled: bool) -> void:
 	if not enabled:
 		_fire_at_button.set_block_signals(true)
@@ -104,12 +125,12 @@ func set_row_enabled(enabled: bool) -> void:
 		_fire_at_button.set_block_signals(false)
 	_row_enabled = enabled
 	_fire_at_button.disabled = not enabled
+	_run_to_button.disabled = not enabled
+	_crawl_to_button.disabled = not enabled
 	_hold_fire_button.disabled = not enabled
 	_fire_at_will_button.disabled = not enabled
 	_face_button.disabled = not enabled
 	_position_button.disabled = not enabled
-	for button in _move_buttons.values():
-		(button as Button).disabled = not enabled
 	modulate = Color.WHITE if enabled else Color(0.45, 0.45, 0.45, 1.0)
 
 

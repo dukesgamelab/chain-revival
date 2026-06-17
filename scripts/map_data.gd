@@ -7,6 +7,11 @@ const DEFAULT_WIDTH := 60
 const DEFAULT_HEIGHT := 60
 const MapObjectRegistryClass := preload("res://scripts/map_object_registry.gd")
 
+## Default deployment: vertical columns facing each other, paired by row (same y).
+const DEFAULT_TEAM_SEPARATION := 10
+const DEFAULT_USA_ANCHOR := Vector2i(26, 28)
+const DEFAULT_GERMANY_ANCHOR := Vector2i(36, 28)
+
 var map_name: String = "test_map"
 var width: int = DEFAULT_WIDTH
 var height: int = DEFAULT_HEIGHT
@@ -116,23 +121,30 @@ static func from_dict(data: Dictionary) -> MapData:
 	return map_data
 
 
+static func default_usa_spawn_points() -> Array[Vector2i]:
+	return _default_spawn_line(DEFAULT_USA_ANCHOR)
+
+
+static func default_germany_spawn_points() -> Array[Vector2i]:
+	return _default_spawn_line(DEFAULT_GERMANY_ANCHOR)
+
+
+static func _default_spawn_line(anchor: Vector2i) -> Array[Vector2i]:
+	return [
+		anchor,
+		anchor + Vector2i(0, 1),
+		anchor + Vector2i(0, 2),
+		anchor + Vector2i(0, 3),
+	]
+
+
 static func create_default() -> MapData:
 	var map_data := MapData.new()
 	map_data.map_name = "test_map"
 	map_data.width = DEFAULT_WIDTH
 	map_data.height = DEFAULT_HEIGHT
-	map_data.team_1_spawn_points = [
-		Vector2i(28, 30),
-		Vector2i(29, 30),
-		Vector2i(30, 30),
-		Vector2i(31, 30),
-	]
-	map_data.team_2_spawn_points = [
-		Vector2i(33, 32),
-		Vector2i(34, 32),
-		Vector2i(35, 32),
-		Vector2i(36, 32),
-	]
+	map_data.team_1_spawn_points = default_usa_spawn_points()
+	map_data.team_2_spawn_points = default_germany_spawn_points()
 	for cell in generate_tree_obstacles(
 		map_data.width,
 		map_data.height,

@@ -10,6 +10,7 @@ var no_ammo: bool = false
 var had_cover: bool = false
 var cover_value: float = 0.0
 var out_of_range: bool = false
+var on_cooldown: bool = false
 var weapon_name: String = ""
 var tracer_count: int = 0
 var shooter_team_id: int = Team.USA

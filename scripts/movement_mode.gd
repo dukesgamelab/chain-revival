@@ -25,6 +25,17 @@ static func display_name(mode: int) -> String:
 			return "RUN"
 
 
+## UI status column label while moving.
+static func status_name(mode: int) -> String:
+	match mode:
+		Mode.WALK:
+			return "Walking"
+		Mode.CRAWL:
+			return "Crawling"
+		_:
+			return "Running"
+
+
 static func speed_multiplier(mode: int) -> float:
 	match mode:
 		Mode.WALK:

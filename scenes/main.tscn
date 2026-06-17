@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cb3p3n36g1wb6" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" uid="uid://dpnpuei885v24" path="res://scripts/isometric_map.gd" id="2_isomap"]
 [ext_resource type="PackedScene" uid="uid://c14uyvmy1frdd" path="res://scenes/ui/command_bar.tscn" id="3_cmdbar"]
+[ext_resource type="Script" path="res://scripts/status_hud.gd" id="7_status"]
 [ext_resource type="Script" path="res://scripts/map_camera.gd" id="4_camera"]
 [ext_resource type="Script" path="res://scripts/map_background.gd" id="5_bg"]
 [ext_resource type="Script" path="res://scripts/los_visualizer.gd" id="6_losviz"]
@@ -32,5 +33,33 @@ zoom = Vector2(0.55, 0.55)
 script = ExtResource("4_camera")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=327246359]
+
+[node name="StatusHud" type="PanelContainer" parent="UI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -440.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 80.0
+grow_horizontal = 0
+script = ExtResource("7_status")
+
+[node name="StatusMargin" type="MarginContainer" parent="UI/StatusHud"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 6
+
+[node name="StatusLabel" type="Label" parent="UI/StatusHud/StatusMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+text = "Press 1 = USA, 2 = Germany."
+horizontal_alignment = 2
+autowrap_mode = 3
 
 [node name="CommandBar" parent="UI" unique_id=38586778 instance=ExtResource("3_cmdbar")]

@@ -14,6 +14,7 @@ var close_range_tiles: int = 0
 var rounds_per_attack: int = 1
 var ammo_capacity: int = 200
 var tracer_count: int = 1
+var fire_interval_sec: float = 0.0
 
 
 func _init(
@@ -26,6 +27,7 @@ func _init(
 	p_ammo_capacity: int,
 	p_close_range_bonus: float = 0.0,
 	p_close_range_tiles: int = 0,
+	p_fire_interval_sec: float = 0.0,
 ) -> void:
 	weapon_id = p_weapon_id
 	weapon_name = p_weapon_name
@@ -37,6 +39,7 @@ func _init(
 	close_range_bonus = p_close_range_bonus
 	close_range_tiles = p_close_range_tiles
 	tracer_count = p_rounds_per_attack
+	fire_interval_sec = p_fire_interval_sec
 
 
 func is_burst() -> bool:

@@ -25,6 +25,8 @@ var is_dead: bool = false
 var position_state: int = PositionStateClass.UP
 var movement_mode: int = MovementModeClass.RUN
 var fire_control_state: int = FireControlStateClass.HOLD_FIRE
+var stress: float = 0.0
+var last_shot_msec: int = 0
 
 
 func _init(id: int = 1, start_cell: Vector2i = Vector2i.ZERO, team: int = Team.USA) -> void:
@@ -62,6 +64,16 @@ func is_alive() -> bool:
 	return not is_dead
 
 
+func activity_status_label() -> String:
+	if is_dead:
+		return "Dead"
+	if is_moving:
+		return MovementModeClass.status_name(movement_mode)
+	if position_state == PositionStateClass.DOWN:
+		return "Prone"
+	return "Idle"
+
+
 func clear_path() -> void:
 	current_path.clear()
 	is_moving = false
@@ -91,6 +103,7 @@ func to_dict() -> Dictionary:
 		"position_state": position_state,
 		"movement_mode": movement_mode,
 		"fire_control_state": fire_control_state,
+		"stress": stress,
 	}
 
 
@@ -114,4 +127,5 @@ static func from_dict(data: Dictionary) -> SoldierState:
 	state.position_state = int(data.get("position_state", PositionStateClass.UP))
 	state.movement_mode = int(data.get("movement_mode", MovementModeClass.RUN))
 	state.fire_control_state = int(data.get("fire_control_state", FireControlStateClass.HOLD_FIRE))
+	state.stress = float(data.get("stress", 0.0))
 	return state

@@ -28,7 +28,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.92, 0.88, 1)
 theme_override_font_sizes/font_size = 12
-text = "M1 Garand"
+text = "R M1 Garand"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -52,31 +52,12 @@ layout_mode = 2
 toggle_mode = true
 text = "Fire At"
 
-[node name="HoldFireButton" type="Button" parent="."]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 24)
-layout_mode = 2
-text = "Hold Fire"
-
-[node name="FireAtWillButton" type="Button" parent="."]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(68, 24)
-layout_mode = 2
-text = "Fire At Will"
-
 [node name="RunToButton" type="Button" parent="."]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(52, 24)
 layout_mode = 2
 toggle_mode = true
 text = "Run To"
-
-[node name="WalkToButton" type="Button" parent="."]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(56, 24)
-layout_mode = 2
-toggle_mode = true
-text = "Walk To"
 
 [node name="CrawlToButton" type="Button" parent="."]
 unique_name_in_owner = true
@@ -87,10 +68,10 @@ text = "Crawl To"
 
 [node name="FaceButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(44, 24)
+custom_minimum_size = Vector2(52, 24)
 layout_mode = 2
 toggle_mode = true
-text = "Face"
+text = "Face..."
 
 [node name="PositionButton" type="Button" parent="."]
 unique_name_in_owner = true
@@ -98,3 +79,68 @@ custom_minimum_size = Vector2(44, 24)
 layout_mode = 2
 toggle_mode = true
 text = "Down"
+
+[node name="GrenadeButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+disabled = true
+text = "Grenade"
+
+[node name="AssaultButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+disabled = true
+text = "Assault"
+
+[node name="FireAtWillButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(68, 24)
+layout_mode = 2
+text = "Fire At Will"
+
+[node name="HoldFireButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+text = "Hold Fire"
+
+[node name="StatusPanel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(64, 24)
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="StatusPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.88, 0.95, 1)
+theme_override_font_sizes/font_size = 11
+text = "Idle"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StressPanel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(48, 24)
+layout_mode = 2
+
+[node name="StressLabel" type="Label" parent="StressPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.75, 1)
+theme_override_font_sizes/font_size = 11
+text = "0%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HitPanel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(48, 24)
+layout_mode = 2
+
+[node name="HitLabel" type="Label" parent="HitPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 0.82, 1)
+theme_override_font_sizes/font_size = 11
+text = "—"
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -9,7 +9,9 @@ const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 const LOSSystemClass := preload("res://scripts/los_system.gd")
 const MapObjectRegistryClass := preload("res://scripts/map_object_registry.gd")
 
-const BASE_HIT_CHANCE := 0.60
+const CLEAR_BASE_HIT_CHANCE := 0.78
+const CLEAR_DISTANCE_PENALTY := 0.025
+const COVER_BASE_HIT_CHANCE := 0.50
 const MIN_HIT_CHANCE := 0.10
 const DISTANCE_PENALTY := 0.05
 const AUTO_FIRE_SCAN_INTERVAL := 0.5
@@ -72,8 +74,18 @@ static func resolve_shot(
 		result.messages.append("Shot blocked by %s" % blocker_name)
 		return result
 
+	if not _can_fire_yet(shooter, weapon):
+		result.on_cooldown = true
+		if not auto_engagement:
+			result.messages.append(
+				"%s %s — wait %.1fs between shots"
+				% [Team.display_name(shooter.team_id), weapon.weapon_name, weapon.fire_interval_sec],
+			)
+		return result
+
 	var ammo_cost := weapon.ammo_cost(shooter.ammo_current)
 	shooter.ammo_current -= ammo_cost
+	shooter.last_shot_msec = Time.get_ticks_msec()
 	result.fired = true
 	result.tracer_count = weapon.tracer_count
 
@@ -166,6 +178,72 @@ static func find_closest_visible_enemy(
 	return best
 
 
+## Living enemy this shooter is facing, in weapon range with unobstructed fire.
+static func find_faced_enemy(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> SoldierStateClass:
+	if shooter == null or shooter.is_dead:
+		return null
+
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
+		return null
+
+	var enemy_team_id: int = game_state.enemy_team_id(shooter.team_id)
+	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
+	var facing := shooter.facing_direction
+	var best: SoldierStateClass = null
+	var best_dist := INF
+
+	for state in enemy_fireteam.soldiers:
+		var enemy: SoldierStateClass = state
+		if enemy.is_dead:
+			continue
+		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
+		if dist > weapon.range_tiles:
+			continue
+		if LOSSystemClass.is_shot_blocked(shooter.grid_position, enemy.grid_position, game_state.map_data):
+			continue
+		var aim_dir := FacingDirection.toward_cell(shooter.grid_position, enemy.grid_position)
+		if aim_dir != facing:
+			continue
+		if dist < best_dist:
+			best_dist = dist
+			best = enemy
+
+	return best
+
+
+## Hit chance (0–100) vs the enemy the shooter is currently facing, or -1 if none.
+static func hit_pct_vs_faced_enemy(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> float:
+	var target := find_faced_enemy(game_state, shooter)
+	if target == null:
+		return -1.0
+
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
+		return -1.0
+
+	var los := LOSSystemClass.evaluate(
+		shooter.grid_position,
+		target.grid_position,
+		game_state.map_data,
+	)
+	if los.status == LOSSystemClass.Status.BLOCKED:
+		return -1.0
+
+	return hit_chance(
+		shooter.grid_position,
+		target.grid_position,
+		weapon,
+		los.cover_value,
+	) * 100.0
+
+
 static func is_in_weapon_range(
 	shooter: SoldierStateClass,
 	target_cell: Vector2i,
@@ -188,6 +266,8 @@ static func try_auto_engagement(
 		return empty
 	if shooter.ammo_current <= 0:
 		return empty
+	if not _can_fire_yet(shooter, shooter.get_weapon_data()):
+		return empty
 
 	var target := find_closest_visible_enemy(game_state, shooter)
 	if target == null:
@@ -196,7 +276,7 @@ static func try_auto_engagement(
 	return resolve_shot(game_state, shooter, target, true)
 
 
-## Base 60% minus 5% per tile, plus weapon modifier, minus cover (percentage points).
+## Open LOS uses a high base chance; cover and distance reduce it more aggressively.
 static func hit_chance(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
@@ -204,12 +284,24 @@ static func hit_chance(
 	cover_value: float = 0.0,
 ) -> float:
 	var dist := _manhattan_distance(from_cell, to_cell)
-	var chance := maxf(MIN_HIT_CHANCE, BASE_HIT_CHANCE - float(dist) * DISTANCE_PENALTY)
+	var chance: float
+	if cover_value <= 0.0:
+		chance = maxf(MIN_HIT_CHANCE, CLEAR_BASE_HIT_CHANCE - float(dist) * CLEAR_DISTANCE_PENALTY)
+	else:
+		chance = maxf(MIN_HIT_CHANCE, COVER_BASE_HIT_CHANCE - float(dist) * DISTANCE_PENALTY)
+		chance = maxf(MIN_HIT_CHANCE, chance - cover_value)
 	if weapon != null:
 		chance += weapon.effective_hit_modifier(dist)
-	if cover_value > 0.0:
-		chance = maxf(MIN_HIT_CHANCE, chance - cover_value)
 	return clampf(chance, MIN_HIT_CHANCE, 1.0)
+
+
+static func _can_fire_yet(shooter: SoldierStateClass, weapon: WeaponDataClass) -> bool:
+	if weapon == null or weapon.fire_interval_sec <= 0.0:
+		return true
+	if shooter.last_shot_msec <= 0:
+		return true
+	var elapsed_sec := (Time.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
+	return elapsed_sec >= weapon.fire_interval_sec
 
 
 static func _manhattan_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:

@@ -10,7 +10,7 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -200.0
+offset_top = -228.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("1_cmdbar")
@@ -55,25 +55,21 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 soldier_id = 1
-ammo_count = 200
 
 [node name="Row2" parent="Panel/Margin/HBox/SoldierRows" instance=ExtResource("2_row")]
 unique_name_in_owner = true
 layout_mode = 2
 soldier_id = 2
-ammo_count = 200
 
 [node name="Row3" parent="Panel/Margin/HBox/SoldierRows" instance=ExtResource("2_row")]
 unique_name_in_owner = true
 layout_mode = 2
 soldier_id = 3
-ammo_count = 180
 
 [node name="Row4" parent="Panel/Margin/HBox/SoldierRows" instance=ExtResource("2_row")]
 unique_name_in_owner = true
 layout_mode = 2
 soldier_id = 4
-ammo_count = 160
 
 [node name="UtilityButtons" type="VBoxContainer" parent="Panel/Margin/HBox"]
 layout_mode = 2
@@ -102,14 +98,3 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 24)
 layout_mode = 2
 text = "Map Load"
-
-[node name="StatusLabel" type="Label" parent="Panel/Margin/HBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(280, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 1
-theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
-theme_override_font_sizes/font_size = 15
-text = "Press Run To on a soldier row, then click a tile."
-vertical_alignment = 1
