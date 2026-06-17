@@ -28,4 +28,4 @@ func find_living_soldier_at_cell(cell: Vector2i) -> SoldierState:
 
 
 func enemy_team_id(team_id: int) -> int:
-	return Team.RED if team_id == Team.BLUE else Team.BLUE
+	return Team.GERMANY if team_id == Team.USA else Team.USA

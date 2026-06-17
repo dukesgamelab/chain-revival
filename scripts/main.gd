@@ -9,19 +9,22 @@ const MapDataClass := preload("res://scripts/map_data.gd")
 const MovementModeClass := preload("res://scripts/movement_mode.gd")
 const PositionStateClass := preload("res://scripts/position_state.gd")
 const FireControlCommandClass := preload("res://scripts/fire_control_command.gd")
+const LosVisualizerClass := preload("res://scripts/los_visualizer.gd")
+const FireteamLoadoutClass := preload("res://scripts/fireteam_loadout.gd")
+const LOSSystemClass := preload("res://scripts/los_system.gd")
 
 @onready var _world: Node2D = $World
 @onready var _map_background: Node2D = $World/MapBackground
 @onready var _iso_map: IsometricMap = $World/IsometricMap
 @onready var _soldiers_root: Node2D = $World/Soldiers
 @onready var _tracers_root: Node2D = $World/Tracers
-@onready var _los_visualizer: LosVisualizer = $World/LosVisualizer
+@onready var _los_visualizer: LosVisualizerClass = $World/LosVisualizer
 @onready var _camera: MapCamera = $Camera2D
 @onready var _command_bar: CommandBar = $UI/CommandBar
 
 var _map_data = MapDataClass.create_default()
 var _session: GameSession = GameSessionClass.new([], [])
-var _game_state: GameState
+var _game_state: GameStateClass
 
 var _soldier_views: Dictionary = {}
 var _move_targeting: bool = false
@@ -46,9 +49,22 @@ func _ready() -> void:
 	_iso_map.apply_map_data(_map_data)
 	_center_camera_on_map()
 	_spawn_all_soldier_views()
+	_log_fireteam_loadouts()
 	_command_bar.set_active_team(_session.active_team_id)
 	_refresh_all_views()
-	_command_bar.show_status("Press 1 = Blue, 2 = Red. Fire At: click enemies. Empty ground cancels.")
+	_command_bar.show_status("Press 1 = USA, 2 = Germany. Fire At: click enemies or auto-engages. Right-click cancels.")
+
+
+func _log_fireteam_loadouts() -> void:
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			var message := FireteamLoadoutClass.assignment_message(
+				soldier_state.team_id,
+				soldier_state.soldier_id,
+				soldier_state.weapon_name,
+			)
+			GameLog.log_system(message)
 
 
 func _process(delta: float) -> void:
@@ -58,7 +74,77 @@ func _process(delta: float) -> void:
 	if _auto_fire_timer < CombatSystem.AUTO_FIRE_SCAN_INTERVAL:
 		return
 	_auto_fire_timer = 0.0
+	if _fire_at_mode:
+		_process_fire_at_mode()
 	_process_fire_at_will()
+
+
+func _process_fire_at_mode() -> void:
+	var shooters: Array[SoldierState] = _get_manual_fire_at_shooters()
+	if shooters.is_empty():
+		_exit_fire_at_mode("Fire At ended — no available shooters.")
+		return
+
+	var summary_lines: Array[String] = []
+	var any_change := false
+
+	for shooter in shooters:
+		var result: CombatShotResult = CombatSystem.try_auto_engagement(_game_state, shooter, true)
+		if not result.fired:
+			continue
+		any_change = true
+		var target: SoldierState = _game_state.get_soldier(result.target_team_id, result.target_id)
+		summary_lines.append_array(_finalize_shot_result(result, shooter, target))
+
+	if not any_change:
+		return
+
+	_ensure_active_selection_alive()
+	_refresh_all_views()
+	_affirm_fire_at_ui()
+	if not summary_lines.is_empty():
+		_command_bar.show_status("\n".join(summary_lines.slice(-3)))
+
+
+func _get_manual_fire_at_shooters() -> Array[SoldierState]:
+	var shooters: Array[SoldierState] = []
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	if _squad_fire_at_mode:
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if soldier_state.is_alive():
+				shooters.append(soldier_state)
+	else:
+		var shooter: SoldierState = fireteam.get_soldier(_fire_at_soldier_id)
+		if shooter != null and shooter.is_alive():
+			shooters.append(shooter)
+	return shooters
+
+
+func _is_soldier_in_manual_fire_at(shooter: SoldierState) -> bool:
+	if not _fire_at_mode or shooter.team_id != _session.active_team_id:
+		return false
+	if _squad_fire_at_mode:
+		return true
+	return shooter.soldier_id == _fire_at_soldier_id
+
+
+func _affirm_fire_at_ui() -> void:
+	if not _fire_at_mode:
+		return
+	if _squad_fire_at_mode:
+		_command_bar.affirm_fire_at_pressed(true, CommandBar.SQUAD_ID)
+	else:
+		_command_bar.affirm_fire_at_pressed(false, _fire_at_soldier_id)
+
+
+func _exit_fire_at_mode(message: String = "") -> void:
+	_fire_at_mode = false
+	_squad_fire_at_mode = false
+	_los_visualizer.hide_preview()
+	_command_bar.clear_fire_at_mode()
+	if not message.is_empty():
+		_command_bar.show_status(message)
 
 
 func _process_fire_at_will() -> void:
@@ -68,6 +154,8 @@ func _process_fire_at_will() -> void:
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			var shooter: SoldierState = state
+			if _is_soldier_in_manual_fire_at(shooter):
+				continue
 			var result: CombatShotResult = CombatSystem.try_auto_engagement(_game_state, shooter)
 			if not result.fired:
 				continue
@@ -105,7 +193,9 @@ func _update_los_preview() -> void:
 		target_cell = IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
 		to_world = IsometricGrid.grid_to_world(target_cell) + Vector2(0, -16)
 
-	var los := LOSSystem.evaluate(shooter.grid_position, target_cell, _map_data)
+	var los := LOSSystemClass.evaluate(shooter.grid_position, target_cell, _map_data)
+	if not CombatSystem.is_in_weapon_range(shooter, target_cell):
+		los.status = LOSSystemClass.Status.BLOCKED
 	var from_world := _get_soldier_tracer_point(shooter)
 	_los_visualizer.show_preview(from_world, to_world, los)
 
@@ -159,18 +249,27 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		if event.keycode == KEY_1:
-			_switch_active_team(Team.BLUE)
+			_switch_active_team(Team.USA)
 			get_viewport().set_input_as_handled()
 			return
 		if event.keycode == KEY_2:
-			_switch_active_team(Team.RED)
+			_switch_active_team(Team.GERMANY)
 			get_viewport().set_input_as_handled()
 			return
 
 	if not (event is InputEventMouseButton):
 		return
 	var mouse_event := event as InputEventMouseButton
-	if not mouse_event.pressed or mouse_event.button_index != MOUSE_BUTTON_LEFT:
+	if not mouse_event.pressed:
+		return
+
+	if mouse_event.button_index == MOUSE_BUTTON_RIGHT:
+		if _fire_at_mode:
+			_exit_fire_at_mode("Targeting cancelled.")
+			get_viewport().set_input_as_handled()
+		return
+
+	if mouse_event.button_index != MOUSE_BUTTON_LEFT:
 		return
 
 	var target_cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
@@ -183,10 +282,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _fire_at_mode:
 		var target_soldier: SoldierState = _find_living_soldier_at_mouse()
 		if target_soldier == null:
-			_command_bar.clear_fire_at_mode()
-			_fire_at_mode = false
-			_squad_fire_at_mode = false
-			_command_bar.show_status("Targeting cancelled.")
+			_command_bar.show_status("No enemy soldier there — still targeting.")
 			get_viewport().set_input_as_handled()
 			return
 		if target_soldier.team_id == _session.active_team_id:
@@ -242,7 +338,9 @@ func _switch_active_team(team_id: int) -> void:
 	_squad_fire_at_mode = false
 	_face_mode = false
 	_command_bar.set_active_team(team_id)
-	_command_bar.set_selected_soldier(_session.get_active_fireteam().selected_soldier_id)
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	_repair_fireteam_selection(fireteam)
+	_command_bar.sync_selected_soldier(fireteam.selected_soldier_id)
 	_refresh_all_views()
 	_command_bar.show_status("Controlling %s team. Press 1/2 to switch." % Team.display_name(team_id))
 
@@ -316,12 +414,19 @@ func _refresh_command_bar() -> void:
 		_command_bar.sync_soldier_row(i, soldier_state)
 
 
+func _repair_fireteam_selection(fireteam: Fireteam) -> bool:
+	var selected: SoldierState = fireteam.get_selected()
+	if selected != null and selected.is_alive():
+		return false
+	var previous_id := fireteam.selected_soldier_id
+	fireteam.select_first_alive()
+	return fireteam.selected_soldier_id != previous_id
+
+
 func _ensure_active_selection_alive() -> void:
 	var fireteam: Fireteam = _session.get_active_fireteam()
-	var selected: SoldierState = fireteam.get_selected()
-	if selected == null or selected.is_dead:
-		fireteam.select_first_alive()
-		_command_bar.set_selected_soldier(fireteam.selected_soldier_id)
+	if _repair_fireteam_selection(fireteam):
+		_command_bar.sync_selected_soldier(fireteam.selected_soldier_id)
 
 
 func _view_key(team_id: int, soldier_id: int) -> String:
@@ -539,6 +644,7 @@ func _apply_fire_command(cmd: FireCommand) -> void:
 
 	_ensure_active_selection_alive()
 	_refresh_all_views()
+	_affirm_fire_at_ui()
 
 	if summary_lines.is_empty():
 		_command_bar.show_status("Could not fire.")
@@ -552,7 +658,7 @@ func _finalize_shot_result(
 	target: SoldierState,
 ) -> Array[String]:
 	if result.fired and target != null:
-		_spawn_shot_tracer(shooter, target)
+		_spawn_shot_tracers(shooter, target, maxi(result.tracer_count, 1))
 		result.messages.append("Tracer created")
 
 	var lines: Array[String] = []
@@ -562,10 +668,12 @@ func _finalize_shot_result(
 	return lines
 
 
-func _spawn_shot_tracer(shooter: SoldierState, target: SoldierState) -> void:
+func _spawn_shot_tracers(shooter: SoldierState, target: SoldierState, count: int) -> void:
 	var from_world := _get_soldier_tracer_point(shooter)
 	var to_world := _get_soldier_tracer_point(target)
-	ShotTracer.spawn(_tracers_root, from_world, to_world)
+	for i in range(count):
+		var jitter := Vector2(randf_range(-2.0, 2.0), randf_range(-2.0, 2.0))
+		ShotTracer.spawn(_tracers_root, from_world + jitter, to_world + jitter)
 
 
 func _get_soldier_tracer_point(soldier_state: SoldierState) -> Vector2:
@@ -614,6 +722,7 @@ func _on_fire_at_mode_changed(is_active: bool, soldier_id: int) -> void:
 		_move_targeting = false
 		_squad_move_targeting = false
 		_face_mode = false
+		_auto_fire_timer = CombatSystem.AUTO_FIRE_SCAN_INTERVAL
 		if soldier_id > 0:
 			_session.get_active_fireteam().select_soldier(soldier_id)
 			_refresh_all_views()
@@ -688,7 +797,7 @@ func _sync_views_after_load() -> void:
 	_command_bar.clear_face_mode()
 	_command_bar.set_active_team(_session.active_team_id)
 	_refresh_all_views()
-	_command_bar.set_selected_soldier(_session.get_active_fireteam().selected_soldier_id)
+	_command_bar.sync_selected_soldier(_session.get_active_fireteam().selected_soldier_id)
 
 
 func _get_world_mouse_local() -> Vector2:

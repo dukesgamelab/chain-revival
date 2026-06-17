@@ -4,12 +4,12 @@ extends RefCounted
 
 var blue_team: Fireteam
 var red_team: Fireteam
-var active_team_id: int = Team.BLUE
+var active_team_id: int = Team.USA
 
 
 func _init(blue_spawns: Array[Vector2i], red_spawns: Array[Vector2i]) -> void:
-	blue_team = Fireteam.new(Team.BLUE, blue_spawns)
-	red_team = Fireteam.new(Team.RED, red_spawns)
+	blue_team = Fireteam.new(Team.USA, blue_spawns)
+	red_team = Fireteam.new(Team.GERMANY, red_spawns)
 
 
 func get_active_fireteam() -> Fireteam:
@@ -17,13 +17,13 @@ func get_active_fireteam() -> Fireteam:
 
 
 func get_fireteam(team_id: int) -> Fireteam:
-	if team_id == Team.RED:
+	if team_id == Team.GERMANY:
 		return red_team
 	return blue_team
 
 
 func set_active_team(team_id: int) -> void:
-	if team_id == Team.BLUE or team_id == Team.RED:
+	if team_id == Team.USA or team_id == Team.GERMANY:
 		active_team_id = team_id
 
 
@@ -40,6 +40,6 @@ func to_dict() -> Dictionary:
 
 
 func load_from_dict(data: Dictionary) -> void:
-	active_team_id = int(data.get("active_team_id", Team.BLUE))
+	active_team_id = int(data.get("active_team_id", Team.USA))
 	blue_team.load_from_dict(data.get("blue_team", {}))
 	red_team.load_from_dict(data.get("red_team", {}))

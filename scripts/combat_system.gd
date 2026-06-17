@@ -1,9 +1,10 @@
 class_name CombatSystem
 extends RefCounted
-## Resolves shooting: facing, line of fire, cover, ammo, hit chance, death, and Fire At Will.
+## Resolves shooting: weapons, facing, line of fire, cover, ammo, hit chance, death, Fire At Will.
 
 const GameStateClass := preload("res://scripts/game_state.gd")
 const SoldierStateClass := preload("res://scripts/soldier_state.gd")
+const WeaponDataClass := preload("res://scripts/weapon_data.gd")
 const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 const LOSSystemClass := preload("res://scripts/los_system.gd")
 const MapObjectRegistryClass := preload("res://scripts/map_object_registry.gd")
@@ -34,9 +35,24 @@ static func resolve_shot(
 	if shooter.team_id == target.team_id:
 		result.messages.append("Cannot shoot friendlies")
 		return result
+
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
+		result.messages.append("No weapon assigned")
+		return result
+	result.weapon_name = weapon.weapon_name
+
 	if shooter.ammo_current <= 0:
 		result.no_ammo = true
-		result.messages.append("No ammo")
+		result.messages.append("%s %s out of ammo" % [Team.display_name(shooter.team_id), weapon.weapon_name])
+		return result
+
+	var distance := _manhattan_distance(shooter.grid_position, target.grid_position)
+	if distance > weapon.range_tiles:
+		result.out_of_range = true
+		result.messages.append(
+			"%s %s out of range" % [Team.display_name(shooter.team_id), weapon.weapon_name],
+		)
 		return result
 
 	var fireteam := game_state.session.get_fireteam(shooter.team_id)
@@ -56,8 +72,11 @@ static func resolve_shot(
 		result.messages.append("Shot blocked by %s" % blocker_name)
 		return result
 
-	shooter.ammo_current -= 1
+	var ammo_cost := weapon.ammo_cost(shooter.ammo_current)
+	shooter.ammo_current -= ammo_cost
 	result.fired = true
+	result.tracer_count = weapon.tracer_count
+
 	if auto_engagement:
 		result.messages.append(
 			"Soldier %d automatically engaged %s Soldier %d"
@@ -67,15 +86,15 @@ static func resolve_shot(
 				target.soldier_id,
 			],
 		)
-	result.messages.append(
-		"%s Soldier %d fired at %s Soldier %d"
-		% [
-			Team.display_name(shooter.team_id),
-			shooter.soldier_id,
-			Team.display_name(target.team_id),
-			target.soldier_id,
-		],
-	)
+
+	if weapon.is_burst():
+		result.messages.append(
+			"%s %s fired burst" % [Team.display_name(shooter.team_id), weapon.weapon_name],
+		)
+	else:
+		result.messages.append(
+			"%s %s fired" % [Team.display_name(shooter.team_id), weapon.weapon_name],
+		)
 	result.messages.append("Ammo remaining: %d" % shooter.ammo_current)
 
 	if los.cover_value > 0.0:
@@ -88,13 +107,18 @@ static func resolve_shot(
 
 	AudioManager.play_gunshot()
 
-	var chance := hit_chance(shooter.grid_position, target.grid_position, los.cover_value)
+	var chance := hit_chance(
+		shooter.grid_position,
+		target.grid_position,
+		weapon,
+		los.cover_value,
+	)
 	if los.cover_value > 0.0:
 		result.messages.append("Cover reduced hit chance to %d%%" % int(round(chance * 100.0)))
 
 	if randf() <= chance:
 		result.hit = true
-		result.messages.append("Shot hit")
+		result.messages.append("%s hit" % weapon.weapon_name)
 		target.is_dead = true
 		target.clear_path()
 		result.killed = true
@@ -105,17 +129,20 @@ static func resolve_shot(
 	elif los.cover_value > 0.0:
 		result.messages.append("Shot missed due to cover")
 	else:
-		result.messages.append("Shot missed")
+		result.messages.append("%s missed" % weapon.weapon_name)
 
 	return result
 
 
-## Closest living enemy with clear line of fire (Manhattan distance).
 static func find_closest_visible_enemy(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 ) -> SoldierStateClass:
 	if shooter == null or shooter.is_dead:
+		return null
+
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
 		return null
 
 	var enemy_team_id: int = game_state.enemy_team_id(shooter.team_id)
@@ -127,9 +154,11 @@ static func find_closest_visible_enemy(
 		var enemy: SoldierStateClass = state
 		if enemy.is_dead:
 			continue
+		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
+		if dist > weapon.range_tiles:
+			continue
 		if LOSSystemClass.is_shot_blocked(shooter.grid_position, enemy.grid_position, game_state.map_data):
 			continue
-		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
 		if dist < best_dist:
 			best_dist = dist
 			best = enemy
@@ -137,14 +166,25 @@ static func find_closest_visible_enemy(
 	return best
 
 
+static func is_in_weapon_range(
+	shooter: SoldierStateClass,
+	target_cell: Vector2i,
+) -> bool:
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
+		return false
+	return _manhattan_distance(shooter.grid_position, target_cell) <= weapon.range_tiles
+
+
 static func try_auto_engagement(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
+	ignore_fire_control: bool = false,
 ) -> CombatShotResult:
 	var empty := CombatShotResult.new()
 	if shooter == null or shooter.is_dead:
 		return empty
-	if shooter.fire_control_state != FireControlStateClass.FIRE_AT_WILL:
+	if not ignore_fire_control and shooter.fire_control_state != FireControlStateClass.FIRE_AT_WILL:
 		return empty
 	if shooter.ammo_current <= 0:
 		return empty
@@ -156,19 +196,20 @@ static func try_auto_engagement(
 	return resolve_shot(game_state, shooter, target, true)
 
 
-## Base 60% minus 5% per Manhattan tile, floored at 10%.
-## Cover subtracts percentage points (e.g. 0.30 cover on 60% base -> 30% chance).
-## Alternative: multiply by (1.0 - cover_value) instead of subtracting points.
+## Base 60% minus 5% per tile, plus weapon modifier, minus cover (percentage points).
 static func hit_chance(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
+	weapon: WeaponDataClass,
 	cover_value: float = 0.0,
 ) -> float:
 	var dist := _manhattan_distance(from_cell, to_cell)
 	var chance := maxf(MIN_HIT_CHANCE, BASE_HIT_CHANCE - float(dist) * DISTANCE_PENALTY)
+	if weapon != null:
+		chance += weapon.effective_hit_modifier(dist)
 	if cover_value > 0.0:
 		chance = maxf(MIN_HIT_CHANCE, chance - cover_value)
-	return chance
+	return clampf(chance, MIN_HIT_CHANCE, 1.0)
 
 
 static func _manhattan_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:

@@ -4,12 +4,12 @@ extends RefCounted
 
 const SOLDIER_COUNT := 4
 
-var team_id: int = Team.BLUE
+var team_id: int = Team.USA
 var soldiers: Array[SoldierState] = []
 var selected_soldier_id: int = 1
 
 
-func _init(team: int = Team.BLUE, start_cells: Array[Vector2i] = []) -> void:
+func _init(team: int = Team.USA, start_cells: Array[Vector2i] = []) -> void:
 	team_id = team
 	soldiers.clear()
 	for i in range(SOLDIER_COUNT):

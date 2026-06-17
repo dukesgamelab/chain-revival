@@ -6,7 +6,7 @@ signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step
 signal movement_finished(team_id: int, soldier_id: int)
 
 var soldier_id: int = 1
-var team_id: int = Team.BLUE
+var team_id: int = Team.USA
 
 @export var move_speed := 95.0
 
@@ -23,6 +23,7 @@ var _speed_multiplier: float = 1.0
 @onready var _facing_arrow: Line2D = $FacingArrow
 @onready var _dead_marker: Line2D = $DeadMarker
 @onready var _prone_marker: Line2D = $ProneMarker
+@onready var _weapon_badge: Label = $WeaponBadge
 
 
 ## Apply authoritative gameplay state to this sprite (position, facing, selection).
@@ -42,6 +43,7 @@ func sync_from_state(state: SoldierState, is_selected: bool) -> void:
 		position = IsometricGrid.grid_to_world(state.grid_position)
 	_apply_facing(state.facing_direction)
 	_apply_position_visual(state)
+	_apply_weapon_badge(state)
 	set_selected(is_selected)
 
 
@@ -62,6 +64,7 @@ func _apply_dead_visual(is_selected: bool) -> void:
 	_facing_arrow.visible = false
 	_prone_marker.visible = false
 	_dead_marker.visible = true
+	_weapon_badge.visible = false
 	_selection_marker.visible = false
 	_sprite.scale = Vector2.ONE
 	_sprite.position = Vector2(0, -24)
@@ -79,6 +82,14 @@ func _apply_position_visual(state: SoldierState) -> void:
 		_sprite.position = Vector2(0, -24)
 		_facing_arrow.visible = true
 		_prone_marker.visible = false
+
+
+func _apply_weapon_badge(state: SoldierState) -> void:
+	if _weapon_badge == null:
+		return
+	_weapon_badge.visible = true
+	_weapon_badge.text = WeaponType.short_code(state.weapon_type)
+	_weapon_badge.tooltip_text = state.weapon_name
 
 
 func is_moving() -> bool:

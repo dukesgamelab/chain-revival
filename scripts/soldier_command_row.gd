@@ -1,6 +1,6 @@
 class_name SoldierCommandRow
 extends HBoxContainer
-## One soldier row: ammo, fire control, Fire At, move modes, Face, and posture.
+## One soldier row: weapon, ammo, fire control, Fire At, move modes, Face, and posture.
 
 signal move_mode_toggled(soldier_id: int, movement_mode: int, is_pressed: bool)
 signal fire_at_toggled(soldier_id: int, is_pressed: bool)
@@ -9,9 +9,9 @@ signal position_toggled(soldier_id: int, is_down: bool)
 signal fire_control_selected(soldier_id: int, fire_control_state: int)
 
 @export var soldier_id: int = 1
-@export var ammo_count: int = 200
 
 @onready var _dots_label: Label = %DotsLabel
+@onready var _weapon_label: Label = %WeaponLabel
 @onready var _ammo_label: Label = %AmmoLabel
 @onready var _fire_at_button: Button = %FireAtButton
 @onready var _hold_fire_button: Button = %HoldFireButton
@@ -24,11 +24,11 @@ signal fire_control_selected(soldier_id: int, fire_control_state: int)
 
 var _row_enabled: bool = true
 var _move_buttons: Dictionary = {}
+var _team_id: int = Team.USA
 
 
 func _ready() -> void:
 	_dots_label.text = _make_dots(soldier_id)
-	_ammo_label.text = str(ammo_count)
 	_move_buttons = {
 		MovementMode.RUN: _run_to_button,
 		MovementMode.WALK: _walk_to_button,
@@ -48,7 +48,7 @@ func _ready() -> void:
 	_face_button.toggled.connect(_on_face_toggled)
 	_position_button.toggled.connect(_on_position_toggled)
 	set_position_state(PositionState.UP)
-	set_fire_control_state(FireControlState.FIRE_AT_WILL)
+	set_fire_control_state(FireControlState.HOLD_FIRE)
 
 
 func set_move_mode_pressed(movement_mode: int, is_pressed: bool) -> void:
@@ -76,11 +76,32 @@ func set_face_pressed(is_pressed: bool) -> void:
 	_face_button.modulate = Color(0.75, 1.0, 0.85) if is_pressed else Color.WHITE
 
 
-func set_ammo(ammo_current: int) -> void:
-	_ammo_label.text = str(ammo_current)
+func set_weapon_info(state: SoldierState) -> void:
+	_team_id = state.team_id
+	var type_code := WeaponType.short_code(state.weapon_type)
+	if state.weapon_name.is_empty():
+		_weapon_label.text = type_code
+	else:
+		_weapon_label.text = "%s %s" % [type_code, state.weapon_name]
+	var status_line := "%s Soldier %d — Weapon: %s" % [
+		Team.display_name(state.team_id),
+		state.soldier_id,
+		state.weapon_name if not state.weapon_name.is_empty() else "—",
+	]
+	_weapon_label.tooltip_text = status_line
+	_ammo_label.tooltip_text = "%s\nAmmo %d / %d" % [status_line, state.ammo_current, state.ammo_max]
+
+
+func set_ammo(ammo_current: int, ammo_max: int) -> void:
+	_ammo_label.text = "%d" % ammo_current
 
 
 func set_row_enabled(enabled: bool) -> void:
+	if not enabled:
+		_fire_at_button.set_block_signals(true)
+		_fire_at_button.set_pressed_no_signal(false)
+		_update_fire_at_highlight(false)
+		_fire_at_button.set_block_signals(false)
 	_row_enabled = enabled
 	_fire_at_button.disabled = not enabled
 	_hold_fire_button.disabled = not enabled

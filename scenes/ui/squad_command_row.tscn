@@ -10,8 +10,12 @@ script = ExtResource("1_row")
 custom_minimum_size = Vector2(36, 24)
 layout_mode = 2
 
+[node name="WeaponSpacer" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(88, 24)
+layout_mode = 2
+
 [node name="AmmoSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(40, 24)
+custom_minimum_size = Vector2(36, 24)
 layout_mode = 2
 
 [node name="FireAtButton" type="Button" parent="."]

@@ -30,7 +30,8 @@ var _move_target_soldier_id: int = -1
 var _active_movement_mode: int = MovementMode.RUN
 var _fire_at_soldier_id: int = -1
 var _face_soldier_id: int = -1
-var _active_team_id: int = Team.BLUE
+var _active_team_id: int = Team.USA
+var _soldier_weapon_names: Array[String] = ["", "", "", ""]
 
 
 func _ready() -> void:
@@ -49,7 +50,7 @@ func _ready() -> void:
 	%MapSaveButton.pressed.connect(func() -> void: map_save_requested.emit())
 	%MapLoadButton.pressed.connect(func() -> void: map_load_requested.emit())
 
-	_select_soldier(1, false)
+	_select_soldier(1, false, false)
 
 
 func set_active_team(team_id: int) -> void:
@@ -57,7 +58,7 @@ func set_active_team(team_id: int) -> void:
 	_team_label.text = Team.display_name(team_id)
 	_team_label.add_theme_color_override(
 		"font_color",
-		Team.COLOR_BLUE if team_id == Team.BLUE else Team.COLOR_RED,
+		Team.COLOR_USA if team_id == Team.USA else Team.COLOR_GERMANY,
 	)
 	clear_move_targeting()
 	clear_fire_at_mode()
@@ -66,7 +67,12 @@ func set_active_team(team_id: int) -> void:
 
 
 func set_selected_soldier(soldier_id: int) -> void:
-	_select_soldier(soldier_id, false)
+	_select_soldier(soldier_id, false, true)
+
+
+## Update highlighted soldier without notifying main (programmatic sync).
+func sync_selected_soldier(soldier_id: int) -> void:
+	_select_soldier(soldier_id, false, false)
 
 
 ## Sync one command row with live soldier gameplay data.
@@ -74,7 +80,9 @@ func sync_soldier_row(row_index: int, state: SoldierState) -> void:
 	if row_index < 0 or row_index >= _rows.size():
 		return
 	var row: SoldierCommandRow = _rows[row_index]
-	row.set_ammo(state.ammo_current)
+	row.set_weapon_info(state)
+	row.set_ammo(state.ammo_current, state.ammo_max)
+	_soldier_weapon_names[row_index] = state.weapon_name
 	row.set_row_enabled(state.is_alive())
 	row.set_position_state(state.position_state)
 	row.set_fire_control_state(state.fire_control_state)
@@ -99,6 +107,21 @@ func clear_fire_at_mode() -> void:
 	for row in _rows:
 		row.set_fire_at_pressed(false)
 	fire_at_mode_changed.emit(false, _selected_soldier_id)
+	_update_status()
+
+
+## Keep Fire At button lit after view refresh without re-entering mode.
+func affirm_fire_at_pressed(squad: bool, soldier_id: int) -> void:
+	if squad:
+		_fire_at_soldier_id = SQUAD_ID
+		_squad_row.set_fire_at_pressed(true)
+		for row in _rows:
+			row.set_fire_at_pressed(false)
+	else:
+		_fire_at_soldier_id = soldier_id
+		_squad_row.set_fire_at_pressed(false)
+		for row in _rows:
+			row.set_fire_at_pressed(row.soldier_id == soldier_id)
 	_update_status()
 
 
@@ -221,12 +244,17 @@ func _on_row_position_toggled(soldier_id: int, is_down: bool) -> void:
 	)
 
 
-func _select_soldier(soldier_id: int, from_command: bool) -> void:
+func _select_soldier(soldier_id: int, from_command: bool, notify: bool = true) -> void:
 	var row_index := soldier_id - 1
 	if row_index >= 0 and row_index < _rows.size() and not _rows[row_index].is_interactive():
 		return
+	if _selected_soldier_id == soldier_id:
+		if not from_command:
+			_update_status()
+		return
 	_selected_soldier_id = soldier_id
-	soldier_selected.emit(soldier_id)
+	if notify:
+		soldier_selected.emit(soldier_id)
 	if not from_command:
 		_update_status()
 
@@ -244,9 +272,12 @@ func _movement_label(mode: int) -> String:
 func _update_status() -> void:
 	var team_name := Team.display_name(_active_team_id)
 	if _fire_at_soldier_id == SQUAD_ID:
-		show_status("%s Fireteam: Fire At — click an enemy soldier." % team_name)
+		show_status("%s Fireteam: Fire At — click enemies or auto-engages. Right-click cancels." % team_name)
 	elif _fire_at_soldier_id > 0:
-		show_status("%s Soldier %d: Fire At — click an enemy soldier." % [team_name, _fire_at_soldier_id])
+		show_status(
+			"%s Soldier %d: Fire At — click enemies or auto-engages. Right-click cancels."
+			% [team_name, _fire_at_soldier_id],
+		)
 	elif _face_soldier_id > 0:
 		show_status("%s Soldier %d: Face — click a tile." % [team_name, _face_soldier_id])
 	elif _move_target_soldier_id == SQUAD_ID:
@@ -260,4 +291,21 @@ func _update_status() -> void:
 			% [team_name, _move_target_soldier_id, _movement_label(_active_movement_mode)],
 		)
 	else:
-		show_status("%s team — Soldier %d selected. Press 1/2 to switch teams." % [team_name, _selected_soldier_id])
+		var weapon_name := _get_selected_weapon_name()
+		if weapon_name.is_empty():
+			show_status(
+				"%s Soldier %d selected. Press 1/2 to switch teams."
+				% [team_name, _selected_soldier_id],
+			)
+		else:
+			show_status(
+				"%s Soldier %d — Weapon: %s"
+				% [team_name, _selected_soldier_id, weapon_name],
+			)
+
+
+func _get_selected_weapon_name() -> String:
+	var row_index := _selected_soldier_id - 1
+	if row_index < 0 or row_index >= _soldier_weapon_names.size():
+		return ""
+	return _soldier_weapon_names[row_index]

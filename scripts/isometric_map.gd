@@ -12,8 +12,8 @@ extends Node2D
 
 @export var path_color := Color(0.95, 0.85, 0.20, 0.55)
 @export var target_color := Color(0.90, 0.15, 0.15, 0.75)
-@export var team_1_spawn_color := Color(0.20, 0.45, 0.95, 0.70)
-@export var team_2_spawn_color := Color(0.95, 0.35, 0.15, 0.70)
+@export var team_1_spawn_color := Color(0.35, 0.72, 0.38, 0.70)
+@export var team_2_spawn_color := Color(0.58, 0.58, 0.62, 0.70)
 
 var map_data: MapData = null
 
