@@ -7,13 +7,12 @@ const SoldierStateClass := preload("res://scripts/soldier_state.gd")
 const WeaponDataClass := preload("res://scripts/weapon_data.gd")
 const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 const LOSSystemClass := preload("res://scripts/los_system.gd")
+const CoverSystemClass := preload("res://scripts/cover_system.gd")
 const MapObjectRegistryClass := preload("res://scripts/map_object_registry.gd")
 
 const CLEAR_BASE_HIT_CHANCE := 0.78
 const CLEAR_DISTANCE_PENALTY := 0.025
-const COVER_BASE_HIT_CHANCE := 0.50
 const MIN_HIT_CHANCE := 0.10
-const DISTANCE_PENALTY := 0.05
 const AUTO_FIRE_SCAN_INTERVAL := 0.5
 const FIRE_PREP_DELAY_SEC := 1.0
 
@@ -91,6 +90,20 @@ static func resolve_shot(
 			)
 		return result
 
+	result.messages.append(
+		"%s Soldier %d firing %s"
+		% [Team.display_name(shooter.team_id), shooter.soldier_id, weapon.weapon_name],
+	)
+
+	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
+		result.had_cover = true
+		result.cover_type = los.cover_type
+		var cover_name := los.cover_source_type
+		var cover_def := MapObjectRegistryClass.get_def(cover_name)
+		if cover_def != null:
+			cover_name = cover_def.display_name
+		result.messages.append("Target in moderate cover (%s)" % cover_name)
+
 	var ammo_cost := weapon.ammo_cost(shooter.ammo_current)
 	shooter.ammo_current -= ammo_cost
 	shooter.last_shot_msec = Time.get_ticks_msec()
@@ -117,24 +130,21 @@ static func resolve_shot(
 		)
 	result.messages.append("Ammo remaining: %d" % shooter.ammo_current)
 
-	if los.cover_value > 0.0:
-		result.had_cover = true
-		result.cover_value = los.cover_value
-		result.messages.append(
-			"%s Soldier %d is in cover"
-			% [Team.display_name(target.team_id), target.soldier_id],
-		)
-
 	AudioManager.play_gunshot()
 
-	var chance := hit_chance(
+	var base_chance := hit_chance(
 		shooter.grid_position,
 		target.grid_position,
 		weapon,
-		los.cover_value,
 	)
-	if los.cover_value > 0.0:
-		result.messages.append("Cover reduced hit chance to %d%%" % int(round(chance * 100.0)))
+	var chance := base_chance
+	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
+		chance = CoverSystemClass.apply_moderate_cover(base_chance)
+		chance = clampf(chance, MIN_HIT_CHANCE, 1.0)
+		result.messages.append(
+			"Hit chance reduced from %d%% to %d%%"
+			% [int(round(base_chance * 100.0)), int(round(chance * 100.0))],
+		)
 
 	if randf() <= chance:
 		result.hit = true
@@ -146,7 +156,7 @@ static func resolve_shot(
 			"%s Soldier %d killed" % [Team.display_name(target.team_id), target.soldier_id],
 		)
 		AudioManager.play_death()
-	elif los.cover_value > 0.0:
+	elif los.cover_type == CoverSystemClass.CoverType.MODERATE:
 		result.messages.append("Shot missed due to cover")
 	else:
 		result.messages.append("%s missed" % weapon.weapon_name)
@@ -248,8 +258,13 @@ static func hit_pct_vs_faced_enemy(
 		shooter.grid_position,
 		target.grid_position,
 		weapon,
-		los.cover_value,
-	) * 100.0
+	) * _cover_hit_multiplier(los) * 100.0
+
+
+static func _cover_hit_multiplier(los: LOSSystemClass.LossResult) -> float:
+	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
+		return CoverSystemClass.MODERATE_HIT_MULTIPLIER
+	return 1.0
 
 
 static func is_in_weapon_range(
@@ -324,20 +339,14 @@ static func _get_engaged_target(
 	return target
 
 
-## Open LOS uses a high base chance; cover and distance reduce it more aggressively.
+## Base hit chance before cover modifiers (distance + weapon bonus only).
 static func hit_chance(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
 	weapon: WeaponDataClass,
-	cover_value: float = 0.0,
 ) -> float:
 	var dist := _manhattan_distance(from_cell, to_cell)
-	var chance: float
-	if cover_value <= 0.0:
-		chance = maxf(MIN_HIT_CHANCE, CLEAR_BASE_HIT_CHANCE - float(dist) * CLEAR_DISTANCE_PENALTY)
-	else:
-		chance = maxf(MIN_HIT_CHANCE, COVER_BASE_HIT_CHANCE - float(dist) * DISTANCE_PENALTY)
-		chance = maxf(MIN_HIT_CHANCE, chance - cover_value)
+	var chance := maxf(MIN_HIT_CHANCE, CLEAR_BASE_HIT_CHANCE - float(dist) * CLEAR_DISTANCE_PENALTY)
 	if weapon != null:
 		chance += weapon.effective_hit_modifier(dist)
 	return clampf(chance, MIN_HIT_CHANCE, 1.0)

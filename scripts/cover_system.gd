@@ -1,9 +1,11 @@
 class_name CoverSystem
 extends RefCounted
-## V1 cover: adjacent cover objects that lie roughly between shooter and target.
+## V1 cover evaluation shared by combat and LOS preview.
 
-const MapDataClass := preload("res://scripts/map_data.gd")
-const MapObjectRegistryClass := preload("res://scripts/map_object_registry.gd")
+enum CoverType { NONE, MODERATE, COMPLETE }
+
+## Moderate cover halves final hit chance (e.g. 60% -> 30%).
+const MODERATE_HIT_MULTIPLIER := 0.5
 
 const ADJACENT_OFFSETS: Array[Vector2i] = [
 	Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
@@ -11,86 +13,98 @@ const ADJACENT_OFFSETS: Array[Vector2i] = [
 ]
 
 
-## Highest cover_value from qualifying adjacent tiles (0.0 = no cover).
-static func get_cover_value(
+class CoverResult extends RefCounted:
+	var cover_type: int = CoverType.NONE
+	var source_type_id: String = ""
+	var source_cell: Vector2i = Vector2i(-999, -999)
+
+
+class BlockResult extends RefCounted:
+	var blocked: bool = false
+	var blocking_cell: Vector2i = Vector2i(-999, -999)
+	var blocking_type_id: String = ""
+
+
+## Tile on the line of fire that completely blocks the shot (wall, tree, etc.).
+static func find_blocking_tile(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	map_data: MapData,
+) -> BlockResult:
+	var result := BlockResult.new()
+	if map_data == null:
+		result.blocked = true
+		return result
+
+	for cell in _line_cells_between(from_cell, to_cell):
+		var type_id: String = map_data.get_object_type(cell)
+		if type_id.is_empty():
+			continue
+		var object_def := MapObjectRegistry.get_def(type_id)
+		if object_def == null:
+			continue
+		if object_def.cover_type == CoverType.COMPLETE or object_def.blocks_los:
+			result.blocked = true
+			result.blocking_cell = cell
+			result.blocking_type_id = type_id
+			return result
+
+	return result
+
+
+## Moderate cover affecting the target when the shot is not blocked.
+static func evaluate_target_cover(
 	from_cell: Vector2i,
 	target_cell: Vector2i,
-	map_data: MapDataClass,
-) -> float:
+	map_data: MapData,
+) -> CoverResult:
+	var result := CoverResult.new()
 	if map_data == null or from_cell == target_cell:
-		return 0.0
+		return result
 
-	var best_cover := 0.0
+	_consider_cover_cell(target_cell, map_data, result)
 	for offset in ADJACENT_OFFSETS:
-		var cover_cell := target_cell + offset
-		if not map_data.is_in_bounds(cover_cell):
+		_consider_cover_cell(target_cell + offset, map_data, result)
+	for cell in _line_cells_between(from_cell, target_cell):
+		_consider_cover_cell(cell, map_data, result)
+
+	return result
+
+
+static func cover_type_name(cover_type: int) -> String:
+	match cover_type:
+		CoverType.MODERATE:
+			return "moderate"
+		CoverType.COMPLETE:
+			return "complete"
+		_:
+			return "none"
+
+
+static func apply_moderate_cover(chance: float) -> float:
+	return chance * MODERATE_HIT_MULTIPLIER
+
+
+static func _consider_cover_cell(cell: Vector2i, map_data: MapData, result: CoverResult) -> void:
+	if not map_data.is_in_bounds(cell):
+		return
+	var type_id: String = map_data.get_object_type(cell)
+	if type_id.is_empty():
+		return
+	var object_def := MapObjectRegistry.get_def(type_id)
+	if object_def == null or not object_def.provides_cover:
+		return
+	if object_def.cover_type != CoverType.MODERATE:
+		return
+	result.cover_type = CoverType.MODERATE
+	result.source_type_id = type_id
+	result.source_cell = cell
+
+
+static func _line_cells_between(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	for cell in IsometricGrid.grid_line(from_cell, to_cell):
+		if cell == from_cell or cell == to_cell:
 			continue
-		var cover_type: String = map_data.get_object_type(cover_cell)
-		if cover_type.is_empty():
-			continue
-		var cover_def := MapObjectRegistryClass.get_def(cover_type)
-		if cover_def == null or not cover_def.provides_cover:
-			continue
-		if not _is_cover_between(from_cell, cover_cell, target_cell):
-			continue
-		best_cover = maxf(best_cover, cover_def.cover_value)
-
-	return best_cover
-
-
-## Type id of the cover object contributing the most cover (empty if none).
-static func get_cover_type(
-	from_cell: Vector2i,
-	target_cell: Vector2i,
-	map_data: MapDataClass,
-) -> String:
-	if map_data == null or from_cell == target_cell:
-		return ""
-
-	var best_cover := 0.0
-	var best_type := ""
-	for offset in ADJACENT_OFFSETS:
-		var cover_cell := target_cell + offset
-		if not map_data.is_in_bounds(cover_cell):
-			continue
-		var cover_type: String = map_data.get_object_type(cover_cell)
-		if cover_type.is_empty():
-			continue
-		var cover_def := MapObjectRegistryClass.get_def(cover_type)
-		if cover_def == null or not cover_def.provides_cover:
-			continue
-		if not _is_cover_between(from_cell, cover_cell, target_cell):
-			continue
-		if cover_def.cover_value >= best_cover:
-			best_cover = cover_def.cover_value
-			best_type = cover_type
-
-	return best_type
-
-
-## Cover tile is adjacent to target, closer than target, and in the shooter's direction.
-static func _is_cover_between(
-	from_cell: Vector2i,
-	cover_cell: Vector2i,
-	target_cell: Vector2i,
-) -> bool:
-	if cover_cell == from_cell:
-		return false
-
-	var to_target := target_cell - from_cell
-	var to_cover := cover_cell - from_cell
-	if to_target == Vector2i.ZERO or to_cover == Vector2i.ZERO:
-		return false
-
-	var shooter_to_target := _manhattan(from_cell, target_cell)
-	var shooter_to_cover := _manhattan(from_cell, cover_cell)
-	if shooter_to_cover >= shooter_to_target:
-		return false
-
-	# Same general direction (rough alignment — no directional cover yet).
-	var alignment := to_target.x * to_cover.x + to_target.y * to_cover.y
-	return alignment > 0
-
-
-static func _manhattan(a: Vector2i, b: Vector2i) -> int:
-	return absi(a.x - b.x) + absi(a.y - b.y)
+		cells.append(cell)
+	return cells

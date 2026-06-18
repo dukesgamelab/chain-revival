@@ -47,6 +47,13 @@ func has_object(cell: Vector2i) -> bool:
 	return _object_lookup.has(cell)
 
 
+func get_object_cells() -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	for cell in _object_lookup.keys():
+		cells.append(cell)
+	return cells
+
+
 func is_blocked(cell: Vector2i) -> bool:
 	var object_def := get_object_def(cell)
 	return object_def != null and object_def.blocks_movement
@@ -151,7 +158,30 @@ static func create_default() -> MapData:
 		map_data.team_1_spawn_points + map_data.team_2_spawn_points,
 	):
 		map_data.set_object(cell, MapObjectRegistryClass.TYPE_TREE)
+	_place_default_cover_samples(map_data)
 	return map_data
+
+
+static func _place_default_cover_samples(map_data: MapData) -> void:
+	var haybails: Array[Vector2i] = [
+		Vector2i(24, 30),
+		Vector2i(38, 30),
+		Vector2i(30, 24),
+		Vector2i(30, 36),
+	]
+	for cell in haybails:
+		if map_data.is_walkable(cell):
+			map_data.set_object(cell, MapObjectRegistryClass.TYPE_HAYBAIL)
+
+	var wall_corners: Array[Vector2i] = [
+		Vector2i(29, 22),
+		Vector2i(31, 22),
+		Vector2i(29, 38),
+		Vector2i(31, 38),
+	]
+	for cell in wall_corners:
+		if map_data.is_walkable(cell):
+			map_data.set_object(cell, MapObjectRegistryClass.TYPE_WALL_CORNER)
 
 
 static func generate_tree_obstacles(

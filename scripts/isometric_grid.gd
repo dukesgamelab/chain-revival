@@ -89,6 +89,34 @@ static func diamond_corners(center: Vector2) -> PackedVector2Array:
 	])
 
 
+## Bresenham line through grid cells from start to end (inclusive).
+static func grid_line(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
+	var points: Array[Vector2i] = []
+	var x0 := from_cell.x
+	var y0 := from_cell.y
+	var x1 := to_cell.x
+	var y1 := to_cell.y
+	var dx := absi(x1 - x0)
+	var dy := absi(y1 - y0)
+	var sx := 1 if x0 < x1 else -1
+	var sy := 1 if y0 < y1 else -1
+	var err := dx - dy
+
+	while true:
+		points.append(Vector2i(x0, y0))
+		if x0 == x1 and y0 == y1:
+			break
+		var e2 := 2 * err
+		if e2 > -dy:
+			err -= dy
+			x0 += sx
+		if e2 < dx:
+			err += dx
+			y0 += sy
+
+	return points
+
+
 ## World-space bounding box that fully contains every tile on the map.
 ## Pass border_cells to include decorative grass rings outside the playable grid.
 static func get_map_world_bounds(map_width: int, map_height: int, border_cells: int = 0) -> Rect2:
