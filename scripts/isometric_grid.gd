@@ -2,10 +2,11 @@ class_name IsometricGrid
 extends RefCounted
 ## Converts between logical grid cells and isometric world positions.
 ##
-## Grid coordinates are plain integers (e.g. Vector2i(3, 5)).
-## World positions are pixel locations on the 2D plane where the scene is drawn.
+## Grid coordinates are plain integers (e.g. Vector2i(3, 5)) and are authoritative for gameplay.
+## World positions are pixel locations where the scene is drawn (presentation only).
 ##
-## We use standard 2:1 isometric math so each cell is a diamond-shaped tile.
+## current_view_rotation remaps logical cells before the normal isometric projection.
+## Gameplay grid cells in GameState are never changed.
 
 ## Full width of one tile diamond (left point to right point).
 const TILE_WIDTH := 64
@@ -16,9 +17,64 @@ const TILE_HEIGHT := 32
 ## Extra grass rings drawn outside the playable map (visual only, not walkable).
 const MAP_VISUAL_BORDER := 12
 
+## Presentation-only view rotation: 0-3 = 0, 90, 180, 270 degrees clockwise.
+static var current_view_rotation: int = 0
 
-## Convert a grid cell to the world-space CENTER of that tile.
-static func grid_to_world(grid: Vector2i) -> Vector2:
+static var _map_width: int = 0
+static var _map_height: int = 0
+
+
+## Store playable map size used by view-rotation coordinate remaps.
+static func set_view_pivot_for_map(map_width: int, map_height: int) -> void:
+	_map_width = maxi(map_width, 0)
+	_map_height = maxi(map_height, 0)
+
+
+static func reset_view_rotation() -> void:
+	current_view_rotation = 0
+
+
+static func rotate_view_left() -> void:
+	current_view_rotation = (current_view_rotation + 3) % 4
+
+
+static func rotate_view_right() -> void:
+	current_view_rotation = (current_view_rotation + 1) % 4
+
+
+static func _logical_to_visual(cell: Vector2i) -> Vector2i:
+	var x := cell.x
+	var y := cell.y
+	var w := _map_width
+	var h := _map_height
+	match current_view_rotation:
+		1:
+			return Vector2i(y, w - 1 - x)
+		2:
+			return Vector2i(w - 1 - x, h - 1 - y)
+		3:
+			return Vector2i(h - 1 - y, x)
+		_:
+			return cell
+
+
+static func _visual_to_logical(cell: Vector2i) -> Vector2i:
+	var vx := cell.x
+	var vy := cell.y
+	var w := _map_width
+	var h := _map_height
+	match current_view_rotation:
+		1:
+			return Vector2i(w - 1 - vy, vx)
+		2:
+			return Vector2i(w - 1 - vx, h - 1 - vy)
+		3:
+			return Vector2i(vy, h - 1 - vx)
+		_:
+			return cell
+
+
+static func _base_grid_to_world(grid: Vector2i) -> Vector2:
 	var half_w := TILE_WIDTH * 0.5
 	var half_h := TILE_HEIGHT * 0.5
 	var x := (grid.x - grid.y) * half_w
@@ -26,24 +82,37 @@ static func grid_to_world(grid: Vector2i) -> Vector2:
 	return Vector2(x, y)
 
 
-## Screen-space direction for a grid facing step (for arrow/sprite visuals only).
-static func grid_facing_to_screen(facing: Vector2i) -> Vector2:
-	return grid_to_world(facing) - grid_to_world(Vector2i.ZERO)
-
-
-## Line2D rotation in degrees (local +X arrow) for a grid facing on this isometric map.
-static func grid_facing_to_degrees(facing: Vector2i) -> float:
-	var screen_dir := grid_facing_to_screen(facing)
-	if screen_dir.length_squared() < 0.001:
-		return 0.0
-	return rad_to_deg(screen_dir.angle())
-## Fast approximation — use world_to_cell_at_point() for mouse picking.
-static func world_to_grid(world: Vector2) -> Vector2i:
+static func _base_world_to_grid(world: Vector2) -> Vector2i:
 	var half_w := TILE_WIDTH * 0.5
 	var half_h := TILE_HEIGHT * 0.5
 	var gx := (world.x / half_w + world.y / half_h) * 0.5
 	var gy := (world.y / half_h - world.x / half_w) * 0.5
 	return Vector2i(int(floor(gx)), int(floor(gy)))
+
+
+## Convert a logical grid cell to the world-space CENTER of that tile (presentation).
+static func grid_to_world(grid: Vector2i) -> Vector2:
+	return _base_grid_to_world(_logical_to_visual(grid))
+
+
+## Screen-space direction for a grid facing step (for arrow/sprite visuals only).
+static func grid_facing_to_screen(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> Vector2:
+	var visual_from := _logical_to_visual(from_cell)
+	var visual_to := _logical_to_visual(from_cell + facing)
+	return _base_grid_to_world(visual_to) - _base_grid_to_world(visual_from)
+
+
+## Line2D rotation in degrees (local +X arrow) for a grid facing on this isometric map.
+static func grid_facing_to_degrees(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> float:
+	var screen_dir := grid_facing_to_screen(facing, from_cell)
+	if screen_dir.length_squared() < 0.001:
+		return 0.0
+	return rad_to_deg(screen_dir.angle())
+
+
+## Fast approximation — use world_to_cell_at_point() for mouse picking.
+static func world_to_grid(world: Vector2) -> Vector2i:
+	return _visual_to_logical(_base_world_to_grid(world))
 
 
 ## Pick the tile diamond that actually contains this world point (for mouse clicks).
@@ -82,14 +151,14 @@ static func diamond_corners(center: Vector2) -> PackedVector2Array:
 	var half_w := TILE_WIDTH * 0.5
 	var half_h := TILE_HEIGHT * 0.5
 	return PackedVector2Array([
-		center + Vector2(0.0, -half_h),   # top
-		center + Vector2(half_w, 0.0),    # right
-		center + Vector2(0.0, half_h),    # bottom
-		center + Vector2(-half_w, 0.0),   # left
+		center + Vector2(0.0, -half_h),
+		center + Vector2(half_w, 0.0),
+		center + Vector2(0.0, half_h),
+		center + Vector2(-half_w, 0.0),
 	])
 
 
-## Bresenham line through grid cells from start to end (inclusive).
+## Bresenham line through grid cells from start to end (inclusive). Gameplay — not rotated.
 static func grid_line(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
 	var points: Array[Vector2i] = []
 	var x0 := from_cell.x
@@ -117,7 +186,7 @@ static func grid_line(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]
 	return points
 
 
-## World-space bounding box that fully contains every tile on the map.
+## World-space bounding box that fully contains every tile on the map (presentation).
 ## Pass border_cells to include decorative grass rings outside the playable grid.
 static func get_map_world_bounds(map_width: int, map_height: int, border_cells: int = 0) -> Rect2:
 	if map_width <= 0 or map_height <= 0:

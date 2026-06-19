@@ -15,6 +15,8 @@ signal load_requested
 signal map_save_requested
 signal map_load_requested
 signal center_camera_requested
+signal rotate_view_left_requested
+signal rotate_view_right_requested
 
 @onready var _squad_row: SquadCommandRow = %SquadRow
 @onready var _rows: Array[SoldierCommandRow] = [
@@ -56,6 +58,8 @@ func _ready() -> void:
 	%LoadButton.pressed.connect(func() -> void: load_requested.emit())
 	%MapSaveButton.pressed.connect(func() -> void: map_save_requested.emit())
 	%MapLoadButton.pressed.connect(func() -> void: map_load_requested.emit())
+	%RotateLeftButton.pressed.connect(func() -> void: rotate_view_left_requested.emit())
+	%RotateRightButton.pressed.connect(func() -> void: rotate_view_right_requested.emit())
 
 	_select_soldier(1, false, false)
 

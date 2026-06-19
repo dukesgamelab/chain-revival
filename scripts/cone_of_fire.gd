@@ -99,7 +99,7 @@ static func _aim_direction(from_world: Vector2, aim_world: Vector2, from_cell: V
 		return to_aim.normalized()
 	var aim_cell := IsometricGrid.world_to_cell_at_point(aim_world)
 	var facing := FacingDirection.toward_cell(from_cell, aim_cell)
-	var screen_dir := IsometricGrid.grid_facing_to_screen(facing)
+	var screen_dir := IsometricGrid.grid_facing_to_screen(facing, from_cell)
 	if screen_dir.length_squared() < 0.001:
 		return Vector2(1.0, 0.0)
 	return screen_dir.normalized()

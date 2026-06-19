@@ -92,6 +92,13 @@ func clear_path() -> void:
 	_path_overlay.clear_path()
 
 
+## Redraw tiles and any active path overlay after a presentation-only view rotation.
+func refresh_view_rotation() -> void:
+	queue_redraw()
+	if _path_overlay != null:
+		_path_overlay.queue_redraw()
+
+
 func _draw() -> void:
 	if map_data == null:
 		return

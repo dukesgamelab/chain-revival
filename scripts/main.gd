@@ -261,6 +261,8 @@ func _connect_command_bar() -> void:
 	_command_bar.map_save_requested.connect(_on_map_save_requested)
 	_command_bar.map_load_requested.connect(_on_map_load_requested)
 	_command_bar.center_camera_requested.connect(_on_center_camera_requested)
+	_command_bar.rotate_view_left_requested.connect(_on_rotate_view_left_requested)
+	_command_bar.rotate_view_right_requested.connect(_on_rotate_view_right_requested)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -275,6 +277,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if event.keycode == KEY_2:
 			_switch_active_team(Team.GERMANY)
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("rotate_view_left"):
+			_apply_view_rotation_left()
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("rotate_view_right"):
+			_apply_view_rotation_right()
 			get_viewport().set_input_as_handled()
 			return
 
@@ -524,6 +534,40 @@ func _is_soldier_in_fire_at_scope(soldier_state: SoldierState) -> bool:
 
 func _on_center_camera_requested() -> void:
 	_center_camera_on_active_fireteam()
+
+
+func _on_rotate_view_left_requested() -> void:
+	_apply_view_rotation_left()
+
+
+func _on_rotate_view_right_requested() -> void:
+	_apply_view_rotation_right()
+
+
+func _apply_view_rotation_left() -> void:
+	IsometricGrid.rotate_view_left()
+	_refresh_view_rotation()
+
+
+func _apply_view_rotation_right() -> void:
+	IsometricGrid.rotate_view_right()
+	_refresh_view_rotation()
+
+
+func _refresh_view_rotation() -> void:
+	if _map_data == null:
+		return
+	_camera.set_map_size(_map_data.width, _map_data.height)
+	_map_background.set_center_cell(_get_camera_focus_cell())
+	_iso_map.refresh_view_rotation()
+	for view in _soldier_views.values():
+		var soldier_view: Soldier = view
+		soldier_view.refresh_movement_visual()
+	_refresh_all_views()
+	_command_bar.show_status(
+		"View rotation %d/4 — Q/E or Rotate buttons. Gameplay grid unchanged."
+		% (IsometricGrid.current_view_rotation + 1),
+	)
 
 
 func _center_camera_on_active_fireteam() -> void:
@@ -976,6 +1020,7 @@ func _on_map_save_requested() -> void:
 func _on_map_load_requested() -> void:
 	_map_data = MapDataClass.load_from_file()
 	_game_state.map_data = _map_data
+	IsometricGrid.reset_view_rotation()
 	_iso_map.apply_map_data(_map_data)
 	_camera.set_map_size(_map_data.width, _map_data.height)
 	_center_camera_on_map()
@@ -1044,6 +1089,7 @@ func _find_living_soldier_at_mouse() -> SoldierState:
 func _center_camera_on_map() -> void:
 	if _map_data == null:
 		return
+	IsometricGrid.set_view_pivot_for_map(_map_data.width, _map_data.height)
 	_camera.set_map_size(_map_data.width, _map_data.height)
 	var focus_cell: Vector2i = _get_camera_focus_cell()
 	_map_background.set_center_cell(focus_cell)

@@ -28,6 +28,7 @@ var _previous_grid_pos: Vector2i = Vector2i.ZERO
 var _is_dead: bool = false
 var _speed_multiplier: float = 1.0
 var _applied_position_state: int = -1
+var _facing_from_cell: Vector2i = Vector2i.ZERO
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _selection_marker: Polygon2D = $SelectionMarker
@@ -56,7 +57,8 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 	_dead_marker.visible = false
 	if not _is_moving:
 		position = IsometricGrid.grid_to_world(state.grid_position)
-	_apply_facing(state.facing_direction)
+	_facing_from_cell = state.grid_position
+	_apply_facing(state.facing_direction, _facing_from_cell)
 	_apply_position_visual(state)
 	_apply_weapon_badge(state)
 	_apply_spotted_visual(is_selected, is_spotted)
@@ -127,6 +129,16 @@ func is_moving() -> bool:
 	return _is_moving
 
 
+## Recompute world positions after a presentation-only view rotation.
+func refresh_movement_visual() -> void:
+	if not _is_moving or _path.is_empty():
+		return
+	var start_index := maxi(_path_index - 1, 0)
+	position = IsometricGrid.grid_to_world(_path[start_index])
+	if _path_index < _path.size():
+		_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
+
+
 func stop_movement() -> void:
 	_is_moving = false
 	_path.clear()
@@ -158,7 +170,7 @@ func _process(delta: float) -> void:
 	var to_target := _move_target_world - position
 	var distance := to_target.length()
 	var step_delta := _path[_path_index] - _previous_grid_pos
-	_apply_facing(FacingDirection.from_step(step_delta))
+	_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
 
 	if distance <= 0.001:
 		_advance_path_step()
@@ -188,7 +200,7 @@ func _advance_path_step() -> void:
 
 
 ## Point the placeholder arrow along the isometric screen direction for grid facing.
-func _apply_facing(facing: Vector2i) -> void:
+func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:
 	if _facing_arrow == null:
 		return
-	_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(facing)
+	_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(facing, from_cell)
