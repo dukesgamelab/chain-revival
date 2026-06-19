@@ -69,8 +69,30 @@ func set_object(cell: Vector2i, type_id: String) -> void:
 	if type_id.is_empty():
 		clear_object(cell)
 		return
-	_object_lookup[cell] = type_id
+	_object_lookup[cell] = MapObjectRegistryClass.normalize_type_id(type_id)
 	_rebuild_blocked_tiles_list()
+
+
+## Place repeated 1-tile wall segments along a grid line.
+func create_wall_line(start_tile: Vector2i, direction: Vector2i, length: int) -> Array[Vector2i]:
+	var placed: Array[Vector2i] = []
+	if length <= 0:
+		return placed
+
+	var step := Vector2i(
+		clampi(direction.x, -1, 1),
+		clampi(direction.y, -1, 1),
+	)
+	if step == Vector2i.ZERO:
+		return placed
+
+	for i in range(length):
+		var cell := start_tile + step * i
+		if not is_in_bounds(cell):
+			continue
+		set_object(cell, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+		placed.append(cell)
+	return placed
 
 
 func clear_object(cell: Vector2i) -> void:
@@ -125,6 +147,7 @@ static func from_dict(data: Dictionary) -> MapData:
 			map_data.set_object(cell, MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE)
 
 	map_data._rebuild_blocked_tiles_list()
+	ensure_default_lane_cover(map_data)
 	return map_data
 
 
@@ -156,19 +179,41 @@ static func create_default() -> MapData:
 	return map_data
 
 
-## One haybail, tree, and wall corner in the lane between deployments (2 empty tiles between each).
-## Uses constant grid-x (midpoint between columns) and steps in y so the line reads horizontal on the iso map.
+## Haybail, tree, and a 5-tile wall row (visually side-by-side in isometric view).
 static func _place_between_teams_cover(map_data: MapData) -> void:
 	var mid_x := DEFAULT_USA_ANCHOR.x + (DEFAULT_TEAM_SEPARATION / 2)  # x=31 between 26 and 36
+	_clear_legacy_lane_walls(map_data)
 	var cover_line: Array[Dictionary] = [
 		{"cell": Vector2i(mid_x, DEFAULT_USA_ANCHOR.y - 1), "type": MapObjectRegistryClass.TYPE_HAYBAIL},
 		{"cell": Vector2i(mid_x, DEFAULT_USA_ANCHOR.y + 2), "type": MapObjectRegistryClass.TYPE_TREE},
-		{"cell": Vector2i(mid_x, DEFAULT_USA_ANCHOR.y + 5), "type": MapObjectRegistryClass.TYPE_WALL_CORNER},
 	]
 	for entry in cover_line:
 		var cell: Vector2i = entry.cell
 		if map_data.is_in_bounds(cell):
 			map_data.set_object(cell, entry.type)
+	# Grid (1, -1): constant screen row — each segment sits directly beside the last on screen.
+	map_data.create_wall_line(Vector2i(32, 34), Vector2i(1, -1), 5)
+
+
+static func _clear_legacy_lane_walls(map_data: MapData) -> void:
+	var legacy_cells: Array[Vector2i] = [
+		Vector2i(30, 33),
+		Vector2i(31, 33),
+		Vector2i(mid_x_for_lane() - 1, DEFAULT_USA_ANCHOR.y + 5),
+		Vector2i(mid_x_for_lane(), DEFAULT_USA_ANCHOR.y + 5),
+	]
+	for x in range(28, 33):
+		legacy_cells.append(Vector2i(x, 32))
+	for i in range(5):
+		legacy_cells.append(Vector2i(28 + i, 30 + i))
+		legacy_cells.append(Vector2i(32 + i, 34 - i))
+	for cell in legacy_cells:
+		if map_data.has_object(cell):
+			map_data.clear_object(cell)
+
+
+static func mid_x_for_lane() -> int:
+	return DEFAULT_USA_ANCHOR.x + (DEFAULT_TEAM_SEPARATION / 2)
 
 
 static func _place_default_cover_samples(map_data: MapData) -> void:
@@ -261,6 +306,11 @@ static func load_from_file(file_path: String = DEFAULT_FILE) -> MapData:
 	return from_dict(parsed)
 
 
+## Guarantee the between-teams lane cover (haybail, tree, 5-tile wall line).
+static func ensure_default_lane_cover(map_data: MapData) -> void:
+	_place_between_teams_cover(map_data)
+
+
 func _objects_to_json() -> Array:
 	var result: Array = []
 	for cell in _object_lookup.keys():
@@ -276,7 +326,7 @@ func _load_objects_from_json(raw: Array) -> void:
 			var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
 			var type_id := str(entry.get("type", MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE))
 			if is_in_bounds(cell):
-				_object_lookup[cell] = type_id
+				_object_lookup[cell] = MapObjectRegistryClass.normalize_type_id(type_id)
 
 
 func _rebuild_blocked_tiles_list() -> void:

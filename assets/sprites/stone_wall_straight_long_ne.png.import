@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bdanrjit822wp"
-path="res://.godot/imported/wall-corner-1.png-af68b49c5b3bda78cb1806b49a042950.ctex"
+uid="uid://drqqnvyp73pja"
+path="res://.godot/imported/stone_wall_straight_long_ne.png-a756e7283e4b3df43d8c182b22fb2425.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/wall-corner-1.png"
-dest_files=["res://.godot/imported/wall-corner-1.png-af68b49c5b3bda78cb1806b49a042950.ctex"]
+source_file="res://assets/sprites/stone_wall_straight_long_ne.png"
+dest_files=["res://.godot/imported/stone_wall_straight_long_ne.png-a756e7283e4b3df43d8c182b22fb2425.ctex"]
 
 [params]
 

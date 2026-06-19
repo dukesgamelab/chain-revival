@@ -6,6 +6,8 @@ extends Node2D
 
 const COVER_TYPE_MODERATE := 1
 
+const _TEXTURE_WALL_STRAIGHT := preload("res://assets/sprites/wall-straight-1-tile.png")
+
 @export var tile_color_a := Color(0.28, 0.48, 0.22, 1.0)
 @export var tile_color_b := Color(0.24, 0.42, 0.19, 1.0)
 @export var tile_outline := Color(0.12, 0.22, 0.10, 0.6)
@@ -182,14 +184,24 @@ func _draw_map_objects() -> void:
 			continue
 		var texture: Texture2D = _get_object_texture(object_def.sprite_path)
 		if texture == null:
+			push_warning("IsometricMap: missing texture for map object '%s' at %s" % [type_id, cell])
 			continue
 		var center := IsometricGrid.grid_to_world(cell)
 		var size := texture.get_size()
-		var draw_pos := center - size * 0.5 + Vector2(0.0, -8.0)
+		var draw_pos := _map_object_draw_pos(type_id, center, size)
 		draw_texture(texture, draw_pos)
 
 
+func _map_object_draw_pos(type_id: String, center: Vector2, size: Vector2) -> Vector2:
+	if type_id == MapObjectRegistry.TYPE_WALL_STRAIGHT:
+		# Feet on tile center; wall rises above the diamond.
+		return center - Vector2(size.x * 0.5, size.y - IsometricGrid.TILE_HEIGHT * 0.45)
+	return center - size * 0.5 + Vector2(0.0, -8.0)
+
+
 func _get_object_texture(sprite_path: String) -> Texture2D:
+	if sprite_path == MapObjectRegistry.SPRITE_WALL_STRAIGHT:
+		return _TEXTURE_WALL_STRAIGHT
 	if _object_textures.has(sprite_path):
 		return _object_textures[sprite_path] as Texture2D
 	var texture: Texture2D = load(sprite_path) as Texture2D
