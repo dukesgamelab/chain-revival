@@ -292,6 +292,24 @@ static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> A
 	)
 
 
+## Orient Fire At soldiers toward the current aim cell (preview only; no target assignment).
+static func preview_fire_at_facing(
+	game_state: GameStateClass,
+	team_id: int,
+	shooter_ids: Array,
+	face_cell: Vector2i,
+) -> bool:
+	var fireteam := game_state.session.get_fireteam(team_id)
+	var changed := false
+	for soldier_id in shooter_ids:
+		var shooter: SoldierState = fireteam.get_soldier(soldier_id)
+		if shooter == null or shooter.is_dead or shooter.is_sustained_fire():
+			continue
+		if fireteam.face_toward_tile(soldier_id, face_cell):
+			changed = true
+	return changed
+
+
 static func execute_fire(
 	game_state: GameStateClass,
 	cmd: FireCommandClass,
@@ -315,7 +333,10 @@ static func execute_fire(
 	var first_shooter: SoldierState = null
 	var any_obscured := false
 	var halted_any := false
+	var any_faced := false
 	var rejected_notices: Array[String] = []
+	var click_cell := IsometricGrid.world_to_grid(cmd.aim_world)
+	var face_cell := _fire_at_face_cell(game_state, click_cell, explicit_team, explicit_soldier)
 
 	for soldier_id in shooter_ids:
 		var shooter: SoldierState = fireteam.get_soldier(soldier_id)
@@ -336,7 +357,6 @@ static func execute_fire(
 			else ConeOfFireClass.RANGE_BONUS
 		)
 		var from_world := _tracer_world_for_soldier(shooter)
-		var click_cell := IsometricGrid.world_to_grid(cmd.aim_world)
 		var target: SoldierState = CombatSystem.find_manual_priority_target(
 			game_state,
 			shooter,
@@ -350,15 +370,19 @@ static func execute_fire(
 		if target == null:
 			if shooter.is_sustained_fire():
 				shooter.end_sustained_fire()
+			if fireteam.face_toward_tile(shooter.soldier_id, face_cell):
+				any_faced = true
 			continue
 
 		if CombatSystem.can_spot_enemy(shooter, target, game_state):
 			shooter.record_last_seen_enemy(target)
 
 		shooter.begin_sustained_fire()
+		shooter.fire_control_state = FireControlStateClass.FIRE_AT_WILL
 		shooter.set_engaged_target(target.team_id, target.soldier_id)
 		CombatSystem.begin_fire_prep(shooter)
-		fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
+		if fireteam.face_toward_tile(shooter.soldier_id, target.grid_position):
+			any_faced = true
 		engaged_count += 1
 		if first_target == null:
 			first_target = target
@@ -371,6 +395,9 @@ static func execute_fire(
 		)
 		if los.status == LOSSystemClass.Status.BLOCKED:
 			any_obscured = true
+
+	if any_faced:
+		result.refresh_views = true
 
 	if engaged_count == 0:
 		result.sync_fire_at_ui = true
@@ -624,6 +651,19 @@ static func _halt_soldier_for_combat(
 			"snap_cell": snap_cell,
 		})
 	return was_active
+
+
+static func _fire_at_face_cell(
+	game_state: GameStateClass,
+	click_cell: Vector2i,
+	explicit_team_id: int,
+	explicit_soldier_id: int,
+) -> Vector2i:
+	if explicit_team_id >= 0 and explicit_soldier_id > 0:
+		var explicit_target: SoldierState = game_state.get_soldier(explicit_team_id, explicit_soldier_id)
+		if explicit_target != null and not explicit_target.is_dead:
+			return explicit_target.grid_position
+	return click_cell
 
 
 static func _resolve_shooter_ids(

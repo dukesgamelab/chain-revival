@@ -26,6 +26,7 @@ class BlockResult extends RefCounted:
 
 
 ## Tile on the line of fire that completely blocks the shot (wall, tree, etc.).
+## The first blocker on the shooter's side of the lane can be fired over (peek-and-shoot).
 static func find_blocking_tile(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
@@ -36,6 +37,7 @@ static func find_blocking_tile(
 		result.blocked = true
 		return result
 
+	var skipped_shooter_side_blocker := false
 	for cell in _line_cells_between(from_cell, to_cell):
 		var type_id: String = map_data.get_object_type(cell)
 		if type_id.is_empty():
@@ -44,12 +46,29 @@ static func find_blocking_tile(
 		if object_def == null:
 			continue
 		if object_def.cover_type == CoverType.COMPLETE or object_def.blocks_los:
+			if (
+				not skipped_shooter_side_blocker
+				and is_shooter_side_cover_on_line(from_cell, to_cell, cell)
+			):
+				skipped_shooter_side_blocker = true
+				continue
 			result.blocked = true
 			result.blocking_cell = cell
 			result.blocking_type_id = type_id
 			return result
 
 	return result
+
+
+## Cover on the fire line closer to the shooter than the target — may fire over it.
+static func is_shooter_side_cover_on_line(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	cover_cell: Vector2i,
+) -> bool:
+	var dist_shooter := _manhattan_distance(from_cell, cover_cell)
+	var dist_past_cover := _manhattan_distance(cover_cell, to_cell)
+	return dist_shooter <= dist_past_cover
 
 
 ## Moderate cover affecting the target when the shot is not blocked.
@@ -66,6 +85,8 @@ static func evaluate_target_cover(
 	for offset in ADJACENT_OFFSETS:
 		_consider_cover_cell(target_cell + offset, map_data, result)
 	for cell in _line_cells_between(from_cell, target_cell):
+		if is_shooter_side_cover_on_line(from_cell, target_cell, cell):
+			continue
 		_consider_cover_cell(cell, map_data, result)
 
 	return result
@@ -108,3 +129,7 @@ static func _line_cells_between(from_cell: Vector2i, to_cell: Vector2i) -> Array
 			continue
 		cells.append(cell)
 	return cells
+
+
+static func _manhattan_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:
+	return absi(from_cell.x - to_cell.x) + absi(from_cell.y - to_cell.y)

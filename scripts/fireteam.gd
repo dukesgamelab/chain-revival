@@ -71,7 +71,10 @@ func face_toward_tile(soldier_id: int, target_cell: Vector2i) -> bool:
 		return false
 	if target_cell == state.grid_position:
 		return false
-	state.facing_direction = FacingDirection.toward_cell(state.grid_position, target_cell)
+	var new_facing := FacingDirection.toward_cell(state.grid_position, target_cell)
+	if state.facing_direction == new_facing:
+		return false
+	state.facing_direction = new_facing
 	return true
 
 

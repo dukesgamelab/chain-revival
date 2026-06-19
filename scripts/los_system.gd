@@ -1,6 +1,7 @@
 class_name LOSSystem
 extends RefCounted
 ## Central line-of-sight / line-of-fire evaluation for combat and UI preview.
+## Spotting uses the same path; first shooter-side blocker on the line may be fired over.
 
 enum Status { CLEAR, COVER, BLOCKED }
 

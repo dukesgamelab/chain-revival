@@ -198,7 +198,25 @@ func _update_los_preview() -> void:
 		to_world,
 		max_range,
 	)
+	if not _fire_at_engaged:
+		var shooter_ids: Array[int] = []
+		for shooter_state in _get_manual_fire_at_shooters():
+			shooter_ids.append(shooter_state.soldier_id)
+		if ActionResolverClass.preview_fire_at_facing(
+			_game_state,
+			_session.active_team_id,
+			shooter_ids,
+			target_cell,
+		):
+			_sync_fire_at_shooter_views()
 	_los_visualizer.show_cone_preview(from_world, cone_world, to_world, los, has_enemy)
+
+
+func _sync_fire_at_shooter_views() -> void:
+	var active_fireteam: Fireteam = _session.get_active_fireteam()
+	for shooter_state in _get_manual_fire_at_shooters():
+		var is_selected: bool = shooter_state.soldier_id == active_fireteam.selected_soldier_id
+		_sync_soldier_view(shooter_state.team_id, shooter_state.soldier_id, is_selected)
 
 
 func _get_fire_at_preview_shooter() -> SoldierState:
