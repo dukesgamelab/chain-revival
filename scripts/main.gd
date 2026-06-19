@@ -21,6 +21,7 @@ const ConeOfFireClass := preload("res://scripts/cone_of_fire.gd")
 const ActionResolverClass := preload("res://scripts/action_resolver.gd")
 const ActionResultClass := preload("res://scripts/action_result.gd")
 const CommandContextClass := preload("res://scripts/command_context.gd")
+const MapEditorClass := preload("res://scripts/map_editor.gd")
 
 @onready var _world: Node2D = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -46,7 +47,8 @@ var _fire_at_soldier_id: int = 1
 var _fire_at_engaged: bool = false
 var _face_mode: bool = false
 var _face_soldier_id: int = 1
-var _block_edit_mode: bool = false
+var _map_edit_mode: bool = false
+var _map_edit_palette: int = MapEditorClass.Palette.WALL
 var _auto_fire_timer: float = 0.0
 
 
@@ -78,6 +80,11 @@ func _log_fireteam_loadouts() -> void:
 
 
 func _process(delta: float) -> void:
+	if _map_edit_mode:
+		_update_map_edit_hover()
+		return
+
+	_iso_map.clear_map_edit_hover()
 	_update_los_preview()
 	_update_command_bar_hit_columns()
 
@@ -263,12 +270,17 @@ func _connect_command_bar() -> void:
 	_command_bar.center_camera_requested.connect(_on_center_camera_requested)
 	_command_bar.rotate_view_left_requested.connect(_on_rotate_view_left_requested)
 	_command_bar.rotate_view_right_requested.connect(_on_rotate_view_right_requested)
+	_command_bar.map_edit_mode_changed.connect(_on_map_edit_mode_changed)
+	_command_bar.map_edit_palette_changed.connect(_on_map_edit_palette_changed)
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_B:
-			_toggle_block_edit_mode()
+		if event.keycode == KEY_M or event.is_action_pressed("map_edit"):
+			_toggle_map_edit_mode()
+			get_viewport().set_input_as_handled()
+			return
+		if _map_edit_mode:
 			get_viewport().set_input_as_handled()
 			return
 		if event.keycode == KEY_1:
@@ -294,6 +306,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not mouse_event.pressed:
 		return
 
+	var target_cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
+
+	if _map_edit_mode:
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
+			_apply_map_edit_cell(target_cell, false)
+		elif mouse_event.button_index == MOUSE_BUTTON_RIGHT:
+			_apply_map_edit_cell(target_cell, true)
+		get_viewport().set_input_as_handled()
+		return
+
 	if mouse_event.button_index == MOUSE_BUTTON_RIGHT:
 		if _fire_at_mode:
 			_exit_fire_at_mode("Targeting cancelled.")
@@ -307,13 +329,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if mouse_event.button_index != MOUSE_BUTTON_LEFT:
-		return
-
-	var target_cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
-
-	if _block_edit_mode:
-		_toggle_blocked_tile(target_cell)
-		get_viewport().set_input_as_handled()
 		return
 
 	if _fire_at_mode:
@@ -371,6 +386,8 @@ func _switch_active_team(team_id: int) -> void:
 	_squad_fire_at_mode = false
 	_fire_at_engaged = false
 	_face_mode = false
+	_map_edit_mode = false
+	_command_bar.clear_map_edit_mode()
 	_command_bar.set_active_team(team_id)
 	var fireteam: Fireteam = _session.get_active_fireteam()
 	_repair_fireteam_selection(fireteam)
@@ -379,26 +396,46 @@ func _switch_active_team(team_id: int) -> void:
 	_command_bar.show_status("Controlling %s team. Press 1/2 to switch." % Team.display_name(team_id))
 
 
-func _toggle_block_edit_mode() -> void:
-	_block_edit_mode = not _block_edit_mode
-	if _block_edit_mode:
-		_command_bar.clear_move_targeting()
-		_command_bar.clear_fire_at_mode()
-		_command_bar.clear_face_mode()
+func _toggle_map_edit_mode() -> void:
+	_command_bar.set_map_edit_active(not _map_edit_mode)
+
+
+func _on_map_edit_mode_changed(is_active: bool) -> void:
+	_map_edit_mode = is_active
+	if is_active:
 		_move_targeting = false
 		_squad_move_targeting = false
 		_fire_at_mode = false
 		_squad_fire_at_mode = false
 		_fire_at_engaged = false
 		_face_mode = false
-		_command_bar.show_status("Block Edit ON — click tiles to toggle walls. Press B to exit.")
+		_los_visualizer.hide_preview()
 	else:
-		_command_bar.show_status("Block Edit OFF.")
+		_iso_map.clear_map_edit_hover()
+		_command_bar.show_status("Map Edit OFF.")
 
 
-func _toggle_blocked_tile(cell: Vector2i) -> void:
-	var result: ActionResultClass = ActionResolverClass.toggle_map_block(_game_state, cell)
-	_present_action_result(result)
+func _on_map_edit_palette_changed(palette: int) -> void:
+	_map_edit_palette = palette
+
+
+func _update_map_edit_hover() -> void:
+	var cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
+	_iso_map.set_map_edit_hover(cell)
+
+
+func _apply_map_edit_cell(cell: Vector2i, erase: bool) -> void:
+	if not _map_data.is_in_bounds(cell):
+		return
+	if erase or _map_edit_palette == MapEditorClass.Palette.ERASE:
+		_map_data.clear_object(cell)
+	else:
+		var type_id := MapEditorClass.palette_type_id(_map_edit_palette)
+		if type_id.is_empty():
+			return
+		_map_data.set_object(cell, type_id)
+	_game_state.map_data = _map_data
+	_iso_map.apply_map_data(_map_data)
 
 
 func _spawn_all_soldier_views() -> void:
@@ -944,7 +981,8 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 	_active_movement_mode = movement_mode
 	_move_soldier_id = soldier_id if soldier_id > 0 else _session.get_active_fireteam().selected_soldier_id
 	if is_active:
-		_block_edit_mode = false
+		_map_edit_mode = false
+		_command_bar.clear_map_edit_mode()
 		_fire_at_mode = false
 		_squad_fire_at_mode = false
 		_fire_at_engaged = false
@@ -968,7 +1006,8 @@ func _on_fire_at_mode_changed(is_active: bool, soldier_id: int) -> void:
 	_squad_fire_at_mode = is_active and soldier_id == CommandBar.SQUAD_ID
 	_fire_at_soldier_id = soldier_id if is_active else 1
 	if is_active:
-		_block_edit_mode = false
+		_map_edit_mode = false
+		_command_bar.clear_map_edit_mode()
 		_move_targeting = false
 		_squad_move_targeting = false
 		_face_mode = false
@@ -984,7 +1023,8 @@ func _on_face_mode_changed(is_active: bool, soldier_id: int) -> void:
 	_face_mode = is_active
 	_face_soldier_id = soldier_id if is_active else 1
 	if is_active:
-		_block_edit_mode = false
+		_map_edit_mode = false
+		_command_bar.clear_map_edit_mode()
 		_move_targeting = false
 		_squad_move_targeting = false
 		_fire_at_mode = false
@@ -1020,6 +1060,8 @@ func _on_map_save_requested() -> void:
 func _on_map_load_requested() -> void:
 	_map_data = MapDataClass.load_from_file()
 	_game_state.map_data = _map_data
+	_map_edit_mode = false
+	_command_bar.clear_map_edit_mode()
 	IsometricGrid.reset_view_rotation()
 	_iso_map.apply_map_data(_map_data)
 	_camera.set_map_size(_map_data.width, _map_data.height)

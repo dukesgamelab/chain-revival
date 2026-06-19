@@ -24,6 +24,10 @@ var map_data: MapData = null
 var _astar := AStarGrid2D.new()
 var _path_overlay: IsometricPathOverlay
 var _object_textures: Dictionary = {}
+var _map_edit_hover_cell: Vector2i = Vector2i(-999, -999)
+
+@export var map_edit_hover_fill := Color(1.0, 0.92, 0.25, 0.38)
+@export var map_edit_hover_outline := Color(1.0, 0.82, 0.15, 0.95)
 
 
 func _ready() -> void:
@@ -38,8 +42,23 @@ func _ready() -> void:
 ## Apply authoritative map data and rebuild walkability.
 func apply_map_data(data: MapData) -> void:
 	map_data = data
+	_object_textures.clear()
 	rebuild_pathfinding()
 	_path_overlay.configure_bounds_check(func(cell: Vector2i) -> bool: return is_walkable(cell))
+	queue_redraw()
+
+
+func set_map_edit_hover(cell: Vector2i) -> void:
+	if _map_edit_hover_cell == cell:
+		return
+	_map_edit_hover_cell = cell
+	queue_redraw()
+
+
+func clear_map_edit_hover() -> void:
+	if _map_edit_hover_cell.x <= -900:
+		return
+	_map_edit_hover_cell = Vector2i(-999, -999)
 	queue_redraw()
 
 
@@ -108,6 +127,7 @@ func _draw() -> void:
 	_draw_tiles()
 	_draw_map_objects()
 	_draw_spawn_markers()
+	_draw_map_edit_hover()
 
 
 ## Decorative grass diamonds outside the playable map (not used for pathfinding).
@@ -197,6 +217,17 @@ func _map_object_draw_pos(type_id: String, center: Vector2, size: Vector2) -> Ve
 		# Feet on tile center; wall rises above the diamond.
 		return center - Vector2(size.x * 0.5, size.y - IsometricGrid.TILE_HEIGHT * 0.45)
 	return center - size * 0.5 + Vector2(0.0, -8.0)
+
+
+func _draw_map_edit_hover() -> void:
+	if _map_edit_hover_cell.x <= -900 or map_data == null:
+		return
+	if not map_data.is_in_bounds(_map_edit_hover_cell):
+		return
+	var center := IsometricGrid.grid_to_world(_map_edit_hover_cell)
+	var corners := IsometricGrid.diamond_corners(center)
+	draw_colored_polygon(corners, map_edit_hover_fill)
+	draw_polyline(corners, map_edit_hover_outline, 2.0, true)
 
 
 func _get_object_texture(sprite_path: String) -> Texture2D:

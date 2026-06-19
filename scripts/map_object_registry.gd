@@ -14,14 +14,14 @@ const TYPE_BUILDING := "building"
 
 const DEFAULT_BLOCKED_TYPE := TYPE_TREE
 
-const SPRITE_TREE := "res://assets/sprites/tree-1.png"
-const SPRITE_HAYBAIL := "res://assets/sprites/haybail-1.png"
+const SPRITE_TREE := "res://assets/sprites/tree-1-transparent-game-sized.png"
+const SPRITE_HAYBAIL := "res://assets/sprites/haybail-1-transparent-game-sized.png"
 const SPRITE_WALL_STRAIGHT := "res://assets/sprites/wall-straight-1-tile.png"
 const SPRITE_WALL_CORNER := "res://assets/sprites/wall-corner-1.png"
 
 
 static func get_def(type_id: String) -> MapObjectDef:
-	match type_id:
+	match normalize_type_id(type_id):
 		TYPE_TREE:
 			return MapObjectDef.new(
 				TYPE_TREE,
@@ -32,7 +32,7 @@ static func get_def(type_id: String) -> MapObjectDef:
 				CoverSystem.CoverType.MODERATE,
 				SPRITE_TREE,
 			)
-		TYPE_HAYBAIL, TYPE_HAYBALE:
+		TYPE_HAYBAIL:
 			return MapObjectDef.new(
 				TYPE_HAYBAIL,
 				"haybail",
@@ -42,7 +42,7 @@ static func get_def(type_id: String) -> MapObjectDef:
 				CoverSystem.CoverType.MODERATE,
 				SPRITE_HAYBAIL,
 			)
-		TYPE_WALL_STRAIGHT, TYPE_WALL_STRAIGHT_LONG_NE, TYPE_WALL:
+		TYPE_WALL_STRAIGHT:
 			return MapObjectDef.new(
 				TYPE_WALL_STRAIGHT,
 				"wall",
@@ -74,6 +74,16 @@ static func get_def(type_id: String) -> MapObjectDef:
 			)
 		_:
 			return null
+
+
+static func cover_type_name(cover_type: int) -> String:
+	match cover_type:
+		CoverSystem.CoverType.MODERATE:
+			return "MODERATE"
+		CoverSystem.CoverType.COMPLETE:
+			return "COMPLETE"
+		_:
+			return "NONE"
 
 
 ## Map legacy saved types to current gameplay types.

@@ -71,6 +71,53 @@ unique_name_in_owner = true
 layout_mode = 2
 soldier_id = 4
 
+[node name="MapEditPanel" type="VBoxContainer" parent="Panel/Margin/HBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="MapEditButton" type="Button" parent="Panel/Margin/HBox/MapEditPanel"]
+unique_name_in_owner = true
+toggle_mode = true
+custom_minimum_size = Vector2(88, 24)
+layout_mode = 2
+text = "Map Edit"
+
+[node name="PaletteRow" type="HBoxContainer" parent="Panel/Margin/HBox/MapEditPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TreeButton" type="Button" parent="Panel/Margin/HBox/MapEditPanel/PaletteRow"]
+unique_name_in_owner = true
+toggle_mode = true
+custom_minimum_size = Vector2(52, 24)
+layout_mode = 2
+text = "Tree"
+
+[node name="HaybailButton" type="Button" parent="Panel/Margin/HBox/MapEditPanel/PaletteRow"]
+unique_name_in_owner = true
+toggle_mode = true
+custom_minimum_size = Vector2(56, 24)
+layout_mode = 2
+text = "Haybail"
+
+[node name="WallButton" type="Button" parent="Panel/Margin/HBox/MapEditPanel/PaletteRow"]
+unique_name_in_owner = true
+toggle_mode = true
+button_pressed = true
+custom_minimum_size = Vector2(48, 24)
+layout_mode = 2
+text = "Wall"
+
+[node name="EraseButton" type="Button" parent="Panel/Margin/HBox/MapEditPanel/PaletteRow"]
+unique_name_in_owner = true
+toggle_mode = true
+custom_minimum_size = Vector2(52, 24)
+layout_mode = 2
+text = "Erase"
+
 [node name="ViewRotation" type="VBoxContainer" parent="Panel/Margin/HBox"]
 layout_mode = 2
 theme_override_constants/separation = 4

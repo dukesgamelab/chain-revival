@@ -147,7 +147,6 @@ static func from_dict(data: Dictionary) -> MapData:
 			map_data.set_object(cell, MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE)
 
 	map_data._rebuild_blocked_tiles_list()
-	ensure_default_lane_cover(map_data)
 	return map_data
 
 
@@ -315,18 +314,42 @@ func _objects_to_json() -> Array:
 	var result: Array = []
 	for cell in _object_lookup.keys():
 		var type_id: String = _object_lookup[cell]
-		result.append({"x": cell.x, "y": cell.y, "type": type_id})
+		var object_def := MapObjectRegistryClass.get_def(type_id)
+		if object_def == null:
+			continue
+		result.append(_object_entry_to_dict(cell, object_def))
 	return result
+
+
+static func _object_entry_to_dict(cell: Vector2i, object_def: MapObjectDef) -> Dictionary:
+	return {
+		"object_id": "%s@%d,%d" % [object_def.type_id, cell.x, cell.y],
+		"object_type": object_def.type_id,
+		"type": object_def.type_id,
+		"x": cell.x,
+		"y": cell.y,
+		"grid_position": {"x": cell.x, "y": cell.y},
+		"sprite_path": object_def.sprite_path,
+		"blocks_movement": object_def.blocks_movement,
+		"blocks_los": object_def.blocks_los,
+		"provides_cover": object_def.provides_cover,
+		"cover_type": object_def.cover_type,
+		"cover_type_name": MapObjectRegistryClass.cover_type_name(object_def.cover_type),
+	}
 
 
 func _load_objects_from_json(raw: Array) -> void:
 	_object_lookup.clear()
 	for entry in raw:
-		if entry is Dictionary:
-			var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
-			var type_id := str(entry.get("type", MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE))
-			if is_in_bounds(cell):
-				_object_lookup[cell] = MapObjectRegistryClass.normalize_type_id(type_id)
+		if not entry is Dictionary:
+			continue
+		var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
+		var type_id := str(
+			entry.get("object_type", entry.get("type", MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE))
+		)
+		type_id = MapObjectRegistryClass.normalize_type_id(type_id)
+		if is_in_bounds(cell) and MapObjectRegistryClass.get_def(type_id) != null:
+			_object_lookup[cell] = type_id
 
 
 func _rebuild_blocked_tiles_list() -> void:
