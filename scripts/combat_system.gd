@@ -27,9 +27,15 @@ const STRESS_RECOVERY_PRONE_PER_TICK := 0.25
 const SHOOTER_PRONE_ACCURACY_MULT := 1.15
 const TARGET_PRONE_HIT_MULT := 0.55
 const MODERATE_COVER_SUPPRESSION_MULT := 0.65
+const PRONE_SUPPRESSION_MULT := 0.75
+const STRESS_PINNED_THRESHOLD := 45.0
+const STRESS_PANIC_THRESHOLD := 70.0
+const AUTO_TARGET_ENGAGED_BONUS := 10.0
 
-## Manual Fire At = priority target; blocked LOS holds fire but keeps the assignment.
-## Fire At Will = auto-acquire visible targets; aim delay then repeat cooldown.
+## stress = suppression/combat pressure; affects accuracy, movement, and fire cadence.
+## cover reduces both hit chance and suppression gain.
+## Manual Fire At remains priority-target behavior.
+## Fire At Will uses tactical target scoring (find_best_auto_target).
 
 
 static func resolve_shot(
@@ -183,8 +189,91 @@ static func find_closest_visible_enemy(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 ) -> SoldierStateClass:
-	## Fire At Will: nearest shootable enemy in the facing cone (clear LOS required).
-	return find_best_cone_target(game_state, shooter)
+	return find_best_auto_target(game_state, shooter)
+
+
+## Fire At Will: highest-scored shootable enemy in the facing cone (clear LOS required).
+static func find_best_auto_target(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> SoldierStateClass:
+	if shooter == null or shooter.is_dead:
+		return null
+
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
+		return null
+
+	var max_range := _effective_weapon_range(weapon)
+	var enemy_team_id: int = game_state.enemy_team_id(shooter.team_id)
+	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
+	var best: SoldierStateClass = null
+	var best_score := -INF
+
+	for state in enemy_fireteam.soldiers:
+		var enemy: SoldierStateClass = state
+		if enemy.is_dead:
+			continue
+		if not _is_target_in_cone(shooter, enemy.grid_position, max_range):
+			continue
+		var score := score_auto_target(shooter, enemy, game_state)
+		if score < 0.0:
+			continue
+		if score > best_score:
+			best_score = score
+			best = enemy
+
+	return best
+
+
+## Tactical scoring for Fire At Will only; manual Fire At uses priority assignment.
+static func score_auto_target(
+	shooter: SoldierStateClass,
+	target: SoldierStateClass,
+	game_state: GameStateClass,
+) -> float:
+	if shooter == null or target == null or target.is_dead:
+		return -1.0
+
+	var los := LOSSystemClass.evaluate(
+		shooter.grid_position,
+		target.grid_position,
+		game_state.map_data,
+	)
+	if los.status == LOSSystemClass.Status.BLOCKED:
+		return -1.0
+
+	var dist := _manhattan_distance(shooter.grid_position, target.grid_position)
+	var score := 100.0 - float(dist) * 4.0
+
+	if los.cover_type == CoverSystemClass.CoverType.NONE:
+		score += 25.0
+	else:
+		score -= 25.0
+
+	if target.is_moving:
+		score += 10.0
+
+	if target.position_state == PositionStateClass.DOWN:
+		score -= 20.0
+
+	var aim_dir := FacingDirection.toward_cell(shooter.grid_position, target.grid_position)
+	if aim_dir == shooter.facing_direction:
+		score += 15.0
+
+	var target_weapon := target.get_weapon_data()
+	if target_weapon != null:
+		match target_weapon.weapon_type:
+			WeaponTypeClass.SMG, WeaponTypeClass.LMG:
+				score += 20.0
+
+	if (
+		shooter.engaged_target_team_id == target.team_id
+		and shooter.engaged_target_soldier_id == target.soldier_id
+	):
+		score += AUTO_TARGET_ENGAGED_BONUS
+
+	return score
 
 
 static func find_best_cone_target(
@@ -386,9 +475,22 @@ static func apply_suppression_from_shot(
 		return
 
 	var gain := _suppression_stress_gain(weapon)
+	var cover_mult := 1.0
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		gain *= MODERATE_COVER_SUPPRESSION_MULT
+		cover_mult = MODERATE_COVER_SUPPRESSION_MULT
+	var stance_mult := 1.0
+	if target.position_state == PositionStateClass.DOWN:
+		stance_mult = PRONE_SUPPRESSION_MULT
+	gain *= cover_mult * stance_mult
 	target.stress = clampf(target.stress + gain, 0.0, 100.0)
+	target.received_suppression_this_tick = true
+
+
+static func clear_suppression_tick_flags(game_state: GameStateClass) -> void:
+	for fireteam in game_state.session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier: SoldierStateClass = state
+			soldier.received_suppression_this_tick = false
 
 
 static func recover_stress_tick(
@@ -399,6 +501,8 @@ static func recover_stress_tick(
 		for state in fireteam.soldiers:
 			var soldier: SoldierStateClass = state
 			if soldier.is_dead or soldier.stress <= 0.0:
+				continue
+			if soldier.received_suppression_this_tick:
 				continue
 			var rate := (
 				STRESS_RECOVERY_PRONE_PER_TICK
@@ -423,6 +527,82 @@ static func _suppression_stress_gain(weapon: WeaponDataClass) -> float:
 
 
 ## Stress represents suppression/combat pressure and reduces firing effectiveness.
+static func get_stress_accuracy_modifier(stress: float) -> float:
+	match _stress_band(stress):
+		1:
+			return 0.85
+		2:
+			return 0.65
+		3:
+			return 0.4
+		4:
+			return 0.2
+		_:
+			return 1.0
+
+
+static func get_stress_movement_modifier(stress: float) -> float:
+	match _stress_band(stress):
+		1:
+			return 0.9
+		2:
+			return 0.75
+		3:
+			return 0.5
+		4:
+			return 0.35
+		_:
+			return 1.0
+
+
+static func get_stress_fire_delay_modifier(stress: float) -> float:
+	match _stress_band(stress):
+		1:
+			return 1.1
+		2:
+			return 1.25
+		3:
+			return 1.5
+		4:
+			return 2.0
+		_:
+			return 1.0
+
+
+static func get_stress_state_label(stress: float) -> String:
+	match _stress_band(stress):
+		1:
+			return "Nervous"
+		2:
+			return "Suppressed"
+		3:
+			return "Pinned"
+		4:
+			return "Panicked"
+		_:
+			return "OK"
+
+
+static func is_stress_pinned(stress: float) -> bool:
+	return stress >= STRESS_PINNED_THRESHOLD
+
+
+static func is_stress_panicked(stress: float) -> bool:
+	return stress >= STRESS_PANIC_THRESHOLD
+
+
+static func _stress_band(stress: float) -> int:
+	if stress < 10.0:
+		return 0
+	if stress < 25.0:
+		return 1
+	if stress < 45.0:
+		return 2
+	if stress < 70.0:
+		return 3
+	return 4
+
+
 static func _final_hit_chance(
 	shooter: SoldierStateClass,
 	target: SoldierStateClass,
@@ -437,7 +617,7 @@ static func _final_hit_chance(
 	var chance := base_chance
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
 		chance = CoverSystemClass.apply_moderate_cover(base_chance)
-	chance *= clampf(1.0 - shooter.stress / 100.0, 0.15, 1.0)
+	chance *= get_stress_accuracy_modifier(shooter.stress)
 	if shooter.position_state == PositionStateClass.DOWN:
 		chance *= SHOOTER_PRONE_ACCURACY_MULT
 	if target.position_state == PositionStateClass.DOWN:
@@ -574,7 +754,7 @@ static func _acquire_auto_target(
 		shooter.clear_engaged_target()
 		return null
 
-	var target := find_best_cone_target(game_state, shooter)
+	var target := find_best_auto_target(game_state, shooter)
 	if target == null:
 		shooter.clear_engaged_target()
 		return null
@@ -627,19 +807,21 @@ static func try_auto_engagement(
 
 
 static func begin_fire_prep(shooter: SoldierStateClass) -> void:
-	## aim_delay_sec = first-shot acquisition; target changes call this again via acquisition code.
+	## aim_delay_sec = first-shot acquisition; multiplied by stress fire-delay modifier.
 	var weapon := shooter.get_weapon_data()
 	var delay_sec := FIRE_PREP_DELAY_SEC
 	if weapon != null and weapon.aim_delay_sec > 0.0:
 		delay_sec = weapon.aim_delay_sec
+	delay_sec *= get_stress_fire_delay_modifier(shooter.stress)
 	shooter.fire_ready_after_msec = Time.get_ticks_msec() + int(delay_sec * 1000.0)
 
 
 static func get_aim_delay_sec(shooter: SoldierStateClass) -> float:
 	var weapon := shooter.get_weapon_data()
+	var delay_sec := FIRE_PREP_DELAY_SEC
 	if weapon != null and weapon.aim_delay_sec > 0.0:
-		return weapon.aim_delay_sec
-	return FIRE_PREP_DELAY_SEC
+		delay_sec = weapon.aim_delay_sec
+	return delay_sec * get_stress_fire_delay_modifier(shooter.stress)
 
 
 static func get_fire_cooldown_remaining(
@@ -650,8 +832,9 @@ static func get_fire_cooldown_remaining(
 		return 0.0
 	if shooter == null or shooter.last_shot_msec <= 0:
 		return 0.0
+	var interval_sec := weapon.fire_interval_sec * get_stress_fire_delay_modifier(shooter.stress)
 	var elapsed_sec := (Time.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
-	return maxf(0.0, weapon.fire_interval_sec - elapsed_sec)
+	return maxf(0.0, interval_sec - elapsed_sec)
 
 
 static func _is_fire_prep_complete(shooter: SoldierStateClass) -> bool:
@@ -689,15 +872,16 @@ static func _can_fire_yet(
 	shooter: SoldierStateClass,
 	weapon: WeaponDataClass,
 ) -> bool:
-	## Repeat cooldown: elapsed since last_shot_msec must reach weapon.fire_interval_sec.
+	## Repeat cooldown: fire_interval_sec scaled by stress fire-delay modifier.
 	if weapon == null:
 		return false
 	if weapon.fire_interval_sec <= 0.0:
 		return true
 	if shooter.last_shot_msec <= 0:
 		return true
+	var interval_sec := weapon.fire_interval_sec * get_stress_fire_delay_modifier(shooter.stress)
 	var elapsed_sec := (Time.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
-	return elapsed_sec >= weapon.fire_interval_sec
+	return elapsed_sec >= interval_sec
 
 
 static func _manhattan_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:

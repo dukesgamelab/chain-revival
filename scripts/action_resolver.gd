@@ -130,6 +130,8 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 	var result := ActionResult.new()
 	result.refresh_views = false
 
+	CombatSystem.clear_suppression_tick_flags(game_state)
+
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
 			var shooter: SoldierState = state
@@ -172,32 +174,55 @@ static func execute_move(
 		return ActionResult.fail("That tile is outside the map.")
 
 	var fireteam := game_state.session.get_fireteam(cmd.team_id)
-	var mode_label := MovementModeClass.display_name(cmd.movement_mode).to_lower()
 	var result := ActionResult.new()
 
 	if cmd.scope == MoveCommandClass.Scope.SQUAD:
 		var ordered_count := 0
+		var notices: Array[String] = []
+		var mode_label := MovementModeClass.display_name(cmd.movement_mode).to_lower()
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
-			if _assign_move_path(game_state, context, fireteam, soldier_state, cmd, result):
+			var move_result := _resolve_move_order(soldier_state, cmd.movement_mode)
+			if move_result.rejected:
+				if not move_result.message.is_empty():
+					notices.append(move_result.message)
+				continue
+			if _assign_move_path(
+				game_state, context, fireteam, soldier_state,
+				cmd, result, move_result.mode, move_result.message,
+			):
 				ordered_count += 1
+				if not move_result.message.is_empty():
+					notices.append(move_result.message)
 		if ordered_count == 0:
+			if not notices.is_empty():
+				return ActionResult.fail(notices[0])
 			return ActionResult.fail("No soldiers could %s to that tile." % mode_label)
 		result.path_overlay = {"cells": [], "target": cmd.target_cell}
-		return result.set_status(
-			"%s fireteam %s to %s — click another tile to redirect."
-			% [Team.display_name(cmd.team_id), mode_label, cmd.target_cell],
-		)
+		var status := "%s fireteam %s to %s — click another tile to redirect." % [
+			Team.display_name(cmd.team_id), mode_label, cmd.target_cell,
+		]
+		if not notices.is_empty():
+			status += "\n" + "\n".join(notices)
+		return result.set_status(status)
 
 	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
 	if soldier_state == null:
 		return ActionResult.fail("Soldier unavailable.")
 
-	var validation := _validate_move(soldier_state, cmd.movement_mode)
+	var move_result := _resolve_move_order(soldier_state, cmd.movement_mode)
+	if move_result.rejected:
+		return ActionResult.fail(move_result.message)
+
+	var mode_label := MovementModeClass.display_name(move_result.mode).to_lower()
+	var validation := _validate_move(soldier_state, move_result.mode)
 	if not validation.is_empty():
 		return ActionResult.fail(validation)
 
-	if not _assign_move_path(game_state, context, fireteam, soldier_state, cmd, result):
+	if not _assign_move_path(
+		game_state, context, fireteam, soldier_state,
+		cmd, result, move_result.mode, move_result.message,
+	):
 		if cmd.target_cell == _start_cell_for_soldier(context, soldier_state):
 			result.refresh_views = false
 			return result
@@ -207,10 +232,12 @@ static func execute_move(
 		"cells": soldier_state.current_path,
 		"target": cmd.target_cell,
 	}
-	return result.set_status(
-		"%s Soldier %d %s to %s — click another tile to redirect."
-		% [Team.display_name(cmd.team_id), cmd.soldier_id, mode_label, cmd.target_cell],
-	)
+	var status := "%s Soldier %d %s to %s — click another tile to redirect." % [
+		Team.display_name(cmd.team_id), cmd.soldier_id, mode_label, cmd.target_cell,
+	]
+	if not move_result.message.is_empty():
+		status = move_result.message + "\n" + status
+	return result.set_status(status)
 
 
 static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> ActionResult:
@@ -287,10 +314,15 @@ static func execute_fire(
 	var first_shooter: SoldierState = null
 	var any_obscured := false
 	var halted_any := false
+	var rejected_notices: Array[String] = []
 
 	for soldier_id in shooter_ids:
 		var shooter: SoldierState = fireteam.get_soldier(soldier_id)
 		if shooter == null or shooter.is_dead:
+			continue
+
+		if CombatSystem.is_stress_panicked(shooter.stress):
+			rejected_notices.append("Soldier is panicked and ignores the order.")
 			continue
 
 		if _halt_soldier_for_combat(context, shooter, result):
@@ -336,6 +368,8 @@ static func execute_fire(
 
 	if engaged_count == 0:
 		result.sync_fire_at_ui = true
+		if not rejected_notices.is_empty():
+			return ActionResult.fail(rejected_notices[0])
 		return result.set_status("No enemies in aim cone — ceased fire.")
 
 	if halted_any:
@@ -428,18 +462,29 @@ static func arm_movement_mode_for_soldier(
 	if soldier == null or soldier.is_dead:
 		return "Soldier unavailable."
 
-	var stand_message := _stand_up_for_run(soldier, movement_mode)
-	if not MovementModeClass.is_allowed(soldier.position_state, movement_mode):
-		return "Cannot use %s while DOWN." % MovementModeClass.display_name(movement_mode)
+	if CombatSystem.is_stress_panicked(soldier.stress):
+		return "Soldier is panicked and ignores the order."
 
-	soldier.movement_mode = movement_mode
+	var move_result := _resolve_move_order(soldier, movement_mode)
+	if move_result.rejected:
+		return move_result.message
+
+	var stand_message := _stand_up_for_run(soldier, move_result.mode)
+	if not MovementModeClass.is_allowed(soldier.position_state, move_result.mode):
+		return "Cannot use %s while DOWN." % MovementModeClass.display_name(move_result.mode)
+
+	soldier.movement_mode = move_result.mode
 	var mode_message := "Soldier %d movement mode = %s" % [
 		soldier.soldier_id,
-		MovementModeClass.display_name(movement_mode),
+		MovementModeClass.display_name(move_result.mode),
 	]
-	if stand_message.is_empty():
-		return mode_message
-	return "%s\n%s" % [stand_message, mode_message]
+	var lines: Array[String] = []
+	if not move_result.message.is_empty():
+		lines.append(move_result.message)
+	if not stand_message.is_empty():
+		lines.append(stand_message)
+	lines.append(mode_message)
+	return "\n".join(lines)
 
 
 static func _assign_move_path(
@@ -449,11 +494,17 @@ static func _assign_move_path(
 	state: SoldierState,
 	cmd: MoveCommandClass,
 	result: ActionResult,
+	resolved_mode: int = -1,
+	_notice: String = "",
 ) -> bool:
 	if state.is_dead:
 		return false
 
-	if not _validate_move(state, cmd.movement_mode).is_empty():
+	var mode := resolved_mode if resolved_mode >= 0 else cmd.movement_mode
+	if CombatSystem.is_stress_panicked(state.stress):
+		return false
+
+	if not _validate_move(state, mode).is_empty():
 		return false
 
 	var start_cell := _start_cell_for_soldier(context, state)
@@ -477,15 +528,42 @@ static func _assign_move_path(
 	if path.is_empty():
 		return false
 
-	state.movement_mode = cmd.movement_mode
+	state.movement_mode = mode
 	fireteam.order_path(state.soldier_id, path)
+	var speed_mult := (
+		MovementModeClass.speed_multiplier(mode)
+		* CombatSystem.get_stress_movement_modifier(state.stress)
+	)
 	result.move_orders.append({
 		"team_id": state.team_id,
 		"soldier_id": state.soldier_id,
 		"path": path,
-		"speed_mult": MovementModeClass.speed_multiplier(cmd.movement_mode),
+		"speed_mult": speed_mult,
 	})
 	return true
+
+
+class MoveOrderResolution:
+	var mode: int = MovementModeClass.RUN
+	var message: String = ""
+	var rejected: bool = false
+
+
+static func _resolve_move_order(soldier: SoldierState, requested_mode: int) -> MoveOrderResolution:
+	var resolved := MoveOrderResolution.new()
+	resolved.mode = requested_mode
+	if soldier == null or soldier.is_dead:
+		resolved.rejected = true
+		resolved.message = "Soldier unavailable."
+		return resolved
+	if CombatSystem.is_stress_panicked(soldier.stress):
+		resolved.rejected = true
+		resolved.message = "Soldier is panicked and ignores the order."
+		return resolved
+	if requested_mode == MovementModeClass.RUN and CombatSystem.is_stress_pinned(soldier.stress):
+		resolved.mode = MovementModeClass.WALK
+		resolved.message = "Soldier is pinned and cannot run."
+	return resolved
 
 
 static func validate_move(soldier: SoldierState, mode: int) -> String:

@@ -28,6 +28,8 @@ var position_state: int = PositionStateClass.UP
 var movement_mode: int = MovementModeClass.RUN
 var fire_control_state: int = FireControlStateClass.HOLD_FIRE
 var stress: float = 0.0
+## Set when suppressed this combat tick; skips stress recovery until next tick.
+var received_suppression_this_tick: bool = false
 ## Timestamp of last fired burst; repeat cadence = last_shot_msec + weapon.fire_interval_sec.
 var last_shot_msec: int = 0
 ## Aiming deadline (weapon.aim_delay_sec); while in the future, activity_status_label() shows "Aiming".
@@ -80,6 +82,8 @@ func activity_status_label() -> String:
 		return MovementModeClass.status_name(movement_mode)
 	if fire_ready_after_msec > Time.get_ticks_msec():
 		return "Aiming"
+	if stress >= 10.0:
+		return CombatSystem.get_stress_state_label(stress)
 	if position_state == PositionStateClass.DOWN:
 		return "Prone"
 	return "Idle"
