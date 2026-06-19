@@ -32,12 +32,43 @@ var stress: float = 0.0
 var received_suppression_this_tick: bool = false
 ## Timestamp of last fired burst; repeat cadence = last_shot_msec + weapon.fire_interval_sec.
 var last_shot_msec: int = 0
+## Set when a shot/burst actually fires; used by spotting (easier to detect for ~2s).
+var last_fired_msec: int = 0
 ## Aiming deadline (weapon.aim_delay_sec); while in the future, activity_status_label() shows "Aiming".
 var fire_ready_after_msec: int = 0
 var engaged_target_team_id: int = -1
 var engaged_target_soldier_id: int = -1
 ## Manual Fire At order active — keep firing at priority target until cleared.
 var sustained_fire: bool = false
+## Last known enemy positions keyed by CombatSystem.enemy_tracking_key().
+var last_seen_enemy_positions: Dictionary = {}
+var last_seen_enemy_msec: Dictionary = {}
+
+
+static func enemy_tracking_key(enemy_team_id: int, enemy_soldier_id: int) -> String:
+	return "%d:%d" % [enemy_team_id, enemy_soldier_id]
+
+
+func record_last_seen_enemy(enemy: SoldierState) -> void:
+	if enemy == null:
+		return
+	var key := enemy_tracking_key(enemy.team_id, enemy.soldier_id)
+	last_seen_enemy_positions[key] = enemy.grid_position
+	last_seen_enemy_msec[key] = Time.get_ticks_msec()
+
+
+func get_last_seen_enemy_position(enemy_team_id: int, enemy_soldier_id: int) -> Vector2i:
+	var key := enemy_tracking_key(enemy_team_id, enemy_soldier_id)
+	if last_seen_enemy_positions.has(key):
+		return last_seen_enemy_positions[key]
+	return Vector2i(-999, -999)
+
+
+func get_last_seen_enemy_msec(enemy_team_id: int, enemy_soldier_id: int) -> int:
+	var key := enemy_tracking_key(enemy_team_id, enemy_soldier_id)
+	if last_seen_enemy_msec.has(key):
+		return int(last_seen_enemy_msec[key])
+	return 0
 
 
 func _init(id: int = 1, start_cell: Vector2i = Vector2i.ZERO, team: int = Team.USA) -> void:

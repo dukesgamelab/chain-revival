@@ -42,7 +42,7 @@ func _ready() -> void:
 
 
 ## Apply authoritative gameplay state to this sprite (position, facing, selection).
-func sync_from_state(state: SoldierState, is_selected: bool) -> void:
+func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = true) -> void:
 	soldier_id = state.soldier_id
 	team_id = state.team_id
 	_is_dead = state.is_dead
@@ -59,7 +59,20 @@ func sync_from_state(state: SoldierState, is_selected: bool) -> void:
 	_apply_facing(state.facing_direction)
 	_apply_position_visual(state)
 	_apply_weapon_badge(state)
+	_apply_spotted_visual(is_selected, is_spotted)
 	set_selected(is_selected)
+
+
+func _apply_spotted_visual(is_selected: bool, is_spotted: bool) -> void:
+	if _is_dead:
+		return
+	if is_spotted:
+		if is_selected:
+			_sprite.modulate = Color(1.14, 1.14, 1.08, 1.0)
+		else:
+			_sprite.modulate = Color.WHITE
+	else:
+		_sprite.modulate = Color(0.55, 0.55, 0.58, 0.45)
 
 
 func set_selected(is_selected: bool) -> void:
@@ -68,15 +81,7 @@ func set_selected(is_selected: bool) -> void:
 		return
 	_selection_marker.visible = is_selected
 	_selection_marker.polygon = IsometricGrid.diamond_corners(Vector2.ZERO)
-	_apply_team_color(is_selected)
-
-
-func _apply_team_color(is_selected: bool) -> void:
 	_sprite.texture = TEXTURE_USA if team_id == Team.USA else TEXTURE_GERMANY
-	if is_selected:
-		_sprite.modulate = Color(1.14, 1.14, 1.08, 1.0)
-	else:
-		_sprite.modulate = Color.WHITE
 
 
 func _apply_dead_visual(_is_selected: bool) -> void:

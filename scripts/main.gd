@@ -425,7 +425,14 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 	var view: Soldier = _get_view(team_id, soldier_id)
 	if view == null:
 		return
-	view.sync_from_state(soldier_state, is_selected)
+	var is_spotted := true
+	if soldier_state.team_id != _session.active_team_id and soldier_state.is_alive():
+		is_spotted = CombatSystem.is_enemy_visible_to_team(
+			_game_state,
+			_session.active_team_id,
+			soldier_state,
+		)
+	view.sync_from_state(soldier_state, is_selected, is_spotted)
 
 
 func _refresh_armed_movement_views(soldier_id: int) -> void:

@@ -9,6 +9,7 @@ const WeaponDataClass := preload("res://scripts/weapon_data.gd")
 const WeaponRegistryClass := preload("res://scripts/weapon_registry.gd")
 const WeaponTypeClass := preload("res://scripts/weapon_type.gd")
 const PositionStateClass := preload("res://scripts/position_state.gd")
+const MovementModeClass := preload("res://scripts/movement_mode.gd")
 const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 const LOSSystemClass := preload("res://scripts/los_system.gd")
 const CoverSystemClass := preload("res://scripts/cover_system.gd")
@@ -31,11 +32,15 @@ const PRONE_SUPPRESSION_MULT := 0.75
 const STRESS_PINNED_THRESHOLD := 45.0
 const STRESS_PANIC_THRESHOLD := 70.0
 const AUTO_TARGET_ENGAGED_BONUS := 10.0
+const VISIBILITY_SCORE_THRESHOLD := 35.0
+const RECENTLY_SEEN_SEC := 2.0
+const RECENTLY_FIRED_SPOT_SEC := 2.0
+const LAST_KNOWN_NEAR_TILES := 2
 
 ## stress = suppression/combat pressure; affects accuracy, movement, and fire cadence.
-## cover reduces both hit chance and suppression gain.
-## Manual Fire At remains priority-target behavior.
-## Fire At Will uses tactical target scoring (find_best_auto_target).
+## spotting controls target eligibility; shot LOS controls whether bullets can fire.
+## cover reduces both hit chance and spotting; recently fired enemies are easier to detect.
+## Manual Fire At remains priority-target behavior; Fire At Will uses tactical target scoring.
 
 
 static func resolve_shot(
@@ -136,7 +141,9 @@ static func resolve_shot(
 	var ammo_cost := weapon.ammo_cost(shooter.ammo_current)
 	# Authoritative ammo/death mutations (invoked only via ActionResolver → process_combat_tick).
 	shooter.ammo_current -= ammo_cost
-	shooter.last_shot_msec = Time.get_ticks_msec()
+	var now_msec := Time.get_ticks_msec()
+	shooter.last_shot_msec = now_msec
+	shooter.last_fired_msec = now_msec
 	result.fired = true
 	result.tracer_count = weapon.tracer_count
 
@@ -185,6 +192,173 @@ static func resolve_shot(
 	return result
 
 
+## --- Spotting / visibility (target eligibility) vs shot LOS (bullet path) ---
+
+
+static func can_spot_enemy(
+	observer: SoldierStateClass,
+	target: SoldierStateClass,
+	game_state: GameStateClass,
+) -> bool:
+	return get_visibility_score(observer, target, game_state) >= VISIBILITY_SCORE_THRESHOLD
+
+
+static func get_visibility_score(
+	observer: SoldierStateClass,
+	target: SoldierStateClass,
+	game_state: GameStateClass,
+) -> float:
+	if observer == null or target == null or target.is_dead or observer.is_dead:
+		return -1.0
+	if observer.team_id == target.team_id:
+		return -1.0
+
+	var los := LOSSystemClass.evaluate(
+		observer.grid_position,
+		target.grid_position,
+		game_state.map_data,
+	)
+	if los.status == LOSSystemClass.Status.BLOCKED:
+		return -1.0
+
+	var weapon := observer.get_weapon_data()
+	var max_range := _effective_weapon_range(weapon) if weapon != null else ConeOfFireClass.RANGE_BONUS
+	var dist := _manhattan_distance(observer.grid_position, target.grid_position)
+	if dist > max_range:
+		return -1.0
+
+	var score := 100.0 - float(dist) * 4.0
+
+	if not _is_target_in_cone(observer, target.grid_position, max_range):
+		score -= 35.0
+
+	if target.position_state == PositionStateClass.DOWN:
+		score -= 20.0
+	if target.is_moving:
+		if target.movement_mode == MovementModeClass.RUN:
+			score += 15.0
+		elif target.movement_mode == MovementModeClass.WALK:
+			score += 10.0
+
+	if _target_recently_fired(target):
+		score += 25.0
+
+	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
+		score -= 20.0
+
+	score *= get_cover_visibility_modifier(observer, target, game_state, los)
+	return score
+
+
+static func get_cover_visibility_modifier(
+	_observer: SoldierStateClass,
+	_target: SoldierStateClass,
+	_game_state: GameStateClass,
+	los: LOSSystemClass.LossResult = null,
+) -> float:
+	if los != null and los.cover_type == CoverSystemClass.CoverType.MODERATE:
+		return MODERATE_COVER_SUPPRESSION_MULT
+	return 1.0
+
+
+static func get_target_visibility_modifier(target: SoldierStateClass) -> float:
+	if target == null:
+		return 1.0
+	if target.position_state == PositionStateClass.DOWN:
+		return 0.75
+	return 1.0
+
+
+static func is_enemy_recently_seen(
+	observer: SoldierStateClass,
+	enemy_team_id: int,
+	enemy_soldier_id: int,
+) -> bool:
+	if observer == null:
+		return false
+	var seen_msec := observer.get_last_seen_enemy_msec(enemy_team_id, enemy_soldier_id)
+	if seen_msec <= 0:
+		return false
+	var elapsed_sec := (Time.get_ticks_msec() - seen_msec) / 1000.0
+	return elapsed_sec <= RECENTLY_SEEN_SEC
+
+
+static func is_priority_target_trackable(
+	observer: SoldierStateClass,
+	target: SoldierStateClass,
+	game_state: GameStateClass,
+) -> bool:
+	if not _is_valid_priority_enemy(observer, target):
+		return false
+	if can_spot_enemy(observer, target, game_state):
+		return true
+	return is_enemy_recently_seen(observer, target.team_id, target.soldier_id)
+
+
+static func can_assign_manual_priority_target(
+	observer: SoldierStateClass,
+	target: SoldierStateClass,
+	game_state: GameStateClass,
+	click_cell: Vector2i,
+) -> bool:
+	if not _is_valid_priority_enemy(observer, target):
+		return false
+	if can_spot_enemy(observer, target, game_state):
+		return true
+	if not is_enemy_recently_seen(observer, target.team_id, target.soldier_id):
+		return false
+	var key := SoldierStateClass.enemy_tracking_key(target.team_id, target.soldier_id)
+	var last_pos: Vector2i = observer.last_seen_enemy_positions.get(
+		key,
+		target.grid_position,
+	)
+	return (
+		_manhattan_distance(last_pos, click_cell) <= LAST_KNOWN_NEAR_TILES
+		or _manhattan_distance(target.grid_position, click_cell) <= LAST_KNOWN_NEAR_TILES
+	)
+
+
+static func update_spotting(game_state: GameStateClass) -> void:
+	for fireteam in game_state.session.all_fireteams():
+		for state in fireteam.soldiers:
+			var observer: SoldierStateClass = state
+			if observer.is_dead:
+				continue
+			var enemy_team_id: int = game_state.enemy_team_id(observer.team_id)
+			var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
+			for enemy_state in enemy_fireteam.soldiers:
+				var enemy: SoldierStateClass = enemy_state
+				if enemy.is_dead:
+					continue
+				if can_spot_enemy(observer, enemy, game_state):
+					observer.record_last_seen_enemy(enemy)
+
+
+static func is_enemy_visible_to_team(
+	game_state: GameStateClass,
+	observer_team_id: int,
+	enemy: SoldierStateClass,
+) -> bool:
+	if enemy == null or enemy.is_dead:
+		return false
+	if enemy.team_id == observer_team_id:
+		return true
+	var fireteam := game_state.session.get_fireteam(observer_team_id)
+	for state in fireteam.soldiers:
+		var observer: SoldierStateClass = state
+		if observer.is_dead:
+			continue
+		if can_spot_enemy(observer, enemy, game_state):
+			return true
+	return false
+
+
+static func _target_recently_fired(target: SoldierStateClass) -> bool:
+	if target.last_fired_msec <= 0:
+		return false
+	return (Time.get_ticks_msec() - target.last_fired_msec) / 1000.0 <= RECENTLY_FIRED_SPOT_SEC
+
+
 static func find_closest_visible_enemy(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
@@ -213,6 +387,8 @@ static func find_best_auto_target(
 	for state in enemy_fireteam.soldiers:
 		var enemy: SoldierStateClass = state
 		if enemy.is_dead:
+			continue
+		if not can_spot_enemy(shooter, enemy, game_state):
 			continue
 		if not _is_target_in_cone(shooter, enemy.grid_position, max_range):
 			continue
@@ -309,7 +485,7 @@ static func find_best_cone_target(
 	return best
 
 
-## Manual Fire At: pick a priority enemy from aim/click without requiring clear LOS.
+## Manual Fire At: priority enemy from aim/click when spotted or recently seen near click.
 static func find_manual_priority_target(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
@@ -318,30 +494,37 @@ static func find_manual_priority_target(
 	max_range: int,
 	explicit_team_id: int = -1,
 	explicit_soldier_id: int = -1,
+	click_cell: Vector2i = Vector2i(-999, -999),
 ) -> SoldierStateClass:
 	if shooter == null or shooter.is_dead:
 		return null
 
+	if click_cell.x <= -900:
+		click_cell = IsometricGrid.world_to_grid(aim_world)
+
 	if explicit_team_id >= 0 and explicit_soldier_id > 0:
 		var explicit := game_state.get_soldier(explicit_team_id, explicit_soldier_id)
-		if _is_valid_priority_enemy(shooter, explicit):
+		if can_assign_manual_priority_target(shooter, explicit, game_state, click_cell):
 			return explicit
+		return null
 
-	return find_best_aim_cone_priority_target(
+	return find_best_spotted_aim_cone_target(
 		game_state,
 		shooter,
 		from_world,
 		aim_world,
 		max_range,
+		click_cell,
 	)
 
 
-static func find_best_aim_cone_priority_target(
+static func find_best_spotted_aim_cone_target(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 	from_world: Vector2,
 	aim_world: Vector2,
 	max_range: int,
+	click_cell: Vector2i,
 ) -> SoldierStateClass:
 	if shooter == null or shooter.is_dead:
 		return null
@@ -364,12 +547,32 @@ static func find_best_aim_cone_priority_target(
 			max_range,
 		):
 			continue
+		if not can_assign_manual_priority_target(shooter, enemy, game_state, click_cell):
+			continue
 		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
 		if dist < best_dist:
 			best_dist = dist
 			best = enemy
 
 	return best
+
+
+## UI / manual cone checks — spotted or recently seen near aim point.
+static func find_best_aim_cone_priority_target(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+	from_world: Vector2,
+	aim_world: Vector2,
+	max_range: int,
+) -> SoldierStateClass:
+	return find_best_spotted_aim_cone_target(
+		game_state,
+		shooter,
+		from_world,
+		aim_world,
+		max_range,
+		IsometricGrid.world_to_grid(aim_world),
+	)
 
 
 ## Living enemy in the fire cone with unobstructed line of fire.
@@ -387,7 +590,7 @@ static func aim_cone_has_visible_enemy(
 	aim_world: Vector2,
 	max_range: int,
 ) -> bool:
-	## UI preview: any living enemy in the aim cone (blocked targets still count).
+	## UI preview: spotted enemy in the aim cone (spotting, not shot LOS).
 	return find_best_aim_cone_priority_target(
 		game_state,
 		shooter,
@@ -705,10 +908,10 @@ static func _resolve_engaged_target(
 	var target := _get_engaged_target(game_state, shooter)
 	if target != null:
 		if shooter.is_sustained_fire():
-			if _is_valid_priority_enemy(shooter, target):
+			if is_priority_target_trackable(shooter, target, game_state):
 				return target
 			shooter.clear_engaged_target()
-			return _acquire_sustained_target(game_state, shooter)
+			return null
 		if shooter.fire_control_state == FireControlStateClass.FIRE_AT_WILL:
 			if _is_auto_target_valid(game_state, shooter, target):
 				return target
@@ -940,7 +1143,7 @@ static func _is_auto_target_valid(
 	shooter: SoldierStateClass,
 	target: SoldierStateClass,
 ) -> bool:
-	if not _is_valid_priority_enemy(shooter, target):
+	if not is_priority_target_trackable(shooter, target, game_state):
 		return false
 	var weapon := shooter.get_weapon_data()
 	if weapon == null:
@@ -948,10 +1151,4 @@ static func _is_auto_target_valid(
 	var max_range := _effective_weapon_range(weapon)
 	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
 		return false
-	if not _is_target_in_cone(shooter, target.grid_position, max_range):
-		return false
-	return not LOSSystemClass.is_shot_blocked(
-		shooter.grid_position,
-		target.grid_position,
-		game_state.map_data,
-	)
+	return _is_target_in_cone(shooter, target.grid_position, max_range)

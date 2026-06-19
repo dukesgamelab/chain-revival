@@ -131,6 +131,7 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 	result.refresh_views = false
 
 	CombatSystem.clear_suppression_tick_flags(game_state)
+	CombatSystem.update_spotting(game_state)
 
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
@@ -335,6 +336,7 @@ static func execute_fire(
 			else ConeOfFireClass.RANGE_BONUS
 		)
 		var from_world := _tracer_world_for_soldier(shooter)
+		var click_cell := IsometricGrid.world_to_grid(cmd.aim_world)
 		var target: SoldierState = CombatSystem.find_manual_priority_target(
 			game_state,
 			shooter,
@@ -343,11 +345,15 @@ static func execute_fire(
 			max_range,
 			explicit_team,
 			explicit_soldier,
+			click_cell,
 		)
 		if target == null:
 			if shooter.is_sustained_fire():
 				shooter.end_sustained_fire()
 			continue
+
+		if CombatSystem.can_spot_enemy(shooter, target, game_state):
+			shooter.record_last_seen_enemy(target)
 
 		shooter.begin_sustained_fire()
 		shooter.set_engaged_target(target.team_id, target.soldier_id)
@@ -370,7 +376,7 @@ static func execute_fire(
 		result.sync_fire_at_ui = true
 		if not rejected_notices.is_empty():
 			return ActionResult.fail(rejected_notices[0])
-		return result.set_status("No enemies in aim cone — ceased fire.")
+		return result.set_status("No visible target there.")
 
 	if halted_any:
 		result.clear_path_overlay = true
