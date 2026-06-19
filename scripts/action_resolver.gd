@@ -19,6 +19,7 @@ const PositionStateClass := preload("res://scripts/position_state.gd")
 const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 const ConeOfFireClass := preload("res://scripts/cone_of_fire.gd")
 const CombatShotResultClass := preload("res://scripts/combat_shot_result.gd")
+const LOSSystemClass := preload("res://scripts/los_system.gd")
 
 
 static func execute(
@@ -124,7 +125,7 @@ static func on_movement_complete(
 	game_state.session.get_fireteam(team_id).on_soldier_finished_moving(soldier_id)
 
 
-## Periodic combat tick: sustained Fire At + Fire At Will.
+## Periodic combat tick: sustained Fire At (priority) + Fire At Will (auto).
 static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 	var result := ActionResult.new()
 	result.refresh_views = false
@@ -138,6 +139,9 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 			if shot.fired:
 				result.combat_shots.append(shot)
 				result.refresh_views = true
+			elif shot.blocked:
+				result.combat_shots.append(shot)
+				result.sync_fire_at_ui = true
 
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
@@ -218,8 +222,11 @@ static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> A
 	var result := ActionResult.new()
 
 	if soldier_state != null and soldier_state.is_sustained_fire():
-		var cone_target := CombatSystem.find_best_cone_target(game_state, soldier_state)
-		if cone_target == null or not CombatSystem.is_facing_target(soldier_state, cone_target):
+		var priority: SoldierState = game_state.get_soldier(
+			soldier_state.engaged_target_team_id,
+			soldier_state.engaged_target_soldier_id,
+		)
+		if priority != null and not CombatSystem.is_facing_target(soldier_state, priority):
 			soldier_state.end_sustained_fire()
 			result.sync_fire_at_ui = true
 			return result.set_status(
@@ -262,6 +269,7 @@ static func execute_fire(
 	cmd: FireCommandClass,
 	context: CommandContext,
 ) -> ActionResult:
+	## Manual Fire At = assign priority target(s); LOS is checked when shots resolve.
 	if context == null or cmd.aim_world == Vector2.ZERO:
 		return ActionResult.fail("Fire command requires aim_world.")
 
@@ -270,9 +278,13 @@ static func execute_fire(
 	if shooter_ids.is_empty():
 		return ActionResult.fail("No available soldiers to fire.")
 
+	var explicit_team := cmd.target_team_id if cmd.target_soldier_id > 0 else -1
+	var explicit_soldier := cmd.target_soldier_id if cmd.target_soldier_id > 0 else -1
+
 	var result := ActionResult.new()
 	var engaged_count := 0
 	var first_target: SoldierState = null
+	var any_obscured := false
 	var halted_any := false
 
 	for soldier_id in shooter_ids:
@@ -290,12 +302,14 @@ static func execute_fire(
 			else ConeOfFireClass.RANGE_BONUS
 		)
 		var from_world := _tracer_world_for_soldier(shooter)
-		var target: SoldierState = CombatSystem.find_best_aim_cone_target(
+		var target: SoldierState = CombatSystem.find_manual_priority_target(
 			game_state,
 			shooter,
 			from_world,
 			cmd.aim_world,
 			max_range,
+			explicit_team,
+			explicit_soldier,
 		)
 		if target == null:
 			if shooter.is_sustained_fire():
@@ -310,6 +324,14 @@ static func execute_fire(
 		if first_target == null:
 			first_target = target
 
+		var los := LOSSystemClass.evaluate(
+			shooter.grid_position,
+			target.grid_position,
+			game_state.map_data,
+		)
+		if los.status == LOSSystemClass.Status.BLOCKED:
+			any_obscured = true
+
 	if engaged_count == 0:
 		result.sync_fire_at_ui = true
 		return result.set_status("No enemies in aim cone — ceased fire.")
@@ -321,17 +343,27 @@ static func execute_fire(
 	result.sync_fire_at_ui = true
 	result.begin_fire_engagement = true
 
+	if any_obscured and engaged_count == 1 and first_target != null:
+		return result.set_status(
+			"Priority target %s Soldier %d — holding fire until line of sight clears."
+			% [Team.display_name(first_target.team_id), first_target.soldier_id],
+		)
 	if engaged_count == 1 and first_target != null:
 		return result.set_status(
-			"Taking aim at %s Soldier %d — firing in %.0fs."
+			"Priority target %s Soldier %d — firing in %.0fs."
 			% [
 				Team.display_name(first_target.team_id),
 				first_target.soldier_id,
 				CombatSystem.FIRE_PREP_DELAY_SEC,
 			],
 		)
+	if any_obscured:
+		return result.set_status(
+			"%d soldiers assigned priority targets — holding fire where obscured."
+			% engaged_count,
+		)
 	return result.set_status(
-		"%d soldiers engaging enemies in cone — firing in %.0fs."
+		"%d soldiers assigned priority targets — firing in %.0fs."
 		% [engaged_count, CombatSystem.FIRE_PREP_DELAY_SEC],
 	)
 

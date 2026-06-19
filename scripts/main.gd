@@ -300,7 +300,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			aim_world = _get_soldier_tracer_point(clicked_soldier)
 		else:
 			aim_world = IsometricGrid.grid_to_world(target_cell) + Vector2(0, -16)
-		_apply_fire_at_aim(aim_world)
+		_apply_fire_at_aim(aim_world, clicked_soldier)
 		get_viewport().set_input_as_handled()
 		return
 
@@ -601,7 +601,12 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 	for shot in result.combat_shots:
 		var shooter: SoldierState = _game_state.get_soldier(shot.shooter_team_id, shot.shooter_id)
 		var target: SoldierState = _game_state.get_soldier(shot.target_team_id, shot.target_id)
-		combat_lines.append_array(_finalize_shot_result(shot, shooter, target))
+		if shot.fired:
+			combat_lines.append_array(_finalize_shot_result(shot, shooter, target))
+		else:
+			for line in shot.messages:
+				GameLog.log_combat(line)
+				combat_lines.append(line)
 
 	if result.refresh_views:
 		_ensure_active_selection_alive()
@@ -731,7 +736,7 @@ func _arm_movement_mode(soldier_id: int, movement_mode: int) -> String:
 	return result.status_message if result.success else ""
 
 
-func _apply_fire_at_aim(aim_world: Vector2) -> void:
+func _apply_fire_at_aim(aim_world: Vector2, clicked_soldier: SoldierState = null) -> void:
 	var shooters: Array[SoldierState] = _get_manual_fire_at_shooters()
 	if shooters.is_empty():
 		_command_bar.show_status("No available soldiers to fire.")
@@ -740,6 +745,9 @@ func _apply_fire_at_aim(aim_world: Vector2) -> void:
 	var cmd := FireCommand.new()
 	cmd.team_id = _session.active_team_id
 	cmd.aim_world = aim_world
+	if clicked_soldier != null and clicked_soldier.team_id != _session.active_team_id:
+		cmd.target_team_id = clicked_soldier.team_id
+		cmd.target_soldier_id = clicked_soldier.soldier_id
 	if _squad_fire_at_mode:
 		cmd.scope = FireCommand.Scope.SQUAD
 	else:

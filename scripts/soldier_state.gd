@@ -32,6 +32,7 @@ var last_shot_msec: int = 0
 var fire_ready_after_msec: int = 0
 var engaged_target_team_id: int = -1
 var engaged_target_soldier_id: int = -1
+## Manual Fire At order active — keep firing at priority target until cleared.
 var sustained_fire: bool = false
 
 

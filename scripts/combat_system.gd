@@ -18,6 +18,10 @@ const MIN_HIT_CHANCE := 0.10
 const AUTO_FIRE_SCAN_INTERVAL := 0.5
 const FIRE_PREP_DELAY_SEC := 1.0
 
+## Manual Fire At = priority target assignment (LOS does not gate selection).
+## Fire At Will = automatic target acquisition (requires clear LOS to shoot).
+## LOS decides whether a shot fires, not whether a priority target can be selected.
+
 
 static func resolve_shot(
 	game_state: GameStateClass,
@@ -173,6 +177,7 @@ static func find_closest_visible_enemy(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 ) -> SoldierStateClass:
+	## Fire At Will: nearest shootable enemy in the facing cone (clear LOS required).
 	return find_best_cone_target(game_state, shooter)
 
 
@@ -209,6 +214,69 @@ static func find_best_cone_target(
 	return best
 
 
+## Manual Fire At: pick a priority enemy from aim/click without requiring clear LOS.
+static func find_manual_priority_target(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+	from_world: Vector2,
+	aim_world: Vector2,
+	max_range: int,
+	explicit_team_id: int = -1,
+	explicit_soldier_id: int = -1,
+) -> SoldierStateClass:
+	if shooter == null or shooter.is_dead:
+		return null
+
+	if explicit_team_id >= 0 and explicit_soldier_id > 0:
+		var explicit := game_state.get_soldier(explicit_team_id, explicit_soldier_id)
+		if _is_valid_priority_enemy(shooter, explicit):
+			return explicit
+
+	return find_best_aim_cone_priority_target(
+		game_state,
+		shooter,
+		from_world,
+		aim_world,
+		max_range,
+	)
+
+
+static func find_best_aim_cone_priority_target(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+	from_world: Vector2,
+	aim_world: Vector2,
+	max_range: int,
+) -> SoldierStateClass:
+	if shooter == null or shooter.is_dead:
+		return null
+
+	var enemy_team_id: int = game_state.enemy_team_id(shooter.team_id)
+	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
+	var best: SoldierStateClass = null
+	var best_dist := INF
+
+	for state in enemy_fireteam.soldiers:
+		var enemy: SoldierStateClass = state
+		if enemy.is_dead:
+			continue
+		var enemy_world := IsometricGrid.grid_to_world(enemy.grid_position) + Vector2(0, -16)
+		if not ConeOfFireClass.is_world_point_in_aim_cone(
+			from_world,
+			aim_world,
+			enemy_world,
+			shooter.grid_position,
+			max_range,
+		):
+			continue
+		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
+		if dist < best_dist:
+			best_dist = dist
+			best = enemy
+
+	return best
+
+
 ## Living enemy in the fire cone with unobstructed line of fire.
 static func find_faced_enemy(
 	game_state: GameStateClass,
@@ -224,7 +292,14 @@ static func aim_cone_has_visible_enemy(
 	aim_world: Vector2,
 	max_range: int,
 ) -> bool:
-	return find_best_aim_cone_target(game_state, shooter, from_world, aim_world, max_range) != null
+	## UI preview: any living enemy in the aim cone (blocked targets still count).
+	return find_best_aim_cone_priority_target(
+		game_state,
+		shooter,
+		from_world,
+		aim_world,
+		max_range,
+	) != null
 
 
 static func find_best_aim_cone_target(
@@ -234,6 +309,7 @@ static func find_best_aim_cone_target(
 	aim_world: Vector2,
 	max_range: int,
 ) -> SoldierStateClass:
+	## Legacy alias: auto-acquisition with clear LOS.
 	if shooter == null or shooter.is_dead:
 		return null
 
@@ -265,12 +341,14 @@ static func find_best_aim_cone_target(
 	return best
 
 
-## Hit chance (0–100) vs the enemy the shooter is currently facing, or -1 if none.
+## Hit chance (0–100) vs priority or faced enemy, or -1 if none / fully blocked.
 static func hit_pct_vs_faced_enemy(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 ) -> float:
-	var target := find_faced_enemy(game_state, shooter)
+	var target := _get_engaged_target(game_state, shooter)
+	if target == null:
+		target = find_faced_enemy(game_state, shooter)
 	if target == null:
 		return -1.0
 
@@ -329,6 +407,7 @@ static func try_engaged_fire(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 ) -> CombatShotResult:
+	## Sustained manual Fire At: keep priority target; LOS gates the shot, not the order.
 	var empty := CombatShotResult.new()
 	if shooter == null or shooter.is_dead or shooter.is_moving:
 		return empty
@@ -340,11 +419,9 @@ static func try_engaged_fire(
 		return empty
 
 	if not is_facing_target(shooter, target):
-		if shooter.is_sustained_fire():
-			var fireteam := game_state.session.get_fireteam(shooter.team_id)
-			fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
-		else:
-			return empty
+		var fireteam := game_state.session.get_fireteam(shooter.team_id)
+		fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
+		return empty
 
 	if shooter.ammo_current <= 0:
 		return empty
@@ -352,6 +429,21 @@ static func try_engaged_fire(
 		return empty
 	if not _can_fire_yet(shooter, shooter.get_weapon_data()):
 		return empty
+
+	var los := LOSSystemClass.evaluate(
+		shooter.grid_position,
+		target.grid_position,
+		game_state.map_data,
+	)
+	if los.status == LOSSystemClass.Status.BLOCKED:
+		var held := CombatShotResult.new()
+		held.shooter_team_id = shooter.team_id
+		held.shooter_id = shooter.soldier_id
+		held.target_team_id = target.team_id
+		held.target_id = target.soldier_id
+		held.blocked = true
+		held.messages.append("Target obscured — holding fire on priority target.")
+		return held
 
 	return resolve_shot(game_state, shooter, target, true)
 
@@ -362,12 +454,30 @@ static func _resolve_engaged_target(
 ) -> SoldierStateClass:
 	var target := _get_engaged_target(game_state, shooter)
 	if target != null:
-		return target
+		if _is_priority_target_in_effect(game_state, shooter, target):
+			return target
+		shooter.clear_engaged_target()
+		return _acquire_after_priority_lost(game_state, shooter)
+
 	if not shooter.is_sustained_fire():
 		return null
 
 	shooter.clear_engaged_target()
-	target = find_best_cone_target(game_state, shooter)
+	return _acquire_after_priority_lost(game_state, shooter)
+
+
+static func _acquire_after_priority_lost(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> SoldierStateClass:
+	if not shooter.is_sustained_fire():
+		return null
+
+	if shooter.fire_control_state == FireControlStateClass.HOLD_FIRE:
+		shooter.end_sustained_fire()
+		return null
+
+	var target := find_best_cone_target(game_state, shooter)
 	if target == null:
 		return null
 
@@ -382,10 +492,13 @@ static func try_auto_engagement(
 	shooter: SoldierStateClass,
 	ignore_fire_control: bool = false,
 ) -> CombatShotResult:
+	## Fire At Will: auto-acquire a shootable enemy each tick (clear LOS required).
 	var empty := CombatShotResult.new()
 	if shooter == null or shooter.is_dead:
 		return empty
 	if shooter.is_moving:
+		return empty
+	if shooter.is_sustained_fire() or shooter.is_engaged():
 		return empty
 	if not ignore_fire_control and shooter.fire_control_state != FireControlStateClass.FIRE_AT_WILL:
 		return empty
@@ -477,3 +590,31 @@ static func _is_target_in_cone(
 		target_cell,
 		max_range,
 	)
+
+
+static func _is_valid_priority_enemy(
+	shooter: SoldierStateClass,
+	enemy: SoldierStateClass,
+) -> bool:
+	return (
+		enemy != null
+		and not enemy.is_dead
+		and shooter != null
+		and enemy.team_id != shooter.team_id
+	)
+
+
+static func _is_priority_target_in_effect(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+	target: SoldierStateClass,
+) -> bool:
+	if target == null or target.is_dead:
+		return false
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
+		return false
+	var max_range := _effective_weapon_range(weapon)
+	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
+		return false
+	return _is_target_in_cone(shooter, target.grid_position, max_range)
