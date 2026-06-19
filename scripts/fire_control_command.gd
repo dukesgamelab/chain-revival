@@ -1,6 +1,6 @@
 class_name FireControlCommand
 extends RefCounted
-## Set a soldier's Hold Fire / Fire At Will mode (issued by command bar).
+## Plain data: Hold Fire / Fire At Will order. Validated and applied by ActionResolver.
 
 const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 

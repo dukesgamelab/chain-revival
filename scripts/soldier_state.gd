@@ -1,6 +1,8 @@
 class_name SoldierState
 extends RefCounted
 ## Pure gameplay data for one soldier. No rendering references.
+##
+## Mutations happen only through ActionResolver (via Fireteam helpers or CombatSystem).
 
 const MovementModeClass := preload("res://scripts/movement_mode.gd")
 const PositionStateClass := preload("res://scripts/position_state.gd")

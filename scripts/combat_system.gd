@@ -1,6 +1,7 @@
 class_name CombatSystem
 extends RefCounted
-## Resolves shooting: weapons, facing, line of fire, cover, ammo, hit chance, death, Fire At Will.
+## Resolves shooting against GameState data (no scene nodes).
+## Called by ActionResolver — not by UI directly.
 
 const GameStateClass := preload("res://scripts/game_state.gd")
 const SoldierStateClass := preload("res://scripts/soldier_state.gd")
@@ -67,6 +68,7 @@ static func resolve_shot(
 		return result
 
 	var fireteam := game_state.session.get_fireteam(shooter.team_id)
+	# Authoritative facing during combat (ActionResolver → process_combat_tick only).
 	fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
 
 	var los := LOSSystemClass.evaluate(
@@ -107,6 +109,7 @@ static func resolve_shot(
 		result.messages.append("Target in moderate cover (%s)" % cover_name)
 
 	var ammo_cost := weapon.ammo_cost(shooter.ammo_current)
+	# Authoritative ammo/death mutations (invoked only via ActionResolver → process_combat_tick).
 	shooter.ammo_current -= ammo_cost
 	shooter.last_shot_msec = Time.get_ticks_msec()
 	result.fired = true

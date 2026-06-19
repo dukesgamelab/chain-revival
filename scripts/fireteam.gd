@@ -1,9 +1,10 @@
 class_name Fireteam
 extends RefCounted
-## Owns gameplay state for a 4-man fireteam: selection, positions, paths, and facing.
+## Data container for a 4-man fireteam (selection + soldier states).
+##
+## Path/facing helpers are called by ActionResolver — not by UI or Soldier views.
 
 const SOLDIER_COUNT := 4
-
 var team_id: int = Team.USA
 var soldiers: Array[SoldierState] = []
 var selected_soldier_id: int = 1
@@ -30,6 +31,7 @@ func get_selected() -> SoldierState:
 
 
 func select_soldier(soldier_id: int) -> void:
+	## UI-local selection index (client-side; not replicated as gameplay state).
 	var state := get_soldier(soldier_id)
 	if state == null or state.is_dead:
 		return
@@ -45,6 +47,7 @@ func select_first_alive() -> void:
 
 
 func order_path(soldier_id: int, path: Array[Vector2i]) -> void:
+	## Called by ActionResolver.execute_move only.
 	var state := get_soldier(soldier_id)
 	if state == null or state.is_dead:
 		return
@@ -52,6 +55,7 @@ func order_path(soldier_id: int, path: Array[Vector2i]) -> void:
 
 
 func on_soldier_reached_tile(soldier_id: int, tile: Vector2i, step_from: Vector2i) -> void:
+	## Called by ActionResolver.on_movement_step only.
 	var state := get_soldier(soldier_id)
 	if state == null or state.is_dead:
 		return
@@ -61,6 +65,7 @@ func on_soldier_reached_tile(soldier_id: int, tile: Vector2i, step_from: Vector2
 
 
 func face_toward_tile(soldier_id: int, target_cell: Vector2i) -> bool:
+	## Called by ActionResolver (face/fire/combat) only.
 	var state := get_soldier(soldier_id)
 	if state == null or state.is_dead:
 		return false

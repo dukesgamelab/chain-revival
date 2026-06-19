@@ -1,5 +1,9 @@
 extends Node2D
-## Root scene: map data, two-team session, soldier views, and command bar.
+## Root scene: presentation shell for the authoritative game loop.
+##
+## Command flow:
+##   UI input → Command DTO → ActionResolver.execute(game_state, command, context)
+##            → GameState updated → ActionResult → refresh views / overlays
 
 const SoldierScene := preload("res://scenes/soldier.tscn")
 const GameSessionClass := preload("res://scripts/game_session.gd")
@@ -14,6 +18,9 @@ const LosVisualizerClass := preload("res://scripts/los_visualizer.gd")
 const FireteamLoadoutClass := preload("res://scripts/fireteam_loadout.gd")
 const LOSSystemClass := preload("res://scripts/los_system.gd")
 const ConeOfFireClass := preload("res://scripts/cone_of_fire.gd")
+const ActionResolverClass := preload("res://scripts/action_resolver.gd")
+const ActionResultClass := preload("res://scripts/action_result.gd")
+const CommandContextClass := preload("res://scripts/command_context.gd")
 
 @onready var _world: Node2D = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -78,34 +85,8 @@ func _process(delta: float) -> void:
 	if _auto_fire_timer < CombatSystem.AUTO_FIRE_SCAN_INTERVAL:
 		return
 	_auto_fire_timer = 0.0
-	_process_engaged_fire()
-	_process_fire_at_will()
-
-
-func _process_engaged_fire() -> void:
-	var summary_lines: Array[String] = []
-	var any_change := false
-
-	for fireteam in _session.all_fireteams():
-		for state in fireteam.soldiers:
-			var shooter: SoldierState = state
-			if not shooter.is_sustained_fire() and not shooter.is_engaged():
-				continue
-			var result: CombatShotResult = CombatSystem.try_engaged_fire(_game_state, shooter)
-			if not result.fired:
-				continue
-			any_change = true
-			var target: SoldierState = _game_state.get_soldier(result.target_team_id, result.target_id)
-			summary_lines.append_array(_finalize_shot_result(result, shooter, target))
-
-	if not any_change:
-		return
-
-	_ensure_active_selection_alive()
-	_refresh_all_views()
-	_sync_fire_at_ui_from_engagements()
-	if not summary_lines.is_empty():
-		_command_bar.show_status("\n".join(summary_lines.slice(-3)))
+	var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
+	_present_action_result(tick_result, true)
 
 
 func _get_manual_fire_at_shooters() -> Array[SoldierState]:
@@ -124,10 +105,7 @@ func _get_manual_fire_at_shooters() -> Array[SoldierState]:
 
 
 func _clear_manual_fire_at_targets() -> void:
-	for fireteam in _session.all_fireteams():
-		for state in fireteam.soldiers:
-			var soldier_state: SoldierState = state
-			soldier_state.end_sustained_fire()
+	ActionResolverClass.cancel_all_sustained_fire(_game_state)
 
 
 func _active_fireteam_has_engaged_soldier() -> bool:
@@ -172,32 +150,8 @@ func _exit_fire_at_mode(message: String = "") -> void:
 		_command_bar.show_status(message)
 
 
-func _process_fire_at_will() -> void:
-	var summary_lines: Array[String] = []
-	var any_change := false
-
-	for fireteam in _session.all_fireteams():
-		for state in fireteam.soldiers:
-			var shooter: SoldierState = state
-			if shooter.is_engaged() or shooter.is_sustained_fire():
-				continue
-			var result: CombatShotResult = CombatSystem.try_auto_engagement(_game_state, shooter)
-			if not result.fired:
-				continue
-			any_change = true
-			var target: SoldierState = _game_state.get_soldier(result.target_team_id, result.target_id)
-			summary_lines.append_array(_finalize_shot_result(result, shooter, target))
-
-	if not any_change:
-		return
-
-	_ensure_active_selection_alive()
-	_refresh_all_views()
-	if not summary_lines.is_empty():
-		_command_bar.show_status("\n".join(summary_lines.slice(-3)))
-
-
 func _update_los_preview() -> void:
+	## Presentation-only: reads GameState + CombatSystem queries; does not mutate gameplay data.
 	if not _fire_at_mode:
 		_los_visualizer.hide_preview()
 		return
@@ -273,26 +227,8 @@ func _init_session_from_spawns() -> void:
 	if red_spawns.is_empty():
 		red_spawns = MapDataClass.default_germany_spawn_points()
 	_session = GameSessionClass.new(blue_spawns, red_spawns)
-	_apply_initial_fireteam_setup()
-	_game_state = GameStateClass.new(_session, _map_data)
-
-
-func _apply_initial_fireteam_setup() -> void:
-	var usa_team: Fireteam = _session.blue_team
-	var germany_team: Fireteam = _session.red_team
-	for i in range(mini(usa_team.soldiers.size(), germany_team.soldiers.size())):
-		var usa_soldier: SoldierState = usa_team.soldiers[i]
-		var germany_soldier: SoldierState = germany_team.soldiers[i]
-		usa_soldier.facing_direction = FacingDirection.toward_cell(
-			usa_soldier.grid_position,
-			germany_soldier.grid_position,
-		)
-		germany_soldier.facing_direction = FacingDirection.toward_cell(
-			germany_soldier.grid_position,
-			usa_soldier.grid_position,
-		)
-		usa_soldier.fire_control_state = FireControlStateClass.HOLD_FIRE
-		germany_soldier.fire_control_state = FireControlStateClass.HOLD_FIRE
+	_game_state = _session.create_game_state(_map_data)
+	ActionResolverClass.apply_match_start_setup(_game_state)
 
 
 func _connect_command_bar() -> void:
@@ -433,17 +369,8 @@ func _toggle_block_edit_mode() -> void:
 
 
 func _toggle_blocked_tile(cell: Vector2i) -> void:
-	if not _map_data.is_in_bounds(cell):
-		_command_bar.show_status("That tile is outside the map.")
-		return
-
-	var is_now_blocked: bool = _map_data.toggle_blocked(cell)
-	_iso_map.apply_map_data(_map_data)
-
-	if is_now_blocked:
-		_command_bar.show_status("Blocked tile %s." % cell)
-	else:
-		_command_bar.show_status("Unblocked tile %s." % cell)
+	var result: ActionResultClass = ActionResolverClass.toggle_map_block(_game_state, cell)
+	_present_action_result(result)
 
 
 func _spawn_all_soldier_views() -> void:
@@ -548,6 +475,7 @@ func _should_update_hit_columns() -> bool:
 
 
 func _hit_pct_for_command_row(soldier_state: SoldierState) -> float:
+	## Presentation-only read of CombatSystem; does not mutate state.
 	if not _should_show_hit_pct(soldier_state):
 		return -1.0
 	return CombatSystem.hit_pct_vs_faced_enemy(_game_state, soldier_state)
@@ -629,162 +557,143 @@ func _any_active_team_soldier_moving() -> bool:
 
 
 func _on_soldier_selected(soldier_id: int) -> void:
+	## UI-local selection only (client-side; not an authoritative gameplay command).
 	_session.get_active_fireteam().select_soldier(soldier_id)
 	_refresh_all_views()
 
 
-## Apply a MoveCommand to the active team's soldier(s).
-func _apply_move_command(cmd: MoveCommand) -> void:
-	if not _map_data.is_walkable(cmd.target_cell):
-		if _map_data.is_blocked(cmd.target_cell):
-			_command_bar.show_status("That tile is blocked.")
-		else:
-			_command_bar.show_status("That tile is outside the map.")
+## Apply ActionResult to views, overlays, and status (presentation only).
+func _present_action_result(result: ActionResultClass, combat_tick: bool = false) -> void:
+	if result == null:
+		return
+	if not result.success:
+		if not result.status_message.is_empty():
+			_command_bar.show_status(result.status_message)
 		return
 
-	var mode_label := MovementModeClass.display_name(cmd.movement_mode).to_lower()
-	var fireteam := _get_fireteam(cmd.team_id)
+	for halt in result.movement_halts:
+		var halt_view: Soldier = _get_view(halt.team_id, halt.soldier_id)
+		if halt_view != null:
+			halt_view.stop_movement()
+
+	for order in result.move_orders:
+		var order_view: Soldier = _get_view(order.team_id, order.soldier_id)
+		if order_view != null:
+			order_view.follow_path(order.path, order.speed_mult)
+
+	if result.refresh_map_data:
+		_iso_map.apply_map_data(_map_data)
+
+	if result.clear_path_overlay:
+		_iso_map.clear_path()
+	if result.path_overlay.has("target"):
+		_iso_map.show_path(
+			result.path_overlay.get("cells", []),
+			result.path_overlay.target,
+		)
+
+	if result.clear_move_targeting:
+		_command_bar.clear_move_targeting()
+		_move_targeting = false
+		_squad_move_targeting = false
+
+	var combat_lines: Array[String] = []
+	for shot in result.combat_shots:
+		var shooter: SoldierState = _game_state.get_soldier(shot.shooter_team_id, shot.shooter_id)
+		var target: SoldierState = _game_state.get_soldier(shot.target_team_id, shot.target_id)
+		combat_lines.append_array(_finalize_shot_result(shot, shooter, target))
+
+	if result.refresh_views:
+		_ensure_active_selection_alive()
+		_refresh_all_views()
+		_refresh_command_bar()
+
+	if result.sync_fire_at_ui:
+		_sync_fire_at_ui_from_engagements()
+
+	if result.begin_fire_engagement:
+		_begin_fire_at_engagement()
+
+	if combat_tick and not combat_lines.is_empty():
+		_command_bar.show_status("\n".join(combat_lines.slice(-3)))
+	elif not result.status_message.is_empty():
+		_command_bar.show_status(result.status_message)
+
+
+func _soldier_snap_key(team_id: int, soldier_id: int) -> String:
+	return "%d:%d" % [team_id, soldier_id]
+
+
+func _snap_cell_for_soldier(state: SoldierState) -> Vector2i:
+	var view: Soldier = _get_view(state.team_id, state.soldier_id)
+	if view != null and view.is_moving():
+		return IsometricGrid.world_to_cell_at_point(view.position)
+	return state.grid_position
+
+
+func _make_move_context(cmd: MoveCommand) -> CommandContextClass:
+	var ctx := CommandContextClass.new()
+	ctx.find_path = _iso_map.find_path
+	var fireteam: Fireteam = _get_fireteam(cmd.team_id)
 	if cmd.scope == MoveCommand.Scope.SQUAD:
-		var ordered_count := 0
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
-			if not _execute_move_for_soldier(fireteam, soldier_state, cmd.target_cell, cmd.movement_mode).is_empty():
-				ordered_count += 1
-		if ordered_count == 0:
-			_command_bar.show_status("No soldiers could %s to that tile." % mode_label)
-			return
-		_iso_map.show_path([], cmd.target_cell)
-		_command_bar.show_status(
-			"%s fireteam %s to %s — click another tile to redirect."
-			% [Team.display_name(cmd.team_id), mode_label, cmd.target_cell],
-		)
-		return
-
-	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
-	if soldier_state == null:
-		return
-
-	var validation := SoldierActions.validate_move(soldier_state, cmd.movement_mode)
-	if not validation.is_empty():
-		_command_bar.show_status(validation)
-		return
-
-	var path: Array[Vector2i] = _execute_move_for_soldier(
-		fireteam,
-		soldier_state,
-		cmd.target_cell,
-		cmd.movement_mode,
-	)
-	if path.is_empty():
-		if cmd.target_cell == soldier_state.grid_position:
-			return
-		_command_bar.show_status("No path to that tile.")
-		return
-
-	_log_move_order(cmd.target_cell, path, soldier_state)
-	_iso_map.show_path(path, cmd.target_cell)
-	_command_bar.show_status(
-		"%s Soldier %d %s to %s — click another tile to redirect."
-		% [Team.display_name(cmd.team_id), cmd.soldier_id, mode_label, cmd.target_cell],
-	)
+			_add_snap_cell_if_animating(ctx, soldier_state)
+	else:
+		var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
+		if soldier_state != null:
+			_add_snap_cell_if_animating(ctx, soldier_state)
+	return ctx
 
 
-func _execute_move_for_soldier(
-	fireteam: Fireteam,
-	state: SoldierState,
-	target_cell: Vector2i,
-	movement_mode: int,
-) -> Array[Vector2i]:
-	if state.is_dead:
-		return []
-
-	if not SoldierActions.validate_move(state, movement_mode).is_empty():
-		return []
-
+func _add_snap_cell_if_animating(ctx: CommandContextClass, state: SoldierState) -> void:
 	var view: Soldier = _get_view(state.team_id, state.soldier_id)
-	var start_cell: Vector2i = state.grid_position
+	if not state.is_moving and (view == null or not view.is_moving()):
+		return
+	ctx.soldier_snap_cells[_soldier_snap_key(state.team_id, state.soldier_id)] = (
+		_snap_cell_for_soldier(state)
+	)
 
-	if view != null and view.is_moving():
-		view.stop_movement()
-		start_cell = IsometricGrid.world_to_cell_at_point(view.position)
-		state.grid_position = start_cell
-		state.clear_path()
 
-	if target_cell == start_cell:
-		return []
-	if not _map_data.is_walkable(target_cell):
-		return []
+func _make_fire_context(shooters: Array[SoldierState]) -> CommandContextClass:
+	var ctx := CommandContextClass.new()
+	for shooter in shooters:
+		ctx.shooter_ids.append(shooter.soldier_id)
+		var view: Soldier = _get_view(shooter.team_id, shooter.soldier_id)
+		if shooter.is_moving or (view != null and view.is_moving()):
+			ctx.soldier_snap_cells[_soldier_snap_key(shooter.team_id, shooter.soldier_id)] = (
+				_snap_cell_for_soldier(shooter)
+			)
+	return ctx
 
-	var path: Array[Vector2i] = _iso_map.find_path(start_cell, target_cell)
-	if path.is_empty():
-		return []
 
-	state.movement_mode = movement_mode
-	fireteam.order_path(state.soldier_id, path)
-	if view != null:
-		view.follow_path(path, MovementModeClass.speed_multiplier(movement_mode))
-	return path
+func _apply_move_command(cmd: MoveCommand) -> void:
+	var result: ActionResultClass = ActionResolverClass.execute(
+		_game_state,
+		cmd,
+		_make_move_context(cmd),
+	)
+	if (
+		result.success
+		and cmd.scope == MoveCommand.Scope.SINGLE
+		and not result.move_orders.is_empty()
+	):
+		var order: Dictionary = result.move_orders[0]
+		var soldier_state: SoldierState = _game_state.get_soldier(order.team_id, order.soldier_id)
+		_log_move_order(cmd.target_cell, order.path, soldier_state)
+	_present_action_result(result)
 
 
 func _apply_face_command(cmd: FaceCommand) -> void:
-	var fireteam: Fireteam = _get_fireteam(cmd.team_id)
-	if not fireteam.face_toward_tile(cmd.soldier_id, cmd.target_cell):
-		_command_bar.show_status("Pick a different tile to face.")
-		return
-
-	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
-	if soldier_state != null and soldier_state.is_sustained_fire():
-		var cone_target := CombatSystem.find_best_cone_target(_game_state, soldier_state)
-		if cone_target == null or not CombatSystem.is_facing_target(soldier_state, cone_target):
-			soldier_state.end_sustained_fire()
-			_sync_fire_at_ui_from_engagements()
-			_command_bar.show_status(
-				"%s Soldier %d ceased fire — facing %s."
-				% [
-					Team.display_name(cmd.team_id),
-					cmd.soldier_id,
-					FacingDirection.direction_name(soldier_state.facing_direction),
-				],
-			)
-			_refresh_all_views()
-			return
-	elif soldier_state != null and soldier_state.is_engaged():
-		var engaged_target: SoldierState = _game_state.get_soldier(
-			soldier_state.engaged_target_team_id,
-			soldier_state.engaged_target_soldier_id,
-		)
-		if engaged_target != null and not CombatSystem.is_facing_target(soldier_state, engaged_target):
-			soldier_state.clear_engagement()
-			_sync_fire_at_ui_from_engagements()
-			_command_bar.show_status(
-				"%s Soldier %d ceased fire — facing %s."
-				% [
-					Team.display_name(cmd.team_id),
-					cmd.soldier_id,
-					FacingDirection.direction_name(soldier_state.facing_direction),
-				],
-			)
-			_refresh_all_views()
-			return
-
-	_refresh_all_views()
-	_command_bar.show_status(
-		"%s Soldier %d facing %s."
-		% [
-			Team.display_name(cmd.team_id),
-			cmd.soldier_id,
-			FacingDirection.direction_name(soldier_state.facing_direction),
-		],
-	)
+	var result: ActionResultClass = ActionResolverClass.execute(_game_state, cmd)
+	_present_action_result(result)
 
 
 func _apply_position_command(cmd: PositionCommand) -> void:
-	var message := SoldierActions.apply_position(_game_state, cmd)
-	if message.is_empty():
-		return
-	_refresh_all_views()
+	var result: ActionResultClass = ActionResolverClass.execute(_game_state, cmd)
 	if (
-		cmd.position_state == PositionStateClass.DOWN
+		result.success
+		and cmd.position_state == PositionStateClass.DOWN
 		and _move_targeting
 		and not MovementModeClass.is_allowed(PositionStateClass.DOWN, _active_movement_mode)
 	):
@@ -792,7 +701,7 @@ func _apply_position_command(cmd: PositionCommand) -> void:
 			_command_bar.clear_move_targeting()
 			_move_targeting = false
 			_squad_move_targeting = false
-	_command_bar.show_status(message)
+	_present_action_result(result)
 
 
 func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int) -> void:
@@ -800,21 +709,8 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 	cmd.team_id = _session.active_team_id
 	cmd.soldier_id = soldier_id
 	cmd.fire_control_state = fire_control_state
-	var message := SoldierActions.apply_fire_control(_game_state, cmd)
-	if message.is_empty():
-		return
-	if fire_control_state == FireControlStateClass.HOLD_FIRE:
-		var soldier_state: SoldierState = _session.get_active_fireteam().get_soldier(soldier_id)
-		if soldier_state != null and soldier_state.is_sustained_fire():
-			soldier_state.end_sustained_fire()
-			_sync_fire_at_ui_from_engagements()
-			message = "Soldier %d set to Hold Fire — ceased fire." % soldier_id
-		elif soldier_state != null and soldier_state.is_engaged():
-			soldier_state.clear_engagement()
-			_sync_fire_at_ui_from_engagements()
-			message = "Soldier %d set to Hold Fire — ceased fire." % soldier_id
-	_refresh_all_views()
-	_command_bar.show_status(message)
+	var result: ActionResultClass = ActionResolverClass.execute(_game_state, cmd)
+	_present_action_result(result)
 
 
 func _on_position_change_requested(soldier_id: int, position_state: int) -> void:
@@ -826,107 +722,36 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 
 
 func _arm_movement_mode(soldier_id: int, movement_mode: int) -> String:
-	var fireteam: Fireteam = _session.get_active_fireteam()
-	if soldier_id == CommandBar.SQUAD_ID:
-		var last_message := ""
-		for state in fireteam.soldiers:
-			var soldier_state: SoldierState = state
-			if soldier_state.is_alive():
-				last_message = SoldierActions.arm_movement_mode(soldier_state, movement_mode)
-		return last_message
-
-	var soldier: SoldierState = fireteam.get_soldier(soldier_id)
-	return SoldierActions.arm_movement_mode(soldier, movement_mode)
+	var result: ActionResultClass = ActionResolverClass.arm_movement_mode(
+		_game_state,
+		_session.active_team_id,
+		soldier_id,
+		movement_mode,
+	)
+	return result.status_message if result.success else ""
 
 
-## Begin sustained fire at the closest visible enemy in the mouse-aimed cone.
 func _apply_fire_at_aim(aim_world: Vector2) -> void:
-	var fireteam: Fireteam = _session.get_active_fireteam()
 	var shooters: Array[SoldierState] = _get_manual_fire_at_shooters()
 	if shooters.is_empty():
 		_command_bar.show_status("No available soldiers to fire.")
 		return
 
-	var halted_any := false
-	var engaged_count := 0
-	var first_target: SoldierState = null
-
-	for shooter in shooters:
-		var weapon := shooter.get_weapon_data()
-		var max_range := (
-			ConeOfFireClass.effective_range(weapon.range_tiles)
-			if weapon != null
-			else ConeOfFireClass.RANGE_BONUS
-		)
-		var from_world := _get_soldier_tracer_point(shooter)
-		var target: SoldierState = CombatSystem.find_best_aim_cone_target(
-			_game_state,
-			shooter,
-			from_world,
-			aim_world,
-			max_range,
-		)
-		if target == null:
-			if shooter.is_sustained_fire():
-				shooter.end_sustained_fire()
-			continue
-
-		if _halt_soldier_for_combat(shooter):
-			halted_any = true
-		shooter.begin_sustained_fire()
-		shooter.set_engaged_target(target.team_id, target.soldier_id)
-		CombatSystem.begin_fire_prep(shooter)
-		fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
-		engaged_count += 1
-		if first_target == null:
-			first_target = target
-
-	if engaged_count == 0:
-		_refresh_all_views()
-		_sync_fire_at_ui_from_engagements()
-		_command_bar.show_status("No enemies in aim cone — ceased fire.")
-		return
-
-	if halted_any:
-		_iso_map.clear_path()
-		_command_bar.clear_move_targeting()
-		_move_targeting = false
-		_squad_move_targeting = false
-
-	for shooter in shooters:
-		var is_selected := (
-			shooter.team_id == _session.active_team_id
-			and shooter.soldier_id == _session.get_active_fireteam().selected_soldier_id
-		)
-		_sync_soldier_view(shooter.team_id, shooter.soldier_id, is_selected)
-
-	_refresh_command_bar()
-	_begin_fire_at_engagement()
-	_sync_fire_at_ui_from_engagements()
-	if engaged_count == 1 and first_target != null:
-		_command_bar.show_status(
-			"Taking aim at %s Soldier %d — firing in %.0fs."
-			% [
-				Team.display_name(first_target.team_id),
-				first_target.soldier_id,
-				CombatSystem.FIRE_PREP_DELAY_SEC,
-			],
-		)
+	var cmd := FireCommand.new()
+	cmd.team_id = _session.active_team_id
+	cmd.aim_world = aim_world
+	if _squad_fire_at_mode:
+		cmd.scope = FireCommand.Scope.SQUAD
 	else:
-		_command_bar.show_status(
-			"%d soldiers engaging enemies in cone — firing in %.0fs."
-			% [engaged_count, CombatSystem.FIRE_PREP_DELAY_SEC],
-		)
+		cmd.scope = FireCommand.Scope.SINGLE
+		cmd.soldier_id = _fire_at_soldier_id
 
-
-func _halt_soldier_for_combat(state: SoldierState) -> bool:
-	var view: Soldier = _get_view(state.team_id, state.soldier_id)
-	var was_moving := state.is_moving or (view != null and view.is_moving())
-	if view != null and view.is_moving():
-		view.stop_movement()
-		state.grid_position = IsometricGrid.world_to_cell_at_point(view.position)
-	state.clear_path()
-	return was_moving
+	var result: ActionResultClass = ActionResolverClass.execute(
+		_game_state,
+		cmd,
+		_make_fire_context(shooters),
+	)
+	_present_action_result(result)
 
 
 func _finalize_shot_result(
@@ -954,6 +779,7 @@ func _spawn_shot_tracers(shooter: SoldierState, target: SoldierState, count: int
 
 
 func _get_soldier_tracer_point(soldier_state: SoldierState) -> Vector2:
+	## Presentation-only: prefers animated view position for tracers and LOS preview.
 	var view: Soldier = _get_view(soldier_state.team_id, soldier_state.soldier_id)
 	if view != null:
 		return view.position + Vector2(0, -16)
@@ -961,11 +787,11 @@ func _get_soldier_tracer_point(soldier_state: SoldierState) -> Vector2:
 
 
 func _on_soldier_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i) -> void:
-	_get_fireteam(team_id).on_soldier_reached_tile(soldier_id, tile, step_delta)
+	ActionResolverClass.on_movement_step(_game_state, team_id, soldier_id, tile, step_delta)
 
 
 func _on_soldier_movement_finished(team_id: int, soldier_id: int) -> void:
-	_get_fireteam(team_id).on_soldier_finished_moving(soldier_id)
+	ActionResolverClass.on_movement_complete(_game_state, team_id, soldier_id)
 	var state: SoldierState = _get_fireteam(team_id).get_soldier(soldier_id)
 	var view: Soldier = _get_view(team_id, soldier_id)
 	_log_move_complete(soldier_id, state, view)

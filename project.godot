@@ -15,18 +15,17 @@ run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
-[display]
-
-window/size/viewport_width=1280
-window/size/viewport_height=720
-window/size/resizable=true
-window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
-
 [autoload]
 
 AudioManager="*res://scenes/audio_manager.tscn"
 GameLog="*res://scripts/game_log.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [input]
 

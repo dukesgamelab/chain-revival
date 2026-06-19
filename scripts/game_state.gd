@@ -1,6 +1,12 @@
 class_name GameState
 extends RefCounted
-## Authoritative gameplay lookup: session + map. Used by CombatSystem and commands.
+## Single source of truth for authoritative gameplay data.
+##
+## Owns the session (soldiers, teams) and map (blockers, cover objects, walkability).
+## All mutations go through ActionResolver — never write soldier or map fields from UI code.
+##
+## Soldier fields (via SoldierState): soldier_id, team_id, grid_position, facing_direction,
+## ammo, weapon, position_state, movement_mode, fire_control_state, alive/dead, engagement.
 
 var session: GameSession
 var map_data: MapData

@@ -1,6 +1,9 @@
 class_name Soldier
 extends Node2D
-## Visual representation of one soldier. Reads gameplay data from SoldierState via sync_from_state().
+## Presentation only: sprites, selection, facing arrow, movement animation.
+##
+## Does NOT mutate SoldierState. Emits movement signals so ActionResolver can update
+## authoritative position via GameState when each animation step completes.
 
 const TEXTURE_USA := preload("res://assets/sprites/soldier_usa.svg")
 const TEXTURE_GERMANY := preload("res://assets/sprites/soldier_germany.svg")
@@ -127,6 +130,8 @@ func stop_movement() -> void:
 
 
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
+	## Presentation-only path animation. Authoritative grid_position updates via
+	## movement_step_reached → ActionResolver.on_movement_step.
 	if _is_dead or path.size() <= 1:
 		return
 
@@ -141,6 +146,7 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 
 
 func _process(delta: float) -> void:
+	# Interpolates Node2D.position only; does not write SoldierState.grid_position.
 	if not _is_moving or _is_dead:
 		return
 

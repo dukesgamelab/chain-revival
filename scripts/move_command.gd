@@ -1,6 +1,6 @@
 class_name MoveCommand
 extends RefCounted
-## Multiplayer-ready move order issued by UI (Run/Walk/Crawl To).
+## Plain data: move order issued by UI. Validated and applied by ActionResolver.
 
 const MovementModeClass := preload("res://scripts/movement_mode.gd")
 

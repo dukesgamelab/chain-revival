@@ -1,6 +1,6 @@
 class_name PositionCommand
 extends RefCounted
-## Set a soldier's UP/DOWN posture (issued by command bar).
+## Plain data: UP/DOWN posture order. Validated and applied by ActionResolver.
 
 const PositionStateClass := preload("res://scripts/position_state.gd")
 
