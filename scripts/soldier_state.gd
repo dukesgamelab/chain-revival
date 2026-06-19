@@ -30,6 +30,7 @@ var last_shot_msec: int = 0
 var fire_ready_after_msec: int = 0
 var engaged_target_team_id: int = -1
 var engaged_target_soldier_id: int = -1
+var sustained_fire: bool = false
 
 
 func _init(id: int = 1, start_cell: Vector2i = Vector2i.ZERO, team: int = Team.USA) -> void:
@@ -89,6 +90,29 @@ func clear_engaged_target() -> void:
 	engaged_target_soldier_id = -1
 
 
+func is_engaged() -> bool:
+	return engaged_target_team_id >= 0 and engaged_target_soldier_id > 0
+
+
+func is_sustained_fire() -> bool:
+	return sustained_fire
+
+
+func begin_sustained_fire() -> void:
+	sustained_fire = true
+
+
+func end_sustained_fire() -> void:
+	sustained_fire = false
+	clear_engaged_target()
+	reset_fire_prep()
+
+
+func clear_engagement() -> void:
+	clear_engaged_target()
+	reset_fire_prep()
+
+
 func reset_fire_prep() -> void:
 	fire_ready_after_msec = 0
 
@@ -104,8 +128,8 @@ func assign_path(path: Array[Vector2i]) -> void:
 	current_path = path.duplicate()
 	is_moving = current_path.size() > 1
 	if is_moving:
-		reset_fire_prep()
-		clear_engaged_target()
+		clear_engagement()
+		end_sustained_fire()
 
 
 func to_dict() -> Dictionary:

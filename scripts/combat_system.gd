@@ -9,6 +9,7 @@ const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 const LOSSystemClass := preload("res://scripts/los_system.gd")
 const CoverSystemClass := preload("res://scripts/cover_system.gd")
 const MapObjectRegistryClass := preload("res://scripts/map_object_registry.gd")
+const ConeOfFireClass := preload("res://scripts/cone_of_fire.gd")
 
 const CLEAR_BASE_HIT_CHANCE := 0.78
 const CLEAR_DISTANCE_PENALTY := 0.025
@@ -57,7 +58,8 @@ static func resolve_shot(
 		return result
 
 	var distance := _manhattan_distance(shooter.grid_position, target.grid_position)
-	if distance > weapon.range_tiles:
+	var max_range := _effective_weapon_range(weapon)
+	if distance > max_range:
 		result.out_of_range = true
 		result.messages.append(
 			"%s %s out of range" % [Team.display_name(shooter.team_id), weapon.weapon_name],
@@ -168,36 +170,10 @@ static func find_closest_visible_enemy(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 ) -> SoldierStateClass:
-	if shooter == null or shooter.is_dead:
-		return null
-
-	var weapon := shooter.get_weapon_data()
-	if weapon == null:
-		return null
-
-	var enemy_team_id: int = game_state.enemy_team_id(shooter.team_id)
-	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
-	var best: SoldierStateClass = null
-	var best_dist := INF
-
-	for state in enemy_fireteam.soldiers:
-		var enemy: SoldierStateClass = state
-		if enemy.is_dead:
-			continue
-		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
-		if dist > weapon.range_tiles:
-			continue
-		if LOSSystemClass.is_shot_blocked(shooter.grid_position, enemy.grid_position, game_state.map_data):
-			continue
-		if dist < best_dist:
-			best_dist = dist
-			best = enemy
-
-	return best
+	return find_best_cone_target(game_state, shooter)
 
 
-## Living enemy this shooter is facing, in weapon range with unobstructed fire.
-static func find_faced_enemy(
+static func find_best_cone_target(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 ) -> SoldierStateClass:
@@ -208,9 +184,9 @@ static func find_faced_enemy(
 	if weapon == null:
 		return null
 
+	var max_range := _effective_weapon_range(weapon)
 	var enemy_team_id: int = game_state.enemy_team_id(shooter.team_id)
 	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
-	var facing := shooter.facing_direction
 	var best: SoldierStateClass = null
 	var best_dist := INF
 
@@ -218,19 +194,55 @@ static func find_faced_enemy(
 		var enemy: SoldierStateClass = state
 		if enemy.is_dead:
 			continue
+		if not _is_target_in_cone(shooter, enemy.grid_position, max_range):
+			continue
 		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
-		if dist > weapon.range_tiles:
-			continue
 		if LOSSystemClass.is_shot_blocked(shooter.grid_position, enemy.grid_position, game_state.map_data):
-			continue
-		var aim_dir := FacingDirection.toward_cell(shooter.grid_position, enemy.grid_position)
-		if aim_dir != facing:
 			continue
 		if dist < best_dist:
 			best_dist = dist
 			best = enemy
 
 	return best
+
+
+## Living enemy in the fire cone with unobstructed line of fire.
+static func find_faced_enemy(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> SoldierStateClass:
+	return find_best_cone_target(game_state, shooter)
+
+
+static func aim_cone_has_visible_enemy(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+	from_world: Vector2,
+	aim_world: Vector2,
+	max_range: int,
+) -> bool:
+	if shooter == null or shooter.is_dead:
+		return false
+
+	var enemy_team_id: int = game_state.enemy_team_id(shooter.team_id)
+	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
+	for state in enemy_fireteam.soldiers:
+		var enemy: SoldierStateClass = state
+		if enemy.is_dead:
+			continue
+		var enemy_world := IsometricGrid.grid_to_world(enemy.grid_position) + Vector2(0, -16)
+		if not ConeOfFireClass.is_world_point_in_aim_cone(
+			from_world,
+			aim_world,
+			enemy_world,
+			shooter.grid_position,
+			max_range,
+		):
+			continue
+		if LOSSystemClass.is_shot_blocked(shooter.grid_position, enemy.grid_position, game_state.map_data):
+			continue
+		return true
+	return false
 
 
 ## Hit chance (0–100) vs the enemy the shooter is currently facing, or -1 if none.
@@ -274,7 +286,75 @@ static func is_in_weapon_range(
 	var weapon := shooter.get_weapon_data()
 	if weapon == null:
 		return false
-	return _manhattan_distance(shooter.grid_position, target_cell) <= weapon.range_tiles
+	return _is_target_in_cone(shooter, target_cell, _effective_weapon_range(weapon))
+
+
+static func is_facing_target(
+	shooter: SoldierStateClass,
+	target: SoldierStateClass,
+) -> bool:
+	if shooter == null or target == null:
+		return false
+	return is_facing_cell(shooter, target.grid_position)
+
+
+static func is_facing_cell(shooter: SoldierStateClass, target_cell: Vector2i) -> bool:
+	if shooter == null:
+		return false
+	var aim_dir := FacingDirection.toward_cell(shooter.grid_position, target_cell)
+	return shooter.facing_direction == aim_dir
+
+
+static func try_engaged_fire(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> CombatShotResult:
+	var empty := CombatShotResult.new()
+	if shooter == null or shooter.is_dead or shooter.is_moving:
+		return empty
+	if not shooter.is_sustained_fire() and not shooter.is_engaged():
+		return empty
+
+	var target := _resolve_engaged_target(game_state, shooter)
+	if target == null:
+		return empty
+
+	if not is_facing_target(shooter, target):
+		if shooter.is_sustained_fire():
+			var fireteam := game_state.session.get_fireteam(shooter.team_id)
+			fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
+		else:
+			return empty
+
+	if shooter.ammo_current <= 0:
+		return empty
+	if not _ensure_fire_prep_started(shooter):
+		return empty
+	if not _can_fire_yet(shooter, shooter.get_weapon_data()):
+		return empty
+
+	return resolve_shot(game_state, shooter, target, true)
+
+
+static func _resolve_engaged_target(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> SoldierStateClass:
+	var target := _get_engaged_target(game_state, shooter)
+	if target != null:
+		return target
+	if not shooter.is_sustained_fire():
+		return null
+
+	shooter.clear_engaged_target()
+	target = find_best_cone_target(game_state, shooter)
+	if target == null:
+		return null
+
+	shooter.set_engaged_target(target.team_id, target.soldier_id)
+	var fireteam := game_state.session.get_fireteam(shooter.team_id)
+	fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
+	return target
 
 
 static func try_auto_engagement(
@@ -292,12 +372,7 @@ static func try_auto_engagement(
 	if shooter.ammo_current <= 0:
 		return empty
 
-	var target: SoldierStateClass = null
-	if ignore_fire_control:
-		target = _get_engaged_target(game_state, shooter)
-	else:
-		target = find_closest_visible_enemy(game_state, shooter)
-
+	var target: SoldierStateClass = find_closest_visible_enemy(game_state, shooter)
 	if target == null:
 		return empty
 
@@ -363,3 +438,22 @@ static func _can_fire_yet(shooter: SoldierStateClass, weapon: WeaponDataClass) -
 
 static func _manhattan_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:
 	return absi(from_cell.x - to_cell.x) + absi(from_cell.y - to_cell.y)
+
+
+static func _effective_weapon_range(weapon: WeaponDataClass) -> int:
+	if weapon == null:
+		return ConeOfFireClass.RANGE_BONUS
+	return ConeOfFireClass.effective_range(weapon.range_tiles)
+
+
+static func _is_target_in_cone(
+	shooter: SoldierStateClass,
+	target_cell: Vector2i,
+	max_range: int,
+) -> bool:
+	return ConeOfFireClass.is_cell_in_cone(
+		shooter.grid_position,
+		shooter.facing_direction,
+		target_cell,
+		max_range,
+	)

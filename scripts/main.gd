@@ -13,6 +13,7 @@ const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 const LosVisualizerClass := preload("res://scripts/los_visualizer.gd")
 const FireteamLoadoutClass := preload("res://scripts/fireteam_loadout.gd")
 const LOSSystemClass := preload("res://scripts/los_system.gd")
+const ConeOfFireClass := preload("res://scripts/cone_of_fire.gd")
 
 @onready var _world: Node2D = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -77,34 +78,32 @@ func _process(delta: float) -> void:
 	if _auto_fire_timer < CombatSystem.AUTO_FIRE_SCAN_INTERVAL:
 		return
 	_auto_fire_timer = 0.0
-	if _fire_at_mode and _fire_at_engaged:
-		_process_fire_at_mode()
+	_process_engaged_fire()
 	_process_fire_at_will()
 
 
-func _process_fire_at_mode() -> void:
-	var shooters: Array[SoldierState] = _get_manual_fire_at_shooters()
-	if shooters.is_empty():
-		_exit_fire_at_mode("Fire At ended — no available shooters.")
-		return
-
+func _process_engaged_fire() -> void:
 	var summary_lines: Array[String] = []
 	var any_change := false
 
-	for shooter in shooters:
-		var result: CombatShotResult = CombatSystem.try_auto_engagement(_game_state, shooter, true)
-		if not result.fired:
-			continue
-		any_change = true
-		var target: SoldierState = _game_state.get_soldier(result.target_team_id, result.target_id)
-		summary_lines.append_array(_finalize_shot_result(result, shooter, target))
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			var shooter: SoldierState = state
+			if not shooter.is_sustained_fire() and not shooter.is_engaged():
+				continue
+			var result: CombatShotResult = CombatSystem.try_engaged_fire(_game_state, shooter)
+			if not result.fired:
+				continue
+			any_change = true
+			var target: SoldierState = _game_state.get_soldier(result.target_team_id, result.target_id)
+			summary_lines.append_array(_finalize_shot_result(result, shooter, target))
 
 	if not any_change:
 		return
 
 	_ensure_active_selection_alive()
 	_refresh_all_views()
-	_affirm_fire_at_ui()
+	_sync_fire_at_ui_from_engagements()
 	if not summary_lines.is_empty():
 		_command_bar.show_status("\n".join(summary_lines.slice(-3)))
 
@@ -124,18 +123,32 @@ func _get_manual_fire_at_shooters() -> Array[SoldierState]:
 	return shooters
 
 
-func _is_soldier_in_manual_fire_at(shooter: SoldierState) -> bool:
-	if not _fire_at_mode or not _fire_at_engaged or shooter.team_id != _session.active_team_id:
-		return false
-	if _squad_fire_at_mode:
-		return true
-	return shooter.soldier_id == _fire_at_soldier_id
-
-
 func _clear_manual_fire_at_targets() -> void:
-	for shooter in _get_manual_fire_at_shooters():
-		shooter.clear_engaged_target()
-		shooter.reset_fire_prep()
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			soldier_state.end_sustained_fire()
+
+
+func _active_fireteam_has_engaged_soldier() -> bool:
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	for state in fireteam.soldiers:
+		var soldier_state: SoldierState = state
+		if not _is_soldier_in_fire_at_scope(soldier_state):
+			continue
+		if soldier_state.is_sustained_fire():
+			return true
+	return false
+
+
+func _sync_fire_at_ui_from_engagements() -> void:
+	var has_engaged := _active_fireteam_has_engaged_soldier()
+	_fire_at_engaged = has_engaged
+	_command_bar.set_fire_at_engaged(has_engaged)
+	if has_engaged and _fire_at_mode:
+		_affirm_fire_at_ui()
+	elif not has_engaged and _fire_at_mode:
+		_command_bar.set_fire_at_engaged(false)
 
 
 func _affirm_fire_at_ui() -> void:
@@ -166,7 +179,7 @@ func _process_fire_at_will() -> void:
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			var shooter: SoldierState = state
-			if _is_soldier_in_manual_fire_at(shooter):
+			if shooter.is_engaged() or shooter.is_sustained_fire():
 				continue
 			var result: CombatShotResult = CombatSystem.try_auto_engagement(_game_state, shooter)
 			if not result.fired:
@@ -205,11 +218,33 @@ func _update_los_preview() -> void:
 		target_cell = IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
 		to_world = IsometricGrid.grid_to_world(target_cell) + Vector2(0, -16)
 
-	var los := LOSSystemClass.evaluate(shooter.grid_position, target_cell, _map_data)
-	if not CombatSystem.is_in_weapon_range(shooter, target_cell):
-		los.status = LOSSystemClass.Status.BLOCKED
+	var weapon := shooter.get_weapon_data()
+	var max_range := ConeOfFireClass.effective_range(weapon.range_tiles) if weapon != null else ConeOfFireClass.RANGE_BONUS
 	var from_world := _get_soldier_tracer_point(shooter)
-	_los_visualizer.show_preview(from_world, to_world, los)
+	var cone_world := ConeOfFireClass.cone_outline_world_toward(
+		from_world,
+		to_world,
+		shooter.grid_position,
+		max_range,
+	)
+
+	var los := LOSSystemClass.evaluate(shooter.grid_position, target_cell, _map_data)
+	var aim_facing := FacingDirection.toward_cell(shooter.grid_position, target_cell)
+	if not ConeOfFireClass.is_cell_in_cone(
+		shooter.grid_position,
+		aim_facing,
+		target_cell,
+		max_range,
+	):
+		los.status = LOSSystemClass.Status.BLOCKED
+	var has_enemy := CombatSystem.aim_cone_has_visible_enemy(
+		_game_state,
+		shooter,
+		from_world,
+		to_world,
+		max_range,
+	)
+	_los_visualizer.show_cone_preview(from_world, cone_world, to_world, los, has_enemy)
 
 
 func _get_fire_at_preview_shooter() -> SoldierState:
@@ -702,18 +737,54 @@ func _execute_move_for_soldier(
 
 func _apply_face_command(cmd: FaceCommand) -> void:
 	var fireteam: Fireteam = _get_fireteam(cmd.team_id)
-	if fireteam.face_toward_tile(cmd.soldier_id, cmd.target_cell):
-		_refresh_all_views()
-		_command_bar.show_status(
-			"%s Soldier %d facing %s."
-			% [
-				Team.display_name(cmd.team_id),
-				cmd.soldier_id,
-				FacingDirection.direction_name(fireteam.get_soldier(cmd.soldier_id).facing_direction),
-			],
-		)
-	else:
+	if not fireteam.face_toward_tile(cmd.soldier_id, cmd.target_cell):
 		_command_bar.show_status("Pick a different tile to face.")
+		return
+
+	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
+	if soldier_state != null and soldier_state.is_sustained_fire():
+		var cone_target := CombatSystem.find_best_cone_target(_game_state, soldier_state)
+		if cone_target == null or not CombatSystem.is_facing_target(soldier_state, cone_target):
+			soldier_state.end_sustained_fire()
+			_sync_fire_at_ui_from_engagements()
+			_command_bar.show_status(
+				"%s Soldier %d ceased fire — facing %s."
+				% [
+					Team.display_name(cmd.team_id),
+					cmd.soldier_id,
+					FacingDirection.direction_name(soldier_state.facing_direction),
+				],
+			)
+			_refresh_all_views()
+			return
+	elif soldier_state != null and soldier_state.is_engaged():
+		var engaged_target: SoldierState = _game_state.get_soldier(
+			soldier_state.engaged_target_team_id,
+			soldier_state.engaged_target_soldier_id,
+		)
+		if engaged_target != null and not CombatSystem.is_facing_target(soldier_state, engaged_target):
+			soldier_state.clear_engagement()
+			_sync_fire_at_ui_from_engagements()
+			_command_bar.show_status(
+				"%s Soldier %d ceased fire — facing %s."
+				% [
+					Team.display_name(cmd.team_id),
+					cmd.soldier_id,
+					FacingDirection.direction_name(soldier_state.facing_direction),
+				],
+			)
+			_refresh_all_views()
+			return
+
+	_refresh_all_views()
+	_command_bar.show_status(
+		"%s Soldier %d facing %s."
+		% [
+			Team.display_name(cmd.team_id),
+			cmd.soldier_id,
+			FacingDirection.direction_name(soldier_state.facing_direction),
+		],
+	)
 
 
 func _apply_position_command(cmd: PositionCommand) -> void:
@@ -741,6 +812,16 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 	var message := SoldierActions.apply_fire_control(_game_state, cmd)
 	if message.is_empty():
 		return
+	if fire_control_state == FireControlStateClass.HOLD_FIRE:
+		var soldier_state: SoldierState = _session.get_active_fireteam().get_soldier(soldier_id)
+		if soldier_state != null and soldier_state.is_sustained_fire():
+			soldier_state.end_sustained_fire()
+			_sync_fire_at_ui_from_engagements()
+			message = "Soldier %d set to Hold Fire — ceased fire." % soldier_id
+		elif soldier_state != null and soldier_state.is_engaged():
+			soldier_state.clear_engagement()
+			_sync_fire_at_ui_from_engagements()
+			message = "Soldier %d set to Hold Fire — ceased fire." % soldier_id
 	_refresh_all_views()
 	_command_bar.show_status(message)
 
@@ -794,6 +875,7 @@ func _apply_fire_command(cmd: FireCommand) -> void:
 	for shooter in shooters:
 		if _halt_soldier_for_combat(shooter):
 			halted_any = true
+		shooter.begin_sustained_fire()
 		shooter.set_engaged_target(cmd.target_team_id, cmd.target_soldier_id)
 		CombatSystem.begin_fire_prep(shooter)
 		fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
@@ -812,7 +894,8 @@ func _apply_fire_command(cmd: FireCommand) -> void:
 		_sync_soldier_view(shooter.team_id, shooter.soldier_id, is_selected)
 
 	_refresh_command_bar()
-	_affirm_fire_at_ui()
+	_begin_fire_at_engagement()
+	_sync_fire_at_ui_from_engagements()
 	_command_bar.show_status(
 		"Taking aim at %s Soldier %d — firing in %.0fs."
 		% [Team.display_name(target.team_id), target.soldier_id, CombatSystem.FIRE_PREP_DELAY_SEC],
@@ -956,12 +1039,8 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 
 
 func _begin_fire_at_engagement() -> void:
-	if _fire_at_engaged:
-		return
-	_fire_at_engaged = true
 	_auto_fire_timer = CombatSystem.AUTO_FIRE_SCAN_INTERVAL
-	_command_bar.set_fire_at_engaged(true)
-	_affirm_fire_at_ui()
+	_sync_fire_at_ui_from_engagements()
 
 
 func _on_fire_at_mode_changed(is_active: bool, soldier_id: int) -> void:
@@ -969,8 +1048,6 @@ func _on_fire_at_mode_changed(is_active: bool, soldier_id: int) -> void:
 	_squad_fire_at_mode = is_active and soldier_id == CommandBar.SQUAD_ID
 	_fire_at_soldier_id = soldier_id if is_active else 1
 	if is_active:
-		_fire_at_engaged = false
-		_command_bar.set_fire_at_engaged(false)
 		_block_edit_mode = false
 		_move_targeting = false
 		_squad_move_targeting = false
@@ -979,9 +1056,8 @@ func _on_fire_at_mode_changed(is_active: bool, soldier_id: int) -> void:
 			_session.get_active_fireteam().select_soldier(soldier_id)
 			_refresh_all_views()
 	else:
-		_fire_at_engaged = false
-		_command_bar.set_fire_at_engaged(false)
 		_los_visualizer.hide_preview()
+		_sync_fire_at_ui_from_engagements()
 
 
 func _on_face_mode_changed(is_active: bool, soldier_id: int) -> void:
@@ -993,7 +1069,6 @@ func _on_face_mode_changed(is_active: bool, soldier_id: int) -> void:
 		_squad_move_targeting = false
 		_fire_at_mode = false
 		_squad_fire_at_mode = false
-		_fire_at_engaged = false
 		if soldier_id > 0:
 			_session.get_active_fireteam().select_soldier(soldier_id)
 			_refresh_all_views()
