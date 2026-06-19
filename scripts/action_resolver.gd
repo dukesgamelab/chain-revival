@@ -125,7 +125,7 @@ static func on_movement_complete(
 	game_state.session.get_fireteam(team_id).on_soldier_finished_moving(soldier_id)
 
 
-## Periodic combat tick: sustained Fire At (priority) + Fire At Will (auto).
+## Periodic combat tick: sustained Fire At (priority) + Fire At Will (auto) + stress recovery.
 static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 	var result := ActionResult.new()
 	result.refresh_views = false
@@ -133,7 +133,7 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
 			var shooter: SoldierState = state
-			if not shooter.is_sustained_fire() and not shooter.is_engaged():
+			if not shooter.is_sustained_fire():
 				continue
 			var shot: CombatShotResultClass = CombatSystem.try_engaged_fire(game_state, shooter)
 			if shot.fired:
@@ -143,12 +143,15 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
 			var shooter: SoldierState = state
-			if shooter.is_engaged() or shooter.is_sustained_fire():
+			if shooter.is_sustained_fire():
 				continue
 			var shot: CombatShotResultClass = CombatSystem.try_auto_engagement(game_state, shooter)
 			if shot.fired:
 				result.combat_shots.append(shot)
 				result.refresh_views = true
+
+	CombatSystem.recover_stress_tick(game_state, CombatSystem.AUTO_FIRE_SCAN_INTERVAL)
+	result.refresh_views = true
 
 	if not result.combat_shots.is_empty():
 		result.sync_fire_at_ui = true
@@ -266,7 +269,7 @@ static func execute_fire(
 	cmd: FireCommandClass,
 	context: CommandContext,
 ) -> ActionResult:
-	## Manual Fire At = assign priority target(s); LOS is checked when shots resolve.
+	## Manual Fire At = assign priority target(s); blocked cover holds fire but keeps assignment.
 	if context == null or cmd.aim_world == Vector2.ZERO:
 		return ActionResult.fail("Fire command requires aim_world.")
 

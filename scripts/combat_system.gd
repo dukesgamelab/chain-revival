@@ -6,6 +6,9 @@ extends RefCounted
 const GameStateClass := preload("res://scripts/game_state.gd")
 const SoldierStateClass := preload("res://scripts/soldier_state.gd")
 const WeaponDataClass := preload("res://scripts/weapon_data.gd")
+const WeaponRegistryClass := preload("res://scripts/weapon_registry.gd")
+const WeaponTypeClass := preload("res://scripts/weapon_type.gd")
+const PositionStateClass := preload("res://scripts/position_state.gd")
 const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
 const LOSSystemClass := preload("res://scripts/los_system.gd")
 const CoverSystemClass := preload("res://scripts/cover_system.gd")
@@ -19,10 +22,14 @@ const AUTO_FIRE_SCAN_INTERVAL := 0.5
 ## Initial aiming delay after a manual Fire At order (before the first shot).
 const FIRE_PREP_DELAY_SEC := 1.0
 ## Repeat fire cadence: last_shot_msec + weapon.fire_interval_sec (per weapon in WeaponRegistry).
+const STRESS_RECOVERY_PER_TICK := 0.15
+const STRESS_RECOVERY_PRONE_PER_TICK := 0.25
+const SHOOTER_PRONE_ACCURACY_MULT := 1.15
+const TARGET_PRONE_HIT_MULT := 0.55
+const MODERATE_COVER_SUPPRESSION_MULT := 0.65
 
-## Manual Fire At = priority target assignment (LOS does not gate selection).
-## Fire At Will = automatic target acquisition (requires clear LOS to shoot).
-## LOS decides whether a shot fires, not whether a priority target can be selected.
+## Manual Fire At = priority target; blocked LOS holds fire but keeps the assignment.
+## Fire At Will = auto-acquire visible targets; aim delay then repeat cooldown.
 
 
 static func resolve_shot(
@@ -47,30 +54,35 @@ static func resolve_shot(
 		result.on_cooldown = true
 		return result
 	if target.is_dead:
-		result.messages.append("Target already dead")
+		if not auto_engagement:
+			result.messages.append("Target already dead")
 		return result
 	if shooter.team_id == target.team_id:
-		result.messages.append("Cannot shoot friendlies")
+		if not auto_engagement:
+			result.messages.append("Cannot shoot friendlies")
 		return result
 
 	var weapon := shooter.get_weapon_data()
 	if weapon == null:
-		result.messages.append("No weapon assigned")
+		if not auto_engagement:
+			result.messages.append("No weapon assigned")
 		return result
 	result.weapon_name = weapon.weapon_name
 
 	if shooter.ammo_current <= 0:
 		result.no_ammo = true
-		result.messages.append("%s %s out of ammo" % [Team.display_name(shooter.team_id), weapon.weapon_name])
+		if not auto_engagement:
+			result.messages.append("%s %s out of ammo" % [Team.display_name(shooter.team_id), weapon.weapon_name])
 		return result
 
 	var distance := _manhattan_distance(shooter.grid_position, target.grid_position)
 	var max_range := _effective_weapon_range(weapon)
 	if distance > max_range:
 		result.out_of_range = true
-		result.messages.append(
-			"%s %s out of range" % [Team.display_name(shooter.team_id), weapon.weapon_name],
-		)
+		if not auto_engagement:
+			result.messages.append(
+				"%s %s out of range" % [Team.display_name(shooter.team_id), weapon.weapon_name],
+			)
 		return result
 
 	var fireteam := game_state.session.get_fireteam(shooter.team_id)
@@ -84,11 +96,12 @@ static func resolve_shot(
 	)
 	if los.status == LOSSystemClass.Status.BLOCKED:
 		result.blocked = true
-		var blocker_name := los.blocking_type
-		var blocker_def := MapObjectRegistryClass.get_def(blocker_name)
-		if blocker_def != null:
-			blocker_name = blocker_def.display_name
-		result.messages.append("Shot blocked by %s" % blocker_name)
+		if not auto_engagement:
+			var blocker_name := los.blocking_type
+			var blocker_def := MapObjectRegistryClass.get_def(blocker_name)
+			if blocker_def != null:
+				blocker_name = blocker_def.display_name
+			result.messages.append("Shot blocked by %s" % blocker_name)
 		return result
 
 	if not _can_fire_yet(shooter, weapon):
@@ -100,19 +113,19 @@ static func resolve_shot(
 			)
 		return result
 
-	result.messages.append(
-		"%s Soldier %d firing %s"
-		% [Team.display_name(shooter.team_id), shooter.soldier_id, weapon.weapon_name],
-	)
-
-	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		result.had_cover = true
-		result.cover_type = los.cover_type
-		var cover_name := los.cover_source_type
-		var cover_def := MapObjectRegistryClass.get_def(cover_name)
-		if cover_def != null:
-			cover_name = cover_def.display_name
-		result.messages.append("Target in moderate cover (%s)" % cover_name)
+	if not auto_engagement:
+		result.messages.append(
+			"%s Soldier %d firing %s"
+			% [Team.display_name(shooter.team_id), shooter.soldier_id, weapon.weapon_name],
+		)
+		if los.cover_type == CoverSystemClass.CoverType.MODERATE:
+			result.had_cover = true
+			result.cover_type = los.cover_type
+			var cover_name := los.cover_source_type
+			var cover_def := MapObjectRegistryClass.get_def(cover_name)
+			if cover_def != null:
+				cover_name = cover_def.display_name
+			result.messages.append("Target in moderate cover (%s)" % cover_name)
 
 	var ammo_cost := weapon.ammo_cost(shooter.ammo_current)
 	# Authoritative ammo/death mutations (invoked only via ActionResolver → process_combat_tick).
@@ -129,19 +142,19 @@ static func resolve_shot(
 		result.messages.append(
 			"%s %s fired" % [Team.display_name(shooter.team_id), weapon.weapon_name],
 		)
-	result.messages.append("Ammo remaining: %d" % shooter.ammo_current)
+	if not auto_engagement:
+		result.messages.append("Ammo remaining: %d" % shooter.ammo_current)
 
 	AudioManager.play_gunshot()
+	apply_suppression_from_shot(game_state, shooter, target, weapon, los)
 
-	var base_chance := hit_chance(
-		shooter.grid_position,
-		target.grid_position,
-		weapon,
-	)
-	var chance := base_chance
-	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		chance = CoverSystemClass.apply_moderate_cover(base_chance)
-		chance = clampf(chance, MIN_HIT_CHANCE, 1.0)
+	var chance := _final_hit_chance(shooter, target, weapon, los)
+	if not auto_engagement and los.cover_type == CoverSystemClass.CoverType.MODERATE:
+		var base_chance := hit_chance(
+			shooter.grid_position,
+			target.grid_position,
+			weapon,
+		)
 		result.messages.append(
 			"Hit chance reduced from %d%% to %d%%"
 			% [int(round(base_chance * 100.0)), int(round(chance * 100.0))],
@@ -334,7 +347,7 @@ static func find_best_aim_cone_target(
 	return best
 
 
-## Hit chance (0–100) vs priority or faced enemy, or -1 if none / fully blocked.
+## Hit chance (0–100) vs priority or faced enemy; 0 when fully blocked, -1 if no target.
 static func hit_pct_vs_faced_enemy(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
@@ -355,19 +368,81 @@ static func hit_pct_vs_faced_enemy(
 		game_state.map_data,
 	)
 	if los.status == LOSSystemClass.Status.BLOCKED:
-		return -1.0
+		return 0.0
 
-	return hit_chance(
+	return _final_hit_chance(shooter, target, weapon, los) * 100.0
+
+
+static func apply_suppression_from_shot(
+	_game_state: GameStateClass,
+	_shooter: SoldierStateClass,
+	target: SoldierStateClass,
+	weapon: WeaponDataClass,
+	los: LOSSystemClass.LossResult,
+) -> void:
+	if target == null or target.is_dead or weapon == null:
+		return
+	if los.status == LOSSystemClass.Status.BLOCKED:
+		return
+
+	var gain := _suppression_stress_gain(weapon)
+	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
+		gain *= MODERATE_COVER_SUPPRESSION_MULT
+	target.stress = clampf(target.stress + gain, 0.0, 100.0)
+
+
+static func recover_stress_tick(
+	game_state: GameStateClass,
+	_delta_sec: float = AUTO_FIRE_SCAN_INTERVAL,
+) -> void:
+	for fireteam in game_state.session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier: SoldierStateClass = state
+			if soldier.is_dead or soldier.stress <= 0.0:
+				continue
+			var rate := (
+				STRESS_RECOVERY_PRONE_PER_TICK
+				if soldier.position_state == PositionStateClass.DOWN
+				else STRESS_RECOVERY_PER_TICK
+			)
+			soldier.stress = maxf(0.0, soldier.stress - rate)
+
+
+static func _suppression_stress_gain(weapon: WeaponDataClass) -> float:
+	match weapon.weapon_id:
+		WeaponRegistryClass.ID_MG42:
+			return 2.0
+		WeaponRegistryClass.ID_BAR:
+			return 1.2
+		_:
+			match weapon.weapon_type:
+				WeaponTypeClass.SMG:
+					return 0.8
+				_:
+					return 0.4
+
+
+## Stress represents suppression/combat pressure and reduces firing effectiveness.
+static func _final_hit_chance(
+	shooter: SoldierStateClass,
+	target: SoldierStateClass,
+	weapon: WeaponDataClass,
+	los: LOSSystemClass.LossResult,
+) -> float:
+	var base_chance := hit_chance(
 		shooter.grid_position,
 		target.grid_position,
 		weapon,
-	) * _cover_hit_multiplier(los) * 100.0
-
-
-static func _cover_hit_multiplier(los: LOSSystemClass.LossResult) -> float:
+	)
+	var chance := base_chance
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		return CoverSystemClass.MODERATE_HIT_MULTIPLIER
-	return 1.0
+		chance = CoverSystemClass.apply_moderate_cover(base_chance)
+	chance *= clampf(1.0 - shooter.stress / 100.0, 0.15, 1.0)
+	if shooter.position_state == PositionStateClass.DOWN:
+		chance *= SHOOTER_PRONE_ACCURACY_MULT
+	if target.position_state == PositionStateClass.DOWN:
+		chance *= TARGET_PRONE_HIT_MULT
+	return clampf(chance, MIN_HIT_CHANCE, 1.0)
 
 
 static func is_in_weapon_range(
@@ -400,11 +475,11 @@ static func try_engaged_fire(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 ) -> CombatShotResult:
-	## Sustained manual Fire At: keep priority target; LOS gates the shot, not the order.
+	## Sustained manual Fire At: keep priority target; blocked LOS holds fire silently.
 	var empty := CombatShotResult.new()
 	if shooter == null or shooter.is_dead or shooter.is_moving:
 		return empty
-	if not shooter.is_sustained_fire() and not shooter.is_engaged():
+	if not shooter.is_sustained_fire():
 		return empty
 
 	var target := _resolve_engaged_target(game_state, shooter)
@@ -423,20 +498,21 @@ static func try_engaged_fire(
 	if weapon == null:
 		return empty
 
-	# Initial aim delay (FIRE_PREP_DELAY_SEC) before the first shot of this order.
 	if not _is_fire_prep_complete(shooter):
 		return empty
 
-	# Per-weapon repeat cadence; silent while cooling down.
 	if not _can_fire_yet(shooter, weapon):
 		return empty
 
-	var los := LOSSystemClass.evaluate(
+	var max_range := _effective_weapon_range(weapon)
+	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
+		return empty
+
+	if LOSSystemClass.is_shot_blocked(
 		shooter.grid_position,
 		target.grid_position,
 		game_state.map_data,
-	)
-	if los.status == LOSSystemClass.Status.BLOCKED:
+	):
 		return empty
 
 	return resolve_shot(game_state, shooter, target, true)
@@ -448,19 +524,27 @@ static func _resolve_engaged_target(
 ) -> SoldierStateClass:
 	var target := _get_engaged_target(game_state, shooter)
 	if target != null:
-		if _is_priority_target_in_effect(game_state, shooter, target):
-			return target
+		if shooter.is_sustained_fire():
+			if _is_valid_priority_enemy(shooter, target):
+				return target
+			shooter.clear_engaged_target()
+			return _acquire_sustained_target(game_state, shooter)
+		if shooter.fire_control_state == FireControlStateClass.FIRE_AT_WILL:
+			if _is_auto_target_valid(game_state, shooter, target):
+				return target
+			shooter.clear_engaged_target()
+			return _acquire_auto_target(game_state, shooter)
 		shooter.clear_engaged_target()
-		return _acquire_after_priority_lost(game_state, shooter)
-
-	if not shooter.is_sustained_fire():
 		return null
 
-	shooter.clear_engaged_target()
-	return _acquire_after_priority_lost(game_state, shooter)
+	if shooter.is_sustained_fire():
+		return _acquire_sustained_target(game_state, shooter)
+	if shooter.fire_control_state == FireControlStateClass.FIRE_AT_WILL:
+		return _acquire_auto_target(game_state, shooter)
+	return null
 
 
-static func _acquire_after_priority_lost(
+static func _acquire_sustained_target(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 ) -> SoldierStateClass:
@@ -482,30 +566,62 @@ static func _acquire_after_priority_lost(
 	return target
 
 
+static func _acquire_auto_target(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> SoldierStateClass:
+	if shooter.fire_control_state != FireControlStateClass.FIRE_AT_WILL:
+		shooter.clear_engaged_target()
+		return null
+
+	var target := find_best_cone_target(game_state, shooter)
+	if target == null:
+		shooter.clear_engaged_target()
+		return null
+
+	shooter.set_engaged_target(target.team_id, target.soldier_id)
+	shooter.reset_fire_prep()
+	var fireteam := game_state.session.get_fireteam(shooter.team_id)
+	fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
+	return target
+
+
 static func try_auto_engagement(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 	ignore_fire_control: bool = false,
 ) -> CombatShotResult:
-	## Fire At Will: auto-acquire a shootable enemy each tick (clear LOS required).
+	## Fire At Will: acquire → aim delay → fire → repeat cooldown on same target.
 	var empty := CombatShotResult.new()
 	if shooter == null or shooter.is_dead:
 		return empty
 	if shooter.is_moving:
 		return empty
-	if shooter.is_sustained_fire() or shooter.is_engaged():
+	if shooter.is_sustained_fire():
 		return empty
 	if not ignore_fire_control and shooter.fire_control_state != FireControlStateClass.FIRE_AT_WILL:
 		return empty
 	if shooter.ammo_current <= 0:
 		return empty
 
-	var target: SoldierStateClass = find_closest_visible_enemy(game_state, shooter)
+	var target: SoldierStateClass = _resolve_engaged_target(game_state, shooter)
 	if target == null:
+		return empty
+
+	if not is_facing_target(shooter, target):
+		var fireteam := game_state.session.get_fireteam(shooter.team_id)
+		fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
 		return empty
 
 	var weapon := shooter.get_weapon_data()
 	if weapon == null:
+		return empty
+
+	if shooter.fire_ready_after_msec <= 0:
+		begin_fire_prep(shooter)
+		return empty
+
+	if not _is_fire_prep_complete(shooter):
 		return empty
 
 	if not _can_fire_yet(shooter, weapon):
@@ -627,3 +743,25 @@ static func _is_priority_target_in_effect(
 	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
 		return false
 	return _is_target_in_cone(shooter, target.grid_position, max_range)
+
+
+static func _is_auto_target_valid(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+	target: SoldierStateClass,
+) -> bool:
+	if not _is_valid_priority_enemy(shooter, target):
+		return false
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
+		return false
+	var max_range := _effective_weapon_range(weapon)
+	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
+		return false
+	if not _is_target_in_cone(shooter, target.grid_position, max_range):
+		return false
+	return not LOSSystemClass.is_shot_blocked(
+		shooter.grid_position,
+		target.grid_position,
+		game_state.map_data,
+	)
