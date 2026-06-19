@@ -139,9 +139,6 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 			if shot.fired:
 				result.combat_shots.append(shot)
 				result.refresh_views = true
-			elif shot.blocked:
-				result.combat_shots.append(shot)
-				result.sync_fire_at_ui = true
 
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:

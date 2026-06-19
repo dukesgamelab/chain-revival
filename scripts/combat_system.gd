@@ -16,7 +16,9 @@ const CLEAR_BASE_HIT_CHANCE := 0.78
 const CLEAR_DISTANCE_PENALTY := 0.025
 const MIN_HIT_CHANCE := 0.10
 const AUTO_FIRE_SCAN_INTERVAL := 0.5
+## Initial aiming delay after a manual Fire At order (before the first shot).
 const FIRE_PREP_DELAY_SEC := 1.0
+## Repeat fire cadence: last_shot_msec + weapon.fire_interval_sec (per weapon in WeaponRegistry).
 
 ## Manual Fire At = priority target assignment (LOS does not gate selection).
 ## Fire At Will = automatic target acquisition (requires clear LOS to shoot).
@@ -119,16 +121,6 @@ static func resolve_shot(
 	result.fired = true
 	result.tracer_count = weapon.tracer_count
 
-	if auto_engagement:
-		result.messages.append(
-			"Soldier %d automatically engaged %s Soldier %d"
-			% [
-				shooter.soldier_id,
-				Team.display_name(target.team_id),
-				target.soldier_id,
-			],
-		)
-
 	if weapon.is_burst():
 		result.messages.append(
 			"%s %s fired burst" % [Team.display_name(shooter.team_id), weapon.weapon_name],
@@ -155,6 +147,7 @@ static func resolve_shot(
 			% [int(round(base_chance * 100.0)), int(round(chance * 100.0))],
 		)
 
+	# V1: one hit roll per burst; future version can roll once per bullet in rounds_per_attack.
 	if randf() <= chance:
 		result.hit = true
 		result.messages.append("%s hit" % weapon.weapon_name)
@@ -425,9 +418,17 @@ static func try_engaged_fire(
 
 	if shooter.ammo_current <= 0:
 		return empty
-	if not _ensure_fire_prep_started(shooter):
+
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
 		return empty
-	if not _can_fire_yet(shooter, shooter.get_weapon_data()):
+
+	# Initial aim delay (FIRE_PREP_DELAY_SEC) before the first shot of this order.
+	if not _is_fire_prep_complete(shooter):
+		return empty
+
+	# Per-weapon repeat cadence; silent while cooling down.
+	if not _can_fire_yet(shooter, weapon):
 		return empty
 
 	var los := LOSSystemClass.evaluate(
@@ -436,14 +437,7 @@ static func try_engaged_fire(
 		game_state.map_data,
 	)
 	if los.status == LOSSystemClass.Status.BLOCKED:
-		var held := CombatShotResult.new()
-		held.shooter_team_id = shooter.team_id
-		held.shooter_id = shooter.soldier_id
-		held.target_team_id = target.team_id
-		held.target_id = target.soldier_id
-		held.blocked = true
-		held.messages.append("Target obscured — holding fire on priority target.")
-		return held
+		return empty
 
 	return resolve_shot(game_state, shooter, target, true)
 
@@ -482,6 +476,7 @@ static func _acquire_after_priority_lost(
 		return null
 
 	shooter.set_engaged_target(target.team_id, target.soldier_id)
+	begin_fire_prep(shooter)
 	var fireteam := game_state.session.get_fireteam(shooter.team_id)
 	fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
 	return target
@@ -509,29 +504,37 @@ static func try_auto_engagement(
 	if target == null:
 		return empty
 
-	if not _ensure_fire_prep_started(shooter):
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
 		return empty
-	if not _can_fire_yet(shooter, shooter.get_weapon_data()):
+
+	if not _can_fire_yet(shooter, weapon):
 		return empty
 
 	return resolve_shot(game_state, shooter, target, true)
 
 
 static func begin_fire_prep(shooter: SoldierStateClass) -> void:
+	## First shot after a Fire At order waits FIRE_PREP_DELAY_SEC; repeat shots use fire_interval_sec.
 	shooter.fire_ready_after_msec = Time.get_ticks_msec() + int(FIRE_PREP_DELAY_SEC * 1000.0)
 
 
-static func _ensure_fire_prep_started(shooter: SoldierStateClass) -> bool:
-	if _is_fire_prep_complete(shooter):
-		return true
-	if shooter.fire_ready_after_msec <= 0:
-		begin_fire_prep(shooter)
-	return false
+static func get_fire_cooldown_remaining(
+	shooter: SoldierStateClass,
+	weapon: WeaponDataClass,
+) -> float:
+	if weapon == null or weapon.fire_interval_sec <= 0.0:
+		return 0.0
+	if shooter == null or shooter.last_shot_msec <= 0:
+		return 0.0
+	var elapsed_sec := (Time.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
+	return maxf(0.0, weapon.fire_interval_sec - elapsed_sec)
 
 
 static func _is_fire_prep_complete(shooter: SoldierStateClass) -> bool:
+	## fire_ready_after_msec = initial aiming delay after a Fire At order; 0 = no pending prep.
 	if shooter.fire_ready_after_msec <= 0:
-		return false
+		return true
 	return Time.get_ticks_msec() >= shooter.fire_ready_after_msec
 
 
@@ -560,8 +563,14 @@ static func hit_chance(
 	return clampf(chance, MIN_HIT_CHANCE, 1.0)
 
 
-static func _can_fire_yet(shooter: SoldierStateClass, weapon: WeaponDataClass) -> bool:
-	if weapon == null or weapon.fire_interval_sec <= 0.0:
+static func _can_fire_yet(
+	shooter: SoldierStateClass,
+	weapon: WeaponDataClass,
+) -> bool:
+	## Repeat cooldown: elapsed since last_shot_msec must reach weapon.fire_interval_sec.
+	if weapon == null:
+		return false
+	if weapon.fire_interval_sec <= 0.0:
 		return true
 	if shooter.last_shot_msec <= 0:
 		return true

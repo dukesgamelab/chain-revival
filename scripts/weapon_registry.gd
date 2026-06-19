@@ -19,33 +19,35 @@ static func get_weapon(weapon_id: String) -> WeaponDataClass:
 			return WeaponDataClass.new(
 				ID_M1_GARAND, "M1 Garand", WeaponTypeClass.RIFLE,
 				18, 0.10, 1, 80,
-				0.0, 0, 4.0,
+				0.0, 0, 1.2,
 			)
 		ID_BAR:
 			return WeaponDataClass.new(
 				ID_BAR, "BAR", WeaponTypeClass.LMG,
 				20, 0.05, 4, 120,
+				0.0, 0, 1.1,
 			)
 		ID_THOMPSON:
 			return WeaponDataClass.new(
 				ID_THOMPSON, "Thompson", WeaponTypeClass.SMG,
-				8, 0.0, 3, 100, 0.15, 4,
+				8, 0.0, 3, 100, 0.15, 4, 0.8,
 			)
 		ID_KAR98K:
 			return WeaponDataClass.new(
 				ID_KAR98K, "Kar98k", WeaponTypeClass.RIFLE,
-				18, 0.10, 1, 80,
-				0.0, 0, 4.0,
+				20, 0.14, 1, 60,
+				0.0, 0, 2.0,
 			)
 		ID_MG42:
 			return WeaponDataClass.new(
 				ID_MG42, "MG42", WeaponTypeClass.LMG,
-				22, 0.05, 6, 150,
+				22, 0.04, 6, 150,
+				0.0, 0, 0.6,
 			)
 		ID_MP40:
 			return WeaponDataClass.new(
 				ID_MP40, "MP40", WeaponTypeClass.SMG,
-				8, 0.0, 3, 100, 0.15, 4,
+				8, 0.0, 3, 100, 0.12, 4, 0.9,
 			)
 		_:
 			return null

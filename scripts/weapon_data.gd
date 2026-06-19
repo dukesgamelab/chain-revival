@@ -13,7 +13,9 @@ var close_range_bonus: float = 0.0
 var close_range_tiles: int = 0
 var rounds_per_attack: int = 1
 var ammo_capacity: int = 200
+## Burst visual count; defaults to rounds_per_attack in _init.
 var tracer_count: int = 1
+## Seconds between repeat shots/bursts after the initial aim delay (last_shot_msec).
 var fire_interval_sec: float = 0.0
 
 
@@ -38,6 +40,7 @@ func _init(
 	ammo_capacity = p_ammo_capacity
 	close_range_bonus = p_close_range_bonus
 	close_range_tiles = p_close_range_tiles
+	# rounds_per_attack = burst size, ammo cost per attack, and tracer count (V1).
 	tracer_count = p_rounds_per_attack
 	fire_interval_sec = p_fire_interval_sec
 
@@ -46,6 +49,7 @@ func is_burst() -> bool:
 	return rounds_per_attack > 1
 
 
+## Ammo spent per attack; capped by remaining ammo.
 func ammo_cost(available: int) -> int:
 	return mini(rounds_per_attack, available)
 
