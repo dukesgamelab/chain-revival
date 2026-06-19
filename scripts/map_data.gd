@@ -152,36 +152,27 @@ static func create_default() -> MapData:
 	map_data.height = DEFAULT_HEIGHT
 	map_data.team_1_spawn_points = default_usa_spawn_points()
 	map_data.team_2_spawn_points = default_germany_spawn_points()
-	for cell in generate_tree_obstacles(
-		map_data.width,
-		map_data.height,
-		map_data.team_1_spawn_points + map_data.team_2_spawn_points,
-	):
-		map_data.set_object(cell, MapObjectRegistryClass.TYPE_TREE)
-	_place_default_cover_samples(map_data)
+	_place_between_teams_cover(map_data)
 	return map_data
 
 
-static func _place_default_cover_samples(map_data: MapData) -> void:
-	var haybails: Array[Vector2i] = [
-		Vector2i(24, 30),
-		Vector2i(38, 30),
-		Vector2i(30, 24),
-		Vector2i(30, 36),
+## One haybail, tree, and wall corner in the lane between deployments (2 empty tiles between each).
+## Uses constant grid-x (midpoint between columns) and steps in y so the line reads horizontal on the iso map.
+static func _place_between_teams_cover(map_data: MapData) -> void:
+	var mid_x := DEFAULT_USA_ANCHOR.x + (DEFAULT_TEAM_SEPARATION / 2)  # x=31 between 26 and 36
+	var cover_line: Array[Dictionary] = [
+		{"cell": Vector2i(mid_x, DEFAULT_USA_ANCHOR.y - 1), "type": MapObjectRegistryClass.TYPE_HAYBAIL},
+		{"cell": Vector2i(mid_x, DEFAULT_USA_ANCHOR.y + 2), "type": MapObjectRegistryClass.TYPE_TREE},
+		{"cell": Vector2i(mid_x, DEFAULT_USA_ANCHOR.y + 5), "type": MapObjectRegistryClass.TYPE_WALL_CORNER},
 	]
-	for cell in haybails:
-		if map_data.is_walkable(cell):
-			map_data.set_object(cell, MapObjectRegistryClass.TYPE_HAYBAIL)
+	for entry in cover_line:
+		var cell: Vector2i = entry.cell
+		if map_data.is_in_bounds(cell):
+			map_data.set_object(cell, entry.type)
 
-	var wall_corners: Array[Vector2i] = [
-		Vector2i(29, 22),
-		Vector2i(31, 22),
-		Vector2i(29, 38),
-		Vector2i(31, 38),
-	]
-	for cell in wall_corners:
-		if map_data.is_walkable(cell):
-			map_data.set_object(cell, MapObjectRegistryClass.TYPE_WALL_CORNER)
+
+static func _place_default_cover_samples(map_data: MapData) -> void:
+	_place_between_teams_cover(map_data)
 
 
 static func generate_tree_obstacles(
