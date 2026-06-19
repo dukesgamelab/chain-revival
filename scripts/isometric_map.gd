@@ -4,7 +4,7 @@ extends Node2D
 ##
 ## MapData holds gameplay facts; this node draws them and owns AStarGrid2D.
 
-const IsometricPathOverlayClass := preload("res://scripts/isometric_path_overlay.gd")
+const COVER_TYPE_MODERATE := 1
 
 @export var tile_color_a := Color(0.28, 0.48, 0.22, 1.0)
 @export var tile_color_b := Color(0.24, 0.42, 0.19, 1.0)
@@ -20,11 +20,12 @@ const IsometricPathOverlayClass := preload("res://scripts/isometric_path_overlay
 var map_data: MapData = null
 
 var _astar := AStarGrid2D.new()
-var _path_overlay: IsometricPathOverlayClass
+var _path_overlay: IsometricPathOverlay
 var _object_textures: Dictionary = {}
 
+
 func _ready() -> void:
-	_path_overlay = IsometricPathOverlayClass.new()
+	_path_overlay = IsometricPathOverlay.new()
 	_path_overlay.z_index = 2
 	_path_overlay.path_color = path_color
 	_path_overlay.target_color = target_color
@@ -138,7 +139,7 @@ func _draw_tiles() -> void:
 			if map_data.is_blocked(cell):
 				var object_def := map_data.get_object_def(cell)
 				var fill := blocked_color
-				if object_def != null and object_def.cover_type == CoverSystem.CoverType.MODERATE:
+				if object_def != null and object_def.cover_type == COVER_TYPE_MODERATE:
 					fill = blocked_color.lerp(Color(0.22, 0.48, 0.18, 1.0), 0.25)
 				draw_colored_polygon(corners, fill)
 				draw_polyline(corners, blocked_outline, 1.0, true)

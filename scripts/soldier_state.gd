@@ -40,10 +40,10 @@ func _init(id: int = 1, start_cell: Vector2i = Vector2i.ZERO, team: int = Team.U
 
 
 func _apply_default_loadout() -> void:
-	var weapon_id := FireteamLoadoutClass.weapon_id_for_soldier(team_id, soldier_id)
-	if weapon_id.is_empty():
+	var loadout_weapon_id := FireteamLoadoutClass.weapon_id_for_soldier(team_id, soldier_id)
+	if loadout_weapon_id.is_empty():
 		return
-	assign_weapon(weapon_id, true)
+	assign_weapon(loadout_weapon_id, true)
 
 
 ## Bind soldier to a weapon definition (stats come from WeaponRegistry, not duplicated here).

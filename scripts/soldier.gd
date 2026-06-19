@@ -76,7 +76,7 @@ func _apply_team_color(is_selected: bool) -> void:
 		_sprite.modulate = Color.WHITE
 
 
-func _apply_dead_visual(is_selected: bool) -> void:
+func _apply_dead_visual(_is_selected: bool) -> void:
 	_applied_position_state = -1
 	_facing_arrow.visible = false
 	_prone_marker.visible = false
