@@ -353,27 +353,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if _fire_at_mode:
-		var target_soldier: SoldierState = _find_living_soldier_at_mouse()
-		if target_soldier == null:
-			_command_bar.show_status("No enemy soldier there — still targeting.")
-			get_viewport().set_input_as_handled()
-			return
-		if target_soldier.team_id == _session.active_team_id:
+		var clicked_soldier: SoldierState = _find_living_soldier_at_mouse()
+		if clicked_soldier != null and clicked_soldier.team_id == _session.active_team_id:
 			_command_bar.show_status("Cannot shoot friendlies.")
 			get_viewport().set_input_as_handled()
 			return
 
-		var fire_cmd := FireCommand.new()
-		fire_cmd.team_id = _session.active_team_id
-		fire_cmd.target_team_id = target_soldier.team_id
-		fire_cmd.target_soldier_id = target_soldier.soldier_id
-		if _squad_fire_at_mode:
-			fire_cmd.scope = FireCommand.Scope.SQUAD
+		var aim_world: Vector2
+		if clicked_soldier != null:
+			aim_world = _get_soldier_tracer_point(clicked_soldier)
 		else:
-			fire_cmd.scope = FireCommand.Scope.SINGLE
-			fire_cmd.soldier_id = _fire_at_soldier_id
-		_apply_fire_command(fire_cmd)
-		_begin_fire_at_engagement()
+			aim_world = IsometricGrid.grid_to_world(target_cell) + Vector2(0, -16)
+		_apply_fire_at_aim(aim_world)
 		get_viewport().set_input_as_handled()
 		return
 
@@ -848,39 +839,55 @@ func _arm_movement_mode(soldier_id: int, movement_mode: int) -> String:
 	return SoldierActions.arm_movement_mode(soldier, movement_mode)
 
 
-## Apply a FireCommand through CombatSystem (UI issues command, system resolves outcome).
-func _apply_fire_command(cmd: FireCommand) -> void:
-	var target: SoldierState = _game_state.get_soldier(cmd.target_team_id, cmd.target_soldier_id)
-	if target == null or target.is_dead:
-		_command_bar.show_status("Invalid target.")
-		return
-
-	var fireteam: Fireteam = _get_fireteam(cmd.team_id)
-	var shooters: Array[SoldierState] = []
-	if cmd.scope == FireCommand.Scope.SQUAD:
-		for state in fireteam.soldiers:
-			var soldier_state: SoldierState = state
-			if soldier_state.is_alive():
-				shooters.append(soldier_state)
-	else:
-		var shooter: SoldierState = fireteam.get_soldier(cmd.soldier_id)
-		if shooter != null and shooter.is_alive():
-			shooters.append(shooter)
-
+## Begin sustained fire at the closest visible enemy in the mouse-aimed cone.
+func _apply_fire_at_aim(aim_world: Vector2) -> void:
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	var shooters: Array[SoldierState] = _get_manual_fire_at_shooters()
 	if shooters.is_empty():
 		_command_bar.show_status("No available soldiers to fire.")
 		return
 
 	var halted_any := false
+	var engaged_count := 0
+	var first_target: SoldierState = null
+
 	for shooter in shooters:
+		var weapon := shooter.get_weapon_data()
+		var max_range := (
+			ConeOfFireClass.effective_range(weapon.range_tiles)
+			if weapon != null
+			else ConeOfFireClass.RANGE_BONUS
+		)
+		var from_world := _get_soldier_tracer_point(shooter)
+		var target: SoldierState = CombatSystem.find_best_aim_cone_target(
+			_game_state,
+			shooter,
+			from_world,
+			aim_world,
+			max_range,
+		)
+		if target == null:
+			if shooter.is_sustained_fire():
+				shooter.end_sustained_fire()
+			continue
+
 		if _halt_soldier_for_combat(shooter):
 			halted_any = true
 		shooter.begin_sustained_fire()
-		shooter.set_engaged_target(cmd.target_team_id, cmd.target_soldier_id)
+		shooter.set_engaged_target(target.team_id, target.soldier_id)
 		CombatSystem.begin_fire_prep(shooter)
 		fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
+		engaged_count += 1
+		if first_target == null:
+			first_target = target
 
-	if halted_any and cmd.team_id == _session.active_team_id:
+	if engaged_count == 0:
+		_refresh_all_views()
+		_sync_fire_at_ui_from_engagements()
+		_command_bar.show_status("No enemies in aim cone — ceased fire.")
+		return
+
+	if halted_any:
 		_iso_map.clear_path()
 		_command_bar.clear_move_targeting()
 		_move_targeting = false
@@ -896,10 +903,20 @@ func _apply_fire_command(cmd: FireCommand) -> void:
 	_refresh_command_bar()
 	_begin_fire_at_engagement()
 	_sync_fire_at_ui_from_engagements()
-	_command_bar.show_status(
-		"Taking aim at %s Soldier %d — firing in %.0fs."
-		% [Team.display_name(target.team_id), target.soldier_id, CombatSystem.FIRE_PREP_DELAY_SEC],
-	)
+	if engaged_count == 1 and first_target != null:
+		_command_bar.show_status(
+			"Taking aim at %s Soldier %d — firing in %.0fs."
+			% [
+				Team.display_name(first_target.team_id),
+				first_target.soldier_id,
+				CombatSystem.FIRE_PREP_DELAY_SEC,
+			],
+		)
+	else:
+		_command_bar.show_status(
+			"%d soldiers engaging enemies in cone — firing in %.0fs."
+			% [engaged_count, CombatSystem.FIRE_PREP_DELAY_SEC],
+		)
 
 
 func _halt_soldier_for_combat(state: SoldierState) -> bool:

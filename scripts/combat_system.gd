@@ -221,11 +221,24 @@ static func aim_cone_has_visible_enemy(
 	aim_world: Vector2,
 	max_range: int,
 ) -> bool:
+	return find_best_aim_cone_target(game_state, shooter, from_world, aim_world, max_range) != null
+
+
+static func find_best_aim_cone_target(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+	from_world: Vector2,
+	aim_world: Vector2,
+	max_range: int,
+) -> SoldierStateClass:
 	if shooter == null or shooter.is_dead:
-		return false
+		return null
 
 	var enemy_team_id: int = game_state.enemy_team_id(shooter.team_id)
 	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
+	var best: SoldierStateClass = null
+	var best_dist := INF
+
 	for state in enemy_fireteam.soldiers:
 		var enemy: SoldierStateClass = state
 		if enemy.is_dead:
@@ -241,8 +254,12 @@ static func aim_cone_has_visible_enemy(
 			continue
 		if LOSSystemClass.is_shot_blocked(shooter.grid_position, enemy.grid_position, game_state.map_data):
 			continue
-		return true
-	return false
+		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
+		if dist < best_dist:
+			best_dist = dist
+			best = enemy
+
+	return best
 
 
 ## Hit chance (0–100) vs the enemy the shooter is currently facing, or -1 if none.
