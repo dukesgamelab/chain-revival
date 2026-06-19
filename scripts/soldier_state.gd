@@ -30,7 +30,7 @@ var fire_control_state: int = FireControlStateClass.HOLD_FIRE
 var stress: float = 0.0
 ## Timestamp of last fired burst; repeat cadence = last_shot_msec + weapon.fire_interval_sec.
 var last_shot_msec: int = 0
-## Initial aiming delay deadline; first shot waits until Time.get_ticks_msec() >= this value.
+## Aiming deadline (weapon.aim_delay_sec); while in the future, activity_status_label() shows "Aiming".
 var fire_ready_after_msec: int = 0
 var engaged_target_team_id: int = -1
 var engaged_target_soldier_id: int = -1
@@ -85,9 +85,19 @@ func activity_status_label() -> String:
 	return "Idle"
 
 
-func set_engaged_target(target_team_id: int, target_soldier_id: int) -> void:
+func set_engaged_target(target_team_id: int, target_soldier_id: int) -> bool:
+	## Returns true when the target changed. Target changes restart aiming; repeat shots use fire_interval_sec.
+	var unchanged := (
+		engaged_target_team_id == target_team_id
+		and engaged_target_soldier_id == target_soldier_id
+	)
 	engaged_target_team_id = target_team_id
 	engaged_target_soldier_id = target_soldier_id
+	if unchanged:
+		return false
+	fire_ready_after_msec = 0
+	last_shot_msec = 0
+	return true
 
 
 func clear_engaged_target() -> void:
@@ -133,6 +143,7 @@ func assign_path(path: Array[Vector2i]) -> void:
 	current_path = path.duplicate()
 	is_moving = current_path.size() > 1
 	if is_moving:
+		# Movement cancels fire orders; Fire At Will may reacquire after stopping.
 		clear_engagement()
 		end_sustained_fire()
 

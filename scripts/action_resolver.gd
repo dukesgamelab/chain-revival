@@ -284,6 +284,7 @@ static func execute_fire(
 	var result := ActionResult.new()
 	var engaged_count := 0
 	var first_target: SoldierState = null
+	var first_shooter: SoldierState = null
 	var any_obscured := false
 	var halted_any := false
 
@@ -323,6 +324,7 @@ static func execute_fire(
 		engaged_count += 1
 		if first_target == null:
 			first_target = target
+			first_shooter = shooter
 
 		var los := LOSSystemClass.evaluate(
 			shooter.grid_position,
@@ -348,13 +350,13 @@ static func execute_fire(
 			"Priority target %s Soldier %d — holding fire until line of sight clears."
 			% [Team.display_name(first_target.team_id), first_target.soldier_id],
 		)
-	if engaged_count == 1 and first_target != null:
+	if engaged_count == 1 and first_target != null and first_shooter != null:
 		return result.set_status(
-			"Priority target %s Soldier %d — firing in %.0fs."
+			"Priority target %s Soldier %d — firing in %.1fs."
 			% [
 				Team.display_name(first_target.team_id),
 				first_target.soldier_id,
-				CombatSystem.FIRE_PREP_DELAY_SEC,
+				CombatSystem.get_aim_delay_sec(first_shooter),
 			],
 		)
 	if any_obscured:
@@ -363,8 +365,8 @@ static func execute_fire(
 			% engaged_count,
 		)
 	return result.set_status(
-		"%d soldiers assigned priority targets — firing in %.0fs."
-		% [engaged_count, CombatSystem.FIRE_PREP_DELAY_SEC],
+		"%d soldiers assigned priority targets — aiming before fire."
+		% engaged_count,
 	)
 
 

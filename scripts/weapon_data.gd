@@ -15,7 +15,9 @@ var rounds_per_attack: int = 1
 var ammo_capacity: int = 200
 ## Burst visual count; defaults to rounds_per_attack in _init.
 var tracer_count: int = 1
-## Seconds between repeat shots/bursts after the initial aim delay (last_shot_msec).
+## First-shot target acquisition time; target changes restart aiming via begin_fire_prep().
+var aim_delay_sec: float = 0.0
+## Repeat shot/burst cadence after the first aimed shot (last_shot_msec + this value).
 var fire_interval_sec: float = 0.0
 
 
@@ -30,6 +32,7 @@ func _init(
 	p_close_range_bonus: float = 0.0,
 	p_close_range_tiles: int = 0,
 	p_fire_interval_sec: float = 0.0,
+	p_aim_delay_sec: float = 0.0,
 ) -> void:
 	weapon_id = p_weapon_id
 	weapon_name = p_weapon_name
@@ -43,6 +46,7 @@ func _init(
 	# rounds_per_attack = burst size, ammo cost per attack, and tracer count (V1).
 	tracer_count = p_rounds_per_attack
 	fire_interval_sec = p_fire_interval_sec
+	aim_delay_sec = p_aim_delay_sec
 
 
 func is_burst() -> bool:

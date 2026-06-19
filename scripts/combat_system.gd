@@ -19,7 +19,7 @@ const CLEAR_BASE_HIT_CHANCE := 0.78
 const CLEAR_DISTANCE_PENALTY := 0.025
 const MIN_HIT_CHANCE := 0.10
 const AUTO_FIRE_SCAN_INTERVAL := 0.5
-## Initial aiming delay after a manual Fire At order (before the first shot).
+## Fallback first-shot aim time when weapon data is missing.
 const FIRE_PREP_DELAY_SEC := 1.0
 ## Repeat fire cadence: last_shot_msec + weapon.fire_interval_sec (per weapon in WeaponRegistry).
 const STRESS_RECOVERY_PER_TICK := 0.15
@@ -580,7 +580,7 @@ static func _acquire_auto_target(
 		return null
 
 	shooter.set_engaged_target(target.team_id, target.soldier_id)
-	shooter.reset_fire_prep()
+	begin_fire_prep(shooter)
 	var fireteam := game_state.session.get_fireteam(shooter.team_id)
 	fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
 	return target
@@ -617,10 +617,6 @@ static func try_auto_engagement(
 	if weapon == null:
 		return empty
 
-	if shooter.fire_ready_after_msec <= 0:
-		begin_fire_prep(shooter)
-		return empty
-
 	if not _is_fire_prep_complete(shooter):
 		return empty
 
@@ -631,8 +627,19 @@ static func try_auto_engagement(
 
 
 static func begin_fire_prep(shooter: SoldierStateClass) -> void:
-	## First shot after a Fire At order waits FIRE_PREP_DELAY_SEC; repeat shots use fire_interval_sec.
-	shooter.fire_ready_after_msec = Time.get_ticks_msec() + int(FIRE_PREP_DELAY_SEC * 1000.0)
+	## aim_delay_sec = first-shot acquisition; target changes call this again via acquisition code.
+	var weapon := shooter.get_weapon_data()
+	var delay_sec := FIRE_PREP_DELAY_SEC
+	if weapon != null and weapon.aim_delay_sec > 0.0:
+		delay_sec = weapon.aim_delay_sec
+	shooter.fire_ready_after_msec = Time.get_ticks_msec() + int(delay_sec * 1000.0)
+
+
+static func get_aim_delay_sec(shooter: SoldierStateClass) -> float:
+	var weapon := shooter.get_weapon_data()
+	if weapon != null and weapon.aim_delay_sec > 0.0:
+		return weapon.aim_delay_sec
+	return FIRE_PREP_DELAY_SEC
 
 
 static func get_fire_cooldown_remaining(
@@ -648,9 +655,8 @@ static func get_fire_cooldown_remaining(
 
 
 static func _is_fire_prep_complete(shooter: SoldierStateClass) -> bool:
-	## fire_ready_after_msec = initial aiming delay after a Fire At order; 0 = no pending prep.
 	if shooter.fire_ready_after_msec <= 0:
-		return true
+		return false
 	return Time.get_ticks_msec() >= shooter.fire_ready_after_msec
 
 
