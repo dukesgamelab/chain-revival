@@ -7,6 +7,7 @@ signal fire_at_toggled(soldier_id: int, is_pressed: bool)
 signal face_toggled(soldier_id: int, is_pressed: bool)
 signal position_toggled(soldier_id: int, is_down: bool)
 signal fire_control_selected(soldier_id: int, fire_control_state: int)
+signal grenade_toggled(soldier_id: int, is_pressed: bool)
 
 @export var soldier_id: int = 1
 
@@ -42,7 +43,7 @@ func _ready() -> void:
 	_crawl_to_button.tooltip_text = "Crawl to a tile — click the map."
 	_face_button.tooltip_text = "Face a direction — click a tile or enemy (no firing)."
 	_position_button.tooltip_text = "Toggle standing (Up) or prone (Down)."
-	_grenade_button.tooltip_text = "Grenades — coming soon."
+	_grenade_button.tooltip_text = "Throw a grenade — click a tile within 7 tiles."
 	_assault_button.tooltip_text = "Assault — coming soon."
 	_hold_fire_button.tooltip_text = "Hold Fire — move and face freely, manual Fire At only."
 	_fire_at_will_button.tooltip_text = "Fire At Will — automatically engage visible enemies."
@@ -52,6 +53,7 @@ func _ready() -> void:
 	_run_to_button.toggled.connect(_on_move_toggled.bind(MovementMode.RUN))
 	_crawl_to_button.toggled.connect(_on_move_toggled.bind(MovementMode.CRAWL))
 	_face_button.toggled.connect(_on_face_toggled)
+	_grenade_button.toggled.connect(_on_grenade_toggled)
 	_position_button.toggled.connect(_on_position_toggled)
 	set_position_state(PositionState.UP)
 	set_fire_control_state(FireControlState.HOLD_FIRE)
@@ -102,6 +104,18 @@ func set_ammo(ammo_current: int, _ammo_max: int) -> void:
 	_ammo_label.text = "%d" % ammo_current
 
 
+func set_grenade_count(count: int, action_blocked: bool = false) -> void:
+	_grenade_button.text = "Grenade (%d)" % count
+	_grenade_button.disabled = not _row_enabled or count <= 0 or action_blocked
+
+
+func set_grenade_pressed(is_pressed: bool) -> void:
+	if not _row_enabled:
+		return
+	_grenade_button.set_pressed_no_signal(is_pressed)
+	_update_grenade_highlight(is_pressed)
+
+
 func set_activity_status(text: String) -> void:
 	_status_label.text = text
 
@@ -131,6 +145,7 @@ func set_row_enabled(enabled: bool) -> void:
 	_fire_at_will_button.disabled = not enabled
 	_face_button.disabled = not enabled
 	_position_button.disabled = not enabled
+	_grenade_button.disabled = not enabled
 	modulate = Color.WHITE if enabled else Color(0.45, 0.45, 0.45, 1.0)
 
 
@@ -173,6 +188,10 @@ func is_face_pressed() -> bool:
 	return _face_button.button_pressed
 
 
+func is_grenade_pressed() -> bool:
+	return _grenade_button.button_pressed
+
+
 func _on_move_toggled(is_pressed: bool, movement_mode: int) -> void:
 	if not _row_enabled:
 		return
@@ -191,6 +210,13 @@ func _on_face_toggled(is_pressed: bool) -> void:
 		return
 	_face_button.modulate = Color(0.75, 1.0, 0.85) if is_pressed else Color.WHITE
 	face_toggled.emit(soldier_id, is_pressed)
+
+
+func _on_grenade_toggled(is_pressed: bool) -> void:
+	if not _row_enabled:
+		return
+	_update_grenade_highlight(is_pressed)
+	grenade_toggled.emit(soldier_id, is_pressed)
 
 
 func _on_position_toggled(is_down: bool) -> void:
@@ -215,6 +241,10 @@ func _on_fire_at_will_pressed() -> void:
 
 func _update_fire_at_highlight(is_active: bool) -> void:
 	_fire_at_button.modulate = Color(1.25, 1.05, 0.45) if is_active else Color.WHITE
+
+
+func _update_grenade_highlight(is_active: bool) -> void:
+	_grenade_button.modulate = Color(1.0, 0.82, 0.45) if is_active else Color.WHITE
 
 
 func _make_dots(count: int) -> String:

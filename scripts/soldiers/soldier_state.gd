@@ -44,6 +44,12 @@ var sustained_fire: bool = false
 ## Last known enemy positions keyed by CombatSystem.enemy_tracking_key().
 var last_seen_enemy_positions: Dictionary = {}
 var last_seen_enemy_msec: Dictionary = {}
+var grenade_count: int = 5
+var stunned_until_msec: int = 0
+var pending_grenade_target: Vector2i = Vector2i(-999, -999)
+var grenade_explode_at_msec: int = 0
+## When true, soldier stands automatically once grenade stun expires.
+var stand_on_stun_recovery: bool = false
 
 
 static func enemy_tracking_key(enemy_team_id: int, enemy_soldier_id: int) -> String:
@@ -107,9 +113,68 @@ func is_alive() -> bool:
 	return not is_dead
 
 
+func is_stunned() -> bool:
+	return Time.get_ticks_msec() < stunned_until_msec
+
+
+func has_pending_grenade() -> bool:
+	return grenade_explode_at_msec > 0
+
+
+func clear_pending_grenade() -> void:
+	grenade_explode_at_msec = 0
+	pending_grenade_target = Vector2i(-999, -999)
+
+
+func kill_from_grenade() -> void:
+	mark_killed()
+
+
+func mark_killed() -> void:
+	is_dead = true
+	position_state = PositionStateClass.DOWN
+	stunned_until_msec = 0
+	stand_on_stun_recovery = false
+	clear_path()
+	end_sustained_fire()
+	reset_fire_prep()
+	clear_pending_grenade()
+
+
+func apply_stun(duration_sec: float = 4.0) -> void:
+	stunned_until_msec = Time.get_ticks_msec() + int(duration_sec * 1000.0)
+	clear_path()
+	end_sustained_fire()
+	reset_fire_prep()
+
+
+func apply_grenade_stun(duration_sec: float = 4.0) -> void:
+	stunned_until_msec = Time.get_ticks_msec() + int(duration_sec * 1000.0)
+	position_state = PositionStateClass.DOWN
+	stand_on_stun_recovery = true
+	clear_path()
+	end_sustained_fire()
+	reset_fire_prep()
+
+
+## Stand back up after grenade stun ends. Returns true when posture changed.
+func recover_from_stun_if_expired() -> bool:
+	if is_dead or is_stunned() or not stand_on_stun_recovery:
+		return false
+	stand_on_stun_recovery = false
+	if position_state != PositionStateClass.DOWN:
+		return false
+	position_state = PositionStateClass.UP
+	return true
+
+
 func activity_status_label() -> String:
 	if is_dead:
 		return "Dead"
+	if is_stunned():
+		return "Stunned"
+	if has_pending_grenade():
+		return "Throwing"
 	if is_moving:
 		return MovementModeClass.status_name(movement_mode)
 	if fire_ready_after_msec > Time.get_ticks_msec():
@@ -202,6 +267,8 @@ func to_dict() -> Dictionary:
 		"movement_mode": movement_mode,
 		"fire_control_state": fire_control_state,
 		"stress": stress,
+		"grenade_count": grenade_count,
+		"stunned_until_msec": stunned_until_msec,
 	}
 
 
@@ -226,4 +293,6 @@ static func from_dict(data: Dictionary) -> SoldierState:
 	state.movement_mode = int(data.get("movement_mode", MovementModeClass.RUN))
 	state.fire_control_state = int(data.get("fire_control_state", FireControlStateClass.HOLD_FIRE))
 	state.stress = float(data.get("stress", 0.0))
+	state.grenade_count = int(data.get("grenade_count", 5))
+	state.stunned_until_msec = int(data.get("stunned_until_msec", 0))
 	return state

@@ -69,6 +69,20 @@ func show_squad_fire_at_previews(
 		_squad_aim_lines.append(line)
 
 
+func show_grenade_throw_preview(
+	from_world: Vector2,
+	target_world: Vector2,
+	in_range: bool,
+) -> void:
+	_clear_squad_aim_lines()
+	_cone.visible = false
+	_aim_line.visible = true
+	_aim_line.points = PackedVector2Array([from_world, target_world])
+	_aim_line.default_color = (
+		LOSSystemClass.COLOR_CLEAR if in_range else LOSSystemClass.COLOR_BLOCKED
+	)
+
+
 func hide_preview() -> void:
 	_cone.visible = false
 	_aim_line.visible = false

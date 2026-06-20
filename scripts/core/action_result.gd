@@ -24,6 +24,9 @@ var refresh_map_data: bool = false
 ## Combat tick outcomes (shots fired this frame).
 var combat_shots: Array = []
 
+## Grenade explosions resolved this frame: CombatGrenadeResult entries.
+var grenade_explosions: Array = []
+
 
 static func fail(message: String) -> ActionResult:
 	var result := ActionResult.new()

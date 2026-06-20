@@ -14,6 +14,8 @@ const FaceCommandClass := preload("res://scripts/commands/face_command.gd")
 const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
 const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
 const FireControlCommandClass := preload("res://scripts/commands/fire_control_command.gd")
+const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd")
+const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
 const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
@@ -37,6 +39,8 @@ static func execute(
 		return execute_position(game_state, command as PositionCommandClass)
 	if command is FireControlCommandClass:
 		return execute_fire_control(game_state, command as FireControlCommandClass)
+	if command is GrenadeCommandClass:
+		return execute_grenade(game_state, command as GrenadeCommandClass, context)
 	return ActionResult.fail("Unknown command type.")
 
 
@@ -133,10 +137,32 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 	CombatSystem.clear_suppression_tick_flags(game_state)
 	CombatSystem.update_spotting(game_state)
 
+	var now_msec := Time.get_ticks_msec()
+	for fireteam in game_state.session.all_fireteams():
+		for state in fireteam.soldiers:
+			var thrower: SoldierState = state
+			if thrower.grenade_explode_at_msec <= 0:
+				continue
+			if now_msec < thrower.grenade_explode_at_msec:
+				continue
+
+			var explosion_cell := thrower.pending_grenade_target
+			thrower.clear_pending_grenade()
+			var grenade_result: CombatGrenadeResultClass = CombatSystem.resolve_grenade(
+				game_state,
+				thrower,
+				explosion_cell,
+			)
+			result.grenade_explosions.append(grenade_result)
+			result.refresh_views = true
+			_append_grenade_movement_halts(game_state, grenade_result, result)
+
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
 			var shooter: SoldierState = state
 			if not shooter.is_sustained_fire():
+				continue
+			if shooter.is_stunned() or shooter.has_pending_grenade():
 				continue
 			var shot: CombatShotResultClass = CombatSystem.try_engaged_fire(game_state, shooter)
 			if shot.fired:
@@ -148,15 +174,23 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 			var shooter: SoldierState = state
 			if shooter.is_sustained_fire():
 				continue
+			if shooter.is_stunned() or shooter.has_pending_grenade():
+				continue
 			var shot: CombatShotResultClass = CombatSystem.try_auto_engagement(game_state, shooter)
 			if shot.fired:
 				result.combat_shots.append(shot)
 				result.refresh_views = true
 
 	CombatSystem.recover_stress_tick(game_state, CombatSystem.AUTO_FIRE_SCAN_INTERVAL)
+
+	for fireteam in game_state.session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier: SoldierState = state
+			soldier.recover_from_stun_if_expired()
+
 	result.refresh_views = true
 
-	if not result.combat_shots.is_empty():
+	if not result.combat_shots.is_empty() or not result.grenade_explosions.is_empty():
 		result.sync_fire_at_ui = true
 	return result
 
@@ -243,13 +277,18 @@ static func execute_move(
 
 static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> ActionResult:
 	var fireteam := game_state.session.get_fireteam(cmd.team_id)
+	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
+	if soldier_state == null or soldier_state.is_dead:
+		return ActionResult.fail("Soldier unavailable.")
+	if soldier_state.is_stunned():
+		return ActionResult.fail("Soldier is stunned.")
+
 	if not fireteam.face_toward_tile(cmd.soldier_id, cmd.target_cell):
 		return ActionResult.fail("Pick a different tile to face.")
 
-	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
 	var result := ActionResult.new()
 
-	if soldier_state != null and soldier_state.is_sustained_fire():
+	if soldier_state.is_sustained_fire():
 		var priority: SoldierState = game_state.get_soldier(
 			soldier_state.engaged_target_team_id,
 			soldier_state.engaged_target_soldier_id,
@@ -265,7 +304,7 @@ static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> A
 					FacingDirection.direction_name(soldier_state.facing_direction),
 				],
 			)
-	elif soldier_state != null and soldier_state.is_engaged():
+	elif soldier_state.is_engaged():
 		var engaged_target: SoldierState = game_state.get_soldier(
 			soldier_state.engaged_target_team_id,
 			soldier_state.engaged_target_soldier_id,
@@ -345,6 +384,10 @@ static func execute_fire(
 
 		if CombatSystem.is_stress_panicked(shooter.stress):
 			rejected_notices.append("Soldier is panicked and ignores the order.")
+			continue
+
+		if shooter.is_stunned():
+			rejected_notices.append("Soldier is stunned and cannot fire.")
 			continue
 
 		if _halt_soldier_for_combat(context, shooter, result):
@@ -445,6 +488,8 @@ static func execute_position(
 	var soldier: SoldierState = game_state.get_soldier(cmd.team_id, cmd.soldier_id)
 	if soldier == null or soldier.is_dead:
 		return ActionResult.fail("Soldier unavailable.")
+	if soldier.is_stunned():
+		return ActionResult.fail("Soldier is stunned.")
 
 	soldier.position_state = cmd.position_state
 	return ActionResult.new().set_status(
@@ -481,6 +526,51 @@ static func execute_fire_control(
 	return result.set_status(message)
 
 
+static func execute_grenade(
+	game_state: GameStateClass,
+	cmd: GrenadeCommandClass,
+	context: CommandContext,
+) -> ActionResult:
+	var soldier: SoldierState = game_state.get_soldier(cmd.team_id, cmd.soldier_id)
+	if soldier == null or soldier.is_dead:
+		return ActionResult.fail("Soldier unavailable.")
+	if soldier.is_stunned():
+		return ActionResult.fail("Soldier is stunned.")
+	if soldier.is_moving:
+		return ActionResult.fail("Cannot throw a grenade while moving.")
+	if soldier.has_pending_grenade():
+		return ActionResult.fail("Soldier already has a grenade in the air.")
+	if soldier.grenade_count <= 0:
+		return ActionResult.fail("No grenades remaining.")
+	if not game_state.map_data.is_in_bounds(cmd.target_cell):
+		return ActionResult.fail("That tile is outside the map.")
+
+	var throw_distance := CombatSystem.grenade_throw_distance(
+		soldier.grid_position,
+		cmd.target_cell,
+	)
+	if throw_distance > CombatSystem.GRENADE_THROW_RANGE:
+		return ActionResult.fail("Target is out of grenade range.")
+
+	var result := ActionResult.new()
+	if _halt_soldier_for_combat(context, soldier, result):
+		result.clear_path_overlay = true
+		result.clear_move_targeting = true
+
+	var fireteam := game_state.session.get_fireteam(cmd.team_id)
+	fireteam.face_toward_tile(soldier.soldier_id, cmd.target_cell)
+
+	soldier.grenade_count -= 1
+	soldier.end_sustained_fire()
+	soldier.reset_fire_prep()
+	soldier.pending_grenade_target = cmd.target_cell
+	soldier.grenade_explode_at_msec = Time.get_ticks_msec() + CombatSystem.GRENADE_FUSE_MSEC
+
+	result.sync_fire_at_ui = true
+	result.refresh_views = true
+	return result.set_status("Grenade thrown.")
+
+
 ## UI cancel / mode exit — ends sustained Fire At on every soldier.
 static func cancel_all_sustained_fire(game_state: GameStateClass) -> void:
 	for fireteam in game_state.session.all_fireteams():
@@ -498,6 +588,9 @@ static func arm_movement_mode_for_soldier(
 
 	if CombatSystem.is_stress_panicked(soldier.stress):
 		return "Soldier is panicked and ignores the order."
+
+	if soldier.is_stunned():
+		return "Soldier is stunned and cannot move."
 
 	var move_result := _resolve_move_order(soldier, movement_mode)
 	if move_result.rejected:
@@ -536,6 +629,8 @@ static func _assign_move_path(
 
 	var mode := resolved_mode if resolved_mode >= 0 else cmd.movement_mode
 	if CombatSystem.is_stress_panicked(state.stress):
+		return false
+	if state.is_stunned():
 		return false
 
 	if not _validate_move(state, mode).is_empty():
@@ -593,6 +688,10 @@ static func _resolve_move_order(soldier: SoldierState, requested_mode: int) -> M
 	if CombatSystem.is_stress_panicked(soldier.stress):
 		resolved.rejected = true
 		resolved.message = "Soldier is panicked and ignores the order."
+		return resolved
+	if soldier.is_stunned():
+		resolved.rejected = true
+		resolved.message = "Soldier is stunned and cannot move."
 		return resolved
 	if requested_mode == MovementModeClass.RUN and CombatSystem.is_stress_pinned(soldier.stress):
 		resolved.mode = MovementModeClass.WALK
@@ -693,3 +792,24 @@ static func _tracer_world_for_soldier(state: SoldierState) -> Vector2:
 
 static func _soldier_key(team_id: int, soldier_id: int) -> String:
 	return "%d:%d" % [team_id, soldier_id]
+
+
+static func _append_grenade_movement_halts(
+	game_state: GameStateClass,
+	grenade_result: CombatGrenadeResultClass,
+	result: ActionResult,
+) -> void:
+	var affected: Array[Dictionary] = []
+	affected.append_array(grenade_result.killed)
+	affected.append_array(grenade_result.stunned)
+	for entry in affected:
+		var team_id := int(entry.get("team_id", -1))
+		var soldier_id := int(entry.get("soldier_id", -1))
+		var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
+		if soldier == null:
+			continue
+		result.movement_halts.append({
+			"team_id": team_id,
+			"soldier_id": soldier_id,
+			"snap_cell": soldier.grid_position,
+		})

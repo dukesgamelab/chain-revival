@@ -10,6 +10,7 @@ signal fire_at_mode_changed(is_active: bool, soldier_id: int)
 signal face_mode_changed(is_active: bool, soldier_id: int)
 signal position_change_requested(soldier_id: int, position_state: int)
 signal fire_control_change_requested(soldier_id: int, fire_control_state: int)
+signal grenade_mode_changed(is_active: bool, soldier_id: int)
 signal save_requested
 signal load_requested
 signal map_save_requested
@@ -38,6 +39,7 @@ var _move_target_soldier_id: int = -1
 var _active_movement_mode: int = MovementMode.RUN
 var _fire_at_soldier_id: int = -1
 var _face_soldier_id: int = -1
+var _grenade_soldier_id: int = -1
 var _active_team_id: int = Team.USA
 var _soldier_weapon_names: Array[String] = ["", "", "", ""]
 var _fire_at_engaged: bool = false
@@ -59,6 +61,7 @@ func _ready() -> void:
 		row.face_toggled.connect(_on_row_face_toggled)
 		row.position_toggled.connect(_on_row_position_toggled)
 		row.fire_control_selected.connect(_on_row_fire_control_selected)
+		row.grenade_toggled.connect(_on_row_grenade_toggled)
 
 	%SaveButton.pressed.connect(func() -> void: save_requested.emit())
 	%LoadButton.pressed.connect(func() -> void: load_requested.emit())
@@ -85,6 +88,7 @@ func set_active_team(team_id: int) -> void:
 	clear_move_targeting()
 	clear_fire_at_mode()
 	clear_face_mode()
+	clear_grenade_mode()
 	clear_map_edit_mode()
 	_update_status()
 
@@ -112,6 +116,10 @@ func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0
 	row.set_activity_status(state.activity_status_label())
 	row.set_stress(state.stress)
 	row.set_hit_pct(hit_pct)
+	row.set_grenade_count(
+		state.grenade_count,
+		state.is_stunned() or state.has_pending_grenade(),
+	)
 	row.set_move_button_enabled(MovementMode.RUN, MovementMode.is_allowed(state.position_state, MovementMode.RUN))
 	row.set_move_button_enabled(MovementMode.CRAWL, MovementMode.is_allowed(state.position_state, MovementMode.CRAWL))
 
@@ -169,6 +177,14 @@ func clear_face_mode() -> void:
 	_update_status()
 
 
+func clear_grenade_mode() -> void:
+	_grenade_soldier_id = -1
+	for row in _rows:
+		row.set_grenade_pressed(false)
+	grenade_mode_changed.emit(false, _selected_soldier_id)
+	_update_status()
+
+
 func clear_map_edit_mode() -> void:
 	_map_edit_active = false
 	%MapEditButton.set_pressed_no_signal(false)
@@ -189,6 +205,7 @@ func set_map_edit_active(is_active: bool) -> void:
 		clear_move_targeting()
 		clear_fire_at_mode()
 		clear_face_mode()
+		clear_grenade_mode()
 	map_edit_mode_changed.emit(is_active)
 	_update_map_edit_status()
 
@@ -209,6 +226,7 @@ func _on_squad_move_mode_toggled(movement_mode: int, is_pressed: bool) -> void:
 		clear_map_edit_mode()
 		clear_fire_at_mode()
 		clear_face_mode()
+		clear_grenade_mode()
 		for row in _rows:
 			row.clear_move_modes()
 		_squad_row.clear_move_modes()
@@ -229,6 +247,7 @@ func _on_squad_fire_at_toggled(is_pressed: bool) -> void:
 		clear_map_edit_mode()
 		clear_move_targeting()
 		clear_face_mode()
+		clear_grenade_mode()
 		for row in _rows:
 			row.set_fire_at_pressed(false)
 		_fire_at_soldier_id = SQUAD_ID
@@ -246,6 +265,7 @@ func _on_row_move_mode_toggled(soldier_id: int, movement_mode: int, is_pressed: 
 		clear_map_edit_mode()
 		clear_fire_at_mode()
 		clear_face_mode()
+		clear_grenade_mode()
 		_squad_row.clear_move_modes()
 		for row in _rows:
 			if row.soldier_id != soldier_id:
@@ -269,6 +289,7 @@ func _on_row_fire_at_toggled(soldier_id: int, is_pressed: bool) -> void:
 		clear_map_edit_mode()
 		clear_move_targeting()
 		clear_face_mode()
+		clear_grenade_mode()
 		_squad_row.set_fire_at_pressed(false)
 		for row in _rows:
 			if row.soldier_id != soldier_id:
@@ -289,6 +310,7 @@ func _on_row_face_toggled(soldier_id: int, is_pressed: bool) -> void:
 		clear_map_edit_mode()
 		clear_move_targeting()
 		clear_fire_at_mode()
+		clear_grenade_mode()
 		for row in _rows:
 			if row.soldier_id != soldier_id:
 				row.set_face_pressed(false)
@@ -299,6 +321,26 @@ func _on_row_face_toggled(soldier_id: int, is_pressed: bool) -> void:
 		if _face_soldier_id == soldier_id:
 			_face_soldier_id = -1
 		face_mode_changed.emit(false, soldier_id)
+
+	_update_status()
+
+
+func _on_row_grenade_toggled(soldier_id: int, is_pressed: bool) -> void:
+	if is_pressed:
+		clear_map_edit_mode()
+		clear_move_targeting()
+		clear_fire_at_mode()
+		clear_face_mode()
+		for row in _rows:
+			if row.soldier_id != soldier_id:
+				row.set_grenade_pressed(false)
+		_grenade_soldier_id = soldier_id
+		_select_soldier(soldier_id, true)
+		grenade_mode_changed.emit(true, soldier_id)
+	else:
+		if _grenade_soldier_id == soldier_id:
+			_grenade_soldier_id = -1
+		grenade_mode_changed.emit(false, soldier_id)
 
 	_update_status()
 
@@ -362,6 +404,11 @@ func _update_status() -> void:
 			)
 	elif _face_soldier_id > 0:
 		show_status("%s Soldier %d: Face... — click a tile or enemy. Right-click cancels." % [team_name, _face_soldier_id])
+	elif _grenade_soldier_id > 0:
+		show_status(
+			"%s Soldier %d: Grenade — click a tile within 7 tiles. Right-click cancels."
+			% [team_name, _grenade_soldier_id],
+		)
 	elif _move_target_soldier_id == SQUAD_ID:
 		show_status(
 			"%s Fireteam: %s — click tiles to move."

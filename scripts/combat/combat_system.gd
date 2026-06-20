@@ -18,6 +18,7 @@ const ConeOfFireClass := preload("res://scripts/combat/cone_of_fire.gd")
 const EnemyVisibilityResultClass := preload("res://scripts/combat/enemy_visibility_result.gd")
 const FireAtPreviewResultClass := preload("res://scripts/combat/fire_at_preview_result.gd")
 const StressLabelsClass := preload("res://scripts/combat/stress_labels.gd")
+const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
 
 const CLEAR_BASE_HIT_CHANCE := 0.78
 const CLEAR_DISTANCE_PENALTY := 0.025
@@ -35,6 +36,12 @@ const PRONE_SUPPRESSION_MULT := 0.75
 const STRESS_PINNED_THRESHOLD := 45.0
 const STRESS_PANIC_THRESHOLD := 70.0
 const AUTO_TARGET_ENGAGED_BONUS := 10.0
+const GRENADE_THROW_RANGE := 7
+const GRENADE_FUSE_MSEC := 1800
+const GRENADE_BLAST_RADIUS := 3
+const GRENADE_KILL_RADIUS := 1
+const GRENADE_KILL_CHANCE := 0.25
+const GRENADE_STUN_DURATION_SEC := 8.0
 const RECENTLY_SEEN_SEC := 2.0
 const RECENTLY_FIRED_SPOT_SEC := 2.0
 const LAST_KNOWN_NEAR_TILES := 2
@@ -340,9 +347,7 @@ static func resolve_shot(
 	if randf() <= chance:
 		result.hit = true
 		result.messages.append("%s hit" % weapon.weapon_name)
-		target.is_dead = true
-		target.position_state = PositionStateClass.DOWN
-		target.clear_path()
+		target.mark_killed()
 		result.killed = true
 		result.messages.append(
 			"%s Soldier %d killed" % [Team.display_name(target.team_id), target.soldier_id],
@@ -1228,6 +1233,8 @@ static func try_engaged_fire(
 	var empty := CombatShotResult.new()
 	if shooter == null or shooter.is_dead or shooter.is_moving:
 		return empty
+	if shooter.is_stunned() or shooter.has_pending_grenade():
+		return empty
 	if not shooter.is_sustained_fire():
 		return empty
 
@@ -1346,6 +1353,8 @@ static func try_auto_engagement(
 	if shooter == null or shooter.is_dead:
 		return empty
 	if shooter.is_moving:
+		return empty
+	if shooter.is_stunned() or shooter.has_pending_grenade():
 		return empty
 	if shooter.is_sustained_fire():
 		return empty
@@ -1634,3 +1643,75 @@ static func _log_fire_at_preview(
 static func _is_wall_blocker_type(blocking_type: String) -> bool:
 	var def := MapObjectRegistryClass.get_def(blocking_type)
 	return def != null and def.cover_type == CoverSystemClass.CoverType.COMPLETE
+
+
+## Grenade blast resolution — Chebyshev radius; cover ignored for V1.
+static func resolve_grenade(
+	game_state: GameStateClass,
+	thrower: SoldierStateClass,
+	explosion_cell: Vector2i,
+) -> CombatGrenadeResultClass:
+	var result := CombatGrenadeResultClass.new()
+	if game_state == null or thrower == null:
+		return result
+
+	result.thrower_team_id = thrower.team_id
+	result.thrower_id = thrower.soldier_id
+	result.explosion_cell = explosion_cell
+	result.blast_radius = GRENADE_BLAST_RADIUS
+
+	for fireteam in game_state.session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier: SoldierStateClass = state
+			if soldier.is_dead:
+				continue
+
+			var distance := _chebyshev_distance(soldier.grid_position, explosion_cell)
+			if distance > GRENADE_BLAST_RADIUS:
+				continue
+
+			if distance <= GRENADE_KILL_RADIUS:
+				if randf() <= GRENADE_KILL_CHANCE:
+					soldier.mark_killed()
+					result.killed.append({
+						"team_id": soldier.team_id,
+						"soldier_id": soldier.soldier_id,
+					})
+					result.messages.append(
+						"%s Soldier %d killed by grenade blast."
+						% [Team.display_name(soldier.team_id), soldier.soldier_id],
+					)
+				else:
+					_apply_grenade_stun(soldier)
+					result.stunned.append({
+						"team_id": soldier.team_id,
+						"soldier_id": soldier.soldier_id,
+					})
+					result.messages.append(
+						"%s Soldier %d stunned by grenade blast."
+						% [Team.display_name(soldier.team_id), soldier.soldier_id],
+					)
+			else:
+				_apply_grenade_stun(soldier)
+				result.stunned.append({
+					"team_id": soldier.team_id,
+					"soldier_id": soldier.soldier_id,
+				})
+				result.messages.append(
+					"%s Soldier %d stunned by grenade blast."
+					% [Team.display_name(soldier.team_id), soldier.soldier_id],
+				)
+
+	return result
+
+
+static func grenade_throw_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:
+	return _chebyshev_distance(from_cell, to_cell)
+
+
+static func _apply_grenade_stun(soldier: SoldierStateClass) -> void:
+	soldier.apply_grenade_stun(GRENADE_STUN_DURATION_SEC)
+
+
+static func _chebyshev_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:
+	return maxi(absi(from_cell.x - to_cell.x), absi(from_cell.y - to_cell.y))

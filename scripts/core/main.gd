@@ -48,6 +48,8 @@ var _fire_at_soldier_id: int = 1
 var _fire_at_engaged: bool = false
 var _face_mode: bool = false
 var _face_soldier_id: int = 1
+var _grenade_mode: bool = false
+var _grenade_soldier_id: int = 1
 var _map_edit_mode: bool = false
 var _map_edit_palette: int = MapEditorClass.Palette.WALL
 var _auto_fire_timer: float = 0.0
@@ -170,6 +172,9 @@ func _exit_fire_at_mode(message: String = "") -> void:
 
 func _update_los_preview() -> void:
 	## Presentation-only: reads GameState + CombatSystem queries; does not mutate gameplay data.
+	if _grenade_mode:
+		_update_grenade_preview()
+		return
 	if not _fire_at_mode:
 		_los_visualizer.hide_preview()
 		return
@@ -234,6 +239,28 @@ func _update_los_preview() -> void:
 		):
 			_sync_fire_at_shooter_views()
 	_los_visualizer.show_fire_at_preview(from_world, cone_world, preview)
+
+
+func _update_grenade_preview() -> void:
+	var shooter: SoldierState = _game_state.get_soldier(_session.active_team_id, _grenade_soldier_id)
+	if shooter == null or shooter.is_dead:
+		_los_visualizer.hide_preview()
+		return
+
+	var target_cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
+	var from_world := _get_soldier_tracer_point(shooter)
+	var target_world := IsometricGrid.grid_to_world(target_cell) + Vector2(0, -16)
+	var in_bounds := _map_data.is_in_bounds(target_cell)
+	var in_range := (
+		in_bounds
+		and CombatSystem.grenade_throw_distance(shooter.grid_position, target_cell)
+		<= CombatSystem.GRENADE_THROW_RANGE
+	)
+	_los_visualizer.show_grenade_throw_preview(from_world, target_world, in_range)
+
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	if fireteam.face_toward_tile(shooter.soldier_id, target_cell):
+		_sync_soldier_view(shooter.team_id, shooter.soldier_id, true)
 
 
 func _update_squad_los_preview(
@@ -340,6 +367,7 @@ func _connect_command_bar() -> void:
 	_command_bar.move_targeting_changed.connect(_on_move_targeting_changed)
 	_command_bar.fire_at_mode_changed.connect(_on_fire_at_mode_changed)
 	_command_bar.face_mode_changed.connect(_on_face_mode_changed)
+	_command_bar.grenade_mode_changed.connect(_on_grenade_mode_changed)
 	_command_bar.position_change_requested.connect(_on_position_change_requested)
 	_command_bar.fire_control_change_requested.connect(_on_fire_control_change_requested)
 	_command_bar.save_requested.connect(_on_save_requested)
@@ -409,6 +437,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			_command_bar.clear_face_mode()
 			_command_bar.show_status("Facing cancelled.")
 			get_viewport().set_input_as_handled()
+			return
+		if _grenade_mode:
+			_grenade_mode = false
+			_command_bar.clear_grenade_mode()
+			_los_visualizer.hide_preview()
+			_command_bar.show_status("Grenade targeting cancelled.")
+			get_viewport().set_input_as_handled()
 		return
 
 	if mouse_event.button_index != MOUSE_BUTTON_LEFT:
@@ -443,6 +478,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
+	if _grenade_mode:
+		_apply_grenade_command(target_cell)
+		get_viewport().set_input_as_handled()
+		return
+
 	if not _move_targeting:
 		return
 
@@ -469,6 +509,7 @@ func _switch_active_team(team_id: int) -> void:
 	_squad_fire_at_mode = false
 	_fire_at_engaged = false
 	_face_mode = false
+	_grenade_mode = false
 	_map_edit_mode = false
 	_command_bar.clear_map_edit_mode()
 	_command_bar.set_active_team(team_id)
@@ -492,6 +533,7 @@ func _on_map_edit_mode_changed(is_active: bool) -> void:
 		_squad_fire_at_mode = false
 		_fire_at_engaged = false
 		_face_mode = false
+		_grenade_mode = false
 		_los_visualizer.hide_preview()
 		_update_map_edit_hover()
 	else:
@@ -877,10 +919,32 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 	if result.begin_fire_engagement:
 		_begin_fire_at_engagement()
 
+	if not result.grenade_explosions.is_empty():
+		_spawn_grenade_explosions(result.grenade_explosions)
+
 	if combat_tick and not combat_lines.is_empty():
 		_command_bar.show_status("\n".join(combat_lines.slice(-3)))
+	elif not result.grenade_explosions.is_empty():
+		_present_grenade_explosion_messages(result.grenade_explosions)
 	elif not result.status_message.is_empty():
 		_command_bar.show_status(result.status_message)
+
+
+func _present_grenade_explosion_messages(explosions: Array) -> void:
+	var lines: Array[String] = []
+	for explosion in explosions:
+		for line in explosion.messages:
+			GameLog.log_combat(line)
+			lines.append(line)
+	if not lines.is_empty():
+		_command_bar.show_status("\n".join(lines.slice(-3)))
+
+
+func _spawn_grenade_explosions(explosions: Array) -> void:
+	for explosion in explosions:
+		var cell: Vector2i = explosion.explosion_cell
+		var world_pos := IsometricGrid.grid_to_world(cell)
+		GrenadeExplosion.spawn(_tracers_root, world_pos)
 
 
 func _soldier_snap_key(team_id: int, soldier_id: int) -> String:
@@ -928,6 +992,38 @@ func _make_fire_context(shooters: Array[SoldierState]) -> CommandContextClass:
 				_snap_cell_for_soldier(shooter)
 			)
 	return ctx
+
+
+func _make_grenade_context(soldier_state: SoldierState) -> CommandContextClass:
+	var ctx := CommandContextClass.new()
+	_add_snap_cell_if_animating(ctx, soldier_state)
+	return ctx
+
+
+func _apply_grenade_command(target_cell: Vector2i) -> void:
+	var soldier_state: SoldierState = _game_state.get_soldier(
+		_session.active_team_id,
+		_grenade_soldier_id,
+	)
+	if soldier_state == null or soldier_state.is_dead:
+		_command_bar.show_status("Soldier unavailable.")
+		return
+
+	var cmd := GrenadeCommand.new()
+	cmd.team_id = _session.active_team_id
+	cmd.soldier_id = _grenade_soldier_id
+	cmd.target_cell = target_cell
+
+	var result: ActionResultClass = ActionResolverClass.execute(
+		_game_state,
+		cmd,
+		_make_grenade_context(soldier_state),
+	)
+	if result.success:
+		_grenade_mode = false
+		_command_bar.clear_grenade_mode()
+		_los_visualizer.hide_preview()
+	_present_action_result(result)
 
 
 func _apply_move_command(cmd: MoveCommand) -> void:
@@ -1136,6 +1232,7 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 		_squad_fire_at_mode = false
 		_fire_at_engaged = false
 		_face_mode = false
+		_grenade_mode = false
 		if soldier_id > 0:
 			_session.get_active_fireteam().select_soldier(soldier_id)
 		var arm_message := _arm_movement_mode(soldier_id, movement_mode)
@@ -1160,12 +1257,30 @@ func _on_fire_at_mode_changed(is_active: bool, soldier_id: int) -> void:
 		_move_targeting = false
 		_squad_move_targeting = false
 		_face_mode = false
+		_grenade_mode = false
 		if soldier_id > 0:
 			_session.get_active_fireteam().select_soldier(soldier_id)
 			_refresh_all_views()
 	else:
 		_los_visualizer.hide_preview()
 		_sync_fire_at_ui_from_engagements()
+
+
+func _on_grenade_mode_changed(is_active: bool, soldier_id: int) -> void:
+	_grenade_mode = is_active
+	_grenade_soldier_id = soldier_id if is_active else 1
+	if is_active:
+		_map_edit_mode = false
+		_command_bar.clear_map_edit_mode()
+		_move_targeting = false
+		_squad_move_targeting = false
+		_fire_at_mode = false
+		_squad_fire_at_mode = false
+		_face_mode = false
+		_los_visualizer.hide_preview()
+		if soldier_id > 0:
+			_session.get_active_fireteam().select_soldier(soldier_id)
+			_refresh_all_views()
 
 
 func _on_face_mode_changed(is_active: bool, soldier_id: int) -> void:
@@ -1178,6 +1293,7 @@ func _on_face_mode_changed(is_active: bool, soldier_id: int) -> void:
 		_squad_move_targeting = false
 		_fire_at_mode = false
 		_squad_fire_at_mode = false
+		_grenade_mode = false
 		if soldier_id > 0:
 			_session.get_active_fireteam().select_soldier(soldier_id)
 			_refresh_all_views()

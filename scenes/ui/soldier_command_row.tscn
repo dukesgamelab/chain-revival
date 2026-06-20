@@ -84,8 +84,8 @@ text = "Down"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(58, 24)
 layout_mode = 2
-disabled = true
-text = "Grenade"
+toggle_mode = true
+text = "Grenade (5)"
 
 [node name="AssaultButton" type="Button" parent="."]
 unique_name_in_owner = true
