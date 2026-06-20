@@ -20,7 +20,7 @@ signal rotate_view_right_requested
 signal map_edit_mode_changed(is_active: bool)
 signal map_edit_palette_changed(palette: int)
 
-const MapEditorClass := preload("res://scripts/map_editor.gd")
+const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 
 @onready var _squad_row: SquadCommandRow = %SquadRow
 @onready var _rows: Array[SoldierCommandRow] = [

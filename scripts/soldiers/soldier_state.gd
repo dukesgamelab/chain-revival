@@ -4,13 +4,13 @@ extends RefCounted
 ##
 ## Mutations happen only through ActionResolver (via Fireteam helpers or CombatSystem).
 
-const MovementModeClass := preload("res://scripts/movement_mode.gd")
-const PositionStateClass := preload("res://scripts/position_state.gd")
-const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
-const WeaponRegistryClass := preload("res://scripts/weapon_registry.gd")
-const WeaponDataClass := preload("res://scripts/weapon_data.gd")
-const WeaponTypeClass := preload("res://scripts/weapon_type.gd")
-const FireteamLoadoutClass := preload("res://scripts/fireteam_loadout.gd")
+const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
+const PositionStateClass := preload("res://scripts/enums/position_state.gd")
+const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
+const WeaponRegistryClass := preload("res://scripts/combat/weapon_registry.gd")
+const WeaponDataClass := preload("res://scripts/combat/weapon_data.gd")
+const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
+const FireteamLoadoutClass := preload("res://scripts/soldiers/fireteam_loadout.gd")
 
 var soldier_id: int = 1
 var team_id: int = Team.USA

@@ -2,7 +2,7 @@
 
 
 
-[ext_resource type="Script" path="res://scripts/soldier.gd" id="1_soldier"]
+[ext_resource type="Script" path="res://scripts/soldiers/soldier.gd" id="1_soldier"]
 
 [ext_resource type="Texture2D" path="res://assets/sprites/soldier_usa.svg" id="2_sprite"]
 

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://da7ry3xdivfyy"]
 
-[ext_resource type="Script" path="res://scripts/squad_command_row.gd" id="1_row"]
+[ext_resource type="Script" path="res://scripts/ui/squad_command_row.gd" id="1_row"]
 
 [node name="SquadCommandRow" type="HBoxContainer"]
 theme_override_constants/separation = 4

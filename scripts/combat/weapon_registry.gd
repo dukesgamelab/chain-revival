@@ -2,8 +2,8 @@ class_name WeaponRegistry
 extends RefCounted
 ## Weapon definition catalog. Loadout assignments live in FireteamLoadout.
 
-const WeaponDataClass := preload("res://scripts/weapon_data.gd")
-const WeaponTypeClass := preload("res://scripts/weapon_type.gd")
+const WeaponDataClass := preload("res://scripts/combat/weapon_data.gd")
+const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
 
 const ID_M1_GARAND := "m1_garand"
 const ID_BAR := "bar"

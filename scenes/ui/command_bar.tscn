@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://cmdbar001chain"]
 
-[ext_resource type="Script" path="res://scripts/command_bar.gd" id="1_cmdbar"]
+[ext_resource type="Script" path="res://scripts/ui/command_bar.gd" id="1_cmdbar"]
 [ext_resource type="PackedScene" uid="uid://soldiercmdrow01" path="res://scenes/ui/soldier_command_row.tscn" id="2_row"]
 [ext_resource type="PackedScene" uid="uid://squadcmdrow01" path="res://scenes/ui/squad_command_row.tscn" id="3_squad"]
 

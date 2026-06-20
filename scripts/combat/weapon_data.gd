@@ -2,7 +2,7 @@ class_name WeaponData
 extends RefCounted
 ## Static definition for one weapon (separate from soldier/combat logic).
 
-const WeaponTypeClass := preload("res://scripts/weapon_type.gd")
+const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
 
 var weapon_id: String = ""
 var weapon_name: String = ""

@@ -2,7 +2,7 @@ class_name MovementMode
 extends RefCounted
 ## How a soldier moves when given a move order.
 
-const PositionStateClass := preload("res://scripts/position_state.gd")
+const PositionStateClass := preload("res://scripts/enums/position_state.gd")
 
 enum Mode { RUN, WALK, CRAWL }
 

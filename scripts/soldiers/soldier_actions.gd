@@ -4,10 +4,10 @@ extends RefCounted
 ##
 ## Kept so existing call sites stay stable during the architecture migration.
 
-const GameStateClass := preload("res://scripts/game_state.gd")
-const PositionCommandClass := preload("res://scripts/position_command.gd")
-const FireControlCommandClass := preload("res://scripts/fire_control_command.gd")
-const ActionResolverClass := preload("res://scripts/action_resolver.gd")
+const GameStateClass := preload("res://scripts/core/game_state.gd")
+const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
+const FireControlCommandClass := preload("res://scripts/commands/fire_control_command.gd")
+const ActionResolverClass := preload("res://scripts/core/action_resolver.gd")
 
 
 static func apply_position(state: GameStateClass, cmd: PositionCommandClass) -> String:

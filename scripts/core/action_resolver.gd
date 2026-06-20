@@ -8,18 +8,18 @@ extends RefCounted
 ##
 ## CombatSystem, CoverSystem, and LOSSystem are called from here; they never touch nodes.
 
-const GameStateClass := preload("res://scripts/game_state.gd")
-const MoveCommandClass := preload("res://scripts/move_command.gd")
-const FaceCommandClass := preload("res://scripts/face_command.gd")
-const FireCommandClass := preload("res://scripts/fire_command.gd")
-const PositionCommandClass := preload("res://scripts/position_command.gd")
-const FireControlCommandClass := preload("res://scripts/fire_control_command.gd")
-const MovementModeClass := preload("res://scripts/movement_mode.gd")
-const PositionStateClass := preload("res://scripts/position_state.gd")
-const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
-const ConeOfFireClass := preload("res://scripts/cone_of_fire.gd")
-const CombatShotResultClass := preload("res://scripts/combat_shot_result.gd")
-const LOSSystemClass := preload("res://scripts/los_system.gd")
+const GameStateClass := preload("res://scripts/core/game_state.gd")
+const MoveCommandClass := preload("res://scripts/commands/move_command.gd")
+const FaceCommandClass := preload("res://scripts/commands/face_command.gd")
+const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
+const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
+const FireControlCommandClass := preload("res://scripts/commands/fire_control_command.gd")
+const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
+const PositionStateClass := preload("res://scripts/enums/position_state.gd")
+const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
+const ConeOfFireClass := preload("res://scripts/combat/cone_of_fire.gd")
+const CombatShotResultClass := preload("res://scripts/combat/combat_shot_result.gd")
+const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
 
 
 static func execute(

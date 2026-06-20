@@ -2,7 +2,7 @@ class_name LosVisualizer
 extends Node2D
 ## Aim preview cone while Fire At mode is active (separate from fired shot tracers).
 
-const LOSSystemClass := preload("res://scripts/los_system.gd")
+const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
 
 const CONE_COLOR_HAS_TARGET := Color(0.25, 0.95, 0.35, 0.16)
 const CONE_COLOR_NO_TARGET := Color(0.95, 0.18, 0.12, 0.16)

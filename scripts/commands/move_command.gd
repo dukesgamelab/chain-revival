@@ -2,7 +2,7 @@ class_name MoveCommand
 extends RefCounted
 ## Plain data: move order issued by UI. Validated and applied by ActionResolver.
 
-const MovementModeClass := preload("res://scripts/movement_mode.gd")
+const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
 
 enum Scope { SINGLE, SQUAD }
 

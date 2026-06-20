@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://de3x1dvmgpbea"]
 
-[ext_resource type="Script" path="res://scripts/soldier_command_row.gd" id="1_row"]
+[ext_resource type="Script" path="res://scripts/ui/soldier_command_row.gd" id="1_row"]
 
 [node name="SoldierCommandRow" type="HBoxContainer"]
 theme_override_constants/separation = 4

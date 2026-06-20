@@ -5,7 +5,7 @@ extends RefCounted
 const DEFAULT_FILE := "res://maps/test_map.json"
 const DEFAULT_WIDTH := 60
 const DEFAULT_HEIGHT := 60
-const MapObjectRegistryClass := preload("res://scripts/map_object_registry.gd")
+const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
 
 ## Default deployment: vertical columns facing each other, paired by row (same y).
 const DEFAULT_TEAM_SEPARATION := 10

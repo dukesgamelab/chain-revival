@@ -2,7 +2,7 @@ class_name FireControlCommand
 extends RefCounted
 ## Plain data: Hold Fire / Fire At Will order. Validated and applied by ActionResolver.
 
-const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
+const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
 
 var team_id: int = Team.BLUE
 var soldier_id: int = 1

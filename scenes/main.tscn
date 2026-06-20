@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://hxqfddk1yrsk"]
 
-[ext_resource type="Script" uid="uid://cb3p3n36g1wb6" path="res://scripts/main.gd" id="1_main"]
-[ext_resource type="Script" uid="uid://dpnpuei885v24" path="res://scripts/isometric_map.gd" id="2_isomap"]
+[ext_resource type="Script" uid="uid://cb3p3n36g1wb6" path="res://scripts/core/main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://dpnpuei885v24" path="res://scripts/map/isometric_map.gd" id="2_isomap"]
 [ext_resource type="PackedScene" uid="uid://c14uyvmy1frdd" path="res://scenes/ui/command_bar.tscn" id="3_cmdbar"]
-[ext_resource type="Script" path="res://scripts/status_hud.gd" id="7_status"]
-[ext_resource type="Script" path="res://scripts/map_camera.gd" id="4_camera"]
-[ext_resource type="Script" path="res://scripts/map_background.gd" id="5_bg"]
-[ext_resource type="Script" path="res://scripts/los_visualizer.gd" id="6_losviz"]
+[ext_resource type="Script" path="res://scripts/ui/status_hud.gd" id="7_status"]
+[ext_resource type="Script" path="res://scripts/map/map_camera.gd" id="4_camera"]
+[ext_resource type="Script" path="res://scripts/map/map_background.gd" id="5_bg"]
+[ext_resource type="Script" path="res://scripts/effects/los_visualizer.gd" id="6_losviz"]
 
 [node name="Main" type="Node2D" unique_id=358126869]
 script = ExtResource("1_main")

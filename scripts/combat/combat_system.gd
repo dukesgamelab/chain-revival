@@ -3,18 +3,18 @@ extends RefCounted
 ## Resolves shooting against GameState data (no scene nodes).
 ## Called by ActionResolver — not by UI directly.
 
-const GameStateClass := preload("res://scripts/game_state.gd")
-const SoldierStateClass := preload("res://scripts/soldier_state.gd")
-const WeaponDataClass := preload("res://scripts/weapon_data.gd")
-const WeaponRegistryClass := preload("res://scripts/weapon_registry.gd")
-const WeaponTypeClass := preload("res://scripts/weapon_type.gd")
-const PositionStateClass := preload("res://scripts/position_state.gd")
-const MovementModeClass := preload("res://scripts/movement_mode.gd")
-const FireControlStateClass := preload("res://scripts/fire_control_state.gd")
-const LOSSystemClass := preload("res://scripts/los_system.gd")
-const CoverSystemClass := preload("res://scripts/cover_system.gd")
-const MapObjectRegistryClass := preload("res://scripts/map_object_registry.gd")
-const ConeOfFireClass := preload("res://scripts/cone_of_fire.gd")
+const GameStateClass := preload("res://scripts/core/game_state.gd")
+const SoldierStateClass := preload("res://scripts/soldiers/soldier_state.gd")
+const WeaponDataClass := preload("res://scripts/combat/weapon_data.gd")
+const WeaponRegistryClass := preload("res://scripts/combat/weapon_registry.gd")
+const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
+const PositionStateClass := preload("res://scripts/enums/position_state.gd")
+const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
+const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
+const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
+const CoverSystemClass := preload("res://scripts/combat/cover_system.gd")
+const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
+const ConeOfFireClass := preload("res://scripts/combat/cone_of_fire.gd")
 
 const CLEAR_BASE_HIT_CHANCE := 0.78
 const CLEAR_DISTANCE_PENALTY := 0.025
