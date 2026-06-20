@@ -23,11 +23,8 @@ var map_data: MapData = null
 
 var _astar := AStarGrid2D.new()
 var _path_overlay: IsometricPathOverlay
+var _map_edit_hover_overlay: MapEditHoverOverlay
 var _object_textures: Dictionary = {}
-var _map_edit_hover_cell: Vector2i = Vector2i(-999, -999)
-
-@export var map_edit_hover_fill := Color(1.0, 0.92, 0.25, 0.38)
-@export var map_edit_hover_outline := Color(1.0, 0.82, 0.15, 0.95)
 
 
 func _ready() -> void:
@@ -36,6 +33,9 @@ func _ready() -> void:
 	_path_overlay.path_color = path_color
 	_path_overlay.target_color = target_color
 	add_child(_path_overlay)
+	_map_edit_hover_overlay = MapEditHoverOverlay.new()
+	_map_edit_hover_overlay.z_index = 3
+	add_child(_map_edit_hover_overlay)
 	queue_redraw()
 
 
@@ -49,17 +49,13 @@ func apply_map_data(data: MapData) -> void:
 
 
 func set_map_edit_hover(cell: Vector2i) -> void:
-	if _map_edit_hover_cell == cell:
-		return
-	_map_edit_hover_cell = cell
-	queue_redraw()
+	if _map_edit_hover_overlay != null:
+		_map_edit_hover_overlay.set_hover_cell(cell)
 
 
 func clear_map_edit_hover() -> void:
-	if _map_edit_hover_cell.x <= -900:
-		return
-	_map_edit_hover_cell = Vector2i(-999, -999)
-	queue_redraw()
+	if _map_edit_hover_overlay != null:
+		_map_edit_hover_overlay.clear_hover()
 
 
 func rebuild_pathfinding() -> void:
@@ -118,6 +114,8 @@ func refresh_view_rotation() -> void:
 	queue_redraw()
 	if _path_overlay != null:
 		_path_overlay.queue_redraw()
+	if _map_edit_hover_overlay != null:
+		_map_edit_hover_overlay.queue_redraw()
 
 
 func _draw() -> void:
@@ -127,7 +125,6 @@ func _draw() -> void:
 	_draw_tiles()
 	_draw_map_objects()
 	_draw_spawn_markers()
-	_draw_map_edit_hover()
 
 
 ## Decorative grass diamonds outside the playable map (not used for pathfinding).
@@ -217,17 +214,6 @@ func _map_object_draw_pos(type_id: String, center: Vector2, size: Vector2) -> Ve
 		# Feet on tile center; wall rises above the diamond.
 		return center - Vector2(size.x * 0.5, size.y - IsometricGrid.TILE_HEIGHT * 0.45)
 	return center - size * 0.5 + Vector2(0.0, -8.0)
-
-
-func _draw_map_edit_hover() -> void:
-	if _map_edit_hover_cell.x <= -900 or map_data == null:
-		return
-	if not map_data.is_in_bounds(_map_edit_hover_cell):
-		return
-	var center := IsometricGrid.grid_to_world(_map_edit_hover_cell)
-	var corners := IsometricGrid.diamond_corners(center)
-	draw_colored_polygon(corners, map_edit_hover_fill)
-	draw_polyline(corners, map_edit_hover_outline, 2.0, true)
 
 
 func _get_object_texture(sprite_path: String) -> Texture2D:

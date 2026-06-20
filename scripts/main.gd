@@ -80,20 +80,23 @@ func _log_fireteam_loadouts() -> void:
 
 
 func _process(delta: float) -> void:
-	if _map_edit_mode:
+	if not _map_edit_mode:
+		_update_los_preview()
+		_update_command_bar_hit_columns()
+
+		_auto_fire_timer += delta
+		if _auto_fire_timer < CombatSystem.AUTO_FIRE_SCAN_INTERVAL:
+			return
+		_auto_fire_timer = 0.0
+		var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
+		_present_action_result(tick_result, true)
+
+
+func _input(event: InputEvent) -> void:
+	if not _map_edit_mode:
+		return
+	if event is InputEventMouseMotion:
 		_update_map_edit_hover()
-		return
-
-	_iso_map.clear_map_edit_hover()
-	_update_los_preview()
-	_update_command_bar_hit_columns()
-
-	_auto_fire_timer += delta
-	if _auto_fire_timer < CombatSystem.AUTO_FIRE_SCAN_INTERVAL:
-		return
-	_auto_fire_timer = 0.0
-	var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
-	_present_action_result(tick_result, true)
 
 
 func _get_manual_fire_at_shooters() -> Array[SoldierState]:
@@ -410,6 +413,7 @@ func _on_map_edit_mode_changed(is_active: bool) -> void:
 		_fire_at_engaged = false
 		_face_mode = false
 		_los_visualizer.hide_preview()
+		_update_map_edit_hover()
 	else:
 		_iso_map.clear_map_edit_hover()
 		_command_bar.show_status("Map Edit OFF.")
@@ -421,6 +425,9 @@ func _on_map_edit_palette_changed(palette: int) -> void:
 
 func _update_map_edit_hover() -> void:
 	var cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
+	if not _map_data.is_in_bounds(cell):
+		_iso_map.clear_map_edit_hover()
+		return
 	_iso_map.set_map_edit_hover(cell)
 
 
