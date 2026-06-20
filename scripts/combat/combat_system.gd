@@ -280,7 +280,7 @@ static func resolve_shot(
 	AudioManager.play_gunshot()
 	apply_suppression_from_shot(game_state, shooter, target, weapon, los)
 
-	if los.cover_type == CoverSystemClass.CoverType.COMPLETE:
+	if los.target_using_wall_cover:
 		if LOSSystemClass.is_debug_logging_enabled():
 			GameLog.log_system("[Combat] Target protected by complete cover")
 		if not auto_engagement:
@@ -995,7 +995,7 @@ static func hit_pct_vs_faced_enemy(
 	)
 	if los.status == LOSSystemClass.Status.BLOCKED:
 		return 0.0
-	if los.cover_type == CoverSystemClass.CoverType.COMPLETE:
+	if los.target_using_wall_cover:
 		return 0.0
 
 	return _final_hit_chance(shooter, target, weapon, los) * 100.0

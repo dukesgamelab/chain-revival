@@ -5,9 +5,28 @@ extends Node2D
 ## Does NOT mutate SoldierState. Emits movement signals so ActionResolver can update
 ## authoritative position via GameState when each animation step completes.
 
-const TEXTURE_USA := preload("res://assets/sprites/soldier_usa.svg")
+const TEXTURE_USA_NE := preload("res://assets/sprites/us_soldier_ne.png")
+const TEXTURE_USA_NW := preload("res://assets/sprites/us_soldier_nw.png")
+const TEXTURE_USA_SE := preload("res://assets/sprites/us_soldier_se.png")
+const TEXTURE_USA_SW := preload("res://assets/sprites/us_soldier_sw.png")
 const TEXTURE_GERMANY := preload("res://assets/sprites/soldier_germany.svg")
 
+const _USA_TEXTURES: Dictionary = {
+	"ne": TEXTURE_USA_NE,
+	"nw": TEXTURE_USA_NW,
+	"se": TEXTURE_USA_SE,
+	"sw": TEXTURE_USA_SW,
+}
+## Match directional PNG art to the 32×48 German placeholder footprint.
+const _GERMAN_SPRITE_SIZE := Vector2(32.0, 48.0)
+const _USA_SPRITE_SIZE := Vector2(64.0, 104.0)
+const _USA_SPRITE_SCALE := Vector2(
+	_GERMAN_SPRITE_SIZE.x / _USA_SPRITE_SIZE.x,
+	_GERMAN_SPRITE_SIZE.y / _USA_SPRITE_SIZE.y,
+)
+## Slightly larger than the German placeholder footprint.
+const _USA_SIZE_BOOST := 1.15
+const _PRONE_SPRITE_SCALE := Vector2(1.15, 0.42)
 ## Visual-only sprite shift so feet sit on the tile center (Node2D stays on grid center).
 const SPRITE_OFFSET_STANDING := Vector2(0, -24)
 const SPRITE_OFFSET_PRONE := Vector2(0, -10)
@@ -29,7 +48,7 @@ var _is_dead: bool = false
 var _speed_multiplier: float = 1.0
 var _applied_position_state: int = -1
 var _facing_from_cell: Vector2i = Vector2i.ZERO
-
+var _last_applied_facing: Vector2i = FacingDirection.NORTH
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _selection_marker: Polygon2D = $SelectionMarker
 @onready var _facing_arrow: Line2D = $FacingArrow
@@ -51,9 +70,10 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 	if state.is_dead:
 		stop_movement()
 		position = IsometricGrid.grid_to_world(state.grid_position)
+		_facing_from_cell = state.grid_position
+		_apply_directional_sprite(state.facing_direction, _facing_from_cell)
 		_apply_dead_visual(is_selected)
 		return
-
 	_dead_marker.visible = false
 	if not _is_moving:
 		position = IsometricGrid.grid_to_world(state.grid_position)
@@ -83,8 +103,7 @@ func set_selected(is_selected: bool) -> void:
 		return
 	_selection_marker.visible = is_selected
 	_selection_marker.polygon = IsometricGrid.diamond_corners(Vector2.ZERO)
-	_sprite.texture = TEXTURE_USA if team_id == Team.USA else TEXTURE_GERMANY
-
+	_apply_directional_sprite(_last_applied_facing, _facing_from_cell)
 
 func _apply_dead_visual(_is_selected: bool) -> void:
 	_applied_position_state = PositionState.DOWN
@@ -93,10 +112,10 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 	_dead_marker.visible = true
 	_weapon_badge.visible = false
 	_selection_marker.visible = false
-	_sprite.scale = Vector2(1.15, 0.42)
+	_sprite.scale = _prone_sprite_scale()
 	_sprite.position = Vector2.ZERO
 	_sprite.offset = SPRITE_OFFSET_PRONE
-	_sprite.texture = TEXTURE_USA if team_id == Team.USA else TEXTURE_GERMANY
+	_apply_directional_sprite(_last_applied_facing, _facing_from_cell)
 	_sprite.modulate = Color(0.38, 0.38, 0.38, 0.85)
 
 
@@ -106,15 +125,28 @@ func _apply_position_visual(state: SoldierState) -> void:
 	_applied_position_state = state.position_state
 	_sprite.position = Vector2.ZERO
 	if state.position_state == PositionState.DOWN:
-		_sprite.scale = Vector2(1.15, 0.42)
+		_sprite.scale = _prone_sprite_scale()
 		_sprite.offset = SPRITE_OFFSET_PRONE
 		_facing_arrow.visible = false
 		_prone_marker.visible = true
 	else:
-		_sprite.scale = Vector2.ONE
+		_sprite.scale = _standing_sprite_scale()
 		_sprite.offset = SPRITE_OFFSET_STANDING
 		_facing_arrow.visible = true
 		_prone_marker.visible = false
+
+
+func _standing_sprite_scale() -> Vector2:
+	if team_id == Team.USA:
+		return _USA_SPRITE_SCALE * _USA_SIZE_BOOST
+	return Vector2.ONE
+
+
+func _prone_sprite_scale() -> Vector2:
+	if team_id == Team.USA:
+		var base := _USA_SPRITE_SCALE * _USA_SIZE_BOOST
+		return Vector2(base.x * _PRONE_SPRITE_SCALE.x, base.y * _PRONE_SPRITE_SCALE.y)
+	return _PRONE_SPRITE_SCALE
 
 
 func _apply_weapon_badge(state: SoldierState) -> void:
@@ -201,6 +233,21 @@ func _advance_path_step() -> void:
 
 ## Point the placeholder arrow along the isometric screen direction for grid facing.
 func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:
+	_last_applied_facing = facing
+	_facing_from_cell = from_cell
+	_apply_directional_sprite(facing, from_cell)
 	if _facing_arrow == null:
 		return
 	_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(facing, from_cell)
+
+
+## Choose USA directional art from authoritative grid facing; Germany keeps placeholder SVG.
+func _apply_directional_sprite(facing: Vector2i, from_cell: Vector2i) -> void:
+	if _sprite == null:
+		return
+	if team_id == Team.USA:
+		var quarter: String = IsometricGrid.grid_facing_to_diagonal_quarter(facing, from_cell)
+		var texture: Texture2D = _USA_TEXTURES.get(quarter, TEXTURE_USA_SE) as Texture2D
+		_sprite.texture = texture
+	else:
+		_sprite.texture = TEXTURE_GERMANY

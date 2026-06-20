@@ -6,8 +6,6 @@ extends Node2D
 
 const COVER_TYPE_MODERATE := 1
 
-const _TEXTURE_WALL_STRAIGHT := preload("res://assets/sprites/wall-straight-1-tile.png")
-
 @export var tile_color_a := Color(0.28, 0.48, 0.22, 1.0)
 @export var tile_color_b := Color(0.24, 0.42, 0.19, 1.0)
 @export var tile_outline := Color(0.12, 0.22, 0.10, 0.6)
@@ -24,7 +22,8 @@ var map_data: MapData = null
 var _astar := AStarGrid2D.new()
 var _path_overlay: IsometricPathOverlay
 var _map_edit_hover_overlay: MapEditHoverOverlay
-var _object_textures: Dictionary = {}
+## When false, walkable tiles draw outlines only so GrassTerrainLayer shows through.
+var _show_tile_fill: bool = true
 
 
 func _ready() -> void:
@@ -42,9 +41,16 @@ func _ready() -> void:
 ## Apply authoritative map data and rebuild walkability.
 func apply_map_data(data: MapData) -> void:
 	map_data = data
-	_object_textures.clear()
 	rebuild_pathfinding()
 	_path_overlay.configure_bounds_check(func(cell: Vector2i) -> bool: return is_walkable(cell))
+	queue_redraw()
+
+
+## Map object sprites are drawn on DepthSortedLayer (Y-sorted with soldiers).
+
+
+func set_show_tile_fill(show_fill: bool) -> void:
+	_show_tile_fill = show_fill
 	queue_redraw()
 
 
@@ -122,10 +128,11 @@ func refresh_view_rotation() -> void:
 func _draw() -> void:
 	if map_data == null:
 		return
-	_draw_grass_border()
+	if _show_tile_fill:
+		_draw_grass_border()
 	_draw_tiles()
-	_draw_map_objects()
-	_draw_spawn_markers()
+	if _show_tile_fill:
+		_draw_spawn_markers()
 
 
 ## Decorative grass diamonds outside the playable map (not used for pathfinding).
@@ -164,16 +171,18 @@ func _draw_tiles() -> void:
 			var corners := IsometricGrid.diamond_corners(center)
 
 			if map_data.is_blocked(cell):
-				var object_def := map_data.get_object_def(cell)
-				var fill := blocked_color
-				if object_def != null and object_def.cover_type == COVER_TYPE_MODERATE:
-					fill = blocked_color.lerp(Color(0.22, 0.48, 0.18, 1.0), 0.25)
-				draw_colored_polygon(corners, fill)
-				draw_polyline(corners, blocked_outline, 1.0, true)
+				if _show_tile_fill:
+					var object_def := map_data.get_object_def(cell)
+					var fill := blocked_color
+					if object_def != null and object_def.cover_type == COVER_TYPE_MODERATE:
+						fill = blocked_color.lerp(Color(0.22, 0.48, 0.18, 1.0), 0.25)
+					draw_colored_polygon(corners, fill)
+					draw_polyline(corners, blocked_outline, 1.0, true)
 			else:
-				var fill := tile_color_a if (x + y) % 2 == 0 else tile_color_b
-				draw_colored_polygon(corners, fill)
-				draw_polyline(corners, tile_outline, 1.0, true)
+				if _show_tile_fill:
+					var fill := tile_color_a if (x + y) % 2 == 0 else tile_color_b
+					draw_colored_polygon(corners, fill)
+					draw_polyline(corners, tile_outline, 1.0, true)
 
 
 func _draw_spawn_markers() -> void:
@@ -192,37 +201,3 @@ func _draw_spawn_diamond(cell: Vector2i, color: Color) -> void:
 	for point in corners:
 		inset.append(center + (point - center) * 0.72)
 	draw_colored_polygon(inset, color)
-
-
-func _draw_map_objects() -> void:
-	for cell in map_data.get_object_cells():
-		var type_id: String = map_data.get_object_type(cell)
-		var object_def := MapObjectRegistry.get_def(type_id)
-		if object_def == null or object_def.sprite_path.is_empty():
-			continue
-		var texture: Texture2D = _get_object_texture(object_def.sprite_path)
-		if texture == null:
-			push_warning("IsometricMap: missing texture for map object '%s' at %s" % [type_id, cell])
-			continue
-		var center := IsometricGrid.grid_to_world(cell)
-		var size := texture.get_size()
-		var draw_pos := _map_object_draw_pos(type_id, center, size)
-		draw_texture(texture, draw_pos)
-
-
-func _map_object_draw_pos(type_id: String, center: Vector2, size: Vector2) -> Vector2:
-	if type_id == MapObjectRegistry.TYPE_WALL_STRAIGHT:
-		# Feet on tile center; wall rises above the diamond.
-		return center - Vector2(size.x * 0.5, size.y - IsometricGrid.TILE_HEIGHT * 0.45)
-	return center - size * 0.5 + Vector2(0.0, -8.0)
-
-
-func _get_object_texture(sprite_path: String) -> Texture2D:
-	if sprite_path == MapObjectRegistry.SPRITE_WALL_STRAIGHT:
-		return _TEXTURE_WALL_STRAIGHT
-	if _object_textures.has(sprite_path):
-		return _object_textures[sprite_path] as Texture2D
-	var texture: Texture2D = load(sprite_path) as Texture2D
-	if texture != null:
-		_object_textures[sprite_path] = texture
-	return texture

@@ -25,8 +25,9 @@ const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 
 @onready var _world: Node2D = $World
 @onready var _map_background: Node2D = $World/MapBackground
+@onready var _grass_layer: GrassTerrainLayer = $World/GrassTerrainLayer
 @onready var _iso_map: IsometricMap = $World/IsometricMap
-@onready var _soldiers_root: Node2D = $World/Soldiers
+@onready var _depth_sorted: DepthSortedLayer = $World/DepthSorted
 @onready var _tracers_root: Node2D = $World/Tracers
 @onready var _los_visualizer: LosVisualizerClass = $World/LosVisualizer
 @onready var _camera: MapCamera = $Camera2D
@@ -50,6 +51,7 @@ var _face_soldier_id: int = 1
 var _map_edit_mode: bool = false
 var _map_edit_palette: int = MapEditorClass.Palette.WALL
 var _auto_fire_timer: float = 0.0
+var _grass_layer_visible: bool = true
 
 
 func _ready() -> void:
@@ -59,7 +61,7 @@ func _ready() -> void:
 	_load_map_data()
 	_init_session_from_spawns()
 	_connect_command_bar()
-	_iso_map.apply_map_data(_map_data)
+	_apply_map_presentation()
 	_center_camera_on_map()
 	_spawn_all_soldier_views()
 	_log_fireteam_loadouts()
@@ -295,6 +297,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_switch_active_team(Team.GERMANY)
 			get_viewport().set_input_as_handled()
 			return
+		if event.keycode == KEY_B:
+			_toggle_grass_layer()
+			get_viewport().set_input_as_handled()
+			return
 		if event.is_action_pressed("rotate_view_left"):
 			_apply_view_rotation_left()
 			get_viewport().set_input_as_handled()
@@ -443,7 +449,29 @@ func _apply_map_edit_cell(cell: Vector2i, erase: bool) -> void:
 			return
 		_map_data.set_object(cell, type_id)
 	_game_state.map_data = _map_data
+	_apply_map_presentation()
+
+
+func _apply_map_presentation() -> void:
 	_iso_map.apply_map_data(_map_data)
+	_grass_layer.apply_map_data(_map_data)
+	_depth_sorted.apply_map_data(_map_data)
+	_sync_grass_grid_fill()
+
+
+func _sync_grass_grid_fill() -> void:
+	## Opaque grid fills hide grass textures; outlines-only when grass is on.
+	_iso_map.set_show_tile_fill(not _grass_layer_visible)
+
+
+func _toggle_grass_layer() -> void:
+	_grass_layer_visible = not _grass_layer_visible
+	_grass_layer.set_layer_visible(_grass_layer_visible)
+	_sync_grass_grid_fill()
+	if _grass_layer_visible:
+		_command_bar.show_status("Grass Layer Visible")
+	else:
+		_command_bar.show_status("Grass Layer Hidden")
 
 
 func _spawn_all_soldier_views() -> void:
@@ -455,7 +483,7 @@ func _spawn_all_soldier_views() -> void:
 			view.team_id = soldier_state.team_id
 			view.movement_step_reached.connect(_on_soldier_step_reached)
 			view.movement_finished.connect(_on_soldier_movement_finished)
-			_soldiers_root.add_child(view)
+			_depth_sorted.add_child(view)
 			_soldier_views[_view_key(soldier_state.team_id, soldier_state.soldier_id)] = view
 
 
@@ -607,6 +635,8 @@ func _refresh_view_rotation() -> void:
 	_camera.set_map_size(_map_data.width, _map_data.height)
 	_map_background.set_center_cell(_get_camera_focus_cell())
 	_iso_map.refresh_view_rotation()
+	_grass_layer.refresh_view_rotation()
+	_depth_sorted.refresh_view_rotation()
 	for view in _soldier_views.values():
 		var soldier_view: Soldier = view
 		soldier_view.refresh_movement_visual()
@@ -737,7 +767,7 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 			order_view.follow_path(order.path, order.speed_mult)
 
 	if result.refresh_map_data:
-		_iso_map.apply_map_data(_map_data)
+		_apply_map_presentation()
 
 	if result.clear_path_overlay:
 		_iso_map.clear_path()
@@ -1109,7 +1139,7 @@ func _on_map_load_requested() -> void:
 	_map_edit_mode = false
 	_command_bar.clear_map_edit_mode()
 	IsometricGrid.reset_view_rotation()
-	_iso_map.apply_map_data(_map_data)
+	_apply_map_presentation()
 	_camera.set_map_size(_map_data.width, _map_data.height)
 	_center_camera_on_map()
 	_sync_views_after_load()

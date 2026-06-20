@@ -110,6 +110,19 @@ static func grid_facing_to_degrees(facing: Vector2i, from_cell: Vector2i = Vecto
 	return rad_to_deg(screen_dir.angle())
 
 
+## Isometric screen quadrant for directional unit sprites (ne/nw/se/sw).
+static func grid_facing_to_diagonal_quarter(
+	facing: Vector2i,
+	from_cell: Vector2i = Vector2i.ZERO,
+) -> String:
+	var screen_dir := grid_facing_to_screen(facing, from_cell)
+	if screen_dir.length_squared() < 0.001:
+		return "se"
+	if screen_dir.x >= 0.0:
+		return "ne" if screen_dir.y < 0.0 else "se"
+	return "nw" if screen_dir.y < 0.0 else "sw"
+
+
 ## Fast approximation — use world_to_cell_at_point() for mouse picking.
 static func world_to_grid(world: Vector2) -> Vector2i:
 	return _visual_to_logical(_base_world_to_grid(world))

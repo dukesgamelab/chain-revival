@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://scripts/ui/status_hud.gd" id="7_status"]
 [ext_resource type="Script" path="res://scripts/map/map_camera.gd" id="4_camera"]
 [ext_resource type="Script" path="res://scripts/map/map_background.gd" id="5_bg"]
+[ext_resource type="Script" path="res://scripts/map/grass_terrain_layer.gd" id="8_grass"]
+[ext_resource type="Script" path="res://scripts/map/depth_sorted_layer.gd" id="9_depth"]
 [ext_resource type="Script" path="res://scripts/effects/los_visualizer.gd" id="6_losviz"]
 
 [node name="Main" type="Node2D" unique_id=358126869]
@@ -17,10 +19,16 @@ script = ExtResource("1_main")
 z_index = -10
 script = ExtResource("5_bg")
 
+[node name="GrassTerrainLayer" type="Node2D" parent="World"]
+z_index = -5
+script = ExtResource("8_grass")
+
 [node name="IsometricMap" type="Node2D" parent="World" unique_id=903530778]
 script = ExtResource("2_isomap")
 
-[node name="Soldiers" type="Node2D" parent="World" unique_id=1271929810]
+[node name="DepthSorted" type="Node2D" parent="World"]
+y_sort_enabled = true
+script = ExtResource("9_depth")
 
 [node name="Tracers" type="Node2D" parent="World"]
 z_index = 8

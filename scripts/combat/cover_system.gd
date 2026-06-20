@@ -76,14 +76,21 @@ static func allows_peek_and_shoot_over(object_def: MapObjectDef) -> bool:
 static func living_standing_soldier_blocks_line(cell: Vector2i, game_state: GameState) -> bool:
 	if game_state == null:
 		return false
-	var soldier := game_state.find_soldier_at_cell(cell)
+	var soldier := game_state.find_living_soldier_at_cell(cell)
 	if soldier == null:
-		return false
-	if soldier.is_dead:
 		return false
 	if soldier.position_state == PositionStateClass.DOWN:
 		return false
 	return true
+
+
+## True when the target is adjacent to a complete-cover wall on the fire line.
+static func target_has_hard_cover(
+	from_cell: Vector2i,
+	target_cell: Vector2i,
+	map_data: MapData,
+) -> bool:
+	return evaluate_wall_cover_usage(from_cell, target_cell, map_data).target_using_wall_cover
 
 
 ## Who is using a complete-cover wall on this fire line (peek / hard cover).
@@ -362,11 +369,9 @@ static func evaluate_target_cover(
 			continue
 		if can_peek_and_shoot_over(from_cell, target_cell, cell, object_def):
 			continue
-		if get_wall_skip_reason(from_cell, target_cell, cell, object_def) == WallSkipReason.SHOOTER_PEEK:
+		if get_wall_skip_reason(from_cell, target_cell, cell, object_def) != WallSkipReason.NONE:
 			continue
-		if provides_complete_cover_to_target(from_cell, target_cell, cell, object_def):
-			_apply_complete_cover(object_def, cell, result)
-		elif object_def.provides_cover and object_def.cover_type == CoverType.MODERATE:
+		if object_def.provides_cover and object_def.cover_type == CoverType.MODERATE:
 			_apply_moderate_cover(object_def, cell, result)
 
 	return result
@@ -428,15 +433,7 @@ static func _consider_adjacent_target_cover(
 	var object_def := map_data.get_object_def(cell)
 	if object_def == null or not object_def.provides_cover:
 		return
-	if object_def.cover_type == CoverType.COMPLETE:
-		if not _is_adjacent(target_cell, cell):
-			return
-		if not is_cell_on_fire_line(from_cell, target_cell, cell):
-			return
-		if get_wall_skip_reason(from_cell, target_cell, cell, object_def) == WallSkipReason.SHOOTER_PEEK:
-			return
-		_apply_complete_cover(object_def, cell, result)
-	elif object_def.cover_type == CoverType.MODERATE:
+	if object_def.cover_type == CoverType.MODERATE:
 		_apply_moderate_cover(object_def, cell, result)
 
 
