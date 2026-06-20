@@ -2,9 +2,9 @@ extends Node2D
 ## Root scene: presentation shell for the authoritative game loop.
 ##
 ## Architecture:
-##   Input/UI → Command DTO → ActionResolver → GameState (truth) → Soldier visuals
+##   Input/UI → CommandRouter → ActionResolver → GameState (truth) → Soldier visuals
 ##
-## main.gd must not mutate SoldierState or MapData directly. Use ActionResolver.
+## main.gd must not mutate SoldierState or MapData directly. Use CommandRouter for commands.
 
 const SoldierScene := preload("res://scenes/soldier.tscn")
 const GameSessionClass := preload("res://scripts/core/game_session.gd")
@@ -126,7 +126,7 @@ func _get_manual_fire_at_shooters() -> Array[SoldierState]:
 
 
 func _clear_manual_fire_at_targets() -> void:
-	ActionResolverClass.cancel_all_sustained_fire(_game_state)
+	CommandRouter.cancel_sustained_fire(_game_state)
 
 
 func _active_fireteam_has_engaged_soldier() -> bool:
@@ -560,7 +560,7 @@ func _update_map_edit_hover() -> void:
 
 
 func _apply_map_edit_cell(cell: Vector2i, erase: bool) -> void:
-	var result: ActionResultClass = ActionResolverClass.apply_map_edit(
+	var result: ActionResultClass = CommandRouter.apply_map_edit(
 		_game_state,
 		cell,
 		_map_edit_palette,
@@ -1017,7 +1017,7 @@ func _apply_grenade_command(target_cell: Vector2i) -> void:
 	cmd.soldier_id = _grenade_soldier_id
 	cmd.target_cell = target_cell
 
-	var result: ActionResultClass = ActionResolverClass.execute(
+	var result: ActionResultClass = CommandRouter.submit_command(
 		_game_state,
 		cmd,
 		_make_grenade_context(soldier_state),
@@ -1030,7 +1030,7 @@ func _apply_grenade_command(target_cell: Vector2i) -> void:
 
 
 func _apply_move_command(cmd: MoveCommand) -> void:
-	var result: ActionResultClass = ActionResolverClass.execute(
+	var result: ActionResultClass = CommandRouter.submit_command(
 		_game_state,
 		cmd,
 		_make_move_context(cmd),
@@ -1047,12 +1047,12 @@ func _apply_move_command(cmd: MoveCommand) -> void:
 
 
 func _apply_face_command(cmd: FaceCommand) -> void:
-	var result: ActionResultClass = ActionResolverClass.execute(_game_state, cmd)
+	var result: ActionResultClass = CommandRouter.submit_command(_game_state, cmd)
 	_present_action_result(result)
 
 
 func _apply_position_command(cmd: PositionCommand) -> void:
-	var result: ActionResultClass = ActionResolverClass.execute(_game_state, cmd)
+	var result: ActionResultClass = CommandRouter.submit_command(_game_state, cmd)
 	if (
 		result.success
 		and cmd.position_state == PositionStateClass.DOWN
@@ -1071,7 +1071,7 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 	cmd.team_id = _session.active_team_id
 	cmd.soldier_id = soldier_id
 	cmd.fire_control_state = fire_control_state
-	var result: ActionResultClass = ActionResolverClass.execute(_game_state, cmd)
+	var result: ActionResultClass = CommandRouter.submit_command(_game_state, cmd)
 	_present_action_result(result)
 
 
@@ -1084,7 +1084,7 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 
 
 func _arm_movement_mode(soldier_id: int, movement_mode: int) -> String:
-	var result: ActionResultClass = ActionResolverClass.arm_movement_mode(
+	var result: ActionResultClass = CommandRouter.arm_movement_mode(
 		_game_state,
 		_session.active_team_id,
 		soldier_id,
@@ -1111,7 +1111,7 @@ func _apply_fire_at_aim(aim_world: Vector2, clicked_soldier: SoldierState = null
 		cmd.scope = FireCommand.Scope.SINGLE
 		cmd.soldier_id = _fire_at_soldier_id
 
-	var result: ActionResultClass = ActionResolverClass.execute(
+	var result: ActionResultClass = CommandRouter.submit_command(
 		_game_state,
 		cmd,
 		_make_fire_context(shooters),
@@ -1310,7 +1310,7 @@ func _on_save_requested() -> void:
 
 
 func _on_load_requested() -> void:
-	var result: ActionResultClass = ActionResolverClass.load_saved_session(_game_state)
+	var result: ActionResultClass = CommandRouter.load_saved_session(_game_state)
 	if not result.success:
 		_command_bar.show_status(result.status_message)
 		return
@@ -1326,7 +1326,7 @@ func _on_map_save_requested() -> void:
 
 
 func _on_map_load_requested() -> void:
-	var result: ActionResultClass = ActionResolverClass.reload_map_from_file(_game_state)
+	var result: ActionResultClass = CommandRouter.reload_map_from_file(_game_state)
 	_map_data = _game_state.map_data
 	_map_edit_mode = false
 	_command_bar.clear_map_edit_mode()

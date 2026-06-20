@@ -3,8 +3,8 @@ extends RefCounted
 ## Single source of truth for authoritative gameplay data.
 ##
 ## Owns the session (soldiers, teams) and map (blockers, cover objects, walkability).
-## All gameplay mutations go through ActionResolver — never write soldier or map fields
-## from UI, Soldier views, or scene scripts.
+## All gameplay mutations go through CommandRouter → ActionResolver — never write
+## soldier or map fields from UI, Soldier views, or scene scripts.
 ##
 ## Authoritative soldier fields (via SoldierState): grid_position, facing_direction,
 ## is_dead, position_state, movement_mode, fire_control_state, ammo, engagement,

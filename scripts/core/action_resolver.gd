@@ -2,9 +2,8 @@ class_name ActionResolver
 extends RefCounted
 ## Single entry point for mutating authoritative GameState.
 ##
-## Flow (local today, server-ready tomorrow):
-##   UI input → Command DTO → ActionResolver.execute(game_state, command, context)
-##            → GameState updated → ActionResult → presentation refresh
+## Flow (OFFLINE_DEV):
+##   Input/UI → CommandRouter → ActionResolver → GameState → visuals
 ##
 ## CombatSystem, CoverSystem, and LOSSystem are called from here; they never touch nodes.
 

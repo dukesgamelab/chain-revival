@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 GameLog="*res://scripts/core/game_log.gd"
 GameModeManager="*res://scripts/core/game_mode_manager.gd"
+CommandRouter="*res://scripts/core/command_router.gd"
 AudioManager="*res://scenes/audio_manager.tscn"
 
 [debug]

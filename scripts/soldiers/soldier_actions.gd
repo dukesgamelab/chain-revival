@@ -1,6 +1,6 @@
 class_name SoldierActions
 extends RefCounted
-## Deprecated entry points — delegate to ActionResolver.
+## Deprecated entry points — delegate to CommandRouter when game_state is available.
 ##
 ## Kept so existing call sites stay stable during the architecture migration.
 
