@@ -27,6 +27,28 @@ static func is_cell_in_cone(
 	return float(lateral) <= half_width + 0.001
 
 
+## Spotting uses a broad forward arc (no lateral squeeze) — facing the fight, not a fire cone.
+static func is_in_spotting_forward_arc(
+	from_cell: Vector2i,
+	facing: Vector2i,
+	target_cell: Vector2i,
+	max_range: int,
+) -> bool:
+	var forward := _forward_tiles(from_cell, facing, target_cell)
+	return forward > 0 and forward <= max_range
+
+
+static func is_facing_toward_target(
+	from_cell: Vector2i,
+	facing: Vector2i,
+	target_cell: Vector2i,
+	max_range: int,
+) -> bool:
+	if FacingDirection.toward_cell(from_cell, target_cell) == FacingDirection.normalize(facing):
+		return true
+	return is_in_spotting_forward_arc(from_cell, facing, target_cell, max_range)
+
+
 ## Grid-facing cone (combat acquisition).
 static func cone_outline_world(from_cell: Vector2i, facing: Vector2i, max_range: int) -> PackedVector2Array:
 	var normalized := FacingDirection.normalize(facing)

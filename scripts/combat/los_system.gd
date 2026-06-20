@@ -79,7 +79,7 @@ static func evaluate(
 	return result
 
 
-## Spotting visibility: map blockers only — standing soldiers do not block.
+## Spotting visibility: map blockers only — living/dead soldiers never block.
 static func evaluate_spotting(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
@@ -95,8 +95,8 @@ static func evaluate_spotting(
 	result.shooter_using_wall_cover = wall_usage.shooter_using_wall_cover
 	result.target_using_wall_cover = wall_usage.target_using_wall_cover
 
-	var block := CoverSystem.find_blocking_tile(
-		from_cell, to_cell, map_data, game_state, false,
+	var block := CoverSystem.find_spotting_blocking_tile(
+		from_cell, to_cell, map_data, game_state,
 	)
 	if block.blocked:
 		result.status = Status.BLOCKED
@@ -110,7 +110,7 @@ static func evaluate_spotting(
 	result.cover_type = cover.cover_type
 	result.cover_source_type = cover.source_type_id
 	result.cover_source_cell = cover.source_cell
-	if cover.cover_type in [CoverSystem.CoverType.MODERATE, CoverSystem.CoverType.COMPLETE]:
+	if cover.cover_type == CoverSystem.CoverType.MODERATE:
 		result.status = Status.COVER
 	else:
 		result.status = Status.CLEAR

@@ -84,13 +84,18 @@ func _process(delta: float) -> void:
 	if not _map_edit_mode:
 		_update_los_preview()
 		_update_command_bar_hit_columns()
+		_apply_spotting_cell_overrides()
+		if _any_soldier_moving():
+			_refresh_all_views()
 
 		_auto_fire_timer += delta
 		if _auto_fire_timer < CombatSystem.AUTO_FIRE_SCAN_INTERVAL:
+			_clear_spotting_cell_overrides()
 			return
 		_auto_fire_timer = 0.0
 		var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
 		_present_action_result(tick_result, true)
+		_clear_spotting_cell_overrides()
 
 
 func _input(event: InputEvent) -> void:
@@ -455,6 +460,7 @@ func _spawn_all_soldier_views() -> void:
 
 
 func _refresh_all_views() -> void:
+	_apply_spotting_cell_overrides()
 	var active_team: int = _session.active_team_id
 	var active_fireteam: Fireteam = _session.get_active_fireteam()
 	for fireteam in _session.all_fireteams():
@@ -465,6 +471,7 @@ func _refresh_all_views() -> void:
 				and soldier_state.soldier_id == active_fireteam.selected_soldier_id
 			)
 			_sync_soldier_view(soldier_state.team_id, soldier_state.soldier_id, is_selected)
+	_clear_spotting_cell_overrides()
 
 	_ensure_active_selection_alive()
 	_refresh_command_bar()
@@ -659,10 +666,49 @@ func _get_fireteam(team_id: int) -> Fireteam:
 func _any_active_team_soldier_moving() -> bool:
 	for state in _session.get_active_fireteam().soldiers:
 		var soldier_state: SoldierState = state
-		var view: Soldier = _get_view(soldier_state.team_id, soldier_state.soldier_id)
-		if view != null and view.is_moving():
+		if _is_soldier_moving(soldier_state):
 			return true
 	return false
+
+
+func _any_soldier_moving() -> bool:
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if _is_soldier_moving(soldier_state):
+				return true
+	return false
+
+
+func _is_soldier_moving(state: SoldierState) -> bool:
+	if state == null or state.is_dead:
+		return false
+	if state.is_moving:
+		return true
+	var view: Soldier = _get_view(state.team_id, state.soldier_id)
+	return view != null and view.is_moving()
+
+
+func _build_spotting_cell_overrides() -> Dictionary:
+	var overrides: Dictionary = {}
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if soldier_state.is_dead:
+				continue
+			if _is_soldier_moving(soldier_state):
+				overrides[_soldier_snap_key(soldier_state.team_id, soldier_state.soldier_id)] = (
+					_snap_cell_for_soldier(soldier_state)
+				)
+	return overrides
+
+
+func _apply_spotting_cell_overrides() -> void:
+	CombatSystem.set_spotting_cell_overrides(_build_spotting_cell_overrides())
+
+
+func _clear_spotting_cell_overrides() -> void:
+	CombatSystem.clear_spotting_cell_overrides()
 
 
 func _on_soldier_selected(soldier_id: int) -> void:
@@ -905,6 +951,7 @@ func _get_soldier_tracer_point(soldier_state: SoldierState) -> Vector2:
 
 func _on_soldier_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i) -> void:
 	ActionResolverClass.on_movement_step(_game_state, team_id, soldier_id, tile, step_delta)
+	_refresh_all_views()
 
 
 func _on_soldier_movement_finished(team_id: int, soldier_id: int) -> void:
@@ -914,11 +961,7 @@ func _on_soldier_movement_finished(team_id: int, soldier_id: int) -> void:
 	_log_move_complete(soldier_id, state, view)
 	if team_id == _session.active_team_id and not _any_active_team_soldier_moving():
 		_iso_map.clear_path()
-	var is_selected := (
-		team_id == _session.active_team_id
-		and soldier_id == _session.get_active_fireteam().selected_soldier_id
-	)
-	_sync_soldier_view(team_id, soldier_id, is_selected)
+	_refresh_all_views()
 	_ensure_active_selection_alive()
 	_refresh_command_bar()
 	_command_bar.show_status("%s Soldier %d move complete." % [Team.display_name(team_id), soldier_id])

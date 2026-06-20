@@ -15,7 +15,6 @@ const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
 const CoverSystemClass := preload("res://scripts/combat/cover_system.gd")
 const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
 const ConeOfFireClass := preload("res://scripts/combat/cone_of_fire.gd")
-const DirectSpotInfoClass := preload("res://scripts/combat/direct_spot_info.gd")
 const EnemyVisibilityResultClass := preload("res://scripts/combat/enemy_visibility_result.gd")
 const FireAtPreviewResultClass := preload("res://scripts/combat/fire_at_preview_result.gd")
 const StressLabelsClass := preload("res://scripts/combat/stress_labels.gd")
@@ -36,12 +35,11 @@ const PRONE_SUPPRESSION_MULT := 0.75
 const STRESS_PINNED_THRESHOLD := 45.0
 const STRESS_PANIC_THRESHOLD := 70.0
 const AUTO_TARGET_ENGAGED_BONUS := 10.0
-const VISIBILITY_SCORE_THRESHOLD := 35.0
 const RECENTLY_SEEN_SEC := 2.0
 const RECENTLY_FIRED_SPOT_SEC := 2.0
 const LAST_KNOWN_NEAR_TILES := 2
-## Max chebyshev distance from a spotted enemy for cluster reveal (fireteam depth).
-const CLUSTER_REVEAL_TILES := 3
+## Spotting reaches beyond max weapon range (eyes/binoculars vs effective fire distance).
+const SPOTTING_RANGE_BONUS := 10
 
 ## stress = suppression/combat pressure; affects accuracy, movement, and fire cadence.
 ## spotting controls target eligibility; shot LOS controls whether bullets can fire.
@@ -53,6 +51,26 @@ static var _last_preview_debug_key: String = ""
 static var _team_visibility_cache_key: String = ""
 static var _visibility_cache_by_team: Dictionary = {}
 static var _visibility_log_keys: Dictionary = {}
+## Presentation layer: world-derived grid cells for soldiers mid-move (key "team_id:soldier_id").
+static var _spotting_cell_overrides: Dictionary = {}
+
+
+static func set_spotting_cell_overrides(overrides: Dictionary) -> void:
+	_spotting_cell_overrides = overrides
+
+
+static func clear_spotting_cell_overrides() -> void:
+	_spotting_cell_overrides.clear()
+
+
+static func spotting_cell_for(soldier: SoldierStateClass) -> Vector2i:
+	if soldier == null:
+		return Vector2i.ZERO
+	var key := "%d:%d" % [soldier.team_id, soldier.soldier_id]
+	var override_cell: Variant = _spotting_cell_overrides.get(key)
+	if override_cell is Vector2i:
+		return override_cell
+	return soldier.grid_position
 
 
 ## Authoritative Fire At aim preview — same target and LOS rules as manual combat.
@@ -301,7 +319,8 @@ static func resolve_shot(
 	return result
 
 
-## --- Spotting / visibility (map LOS, soldiers ignored) vs shot LOS (strict) ---
+## --- Spotting / visibility (map cover + range + forward arc) vs shot LOS (strict) ---
+## Living/dead soldiers never block spotting. Broad forward arc, not the narrow fire cone.
 
 
 static func can_spot_enemy(
@@ -309,7 +328,42 @@ static func can_spot_enemy(
 	target: SoldierStateClass,
 	game_state: GameStateClass,
 ) -> bool:
-	return get_visibility_score(observer, target, game_state) >= VISIBILITY_SCORE_THRESHOLD
+	return _passes_spotting_checks(observer, target, game_state)
+
+
+static func _passes_spotting_checks(
+	observer: SoldierStateClass,
+	target: SoldierStateClass,
+	game_state: GameStateClass,
+) -> bool:
+	if observer == null or target == null or target.is_dead or observer.is_dead:
+		return false
+	if observer.team_id == target.team_id:
+		return false
+
+	var observer_cell := spotting_cell_for(observer)
+	var target_cell := spotting_cell_for(target)
+
+	var los := LOSSystemClass.evaluate_spotting(
+		observer_cell,
+		target_cell,
+		game_state.map_data,
+		game_state,
+	)
+	if los.status == LOSSystemClass.Status.BLOCKED:
+		return false
+
+	var weapon := observer.get_weapon_data()
+	var spotting_range := _effective_spotting_range(weapon)
+	if _manhattan_distance(observer_cell, target_cell) > spotting_range:
+		return false
+
+	return ConeOfFireClass.is_facing_toward_target(
+		observer_cell,
+		observer.facing_direction,
+		target_cell,
+		spotting_range,
+	)
 
 
 static func get_visibility_score(
@@ -317,33 +371,16 @@ static func get_visibility_score(
 	target: SoldierStateClass,
 	game_state: GameStateClass,
 ) -> float:
-	if observer == null or target == null or target.is_dead or observer.is_dead:
-		return -1.0
-	if observer.team_id == target.team_id:
+	if not _passes_spotting_checks(observer, target, game_state):
 		return -1.0
 
-	var los := LOSSystemClass.evaluate_spotting(
-		observer.grid_position,
-		target.grid_position,
-		game_state.map_data,
-		game_state,
-	)
-	if los.status == LOSSystemClass.Status.BLOCKED:
-		return -1.0
-
+	var observer_cell := spotting_cell_for(observer)
+	var target_cell := spotting_cell_for(target)
 	var weapon := observer.get_weapon_data()
 	var max_range := _effective_weapon_range(weapon) if weapon != null else ConeOfFireClass.RANGE_BONUS
-	var dist := _manhattan_distance(observer.grid_position, target.grid_position)
-	if dist > max_range:
-		return -1.0
-
+	var dist := _manhattan_distance(observer_cell, target_cell)
 	var score := 100.0 - float(dist) * 4.0
 
-	if not _is_target_in_cone(observer, target.grid_position, max_range):
-		score -= 35.0
-
-	if target.position_state == PositionStateClass.DOWN:
-		score -= 20.0
 	if target.is_moving:
 		if target.movement_mode == MovementModeClass.RUN:
 			score += 15.0
@@ -353,10 +390,14 @@ static func get_visibility_score(
 	if _target_recently_fired(target):
 		score += 25.0
 
+	var los := LOSSystemClass.evaluate_spotting(
+		observer_cell,
+		target_cell,
+		game_state.map_data,
+		game_state,
+	)
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
 		score -= 20.0
-	if los.cover_type == CoverSystemClass.CoverType.COMPLETE:
-		score -= 35.0
 
 	score *= get_cover_visibility_modifier(observer, target, game_state, los)
 	return score
@@ -507,161 +548,46 @@ static func _build_team_visibility_map(
 ) -> Dictionary:
 	var results: Dictionary = {}
 	var enemy_team_id: int = game_state.enemy_team_id(observer_team_id)
+	var observer_fireteam := game_state.session.get_fireteam(observer_team_id)
 	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
-	var direct_spots := _find_direct_spotted_enemies(game_state, observer_team_id)
-	var living_enemies: Array[SoldierStateClass] = []
 
 	for enemy_state in enemy_fireteam.soldiers:
 		var enemy: SoldierStateClass = enemy_state
 		if enemy.is_dead:
 			continue
-		living_enemies.append(enemy)
 		var enemy_key := SoldierStateClass.enemy_tracking_key(enemy.team_id, enemy.soldier_id)
-		results[enemy_key] = _evaluate_direct_team_visibility(enemy, direct_spots)
+		var result := EnemyVisibilityResult.new()
+		var best_score := -1.0
+		var best_observer: SoldierStateClass = null
 
-	_expand_cluster_visibility(game_state, living_enemies, results)
+		for observer_state in observer_fireteam.soldiers:
+			var observer: SoldierStateClass = observer_state
+			if observer.is_dead:
+				continue
+			if not can_spot_enemy(observer, enemy, game_state):
+				continue
+			var score := get_visibility_score(observer, enemy, game_state)
+			if score > best_score:
+				best_score = score
+				best_observer = observer
 
-	for enemy in living_enemies:
-		var enemy_key := SoldierStateClass.enemy_tracking_key(enemy.team_id, enemy.soldier_id)
-		var result: EnemyVisibilityResult = results[enemy_key]
-		if not result.visible:
+		if best_observer != null:
+			result.visible = true
+			result.source = EnemyVisibilityResultClass.Source.DIRECT
+			result.visibility_score = best_score
+			result.spotter_team_id = best_observer.team_id
+			result.spotter_soldier_id = best_observer.soldier_id
+		else:
 			result.visibility_score = _best_team_visibility_score(
 				game_state,
 				observer_team_id,
 				enemy,
 			)
+
+		results[enemy_key] = result
 		_log_enemy_visibility(observer_team_id, enemy, result)
 
 	return results
-
-
-static func _evaluate_direct_team_visibility(
-	enemy: SoldierStateClass,
-	direct_spots: Dictionary,
-) -> EnemyVisibilityResult:
-	var result := EnemyVisibilityResult.new()
-	var direct: DirectSpotInfo = direct_spots.get(
-		SoldierStateClass.enemy_tracking_key(enemy.team_id, enemy.soldier_id),
-	)
-	if direct == null:
-		return result
-
-	result.visible = true
-	result.source = EnemyVisibilityResultClass.Source.DIRECT
-	result.visibility_score = direct.score
-	result.spotter_team_id = direct.observer.team_id
-	result.spotter_soldier_id = direct.observer.soldier_id
-	return result
-
-
-## Reveal nearby squadmates of already-visible enemies (BFS, up to fireteam size).
-static func _expand_cluster_visibility(
-	game_state: GameStateClass,
-	living_enemies: Array[SoldierStateClass],
-	results: Dictionary,
-) -> void:
-	var max_passes := living_enemies.size()
-	for _pass in range(max_passes):
-		var any_revealed := false
-		for enemy in living_enemies:
-			var enemy_key := SoldierStateClass.enemy_tracking_key(enemy.team_id, enemy.soldier_id)
-			if results[enemy_key].visible:
-				continue
-			var cluster := _find_best_cluster_reveal(game_state, enemy, living_enemies, results)
-			if cluster.is_empty():
-				continue
-			results[enemy_key] = _cluster_visibility_from(cluster)
-			any_revealed = true
-		if not any_revealed:
-			break
-
-
-static func _find_best_cluster_reveal(
-	game_state: GameStateClass,
-	enemy: SoldierStateClass,
-	living_enemies: Array[SoldierStateClass],
-	results: Dictionary,
-) -> Dictionary:
-	var best_score := -1.0
-	var best_cluster: Dictionary = {}
-
-	for anchor_enemy in living_enemies:
-		if anchor_enemy == enemy:
-			continue
-		var anchor_key := SoldierStateClass.enemy_tracking_key(
-			anchor_enemy.team_id,
-			anchor_enemy.soldier_id,
-		)
-		var anchor_result: EnemyVisibilityResult = results.get(anchor_key)
-		if anchor_result == null or not anchor_result.visible:
-			continue
-		if not _within_cluster_reveal_range(
-			anchor_enemy.grid_position,
-			enemy.grid_position,
-		):
-			continue
-		# Squadmate-to-squadmate map LOS — soldiers never block; avoids wall angles
-		# that block the observer but not the visible anchor standing beside this enemy.
-		if LOSSystemClass.is_spotting_blocked(
-			anchor_enemy.grid_position,
-			enemy.grid_position,
-			game_state.map_data,
-			game_state,
-		):
-			continue
-		if anchor_result.visibility_score > best_score:
-			best_score = anchor_result.visibility_score
-			best_cluster = {
-				"observer_team_id": anchor_result.spotter_team_id,
-				"observer_soldier_id": anchor_result.spotter_soldier_id,
-				"anchor": anchor_enemy,
-				"score": anchor_result.visibility_score,
-			}
-
-	return best_cluster
-
-
-static func _cluster_visibility_from(cluster: Dictionary) -> EnemyVisibilityResult:
-	var result := EnemyVisibilityResult.new()
-	var anchor: SoldierStateClass = cluster.anchor
-	result.visible = true
-	result.source = EnemyVisibilityResultClass.Source.CLUSTER
-	result.visibility_score = float(cluster.score)
-	result.spotter_team_id = cluster.observer_team_id
-	result.spotter_soldier_id = cluster.observer_soldier_id
-	result.cluster_anchor_team_id = anchor.team_id
-	result.cluster_anchor_soldier_id = anchor.soldier_id
-	return result
-
-
-static func _find_direct_spotted_enemies(
-	game_state: GameStateClass,
-	observer_team_id: int,
-) -> Dictionary:
-	var direct_spots: Dictionary = {}
-	var fireteam := game_state.session.get_fireteam(observer_team_id)
-	for state in fireteam.soldiers:
-		var observer: SoldierStateClass = state
-		if observer.is_dead:
-			continue
-		var enemy_team_id: int = game_state.enemy_team_id(observer_team_id)
-		var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
-		for enemy_state in enemy_fireteam.soldiers:
-			var enemy: SoldierStateClass = enemy_state
-			if enemy.is_dead:
-				continue
-			var score := get_visibility_score(observer, enemy, game_state)
-			if score < VISIBILITY_SCORE_THRESHOLD:
-				continue
-			var enemy_key := SoldierStateClass.enemy_tracking_key(enemy.team_id, enemy.soldier_id)
-			var existing: DirectSpotInfo = direct_spots.get(enemy_key)
-			if existing == null or score > existing.score:
-				var info := DirectSpotInfo.new()
-				info.enemy = enemy
-				info.observer = observer
-				info.score = score
-				direct_spots[enemy_key] = info
-	return direct_spots
 
 
 static func _best_team_visibility_score(
@@ -680,12 +606,6 @@ static func _best_team_visibility_score(
 	return best_score
 
 
-static func _within_cluster_reveal_range(from_cell: Vector2i, to_cell: Vector2i) -> bool:
-	if from_cell == to_cell:
-		return false
-	return maxi(absi(from_cell.x - to_cell.x), absi(from_cell.y - to_cell.y)) <= CLUSTER_REVEAL_TILES
-
-
 static func _build_visibility_cache_signature(game_state: GameStateClass) -> String:
 	var parts: PackedStringArray = []
 	for fireteam in game_state.session.all_fireteams():
@@ -696,11 +616,13 @@ static func _build_visibility_cache_signature(game_state: GameStateClass) -> Str
 				% [
 					soldier.team_id,
 					soldier.soldier_id,
-					soldier.grid_position,
+					spotting_cell_for(soldier),
 					soldier.facing_direction,
 					int(soldier.is_dead),
 				]
 			)
+	for key in _spotting_cell_overrides.keys():
+		parts.append("snap:%s=%s" % [key, _spotting_cell_overrides[key]])
 	return "|".join(parts)
 
 
@@ -737,13 +659,6 @@ static func _log_enemy_visibility(
 	var detail := ""
 	if result.visible and result.source == EnemyVisibilityResultClass.Source.DIRECT:
 		detail = " via %s S%d" % [
-			Team.display_name(result.spotter_team_id),
-			result.spotter_soldier_id,
-		]
-	elif result.visible and result.source == EnemyVisibilityResultClass.Source.CLUSTER:
-		detail = " via cluster anchor %s S%d (spotter %s S%d)" % [
-			Team.display_name(result.cluster_anchor_team_id),
-			result.cluster_anchor_soldier_id,
 			Team.display_name(result.spotter_team_id),
 			result.spotter_soldier_id,
 		]
@@ -1507,6 +1422,10 @@ static func _effective_weapon_range(weapon: WeaponDataClass) -> int:
 	if weapon == null:
 		return ConeOfFireClass.RANGE_BONUS
 	return ConeOfFireClass.effective_range(weapon.range_tiles)
+
+
+static func _effective_spotting_range(weapon: WeaponDataClass) -> int:
+	return _effective_weapon_range(weapon) + SPOTTING_RANGE_BONUS
 
 
 static func _is_target_in_cone(

@@ -181,6 +181,55 @@ static func find_blocking_tile(
 	return result
 
 
+## Spotting LOS: trees block; walls never block rays; soldier cells never block.
+static func find_spotting_blocking_tile(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	map_data: MapData,
+	game_state: GameState = null,
+) -> BlockResult:
+	var result := BlockResult.new()
+	if map_data == null:
+		result.blocked = true
+		return result
+
+	var skipped_shooter_side_blocker := false
+	for cell in line_cells_between(from_cell, to_cell):
+		if game_state != null and cell != to_cell:
+			var occupant := game_state.find_soldier_at_cell(cell)
+			if occupant != null:
+				continue
+
+		var object_def := map_data.get_object_def(cell)
+		if object_def == null:
+			continue
+		if _is_complete_cover_wall(object_def):
+			continue
+		if not blocks_line_of_fire(object_def):
+			continue
+		if (
+			not skipped_shooter_side_blocker
+			and can_peek_and_shoot_over(from_cell, to_cell, cell, object_def)
+		):
+			skipped_shooter_side_blocker = true
+			continue
+		result.blocked = true
+		result.blocking_cell = cell
+		result.blocking_type_id = object_def.type_id
+		return result
+
+	return result
+
+
+## Deprecated: spotting no longer hides by adjacent wall cover alone (see find_spotting_blocking_tile).
+static func is_target_hidden_from_spotting(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	_map_data: MapData,
+) -> bool:
+	return false
+
+
 ## Collect per-tile LOS trace data for debug logging.
 static func trace_line_of_sight(
 	from_cell: Vector2i,
