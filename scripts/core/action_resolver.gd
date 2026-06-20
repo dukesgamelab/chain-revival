@@ -861,7 +861,7 @@ static func _resolve_shooter_ids(
 
 
 static func _tracer_world_for_soldier(state: SoldierState) -> Vector2:
-	return IsometricGrid.grid_to_world(state.grid_position) + Vector2(0, -16)
+	return IsometricGrid.soldier_aim_point(state.grid_position)
 
 
 static func _soldier_key(team_id: int, soldier_id: int) -> String:

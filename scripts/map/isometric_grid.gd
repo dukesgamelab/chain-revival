@@ -8,11 +8,11 @@ extends RefCounted
 ## current_view_rotation remaps logical cells before the normal isometric projection.
 ## Gameplay grid cells in GameState are never changed.
 
-## Full width of one tile diamond (left point to right point).
-const TILE_WIDTH := 64
+## Re-exported from TileSizeConfig — single source of truth for tile footprint.
+const TILE_WIDTH := TileSizeConfig.TILE_WIDTH
 
-## Full height of one tile diamond (top point to bottom point).
-const TILE_HEIGHT := 32
+## Re-exported from TileSizeConfig — single source of truth for tile footprint.
+const TILE_HEIGHT := TileSizeConfig.TILE_HEIGHT
 
 ## Extra grass rings drawn outside the playable map (visual only, not walkable).
 const MAP_VISUAL_BORDER := 12
@@ -93,6 +93,11 @@ static func _base_world_to_grid(world: Vector2) -> Vector2i:
 ## Convert a logical grid cell to the world-space CENTER of that tile (presentation).
 static func grid_to_world(grid: Vector2i) -> Vector2:
 	return _base_grid_to_world(_logical_to_visual(grid))
+
+
+## World position for soldier aim, tracers, and mouse picking (chest height above tile center).
+static func soldier_aim_point(grid: Vector2i) -> Vector2:
+	return grid_to_world(grid) + TileSizeConfig.tracer_aim_offset()
 
 
 ## Screen-space direction for a grid facing step (for arrow/sprite visuals only).

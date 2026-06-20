@@ -42,16 +42,18 @@ func _rebuild_map_object_sprites() -> void:
 		var sprite := Sprite2D.new()
 		sprite.set_meta(META_MAP_OBJECT, true)
 		sprite.texture = texture
+		var scale_factor := TileSizeConfig.object_scale_for_type(type_id)
+		sprite.scale = Vector2(scale_factor, scale_factor)
 		var center := IsometricGrid.grid_to_world(cell)
-		var size := texture.get_size()
+		var size := texture.get_size() * scale_factor
 		sprite.position = _map_object_position(type_id, center, size)
 		add_child(sprite)
 
 
 func _map_object_position(type_id: String, center: Vector2, size: Vector2) -> Vector2:
 	if type_id == MapObjectRegistry.TYPE_WALL_STRAIGHT:
-		return Vector2(center.x, center.y - size.y * 0.5 + IsometricGrid.TILE_HEIGHT * 0.45)
-	return center + Vector2(0.0, -8.0)
+		return Vector2(center.x, center.y + TileSizeConfig.wall_anchor_y(size.y))
+	return center + TileSizeConfig.map_object_offset()
 
 
 func _get_object_texture(sprite_path: String) -> Texture2D:

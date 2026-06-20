@@ -28,8 +28,6 @@ const _USA_SPRITE_SCALE := Vector2(
 const _USA_SIZE_BOOST := 1.15
 const _PRONE_SPRITE_SCALE := Vector2(1.15, 0.42)
 ## Visual-only sprite shift so feet sit on the tile center (Node2D stays on grid center).
-const SPRITE_OFFSET_STANDING := Vector2(0, -24)
-const SPRITE_OFFSET_PRONE := Vector2(0, -10)
 
 signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i)
 signal movement_finished(team_id: int, soldier_id: int)
@@ -58,6 +56,9 @@ var _last_applied_facing: Vector2i = FacingDirection.NORTH
 
 func _ready() -> void:
 	set_process(false)
+	_facing_arrow.position.y = TileSizeConfig.facing_arrow_y()
+	_prone_marker.position.y = TileSizeConfig.prone_marker_y()
+	_dead_marker.position.y = TileSizeConfig.dead_marker_y()
 
 
 ## Apply authoritative gameplay state to this sprite (position, facing, selection).
@@ -111,7 +112,7 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 	_selection_marker.visible = false
 	_sprite.scale = _prone_sprite_scale()
 	_sprite.position = Vector2.ZERO
-	_sprite.offset = SPRITE_OFFSET_PRONE
+	_sprite.offset = TileSizeConfig.soldier_prone_sprite_offset()
 	_apply_directional_sprite(_last_applied_facing, _facing_from_cell)
 	_sprite.modulate = Color(0.38, 0.38, 0.38, 0.85)
 
@@ -123,26 +124,27 @@ func _apply_position_visual(state: SoldierState) -> void:
 	_sprite.position = Vector2.ZERO
 	if state.position_state == PositionState.DOWN:
 		_sprite.scale = _prone_sprite_scale()
-		_sprite.offset = SPRITE_OFFSET_PRONE
+		_sprite.offset = TileSizeConfig.soldier_prone_sprite_offset()
 		_prone_marker.visible = true
 	else:
 		_sprite.scale = _standing_sprite_scale()
-		_sprite.offset = SPRITE_OFFSET_STANDING
+		_sprite.offset = TileSizeConfig.soldier_standing_sprite_offset()
 		_prone_marker.visible = false
 	_sync_facing_arrow_visibility()
 
 
 func _standing_sprite_scale() -> Vector2:
+	var base := Vector2.ONE
 	if team_id == Team.USA:
-		return _USA_SPRITE_SCALE * _USA_SIZE_BOOST
-	return Vector2.ONE
+		base = _USA_SPRITE_SCALE * _USA_SIZE_BOOST
+	return base * TileSizeConfig.SOLDIER_SCALE
 
 
 func _prone_sprite_scale() -> Vector2:
 	if team_id == Team.USA:
-		var base := _USA_SPRITE_SCALE * _USA_SIZE_BOOST
+		var base := _USA_SPRITE_SCALE * _USA_SIZE_BOOST * TileSizeConfig.SOLDIER_SCALE
 		return Vector2(base.x * _PRONE_SPRITE_SCALE.x, base.y * _PRONE_SPRITE_SCALE.y)
-	return _PRONE_SPRITE_SCALE
+	return _PRONE_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
 
 
 func is_moving() -> bool:

@@ -122,7 +122,7 @@ static func evaluate_fire_at_preview(
 	result.target = target
 
 	if target != null:
-		result.aim_to_world = IsometricGrid.grid_to_world(target.grid_position) + Vector2(0, -16)
+		result.aim_to_world = IsometricGrid.soldier_aim_point(target.grid_position)
 		result.los = LOSSystemClass.evaluate(
 			shooter.grid_position,
 			target.grid_position,
@@ -172,7 +172,7 @@ static func evaluate_engaged_target_preview(
 	result.click_cell = target.grid_position
 	result.target = target
 	result.enemy_in_cone = true
-	result.aim_to_world = IsometricGrid.grid_to_world(target.grid_position) + Vector2(0, -16)
+	result.aim_to_world = IsometricGrid.soldier_aim_point(target.grid_position)
 	result.los = LOSSystemClass.evaluate(
 		shooter.grid_position,
 		target.grid_position,
@@ -914,7 +914,7 @@ static func find_best_spotted_aim_cone_target(
 		var enemy: SoldierStateClass = state
 		if enemy.is_dead:
 			continue
-		var enemy_world := IsometricGrid.grid_to_world(enemy.grid_position) + Vector2(0, -16)
+		var enemy_world := IsometricGrid.soldier_aim_point(enemy.grid_position)
 		if not ConeOfFireClass.is_world_point_in_aim_cone(
 			from_world,
 			aim_world,
@@ -994,7 +994,7 @@ static func find_best_aim_cone_target(
 		var enemy: SoldierStateClass = state
 		if enemy.is_dead:
 			continue
-		var enemy_world := IsometricGrid.grid_to_world(enemy.grid_position) + Vector2(0, -16)
+		var enemy_world := IsometricGrid.soldier_aim_point(enemy.grid_position)
 		if not ConeOfFireClass.is_world_point_in_aim_cone(
 			from_world,
 			aim_world,
@@ -1590,7 +1590,7 @@ static func _has_living_enemy_in_aim_cone(
 		var enemy: SoldierStateClass = state
 		if enemy.is_dead:
 			continue
-		var enemy_world := IsometricGrid.grid_to_world(enemy.grid_position) + Vector2(0, -16)
+		var enemy_world := IsometricGrid.soldier_aim_point(enemy.grid_position)
 		if ConeOfFireClass.is_world_point_in_aim_cone(
 			from_world,
 			aim_world,

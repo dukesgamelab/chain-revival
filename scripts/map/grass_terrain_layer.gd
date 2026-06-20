@@ -8,7 +8,7 @@ const GRASS_VARIANT_PATHS: Array[String] = [
 	"res://assets/sprites/grass_2.png",
 	"res://assets/sprites/grass_3.png",
 ]
-const TILE_OVERLAP_SCALE := 1.04
+const TILE_OVERLAP_SCALE := TileSizeConfig.GRASS_TILE_OVERLAP_SCALE
 const TINT_SPREAD := 0.07
 
 var map_data: MapData = null

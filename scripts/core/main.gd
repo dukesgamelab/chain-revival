@@ -250,7 +250,7 @@ func _update_grenade_preview() -> void:
 
 	var target_cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
 	var from_world := _get_soldier_tracer_point(shooter)
-	var target_world := IsometricGrid.grid_to_world(target_cell) + Vector2(0, -16)
+	var target_world := IsometricGrid.soldier_aim_point(target_cell)
 	var in_bounds := _map_data.is_in_bounds(target_cell)
 	var in_range := (
 		in_bounds
@@ -466,7 +466,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if clicked_soldier != null:
 			aim_world = _get_soldier_tracer_point(clicked_soldier)
 		else:
-			aim_world = IsometricGrid.grid_to_world(target_cell) + Vector2(0, -16)
+			aim_world = IsometricGrid.soldier_aim_point(target_cell)
 		_apply_fire_at_aim(aim_world, clicked_soldier)
 		get_viewport().set_input_as_handled()
 		return
@@ -1147,8 +1147,8 @@ func _get_soldier_tracer_point(soldier_state: SoldierState) -> Vector2:
 	## Presentation-only: prefers animated view position for tracers and LOS preview.
 	var view: Soldier = _get_view(soldier_state.team_id, soldier_state.soldier_id)
 	if view != null:
-		return view.position + Vector2(0, -16)
-	return IsometricGrid.grid_to_world(soldier_state.grid_position) + Vector2(0, -16)
+		return view.position + TileSizeConfig.tracer_aim_offset()
+	return IsometricGrid.soldier_aim_point(soldier_state.grid_position)
 
 
 func _on_soldier_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i) -> void:
@@ -1374,7 +1374,7 @@ func _find_living_soldier_at_mouse() -> SoldierState:
 	if exact != null:
 		return exact
 
-	const PICK_RADIUS := 44.0
+	const PICK_RADIUS := TileSizeConfig.SOLDIER_PICK_RADIUS
 	const PICK_RADIUS_SQ := PICK_RADIUS * PICK_RADIUS
 	var best: SoldierState = null
 	var best_dist := PICK_RADIUS_SQ
@@ -1385,9 +1385,9 @@ func _find_living_soldier_at_mouse() -> SoldierState:
 			if soldier_state.is_dead:
 				continue
 			var view: Soldier = _get_view(soldier_state.team_id, soldier_state.soldier_id)
-			var pick_center := IsometricGrid.grid_to_world(soldier_state.grid_position) + Vector2(0, -16)
+			var pick_center := IsometricGrid.soldier_aim_point(soldier_state.grid_position)
 			if view != null:
-				pick_center = view.position + Vector2(0, -16)
+				pick_center = view.position + TileSizeConfig.tracer_aim_offset()
 			var dist_sq := world.distance_squared_to(pick_center)
 			if dist_sq < best_dist:
 				best_dist = dist_sq

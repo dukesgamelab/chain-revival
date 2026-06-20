@@ -49,7 +49,7 @@ func reset_to_default_view(world_focus: Vector2) -> void:
 
 
 ## Move camera to the world center of a grid cell (used after map load).
-func snap_to_cell(cell: Vector2i, vertical_offset: float = -90.0) -> void:
+func snap_to_cell(cell: Vector2i, vertical_offset: float = TileSizeConfig.CAMERA_SNAP_VERTICAL_OFFSET) -> void:
 	position = IsometricGrid.grid_to_world(cell) + Vector2(0.0, vertical_offset)
 	_clamp_position()
 
