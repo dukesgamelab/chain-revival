@@ -10,7 +10,7 @@ const RUN := Mode.RUN
 const WALK := Mode.WALK
 const CRAWL := Mode.CRAWL
 
-const SPEED_RUN := 1.0
+const SPEED_RUN := 0.5
 const SPEED_WALK := 0.6
 const SPEED_CRAWL := 0.3
 

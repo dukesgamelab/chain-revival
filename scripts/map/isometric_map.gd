@@ -64,9 +64,10 @@ func rebuild_pathfinding() -> void:
 
 	_astar.region = Rect2i(0, 0, map_data.width, map_data.height)
 	_astar.cell_size = Vector2(1.0, 1.0)
-	_astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
-	_astar.default_compute_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
-	_astar.default_estimate_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
+	# 8-direction movement; block diagonals that would cut through a blocked corner.
+	_astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_AT_LEAST_ONE_WALKABLE
+	_astar.default_compute_heuristic = AStarGrid2D.HEURISTIC_OCTILE
+	_astar.default_estimate_heuristic = AStarGrid2D.HEURISTIC_OCTILE
 	_astar.update()
 
 	for cell in map_data.blocked_tiles:

@@ -1,195 +1,61 @@
 {
 	"blocked_tiles": [
 		{
-			"x": 31,
-			"y": 27
-		},
-		{
-			"x": 31,
-			"y": 30
-		},
-		{
-			"x": 32,
-			"y": 34
-		},
-		{
-			"x": 33,
-			"y": 33
-		},
-		{
-			"x": 34,
-			"y": 32
-		},
-		{
-			"x": 35,
-			"y": 31
-		},
-		{
 			"x": 36,
 			"y": 30
 		},
 		{
-			"x": 23,
-			"y": 20
-		},
-		{
-			"x": 23,
-			"y": 18
-		},
-		{
-			"x": 23,
-			"y": 19
-		},
-		{
-			"x": 23,
-			"y": 16
+			"x": 29,
+			"y": 34
 		},
 		{
 			"x": 29,
-			"y": 21
+			"y": 33
 		},
 		{
-			"x": 30,
-			"y": 18
+			"x": 29,
+			"y": 31
 		},
 		{
-			"x": 37,
-			"y": 16
+			"x": 29,
+			"y": 32
 		},
 		{
-			"x": 37,
-			"y": 14
+			"x": 29,
+			"y": 30
 		},
 		{
-			"x": 38,
-			"y": 20
+			"x": 29,
+			"y": 28
 		},
 		{
-			"x": 41,
-			"y": 18
+			"x": 29,
+			"y": 29
 		},
 		{
-			"x": 41,
-			"y": 23
+			"x": 29,
+			"y": 27
 		},
 		{
-			"x": 34,
-			"y": 23
+			"x": 29,
+			"y": 26
 		},
 		{
-			"x": 34,
+			"x": 29,
+			"y": 25
+		},
+		{
+			"x": 29,
 			"y": 24
 		},
 		{
-			"x": 34,
-			"y": 26
+			"x": 29,
+			"y": 23
 		}
 	],
 	"height": 60,
 	"map_name": "test_map",
 	"map_objects": [
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 31,
-				"y": 27
-			},
-			"object_id": "haybail@31,27",
-			"object_type": "haybail",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/haybail-1-transparent-game-sized.png",
-			"type": "haybail",
-			"x": 31,
-			"y": 27
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 31,
-				"y": 30
-			},
-			"object_id": "tree@31,30",
-			"object_type": "tree",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/tree-1-transparent-game-sized.png",
-			"type": "tree",
-			"x": 31,
-			"y": 30
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 32,
-				"y": 34
-			},
-			"object_id": "wall_straight@32,34",
-			"object_type": "wall_straight",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
-			"type": "wall_straight",
-			"x": 32,
-			"y": 34
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 33,
-				"y": 33
-			},
-			"object_id": "wall_straight@33,33",
-			"object_type": "wall_straight",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
-			"type": "wall_straight",
-			"x": 33,
-			"y": 33
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 34,
-				"y": 32
-			},
-			"object_id": "wall_straight@34,32",
-			"object_type": "wall_straight",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
-			"type": "wall_straight",
-			"x": 34,
-			"y": 32
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 35,
-				"y": 31
-			},
-			"object_id": "wall_straight@35,31",
-			"object_type": "wall_straight",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
-			"type": "wall_straight",
-			"x": 35,
-			"y": 31
-		},
 		{
 			"blocks_los": true,
 			"blocks_movement": true,
@@ -213,101 +79,33 @@
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 23,
-				"y": 20
+				"x": 29,
+				"y": 34
 			},
-			"object_id": "wall_straight@23,20",
+			"object_id": "wall_straight@29,34",
 			"object_type": "wall_straight",
 			"provides_cover": true,
 			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
 			"type": "wall_straight",
-			"x": 23,
-			"y": 20
+			"x": 29,
+			"y": 34
 		},
 		{
 			"blocks_los": true,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 23,
-				"y": 18
-			},
-			"object_id": "wall_straight@23,18",
-			"object_type": "wall_straight",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
-			"type": "wall_straight",
-			"x": 23,
-			"y": 18
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 23,
-				"y": 19
-			},
-			"object_id": "wall_straight@23,19",
-			"object_type": "wall_straight",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
-			"type": "wall_straight",
-			"x": 23,
-			"y": 19
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 23,
-				"y": 16
-			},
-			"object_id": "wall_straight@23,16",
-			"object_type": "wall_straight",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
-			"type": "wall_straight",
-			"x": 23,
-			"y": 16
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 29,
-				"y": 21
+				"y": 33
 			},
-			"object_id": "haybail@29,21",
-			"object_type": "haybail",
+			"object_id": "wall_straight@29,33",
+			"object_type": "wall_straight",
 			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/haybail-1-transparent-game-sized.png",
-			"type": "haybail",
+			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
+			"type": "wall_straight",
 			"x": 29,
-			"y": 21
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 30,
-				"y": 18
-			},
-			"object_id": "haybail@30,18",
-			"object_type": "haybail",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/haybail-1-transparent-game-sized.png",
-			"type": "haybail",
-			"x": 30,
-			"y": 18
+			"y": 33
 		},
 		{
 			"blocks_los": true,
@@ -315,16 +113,16 @@
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 37,
-				"y": 16
+				"x": 29,
+				"y": 31
 			},
-			"object_id": "wall_straight@37,16",
+			"object_id": "wall_straight@29,31",
 			"object_type": "wall_straight",
 			"provides_cover": true,
 			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
 			"type": "wall_straight",
-			"x": 37,
-			"y": 16
+			"x": 29,
+			"y": 31
 		},
 		{
 			"blocks_los": true,
@@ -332,118 +130,152 @@
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 37,
-				"y": 14
+				"x": 29,
+				"y": 32
 			},
-			"object_id": "wall_straight@37,14",
+			"object_id": "wall_straight@29,32",
 			"object_type": "wall_straight",
 			"provides_cover": true,
 			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
 			"type": "wall_straight",
-			"x": 37,
-			"y": 14
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 38,
-				"y": 20
-			},
-			"object_id": "haybail@38,20",
-			"object_type": "haybail",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/haybail-1-transparent-game-sized.png",
-			"type": "haybail",
-			"x": 38,
-			"y": 20
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 41,
-				"y": 18
-			},
-			"object_id": "haybail@41,18",
-			"object_type": "haybail",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/haybail-1-transparent-game-sized.png",
-			"type": "haybail",
-			"x": 41,
-			"y": 18
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 41,
-				"y": 23
-			},
-			"object_id": "haybail@41,23",
-			"object_type": "haybail",
-			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/haybail-1-transparent-game-sized.png",
-			"type": "haybail",
-			"x": 41,
-			"y": 23
+			"x": 29,
+			"y": 32
 		},
 		{
 			"blocks_los": true,
 			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 34,
-				"y": 23
+				"x": 29,
+				"y": 30
 			},
-			"object_id": "tree@34,23",
-			"object_type": "tree",
+			"object_id": "wall_straight@29,30",
+			"object_type": "wall_straight",
 			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/tree-1-transparent-game-sized.png",
-			"type": "tree",
-			"x": 34,
-			"y": 23
+			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
+			"type": "wall_straight",
+			"x": 29,
+			"y": 30
 		},
 		{
 			"blocks_los": true,
 			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 34,
+				"x": 29,
+				"y": 28
+			},
+			"object_id": "wall_straight@29,28",
+			"object_type": "wall_straight",
+			"provides_cover": true,
+			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
+			"type": "wall_straight",
+			"x": 29,
+			"y": 28
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 29,
+				"y": 29
+			},
+			"object_id": "wall_straight@29,29",
+			"object_type": "wall_straight",
+			"provides_cover": true,
+			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
+			"type": "wall_straight",
+			"x": 29,
+			"y": 29
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 29,
+				"y": 27
+			},
+			"object_id": "wall_straight@29,27",
+			"object_type": "wall_straight",
+			"provides_cover": true,
+			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
+			"type": "wall_straight",
+			"x": 29,
+			"y": 27
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 29,
+				"y": 26
+			},
+			"object_id": "wall_straight@29,26",
+			"object_type": "wall_straight",
+			"provides_cover": true,
+			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
+			"type": "wall_straight",
+			"x": 29,
+			"y": 26
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 29,
+				"y": 25
+			},
+			"object_id": "wall_straight@29,25",
+			"object_type": "wall_straight",
+			"provides_cover": true,
+			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
+			"type": "wall_straight",
+			"x": 29,
+			"y": 25
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 29,
 				"y": 24
 			},
-			"object_id": "tree@34,24",
-			"object_type": "tree",
+			"object_id": "wall_straight@29,24",
+			"object_type": "wall_straight",
 			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/tree-1-transparent-game-sized.png",
-			"type": "tree",
-			"x": 34,
+			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
+			"type": "wall_straight",
+			"x": 29,
 			"y": 24
 		},
 		{
 			"blocks_los": true,
 			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 34,
-				"y": 26
+				"x": 29,
+				"y": 23
 			},
-			"object_id": "tree@34,26",
-			"object_type": "tree",
+			"object_id": "wall_straight@29,23",
+			"object_type": "wall_straight",
 			"provides_cover": true,
-			"sprite_path": "res://assets/sprites/tree-1-transparent-game-sized.png",
-			"type": "tree",
-			"x": 34,
-			"y": 26
+			"sprite_path": "res://assets/sprites/wall-straight-1-tile.png",
+			"type": "wall_straight",
+			"x": 29,
+			"y": 23
 		}
 	],
 	"team_1_spawn_points": [
