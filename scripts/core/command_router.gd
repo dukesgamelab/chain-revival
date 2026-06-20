@@ -4,7 +4,7 @@ extends Node
 ## Flow (OFFLINE_DEV):
 ##   Input/UI → CommandRouter → ActionResolver → GameState → visuals
 ##
-## LOCAL_MULTIPLAYER: placeholder only — no server or WebSocket yet.
+## LOCAL_MULTIPLAYER: connection test via NetworkClient; gameplay still resolves locally for now.
 
 const ActionResolverClass := preload("res://scripts/core/action_resolver.gd")
 const ActionResultClass := preload("res://scripts/core/action_result.gd")
@@ -101,18 +101,12 @@ func _route(action_label: String, resolver_call: Callable) -> ActionResultClass:
 	var mode_name := GameMode.display_name(GameModeManager.get_mode())
 	GameLog.log_system("[CommandRouter] submit: %s (mode=%s)" % [action_label, mode_name])
 
-	if GameModeManager.is_offline_dev():
-		GameLog.log_system("[CommandRouter] routed locally → ActionResolver")
+	if GameModeManager.is_offline_dev() or GameModeManager.is_local_multiplayer():
+		var route_note := "locally → ActionResolver"
+		if GameModeManager.is_local_multiplayer():
+			route_note = "locally → ActionResolver (server routing TBD)"
+		GameLog.log_system("[CommandRouter] routed %s" % route_note)
 		return resolver_call.call() as ActionResultClass
-
-	if GameModeManager.is_local_multiplayer():
-		GameLog.log_system(
-			"[CommandRouter] LOCAL_MULTIPLAYER command routing not implemented yet (%s)"
-			% action_label
-		)
-		return ActionResultClass.fail(
-			"LOCAL_MULTIPLAYER command routing not implemented yet.",
-		)
 
 	return ActionResultClass.fail("Unknown game mode.")
 

@@ -58,6 +58,7 @@ var _grass_layer_visible: bool = true
 
 
 func _ready() -> void:
+	_setup_network_test()
 	LOSSystemClass.apply_debug_settings()
 	RenderingServer.set_default_clear_color(Color(0.22, 0.38, 0.18, 1.0))
 	_camera.make_current()
@@ -71,6 +72,18 @@ func _ready() -> void:
 	_command_bar.set_active_team(_session.active_team_id)
 	_refresh_all_views()
 	_command_bar.show_status("Press 1 = USA, 2 = Germany. Fire At: click an enemy to open fire. Right-click cancels.")
+
+
+func _setup_network_test() -> void:
+	var mode_name := GameMode.display_name(GameModeManager.get_mode())
+	GameLog.log_system("Current Mode: %s" % mode_name)
+	if GameModeManager.is_local_multiplayer():
+		if NetworkClient.is_connected_to_server():
+			GameLog.log_system("[NetworkClient] Already connected to server.")
+		else:
+			NetworkClient.connect_for_local_multiplayer()
+	else:
+		GameLog.log_system("[NetworkClient] Offline mode — no server connection.")
 
 
 func _log_fireteam_loadouts() -> void:

@@ -1,6 +1,5 @@
 extends Node
-## Autoload: current game mode for offline dev vs future local multiplayer branching.
-## Does not enable networking — read-only foundation for later systems.
+## Autoload: current game mode for offline dev vs local multiplayer connection tests.
 
 var current_mode: int = GameConfig.DEFAULT_GAME_MODE
 

@@ -2,5 +2,9 @@
 .godot/
 /android/
 
+# Node server
+server/node_modules/
+server/dist/
+
 # Archives
 *.zip

@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/map/grass_terrain_layer.gd" id="8_grass"]
 [ext_resource type="Script" path="res://scripts/map/depth_sorted_layer.gd" id="9_depth"]
 [ext_resource type="Script" path="res://scripts/effects/los_visualizer.gd" id="6_losviz"]
+[ext_resource type="Script" path="res://scripts/ui/network_status_hud.gd" id="10_network"]
 
 [node name="Main" type="Node2D" unique_id=358126869]
 script = ExtResource("1_main")
@@ -41,6 +42,28 @@ zoom = Vector2(0.55, 0.55)
 script = ExtResource("4_camera")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=327246359]
+
+[node name="NetworkStatusHud" type="PanelContainer" parent="UI"]
+anchors_preset = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 280.0
+offset_bottom = 64.0
+script = ExtResource("10_network")
+
+[node name="Margin" type="MarginContainer" parent="UI/NetworkStatusHud"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 6
+
+[node name="StatusLabel" type="Label" parent="UI/NetworkStatusHud/Margin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.95, 0.88, 1)
+theme_override_font_sizes/font_size = 14
+text = "Current Mode: OFFLINE_DEV"
+autowrap_mode = 3
 
 [node name="StatusHud" type="PanelContainer" parent="UI"]
 anchors_preset = 1
