@@ -54,7 +54,6 @@ var _last_applied_facing: Vector2i = FacingDirection.NORTH
 @onready var _facing_arrow: Line2D = $FacingArrow
 @onready var _dead_marker: Line2D = $DeadMarker
 @onready var _prone_marker: Line2D = $ProneMarker
-@onready var _weapon_badge: Label = $WeaponBadge
 
 
 func _ready() -> void:
@@ -80,7 +79,6 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 	_facing_from_cell = state.grid_position
 	_apply_facing(state.facing_direction, _facing_from_cell)
 	_apply_position_visual(state)
-	_apply_weapon_badge(state)
 	_apply_spotted_visual(is_selected, is_spotted)
 	set_selected(is_selected)
 
@@ -110,7 +108,6 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 	_facing_arrow.visible = false
 	_prone_marker.visible = false
 	_dead_marker.visible = true
-	_weapon_badge.visible = false
 	_selection_marker.visible = false
 	_sprite.scale = _prone_sprite_scale()
 	_sprite.position = Vector2.ZERO
@@ -146,14 +143,6 @@ func _prone_sprite_scale() -> Vector2:
 		var base := _USA_SPRITE_SCALE * _USA_SIZE_BOOST
 		return Vector2(base.x * _PRONE_SPRITE_SCALE.x, base.y * _PRONE_SPRITE_SCALE.y)
 	return _PRONE_SPRITE_SCALE
-
-
-func _apply_weapon_badge(state: SoldierState) -> void:
-	if _weapon_badge == null:
-		return
-	_weapon_badge.visible = true
-	_weapon_badge.text = WeaponType.short_code(state.weapon_type)
-	_weapon_badge.tooltip_text = state.weapon_name
 
 
 func is_moving() -> bool:
