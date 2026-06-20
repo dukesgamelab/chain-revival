@@ -145,6 +145,43 @@ static func evaluate_fire_at_preview(
 	return result
 
 
+## Aim preview for a soldier already engaged on a priority target (squad Fire At).
+static func evaluate_engaged_target_preview(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> FireAtPreviewResult:
+	var result := FireAtPreviewResult.new()
+	if game_state == null or shooter == null or shooter.is_dead or not shooter.is_sustained_fire():
+		_log_fire_at_preview(shooter, result)
+		return result
+
+	var target := _get_engaged_target(game_state, shooter)
+	if target == null:
+		_log_fire_at_preview(shooter, result)
+		return result
+
+	var weapon := shooter.get_weapon_data()
+	var max_range := _effective_weapon_range(weapon)
+	result.click_cell = target.grid_position
+	result.target = target
+	result.enemy_in_cone = true
+	result.aim_to_world = IsometricGrid.grid_to_world(target.grid_position) + Vector2(0, -16)
+	result.los = LOSSystemClass.evaluate(
+		shooter.grid_position,
+		target.grid_position,
+		game_state.map_data,
+		game_state,
+	)
+	var in_range := _manhattan_distance(shooter.grid_position, target.grid_position) <= max_range
+	result.targetable = (
+		in_range
+		and result.los.status != LOSSystemClass.Status.BLOCKED
+	)
+
+	_log_fire_at_preview(shooter, result)
+	return result
+
+
 static func resolve_shot(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
@@ -743,12 +780,16 @@ static func score_auto_target(
 	)
 	if los.status == LOSSystemClass.Status.BLOCKED:
 		return -1.0
+	if los.target_using_wall_cover:
+		return -1.0
 
 	var dist := _manhattan_distance(shooter.grid_position, target.grid_position)
 	var score := 100.0 - float(dist) * 4.0
 
 	if los.cover_type == CoverSystemClass.CoverType.NONE:
 		score += 25.0
+	elif los.cover_type == CoverSystemClass.CoverType.MODERATE:
+		score -= 10.0
 	else:
 		score -= 25.0
 
@@ -977,9 +1018,7 @@ static func hit_pct_vs_faced_enemy(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
 ) -> float:
-	var target := _get_engaged_target(game_state, shooter)
-	if target == null:
-		target = find_faced_enemy(game_state, shooter)
+	var target := _resolve_hit_display_target(game_state, shooter)
 	if target == null:
 		return -1.0
 
@@ -1185,6 +1224,7 @@ static func try_engaged_fire(
 	shooter: SoldierStateClass,
 ) -> CombatShotResult:
 	## Sustained manual Fire At: keep priority target; blocked LOS holds fire silently.
+	## Hard cover still fires (0% hit) via resolve_shot.
 	var empty := CombatShotResult.new()
 	if shooter == null or shooter.is_dead or shooter.is_moving:
 		return empty
@@ -1482,7 +1522,47 @@ static func _is_auto_target_valid(
 	var max_range := _effective_weapon_range(weapon)
 	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
 		return false
-	return _is_target_in_cone(shooter, target.grid_position, max_range)
+	if not _is_target_in_cone(shooter, target.grid_position, max_range):
+		return false
+	return _is_target_shootable(game_state, shooter, target)
+
+
+static func _is_target_shootable(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+	target: SoldierStateClass,
+) -> bool:
+	## Fire At Will auto-targeting: skip fully blocked lines and hard cover (0% hit).
+	if shooter == null or target == null or target.is_dead:
+		return false
+	var los := LOSSystemClass.evaluate(
+		shooter.grid_position,
+		target.grid_position,
+		game_state.map_data,
+		game_state,
+	)
+	if los.status == LOSSystemClass.Status.BLOCKED:
+		return false
+	if los.target_using_wall_cover:
+		return false
+	return true
+
+
+## Read-only target pick for hit % display (no engaged-target mutation).
+static func _resolve_hit_display_target(
+	game_state: GameStateClass,
+	shooter: SoldierStateClass,
+) -> SoldierStateClass:
+	var engaged := _get_engaged_target(game_state, shooter)
+	if engaged != null:
+		if shooter.fire_control_state == FireControlStateClass.FIRE_AT_WILL:
+			if _is_auto_target_valid(game_state, shooter, engaged):
+				return engaged
+			return find_best_auto_target(game_state, shooter)
+		return engaged
+	if shooter.fire_control_state == FireControlStateClass.FIRE_AT_WILL:
+		return find_best_auto_target(game_state, shooter)
+	return find_faced_enemy(game_state, shooter)
 
 
 static func _has_living_enemy_in_aim_cone(

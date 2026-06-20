@@ -174,8 +174,8 @@ func _update_los_preview() -> void:
 		_los_visualizer.hide_preview()
 		return
 
-	var shooter: SoldierState = _get_fire_at_preview_shooter()
-	if shooter == null or shooter.is_dead:
+	var cone_shooter: SoldierState = _get_fire_at_preview_shooter()
+	if cone_shooter == null or cone_shooter.is_dead:
 		_los_visualizer.hide_preview()
 		return
 
@@ -184,12 +184,23 @@ func _update_los_preview() -> void:
 	var click_cell := IsometricGrid.world_to_grid(aim_world)
 	var explicit_team_id := -1
 	var explicit_soldier_id := -1
-	if hover_soldier != null and hover_soldier.team_id != shooter.team_id:
+	if hover_soldier != null and hover_soldier.team_id != cone_shooter.team_id:
 		explicit_team_id = hover_soldier.team_id
 		explicit_soldier_id = hover_soldier.soldier_id
 		click_cell = hover_soldier.grid_position
 		aim_world = _get_soldier_tracer_point(hover_soldier)
 
+	if _squad_fire_at_mode:
+		_update_squad_los_preview(
+			cone_shooter,
+			aim_world,
+			click_cell,
+			explicit_team_id,
+			explicit_soldier_id,
+		)
+		return
+
+	var shooter: SoldierState = cone_shooter
 	var weapon := shooter.get_weapon_data()
 	var max_range := ConeOfFireClass.effective_range(weapon.range_tiles) if weapon != null else ConeOfFireClass.RANGE_BONUS
 	var from_world := _get_soldier_tracer_point(shooter)
@@ -223,6 +234,68 @@ func _update_los_preview() -> void:
 		):
 			_sync_fire_at_shooter_views()
 	_los_visualizer.show_fire_at_preview(from_world, cone_world, preview)
+
+
+func _update_squad_los_preview(
+	cone_shooter: SoldierState,
+	aim_world: Vector2,
+	click_cell: Vector2i,
+	explicit_team_id: int,
+	explicit_soldier_id: int,
+) -> void:
+	var weapon := cone_shooter.get_weapon_data()
+	var max_range := (
+		ConeOfFireClass.effective_range(weapon.range_tiles)
+		if weapon != null
+		else ConeOfFireClass.RANGE_BONUS
+	)
+	var cone_from_world := _get_soldier_tracer_point(cone_shooter)
+	var cone_world := ConeOfFireClass.cone_outline_world_toward(
+		cone_from_world,
+		aim_world,
+		cone_shooter.grid_position,
+		max_range,
+	)
+
+	var entries: Array = []
+	var cone_has_target := false
+	var face_cell := click_cell
+
+	for shooter_state in _get_manual_fire_at_shooters():
+		var from_world := _get_soldier_tracer_point(shooter_state)
+		var preview: FireAtPreviewResult
+		if _fire_at_engaged and shooter_state.is_sustained_fire():
+			preview = CombatSystem.evaluate_engaged_target_preview(_game_state, shooter_state)
+		else:
+			preview = CombatSystem.evaluate_fire_at_preview(
+				_game_state,
+				shooter_state,
+				from_world,
+				aim_world,
+				click_cell,
+				explicit_team_id,
+				explicit_soldier_id,
+			)
+		if preview.target != null:
+			if preview.targetable:
+				cone_has_target = true
+			if face_cell == click_cell:
+				face_cell = preview.target.grid_position
+		entries.append({"from_world": from_world, "preview": preview})
+
+	if not _fire_at_engaged:
+		var shooter_ids: Array[int] = []
+		for shooter_state in _get_manual_fire_at_shooters():
+			shooter_ids.append(shooter_state.soldier_id)
+		if ActionResolverClass.preview_fire_at_facing(
+			_game_state,
+			_session.active_team_id,
+			shooter_ids,
+			face_cell,
+		):
+			_sync_fire_at_shooter_views()
+
+	_los_visualizer.show_squad_fire_at_previews(entries, cone_world, cone_has_target)
 
 
 func _sync_fire_at_shooter_views() -> void:

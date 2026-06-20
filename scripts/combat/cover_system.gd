@@ -165,12 +165,7 @@ static func find_blocking_tile(
 			continue
 
 		if _is_complete_cover_wall(object_def):
-			if _is_adjacent(from_cell, cell) or _is_adjacent(to_cell, cell):
-				continue
-			result.blocked = true
-			result.blocking_cell = cell
-			result.blocking_type_id = object_def.type_id
-			return result
+			continue
 
 		if not blocks_line_of_fire(object_def):
 			continue
@@ -369,7 +364,13 @@ static func evaluate_target_cover(
 			continue
 		if can_peek_and_shoot_over(from_cell, target_cell, cell, object_def):
 			continue
-		if get_wall_skip_reason(from_cell, target_cell, cell, object_def) != WallSkipReason.NONE:
+		var wall_skip := get_wall_skip_reason(from_cell, target_cell, cell, object_def)
+		if wall_skip == WallSkipReason.TARGET_COVER:
+			continue
+		if wall_skip == WallSkipReason.SHOOTER_PEEK:
+			continue
+		if _is_complete_cover_wall(object_def):
+			_apply_moderate_cover(object_def, cell, result)
 			continue
 		if object_def.provides_cover and object_def.cover_type == CoverType.MODERATE:
 			_apply_moderate_cover(object_def, cell, result)

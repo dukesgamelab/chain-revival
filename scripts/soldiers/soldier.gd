@@ -127,13 +127,12 @@ func _apply_position_visual(state: SoldierState) -> void:
 	if state.position_state == PositionState.DOWN:
 		_sprite.scale = _prone_sprite_scale()
 		_sprite.offset = SPRITE_OFFSET_PRONE
-		_facing_arrow.visible = false
 		_prone_marker.visible = true
 	else:
 		_sprite.scale = _standing_sprite_scale()
 		_sprite.offset = SPRITE_OFFSET_STANDING
-		_facing_arrow.visible = true
 		_prone_marker.visible = false
+	_sync_facing_arrow_visibility()
 
 
 func _standing_sprite_scale() -> Vector2:
@@ -236,9 +235,22 @@ func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> voi
 	_last_applied_facing = facing
 	_facing_from_cell = from_cell
 	_apply_directional_sprite(facing, from_cell)
+	if _facing_arrow != null and _show_facing_arrow():
+		_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(facing, from_cell)
+	_sync_facing_arrow_visibility()
+
+
+func _show_facing_arrow() -> bool:
+	return team_id != Team.USA
+
+
+func _sync_facing_arrow_visibility() -> void:
 	if _facing_arrow == null:
 		return
-	_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(facing, from_cell)
+	if _is_dead or not _show_facing_arrow():
+		_facing_arrow.visible = false
+		return
+	_facing_arrow.visible = _applied_position_state != PositionState.DOWN
 
 
 ## Choose USA directional art from authoritative grid facing; Germany keeps placeholder SVG.

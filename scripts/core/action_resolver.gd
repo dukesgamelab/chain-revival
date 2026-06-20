@@ -315,7 +315,7 @@ static func execute_fire(
 	cmd: FireCommandClass,
 	context: CommandContext,
 ) -> ActionResult:
-	## Manual Fire At = assign priority target(s); blocked cover holds fire but keeps assignment.
+	## Manual Fire At = assign priority target(s); fully blocked LOS holds fire but keeps assignment.
 	if context == null or cmd.aim_world == Vector2.ZERO:
 		return ActionResult.fail("Fire command requires aim_world.")
 
