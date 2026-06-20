@@ -1,9 +1,10 @@
 extends Node2D
 ## Root scene: presentation shell for the authoritative game loop.
 ##
-## Command flow:
-##   UI input → Command DTO → ActionResolver.execute(game_state, command, context)
-##            → GameState updated → ActionResult → refresh views / overlays
+## Architecture:
+##   Input/UI → Command DTO → ActionResolver → GameState (truth) → Soldier visuals
+##
+## main.gd must not mutate SoldierState or MapData directly. Use ActionResolver.
 
 const SoldierScene := preload("res://scenes/soldier.tscn")
 const GameSessionClass := preload("res://scripts/core/game_session.gd")
@@ -259,7 +260,12 @@ func _update_grenade_preview() -> void:
 	_los_visualizer.show_grenade_throw_preview(from_world, target_world, in_range)
 
 	var fireteam: Fireteam = _session.get_active_fireteam()
-	if fireteam.face_toward_tile(shooter.soldier_id, target_cell):
+	if ActionResolverClass.preview_grenade_facing(
+		_game_state,
+		shooter.team_id,
+		shooter.soldier_id,
+		target_cell,
+	):
 		_sync_soldier_view(shooter.team_id, shooter.soldier_id, true)
 
 
@@ -554,17 +560,14 @@ func _update_map_edit_hover() -> void:
 
 
 func _apply_map_edit_cell(cell: Vector2i, erase: bool) -> void:
-	if not _map_data.is_in_bounds(cell):
-		return
-	if erase or _map_edit_palette == MapEditorClass.Palette.ERASE:
-		_map_data.clear_object(cell)
-	else:
-		var type_id := MapEditorClass.palette_type_id(_map_edit_palette)
-		if type_id.is_empty():
-			return
-		_map_data.set_object(cell, type_id)
-	_game_state.map_data = _map_data
-	_apply_map_presentation()
+	var result: ActionResultClass = ActionResolverClass.apply_map_edit(
+		_game_state,
+		cell,
+		_map_edit_palette,
+		erase,
+	)
+	_map_data = _game_state.map_data
+	_present_action_result(result)
 
 
 func _apply_map_presentation() -> void:
@@ -1307,12 +1310,12 @@ func _on_save_requested() -> void:
 
 
 func _on_load_requested() -> void:
-	if not GameSaveClass.load_game(_session):
-		_command_bar.show_status("Load failed.")
+	var result: ActionResultClass = ActionResolverClass.load_saved_session(_game_state)
+	if not result.success:
+		_command_bar.show_status(result.status_message)
 		return
-
 	_sync_views_after_load()
-	_command_bar.show_status("Game loaded.")
+	_present_action_result(result)
 
 
 func _on_map_save_requested() -> void:
@@ -1323,8 +1326,8 @@ func _on_map_save_requested() -> void:
 
 
 func _on_map_load_requested() -> void:
-	_map_data = MapDataClass.load_from_file()
-	_game_state.map_data = _map_data
+	var result: ActionResultClass = ActionResolverClass.reload_map_from_file(_game_state)
+	_map_data = _game_state.map_data
 	_map_edit_mode = false
 	_command_bar.clear_map_edit_mode()
 	IsometricGrid.reset_view_rotation()
@@ -1332,7 +1335,7 @@ func _on_map_load_requested() -> void:
 	_camera.set_map_size(_map_data.width, _map_data.height)
 	_center_camera_on_map()
 	_sync_views_after_load()
-	_command_bar.show_status("Map loaded from res://maps/test_map.json")
+	_present_action_result(result)
 
 
 func _sync_views_after_load() -> void:

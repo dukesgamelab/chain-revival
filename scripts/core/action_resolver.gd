@@ -16,6 +16,9 @@ const PositionCommandClass := preload("res://scripts/commands/position_command.g
 const FireControlCommandClass := preload("res://scripts/commands/fire_control_command.gd")
 const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd")
 const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
+const MapEditorClass := preload("res://scripts/map/map_editor.gd")
+const MapDataClass := preload("res://scripts/map/map_data.gd")
+const GameSaveClass := preload("res://scripts/core/game_save.gd")
 const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
@@ -29,6 +32,7 @@ static func execute(
 	command: RefCounted,
 	context: CommandContext = null,
 ) -> ActionResult:
+	_log_action("execute %s" % _command_type_name(command))
 	if command is MoveCommandClass:
 		return execute_move(game_state, command as MoveCommandClass, context)
 	if command is FaceCommandClass:
@@ -75,6 +79,58 @@ static func toggle_map_block(game_state: GameStateClass, cell: Vector2i) -> Acti
 	if is_now_blocked:
 		return result.set_status("Blocked tile %s." % cell)
 	return result.set_status("Unblocked tile %s." % cell)
+
+
+## Dev map editor: place or erase a map object on authoritative map_data.
+static func apply_map_edit(
+	game_state: GameStateClass,
+	cell: Vector2i,
+	palette: int,
+	erase: bool,
+) -> ActionResult:
+	if not game_state.map_data.is_in_bounds(cell):
+		return ActionResult.fail("That tile is outside the map.")
+
+	var result := ActionResult.new()
+	result.refresh_map_data = true
+	result.refresh_views = false
+
+	if erase or palette == MapEditorClass.Palette.ERASE:
+		game_state.map_data.clear_object(cell)
+		_log_action("map edit erase %s" % cell)
+		return result.set_status("Erased tile %s." % cell)
+
+	var type_id := MapEditorClass.palette_type_id(palette)
+	if type_id.is_empty():
+		return ActionResult.fail("Unknown map edit palette.")
+
+	game_state.map_data.set_object(cell, type_id)
+	_log_action("map edit place %s=%s" % [cell, type_id])
+	return result.set_status("Placed %s at %s." % [type_id, cell])
+
+
+## Replace authoritative map_data from the default map file (dev tool).
+static func reload_map_from_file(game_state: GameStateClass) -> ActionResult:
+	var map_data: MapData = MapDataClass.load_from_file()
+	game_state.map_data = map_data
+	_log_action("reload map from file")
+	var result := ActionResult.new()
+	result.refresh_map_data = true
+	result.refresh_views = true
+	return result.set_status("Map loaded from res://maps/test_map.json")
+
+
+## Restore soldier/session snapshot from disk into the live GameState session.
+static func load_saved_session(
+	game_state: GameStateClass,
+	file_path: String = GameSaveClass.DEFAULT_PATH,
+) -> ActionResult:
+	if not GameSaveClass.load_game(game_state.session, file_path):
+		return ActionResult.fail("Load failed.")
+	_log_action("load saved session")
+	var result := ActionResult.new()
+	result.refresh_views = true
+	return result.set_status("Game loaded.")
 
 
 ## UI prep before move orders: sets movement_mode (and stands prone soldiers for Run).
@@ -192,6 +248,10 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 
 	if not result.combat_shots.is_empty() or not result.grenade_explosions.is_empty():
 		result.sync_fire_at_ui = true
+		_log_action(
+			"combat tick: %d shot(s), %d explosion(s)"
+			% [result.combat_shots.size(), result.grenade_explosions.size()]
+		)
 	return result
 
 
@@ -347,6 +407,20 @@ static func preview_fire_at_facing(
 		if fireteam.face_toward_tile(soldier_id, face_cell):
 			changed = true
 	return changed
+
+
+## Orient one soldier toward the grenade aim cell during targeting preview.
+static func preview_grenade_facing(
+	game_state: GameStateClass,
+	team_id: int,
+	soldier_id: int,
+	face_cell: Vector2i,
+) -> bool:
+	var shooter: SoldierState = game_state.get_soldier(team_id, soldier_id)
+	if shooter == null or shooter.is_dead or shooter.is_stunned():
+		return false
+	var fireteam := game_state.session.get_fireteam(team_id)
+	return fireteam.face_toward_tile(soldier_id, face_cell)
 
 
 static func execute_fire(
@@ -568,6 +642,7 @@ static func execute_grenade(
 
 	result.sync_fire_at_ui = true
 	result.refresh_views = true
+	_log_action("grenade thrown soldier %d:%d -> %s" % [cmd.team_id, cmd.soldier_id, cmd.target_cell])
 	return result.set_status("Grenade thrown.")
 
 
@@ -813,3 +888,24 @@ static func _append_grenade_movement_halts(
 			"soldier_id": soldier_id,
 			"snap_cell": soldier.grid_position,
 		})
+
+
+static func _log_action(message: String) -> void:
+	GameLog.log_system("[ActionResolver] %s" % message)
+
+
+static func _command_type_name(command: RefCounted) -> String:
+	if command is MoveCommandClass:
+		return "MoveCommand"
+	if command is FaceCommandClass:
+		return "FaceCommand"
+	if command is FireCommandClass:
+		return "FireCommand"
+	if command is PositionCommandClass:
+		return "PositionCommand"
+	if command is FireControlCommandClass:
+		return "FireControlCommand"
+	if command is GrenadeCommandClass:
+		return "GrenadeCommand"
+	return command.get_class() if command != null else "null"
+

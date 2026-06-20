@@ -2,8 +2,8 @@ class_name GameSave
 extends RefCounted
 ## JSON save/load for soldier positions during a session (separate from map files).
 ##
-## Load/save is bootstrap persistence, not runtime command flow. A future server would
-## restore GameState snapshots rather than call load_from_dict from UI mid-match.
+## Load/save is bootstrap persistence. Mid-match restore must go through
+## ActionResolver.load_saved_session() so GameState remains the mutation gate.
 
 const DEFAULT_PATH := "user://savegame.json"
 

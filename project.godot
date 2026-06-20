@@ -17,12 +17,17 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-AudioManager="*res://scenes/audio_manager.tscn"
 GameLog="*res://scripts/core/game_log.gd"
+GameModeManager="*res://scripts/core/game_mode_manager.gd"
+AudioManager="*res://scenes/audio_manager.tscn"
 
 [debug]
 
 combat/los_verbose=false
+
+[game]
+
+mode=0
 
 [display]
 
