@@ -106,10 +106,17 @@ func find_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
 	return path
 
 
-func show_path(cells: Array[Vector2i], target: Vector2i) -> void:
+func show_path(cells: Array, target: Vector2i) -> void:
 	_path_overlay.path_color = path_color
 	_path_overlay.target_color = target_color
-	_path_overlay.set_path(cells, target)
+	_path_overlay.set_path(_typed_path_cells(cells), target)
+
+
+static func _typed_path_cells(cells: Array) -> Array[Vector2i]:
+	var typed: Array[Vector2i] = []
+	for cell in cells:
+		typed.append(Vector2i(cell))
+	return typed
 
 
 func clear_path() -> void:

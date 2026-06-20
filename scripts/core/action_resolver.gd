@@ -199,7 +199,7 @@ static func execute_move(
 			if not notices.is_empty():
 				return ActionResult.fail(notices[0])
 			return ActionResult.fail("No soldiers could %s to that tile." % squad_mode_label)
-		result.path_overlay = {"cells": [], "target": cmd.target_cell}
+		result.path_overlay = {"cells": [] as Array[Vector2i], "target": cmd.target_cell}
 		var squad_status := "%s fireteam %s to %s — click another tile to redirect." % [
 			Team.display_name(cmd.team_id), squad_mode_label, cmd.target_cell,
 		]
