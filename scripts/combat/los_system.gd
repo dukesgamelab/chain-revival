@@ -1,16 +1,32 @@
 class_name LOSSystem
 extends RefCounted
-## Central line-of-sight / line-of-fire evaluation for combat and UI preview.
+## Central line-of-sight evaluation for combat and UI preview.
+## evaluate() = strict shot LOS (soldiers block). evaluate_spotting() = visibility only.
 ## Uses MapData map objects (blocks_los / cover_type) via CoverSystem.
-
 enum Status { CLEAR, COVER, BLOCKED }
 
 const COLOR_CLEAR := Color(0.25, 0.95, 0.35, 0.90)
 const COLOR_COVER := Color(0.95, 0.88, 0.20, 0.90)
 const COLOR_BLOCKED := Color(0.95, 0.18, 0.12, 0.90)
 
-static var debug_logging_enabled: bool = true
+## Master switch for verbose [LOS] / [Cover] / [Visibility] traces. Off during normal play.
+const DEBUG_LOS := false
+const PROJECT_SETTING_LOS_VERBOSE := "debug/combat/los_verbose"
+
+static var debug_logging_enabled: bool = DEBUG_LOS
 static var _last_debug_key: String = ""
+
+
+static func apply_debug_settings() -> void:
+	if ProjectSettings.has_setting(PROJECT_SETTING_LOS_VERBOSE):
+		debug_logging_enabled = bool(ProjectSettings.get_setting(PROJECT_SETTING_LOS_VERBOSE))
+	else:
+		debug_logging_enabled = DEBUG_LOS
+	_last_debug_key = ""
+
+
+static func is_debug_logging_enabled() -> bool:
+	return debug_logging_enabled
 
 
 class LossResult extends RefCounted:
@@ -61,6 +77,54 @@ static func evaluate(
 
 	_log_evaluation(from_cell, to_cell, map_data, result, game_state)
 	return result
+
+
+## Spotting visibility: map blockers only — standing soldiers do not block.
+static func evaluate_spotting(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	map_data: MapData,
+	game_state: GameState = null,
+) -> LossResult:
+	var result := LossResult.new()
+	if map_data == null or not map_data.is_in_bounds(from_cell) or not map_data.is_in_bounds(to_cell):
+		result.status = Status.BLOCKED
+		return result
+
+	var wall_usage := CoverSystem.evaluate_wall_cover_usage(from_cell, to_cell, map_data)
+	result.shooter_using_wall_cover = wall_usage.shooter_using_wall_cover
+	result.target_using_wall_cover = wall_usage.target_using_wall_cover
+
+	var block := CoverSystem.find_blocking_tile(
+		from_cell, to_cell, map_data, game_state, false,
+	)
+	if block.blocked:
+		result.status = Status.BLOCKED
+		result.blocking_cell = block.blocking_cell
+		result.blocking_type = block.blocking_type_id
+		if result.blocking_type.is_empty():
+			result.blocking_type = MapObjectRegistry.DEFAULT_BLOCKED_TYPE
+		return result
+
+	var cover := CoverSystem.evaluate_target_cover(from_cell, to_cell, map_data)
+	result.cover_type = cover.cover_type
+	result.cover_source_type = cover.source_type_id
+	result.cover_source_cell = cover.source_cell
+	if cover.cover_type in [CoverSystem.CoverType.MODERATE, CoverSystem.CoverType.COMPLETE]:
+		result.status = Status.COVER
+	else:
+		result.status = Status.CLEAR
+
+	return result
+
+
+static func is_spotting_blocked(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	map_data: MapData,
+	game_state: GameState = null,
+) -> bool:
+	return evaluate_spotting(from_cell, to_cell, map_data, game_state).status == Status.BLOCKED
 
 
 static func is_shot_blocked(
@@ -119,7 +183,7 @@ static func _log_evaluation(
 	result: LossResult,
 	game_state: GameState = null,
 ) -> void:
-	if not debug_logging_enabled:
+	if not is_debug_logging_enabled():
 		return
 
 	var debug_key := "%s>%s>%s" % [from_cell, to_cell, result.status]

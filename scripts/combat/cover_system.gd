@@ -132,11 +132,13 @@ static func evaluate_wall_cover_usage(
 
 
 ## Tile on the line of fire that completely blocks the shot.
+## Set block_soldiers false for spotting visibility (soldiers do not hide each other).
 static func find_blocking_tile(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
 	map_data: MapData,
 	game_state: GameState = null,
+	block_soldiers: bool = true,
 ) -> BlockResult:
 	var result := BlockResult.new()
 	if map_data == null:
@@ -145,7 +147,7 @@ static func find_blocking_tile(
 
 	var skipped_shooter_side_blocker := false
 	for cell in line_cells_between(from_cell, to_cell):
-		if living_standing_soldier_blocks_line(cell, game_state):
+		if block_soldiers and living_standing_soldier_blocks_line(cell, game_state):
 			result.blocked = true
 			result.blocking_cell = cell
 			result.blocking_type_id = "soldier"

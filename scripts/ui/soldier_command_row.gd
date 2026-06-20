@@ -98,7 +98,7 @@ func set_weapon_info(state: SoldierState) -> void:
 	_ammo_label.tooltip_text = "%s\nAmmo %d / %d" % [status_line, state.ammo_current, state.ammo_max]
 
 
-func set_ammo(ammo_current: int, ammo_max: int) -> void:
+func set_ammo(ammo_current: int, _ammo_max: int) -> void:
 	_ammo_label.text = "%d" % ammo_current
 
 

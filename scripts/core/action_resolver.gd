@@ -180,32 +180,32 @@ static func execute_move(
 	if cmd.scope == MoveCommandClass.Scope.SQUAD:
 		var ordered_count := 0
 		var notices: Array[String] = []
-		var mode_label := MovementModeClass.display_name(cmd.movement_mode).to_lower()
+		var squad_mode_label := MovementModeClass.display_name(cmd.movement_mode).to_lower()
 		for state in fireteam.soldiers:
-			var soldier_state: SoldierState = state
-			var move_result := _resolve_move_order(soldier_state, cmd.movement_mode)
-			if move_result.rejected:
-				if not move_result.message.is_empty():
-					notices.append(move_result.message)
+			var squad_soldier: SoldierState = state
+			var squad_move_result := _resolve_move_order(squad_soldier, cmd.movement_mode)
+			if squad_move_result.rejected:
+				if not squad_move_result.message.is_empty():
+					notices.append(squad_move_result.message)
 				continue
 			if _assign_move_path(
-				game_state, context, fireteam, soldier_state,
-				cmd, result, move_result.mode, move_result.message,
+				game_state, context, fireteam, squad_soldier,
+				cmd, result, squad_move_result.mode, squad_move_result.message,
 			):
 				ordered_count += 1
-				if not move_result.message.is_empty():
-					notices.append(move_result.message)
+				if not squad_move_result.message.is_empty():
+					notices.append(squad_move_result.message)
 		if ordered_count == 0:
 			if not notices.is_empty():
 				return ActionResult.fail(notices[0])
-			return ActionResult.fail("No soldiers could %s to that tile." % mode_label)
+			return ActionResult.fail("No soldiers could %s to that tile." % squad_mode_label)
 		result.path_overlay = {"cells": [], "target": cmd.target_cell}
-		var status := "%s fireteam %s to %s — click another tile to redirect." % [
-			Team.display_name(cmd.team_id), mode_label, cmd.target_cell,
+		var squad_status := "%s fireteam %s to %s — click another tile to redirect." % [
+			Team.display_name(cmd.team_id), squad_mode_label, cmd.target_cell,
 		]
 		if not notices.is_empty():
-			status += "\n" + "\n".join(notices)
-		return result.set_status(status)
+			squad_status += "\n" + "\n".join(notices)
+		return result.set_status(squad_status)
 
 	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
 	if soldier_state == null:

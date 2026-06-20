@@ -31,7 +31,7 @@ static func is_cell_in_cone(
 static func cone_outline_world(from_cell: Vector2i, facing: Vector2i, max_range: int) -> PackedVector2Array:
 	var normalized := FacingDirection.normalize(facing)
 	var lateral := Vector2i(-normalized.y, normalized.x)
-	var half_width := WIDTH_AT_MAX_RANGE / 2
+	var half_width := WIDTH_AT_MAX_RANGE >> 1
 	var far_center := from_cell + normalized * max_range
 	var far_left := far_center + lateral * half_width
 	var far_right := far_center - lateral * half_width
@@ -121,7 +121,7 @@ static func _world_half_width(from_cell: Vector2i, aim_world: Vector2, max_range
 	var aim_cell := IsometricGrid.world_to_cell_at_point(aim_world)
 	var facing := FacingDirection.toward_cell(from_cell, aim_cell)
 	var lateral := Vector2i(-facing.y, facing.x)
-	var half_tiles := WIDTH_AT_MAX_RANGE / 2
+	var half_tiles := WIDTH_AT_MAX_RANGE >> 1
 	var far_center := IsometricGrid.grid_to_world(from_cell + facing * max_range_tiles)
 	var far_left := IsometricGrid.grid_to_world(
 		from_cell + facing * max_range_tiles + lateral * half_tiles,

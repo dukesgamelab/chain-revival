@@ -53,6 +53,7 @@ var _auto_fire_timer: float = 0.0
 
 
 func _ready() -> void:
+	LOSSystemClass.apply_debug_settings()
 	RenderingServer.set_default_clear_color(Color(0.22, 0.38, 0.18, 1.0))
 	_camera.make_current()
 	_load_map_data()

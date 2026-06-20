@@ -180,7 +180,7 @@ static func create_default() -> MapData:
 
 ## Haybail, tree, and a 5-tile wall row (visually side-by-side in isometric view).
 static func _place_between_teams_cover(map_data: MapData) -> void:
-	var mid_x := DEFAULT_USA_ANCHOR.x + (DEFAULT_TEAM_SEPARATION / 2)  # x=31 between 26 and 36
+	var mid_x := DEFAULT_USA_ANCHOR.x + (DEFAULT_TEAM_SEPARATION >> 1)  # x=31 between 26 and 36
 	_clear_legacy_lane_walls(map_data)
 	var cover_line: Array[Dictionary] = [
 		{"cell": Vector2i(mid_x, DEFAULT_USA_ANCHOR.y - 1), "type": MapObjectRegistryClass.TYPE_HAYBAIL},
@@ -212,7 +212,7 @@ static func _clear_legacy_lane_walls(map_data: MapData) -> void:
 
 
 static func mid_x_for_lane() -> int:
-	return DEFAULT_USA_ANCHOR.x + (DEFAULT_TEAM_SEPARATION / 2)
+	return DEFAULT_USA_ANCHOR.x + (DEFAULT_TEAM_SEPARATION >> 1)
 
 
 static func _place_default_cover_samples(map_data: MapData) -> void:
