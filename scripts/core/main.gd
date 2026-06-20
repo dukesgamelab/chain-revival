@@ -172,54 +172,49 @@ func _update_los_preview() -> void:
 		return
 
 	var hover_soldier: SoldierState = _find_living_soldier_at_mouse()
-	var target_cell: Vector2i
-	var to_world: Vector2
-
-	if hover_soldier != null:
-		target_cell = hover_soldier.grid_position
-		to_world = _get_soldier_tracer_point(hover_soldier)
-	else:
-		target_cell = IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
-		to_world = IsometricGrid.grid_to_world(target_cell) + Vector2(0, -16)
+	var aim_world := _get_world_mouse_local()
+	var click_cell := IsometricGrid.world_to_grid(aim_world)
+	var explicit_team_id := -1
+	var explicit_soldier_id := -1
+	if hover_soldier != null and hover_soldier.team_id != shooter.team_id:
+		explicit_team_id = hover_soldier.team_id
+		explicit_soldier_id = hover_soldier.soldier_id
+		click_cell = hover_soldier.grid_position
+		aim_world = _get_soldier_tracer_point(hover_soldier)
 
 	var weapon := shooter.get_weapon_data()
 	var max_range := ConeOfFireClass.effective_range(weapon.range_tiles) if weapon != null else ConeOfFireClass.RANGE_BONUS
 	var from_world := _get_soldier_tracer_point(shooter)
-	var cone_world := ConeOfFireClass.cone_outline_world_toward(
-		from_world,
-		to_world,
-		shooter.grid_position,
-		max_range,
-	)
-
-	var los := LOSSystemClass.evaluate(shooter.grid_position, target_cell, _map_data)
-	var aim_facing := FacingDirection.toward_cell(shooter.grid_position, target_cell)
-	if not ConeOfFireClass.is_cell_in_cone(
-		shooter.grid_position,
-		aim_facing,
-		target_cell,
-		max_range,
-	):
-		los.status = LOSSystemClass.Status.BLOCKED
-	var has_enemy := CombatSystem.aim_cone_has_visible_enemy(
+	var preview := CombatSystem.evaluate_fire_at_preview(
 		_game_state,
 		shooter,
 		from_world,
-		to_world,
+		aim_world,
+		click_cell,
+		explicit_team_id,
+		explicit_soldier_id,
+	)
+	var cone_world := ConeOfFireClass.cone_outline_world_toward(
+		from_world,
+		aim_world,
+		shooter.grid_position,
 		max_range,
 	)
 	if not _fire_at_engaged:
 		var shooter_ids: Array[int] = []
 		for shooter_state in _get_manual_fire_at_shooters():
 			shooter_ids.append(shooter_state.soldier_id)
+		var face_cell := preview.click_cell
+		if preview.target != null:
+			face_cell = preview.target.grid_position
 		if ActionResolverClass.preview_fire_at_facing(
 			_game_state,
 			_session.active_team_id,
 			shooter_ids,
-			target_cell,
+			face_cell,
 		):
 			_sync_fire_at_shooter_views()
-	_los_visualizer.show_cone_preview(from_world, cone_world, to_world, los, has_enemy)
+	_los_visualizer.show_fire_at_preview(from_world, cone_world, preview)
 
 
 func _sync_fire_at_shooter_views() -> void:

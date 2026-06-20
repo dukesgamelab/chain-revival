@@ -11,6 +11,7 @@ const WeaponRegistryClass := preload("res://scripts/combat/weapon_registry.gd")
 const WeaponDataClass := preload("res://scripts/combat/weapon_data.gd")
 const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
 const FireteamLoadoutClass := preload("res://scripts/soldiers/fireteam_loadout.gd")
+const StressLabelsClass := preload("res://scripts/combat/stress_labels.gd")
 
 var soldier_id: int = 1
 var team_id: int = Team.USA
@@ -114,7 +115,7 @@ func activity_status_label() -> String:
 	if fire_ready_after_msec > Time.get_ticks_msec():
 		return "Aiming"
 	if stress >= 10.0:
-		return CombatSystem.get_stress_state_label(stress)
+		return StressLabelsClass.state_label(stress)
 	if position_state == PositionStateClass.DOWN:
 		return "Prone"
 	return "Idle"

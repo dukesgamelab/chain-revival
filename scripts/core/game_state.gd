@@ -33,5 +33,15 @@ func find_living_soldier_at_cell(cell: Vector2i) -> SoldierState:
 	return null
 
 
+## Any soldier on this tile, including dead or prone.
+func find_soldier_at_cell(cell: Vector2i) -> SoldierState:
+	for fireteam in session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if soldier_state.grid_position == cell:
+				return soldier_state
+	return null
+
+
 func enemy_team_id(team_id: int) -> int:
 	return Team.GERMANY if team_id == Team.USA else Team.USA

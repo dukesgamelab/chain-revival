@@ -392,6 +392,7 @@ static func execute_fire(
 			shooter.grid_position,
 			target.grid_position,
 			game_state.map_data,
+			game_state,
 		)
 		if los.status == LOSSystemClass.Status.BLOCKED:
 			any_obscured = true

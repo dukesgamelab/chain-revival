@@ -10,7 +10,7 @@ const RUN := Mode.RUN
 const WALK := Mode.WALK
 const CRAWL := Mode.CRAWL
 
-const SPEED_RUN := 0.5
+const SPEED_RUN := 2.0  ## TEST: 4x normal (0.5); revert before release
 const SPEED_WALK := 0.6
 const SPEED_CRAWL := 0.3
 

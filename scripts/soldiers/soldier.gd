@@ -87,15 +87,15 @@ func set_selected(is_selected: bool) -> void:
 
 
 func _apply_dead_visual(_is_selected: bool) -> void:
-	_applied_position_state = -1
+	_applied_position_state = PositionState.DOWN
 	_facing_arrow.visible = false
 	_prone_marker.visible = false
 	_dead_marker.visible = true
 	_weapon_badge.visible = false
 	_selection_marker.visible = false
-	_sprite.scale = Vector2.ONE
+	_sprite.scale = Vector2(1.15, 0.42)
 	_sprite.position = Vector2.ZERO
-	_sprite.offset = SPRITE_OFFSET_STANDING
+	_sprite.offset = SPRITE_OFFSET_PRONE
 	_sprite.texture = TEXTURE_USA if team_id == Team.USA else TEXTURE_GERMANY
 	_sprite.modulate = Color(0.38, 0.38, 0.38, 0.85)
 
