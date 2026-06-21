@@ -5,16 +5,14 @@ extends Node2D
 ## Does NOT mutate SoldierState. Emits movement signals so ActionResolver can update
 ## authoritative position via GameState when each animation step completes.
 
-const TEXTURE_OG_USA := preload("res://assets/sprites/og/ABRLA1A.png")
+const TEXTURE_USA := preload("res://assets/sprites/ABRLA1C.png")
 const TEXTURE_GERMANY := preload("res://assets/sprites/soldier_germany.svg")
 
-## OG Close Combat Marines soldier canvas (100x100 alignment grid).
-const _OG_CANVAS_SIZE := Vector2(100.0, 100.0)
-const _GERMAN_SPRITE_SIZE := Vector2(32.0, 48.0)
-const _OG_SPRITE_SCALE := Vector2(
-	TileSizeConfig.TILE_WIDTH / _OG_CANVAS_SIZE.x,
-	TileSizeConfig.TILE_WIDTH / _OG_CANVAS_SIZE.x,
-)
+## OG USA art uses a 100×100 PNG canvas with transparency — an animation alignment grid,
+## not the on-screen soldier height. Tune visible size here without editing source PNGs.
+const OG_USA_FRAME_SIZE := Vector2(100.0, 100.0)
+const OG_USA_SPRITE_SCALE := Vector2(1.6, 1.6)
+
 const _PRONE_SPRITE_SCALE := Vector2(1.15, 0.42)
 
 signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i)
@@ -125,15 +123,14 @@ func _apply_position_visual(state: SoldierState) -> void:
 
 
 func _standing_sprite_scale() -> Vector2:
-	var base := Vector2.ONE
 	if team_id == Team.USA:
-		base = _OG_SPRITE_SCALE
-	return base * TileSizeConfig.SOLDIER_SCALE
+		return OG_USA_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
+	return Vector2.ONE * TileSizeConfig.SOLDIER_SCALE
 
 
 func _prone_sprite_scale() -> Vector2:
 	if team_id == Team.USA:
-		var base := _OG_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
+		var base := OG_USA_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
 		return Vector2(base.x * _PRONE_SPRITE_SCALE.x, base.y * _PRONE_SPRITE_SCALE.y)
 	return _PRONE_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
 
@@ -235,12 +232,12 @@ func _sync_facing_arrow_visibility() -> void:
 	_facing_arrow.visible = _applied_position_state != PositionState.DOWN
 
 
-## USA uses OG 100x100 soldier art; Germany keeps placeholder SVG.
+## USA uses ABRLA1C.png for all facings (test placeholder); Germany keeps SVG.
 func _apply_directional_sprite(facing: Vector2i, from_cell: Vector2i) -> void:
 	if _sprite == null:
 		return
 	if team_id == Team.USA:
-		_sprite.texture = TEXTURE_OG_USA
+		_sprite.texture = TEXTURE_USA
 		var quarter: String = IsometricGrid.grid_facing_to_diagonal_quarter(facing, from_cell)
 		_sprite.flip_h = quarter == "nw" or quarter == "sw"
 	else:
