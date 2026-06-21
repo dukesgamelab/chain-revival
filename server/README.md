@@ -54,6 +54,14 @@ Server responds:
 { "type": "welcome", "message": "Hello Godot client", "clientId": "..." }
 ```
 
+Side assignment:
+
+```json
+{ "type": "request_side", "side": "USA" }
+```
+
+Server responds with `{ "type": "side_assigned", "side": "USA" }` or `{ "type": "side_denied", "reason": "Side already taken" }`.
+
 ## Project layout
 
 ```text

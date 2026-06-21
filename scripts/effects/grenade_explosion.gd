@@ -1,11 +1,17 @@
 class_name GrenadeExplosion
 extends Node2D
-## Brief expanding-ring explosion marker (presentation only).
+## OG grenade puff animation (GREXA frames). Presentation only.
 
-const DURATION := 0.45
-const MAX_RADIUS := 52.0
+const FRAME_TEXTURES: Array[Texture2D] = [
+	preload("res://assets/sprites/og/GREXA1A.png"),
+	preload("res://assets/sprites/og/GREXA1B.png"),
+	preload("res://assets/sprites/og/GREXA1C.png"),
+]
+const DURATION := 0.6
+const OG_CANVAS_SIZE := 100.0
 
 var _elapsed: float = 0.0
+var _sprite: Sprite2D
 
 
 static func spawn(parent: Node2D, world_pos: Vector2) -> GrenadeExplosion:
@@ -17,29 +23,22 @@ static func spawn(parent: Node2D, world_pos: Vector2) -> GrenadeExplosion:
 
 
 func _ready() -> void:
+	_sprite = Sprite2D.new()
+	_sprite.texture = FRAME_TEXTURES[0]
+	_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_sprite.centered = true
+	var scale_factor := TileSizeConfig.TILE_WIDTH / OG_CANVAS_SIZE
+	_sprite.scale = Vector2(scale_factor, scale_factor)
+	add_child(_sprite)
 	set_process(true)
 
 
 func _process(delta: float) -> void:
 	_elapsed += delta
-	queue_redraw()
+	var frame_index := mini(
+		int((_elapsed / DURATION) * float(FRAME_TEXTURES.size())),
+		FRAME_TEXTURES.size() - 1,
+	)
+	_sprite.texture = FRAME_TEXTURES[frame_index]
 	if _elapsed >= DURATION:
 		queue_free()
-
-
-func _draw() -> void:
-	var t := clampf(_elapsed / DURATION, 0.0, 1.0)
-	var fade := 1.0 - t
-	var base_radius := MAX_RADIUS * t
-
-	draw_circle(Vector2.ZERO, base_radius * 0.35, Color(1.0, 0.92, 0.75, fade * 0.35))
-
-	for ring in range(3):
-		var ring_delay := float(ring) * 0.1
-		var ring_t := clampf((t - ring_delay) / (1.0 - ring_delay), 0.0, 1.0)
-		if ring_t <= 0.0:
-			continue
-		var radius := base_radius * (0.55 + ring_t * 0.45)
-		var alpha := fade * (0.85 - float(ring) * 0.2)
-		var ring_color := Color(0.95, 0.55, 0.15, alpha) if ring == 0 else Color(0.85, 0.85, 0.88, alpha * 0.75)
-		draw_arc(Vector2.ZERO, radius, 0.0, TAU, 40, ring_color, 2.5 + float(ring), true)

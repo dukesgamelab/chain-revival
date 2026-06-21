@@ -58,23 +58,24 @@ var _grass_layer_visible: bool = true
 
 
 func _ready() -> void:
-	_setup_network_test()
+	_log_network_mode()
 	LOSSystemClass.apply_debug_settings()
 	RenderingServer.set_default_clear_color(Color(0.22, 0.38, 0.18, 1.0))
 	_camera.make_current()
 	_load_map_data()
 	_init_session_from_spawns()
 	_connect_command_bar()
+	_apply_multiplayer_side_lock()
 	_apply_map_presentation()
 	_center_camera_on_map()
 	_spawn_all_soldier_views()
 	_log_fireteam_loadouts()
 	_command_bar.set_active_team(_session.active_team_id)
 	_refresh_all_views()
-	_command_bar.show_status("Press 1 = USA, 2 = Germany. Fire At: click an enemy to open fire. Right-click cancels.")
+	_show_startup_status()
 
 
-func _setup_network_test() -> void:
+func _log_network_mode() -> void:
 	var mode_name := GameMode.display_name(GameModeManager.get_mode())
 	GameLog.log_system("Current Mode: %s" % mode_name)
 	if GameModeManager.is_local_multiplayer():
@@ -84,6 +85,34 @@ func _setup_network_test() -> void:
 			NetworkClient.connect_for_local_multiplayer()
 	else:
 		GameLog.log_system("[NetworkClient] Offline mode — no server connection.")
+
+
+func _show_startup_status() -> void:
+	if GameModeManager.is_local_multiplayer() and PlayerSides.has_assignment():
+		_command_bar.show_status(
+			"Controlling %s. Fire At: click an enemy to open fire. Right-click cancels."
+			% PlayerSides.display_side_name()
+		)
+	else:
+		_command_bar.show_status(
+			"Press 1 = USA, 2 = Germany. Fire At: click an enemy to open fire. Right-click cancels."
+		)
+
+
+func _apply_multiplayer_side_lock() -> void:
+	if not GameModeManager.is_local_multiplayer():
+		return
+	if not PlayerSides.has_assignment():
+		push_error("Local multiplayer started without an assigned side.")
+		return
+	_session.set_active_team(PlayerSides.assigned_team_id)
+	_command_bar.set_active_team(PlayerSides.assigned_team_id)
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	_repair_fireteam_selection(fireteam)
+	_command_bar.sync_selected_soldier(fireteam.selected_soldier_id)
+	GameLog.log_system(
+		"[PlayerSide] Locked control to %s." % PlayerSides.display_side_name()
+	)
 
 
 func _log_fireteam_loadouts() -> void:
@@ -519,6 +548,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _switch_active_team(team_id: int) -> void:
+	if not PlayerSides.can_control_team(team_id):
+		_command_bar.show_status(
+			"You control %s only." % PlayerSides.display_side_name()
+		)
+		return
 	if team_id == _session.active_team_id:
 		return
 	_session.set_active_team(team_id)
@@ -536,7 +570,10 @@ func _switch_active_team(team_id: int) -> void:
 	_repair_fireteam_selection(fireteam)
 	_command_bar.sync_selected_soldier(fireteam.selected_soldier_id)
 	_refresh_all_views()
-	_command_bar.show_status("Controlling %s team. Press 1/2 to switch." % Team.display_name(team_id))
+	var status := "Controlling %s team." % Team.display_name(team_id)
+	if GameModeManager.is_offline_dev():
+		status += " Press 1/2 to switch."
+	_command_bar.show_status(status)
 
 
 func _toggle_map_edit_mode() -> void:

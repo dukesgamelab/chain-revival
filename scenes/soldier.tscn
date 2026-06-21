@@ -4,7 +4,7 @@
 
 [ext_resource type="Script" path="res://scripts/soldiers/soldier.gd" id="1_soldier"]
 
-[ext_resource type="Texture2D" path="res://assets/sprites/us_soldier_se.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/sprites/og/ABRLA1A.png" id="2_sprite"]
 
 
 

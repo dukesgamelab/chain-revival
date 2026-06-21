@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 AudioManager="*res://scenes/audio_manager.tscn"
 GameLog="*res://scripts/core/game_log.gd"
 GameModeManager="*res://scripts/core/game_mode_manager.gd"
+PlayerSides="*res://scripts/network/player_side_manager.gd"
 CommandRouter="*res://scripts/core/command_router.gd"
 NetworkClient="*res://scripts/network/network_client.gd"
 

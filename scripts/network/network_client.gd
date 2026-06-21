@@ -8,14 +8,20 @@ extends Node
 const SERVER_URL := "ws://localhost:3000"
 const CLIENT_NAME := "Godot Client"
 const DEFAULT_CONNECT_TIMEOUT_SEC := 5.0
+const DEFAULT_SIDE_REQUEST_TIMEOUT_SEC := 5.0
 
 signal connection_changed(connected: bool)
 signal status_changed(status_text: String)
+signal side_assigned(side_name: String)
+signal side_denied(reason: String)
 
 var _socket := WebSocketPeer.new()
 var _connected := false
 var _connecting := false
 var _connect_failed := false
+var _side_request_pending := false
+var _side_request_resolved := false
+var _side_request_success := false
 
 
 func _ready() -> void:
@@ -46,7 +52,6 @@ func connect_for_local_multiplayer() -> void:
 	GameLog.log_system("[NetworkClient] Connecting to %s..." % SERVER_URL)
 
 
-## Wait until connected or timeout. Call after setting LOCAL_MULTIPLAYER mode.
 func connect_and_wait(timeout_sec: float = DEFAULT_CONNECT_TIMEOUT_SEC) -> bool:
 	if not GameModeManager.is_local_multiplayer():
 		return false
@@ -72,18 +77,41 @@ func connect_and_wait(timeout_sec: float = DEFAULT_CONNECT_TIMEOUT_SEC) -> bool:
 	return false
 
 
+func request_side_and_wait(
+	side_name: String,
+	timeout_sec: float = DEFAULT_SIDE_REQUEST_TIMEOUT_SEC,
+) -> bool:
+	if not _connected:
+		return false
+
+	_side_request_pending = true
+	_side_request_resolved = false
+	_side_request_success = false
+	GameLog.log_system("[NetworkClient] Requested side: %s" % side_name)
+	send_json({"type": "request_side", "side": side_name.to_upper()})
+
+	var deadline_msec := Time.get_ticks_msec() + int(timeout_sec * 1000.0)
+	while Time.get_ticks_msec() < deadline_msec:
+		await get_tree().process_frame
+		if _side_request_resolved:
+			return _side_request_success
+
+	_side_request_pending = false
+	GameLog.log_system("[NetworkClient] Side request timed out for %s." % side_name)
+	return false
+
+
 func is_connected_to_server() -> bool:
 	return _connected
 
 
-func get_server_status_text() -> String:
-	if not GameModeManager.is_local_multiplayer():
-		return ""
-	if _connected:
-		return "Server: Connected"
-	if _connecting:
-		return "Server: Connecting..."
-	return "Server: Disconnected"
+func get_multiplayer_status_lines() -> PackedStringArray:
+	var lines := PackedStringArray()
+	lines.append("Mode: LOCAL_MULTIPLAYER")
+	lines.append("Connected: %s" % ("Yes" if _connected else "No"))
+	if PlayerSides.has_assignment():
+		lines.append("Assigned Side: %s" % PlayerSides.display_side_name())
+	return lines
 
 
 func send_json(data: Dictionary) -> void:
@@ -94,6 +122,7 @@ func send_json(data: Dictionary) -> void:
 
 func disconnect_from_server() -> void:
 	_reset_socket()
+	PlayerSides.clear()
 	_emit_status()
 
 
@@ -104,6 +133,9 @@ func _reset_socket() -> void:
 	_connected = false
 	_connecting = false
 	_connect_failed = false
+	_side_request_pending = false
+	_side_request_resolved = false
+	_side_request_success = false
 	set_process(false)
 
 
@@ -133,6 +165,7 @@ func _on_disconnected() -> void:
 	var was_connecting := _connecting
 	_connected = false
 	_connecting = false
+	PlayerSides.clear()
 	if was_connected:
 		GameLog.log_system("[NetworkClient] Disconnected from server.")
 	elif was_connecting:
@@ -182,11 +215,34 @@ func _handle_message(message: Dictionary) -> void:
 			GameLog.log_system(
 				"[NetworkClient] Pong serverTime=%s" % str(message.get("serverTime", ""))
 			)
+		"side_assigned":
+			_on_side_assigned(str(message.get("side", "")))
+		"side_denied":
+			_on_side_denied(str(message.get("reason", "Side denied")))
 		_:
 			GameLog.log_system("[NetworkClient] Unhandled message type: %s" % msg_type)
 
 
+func _on_side_assigned(side_name: String) -> void:
+	PlayerSides.assign_from_side_name(side_name)
+	GameLog.log_system("[NetworkClient] Side assigned: %s" % side_name)
+	_side_request_pending = false
+	_side_request_resolved = true
+	_side_request_success = true
+	side_assigned.emit(side_name)
+	_emit_status()
+
+
+func _on_side_denied(reason: String) -> void:
+	GameLog.log_system("[NetworkClient] Side denied: %s" % reason)
+	_side_request_pending = false
+	_side_request_resolved = true
+	_side_request_success = false
+	side_denied.emit(reason)
+	_emit_status()
+
+
 func _emit_status() -> void:
-	status_changed.emit(get_server_status_text())
+	status_changed.emit("")
 	if _connected:
 		connection_changed.emit(true)

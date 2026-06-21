@@ -5,6 +5,7 @@ extends Control
 ##   cd server && npm run dev
 
 const MAIN_SCENE := "res://scenes/main.tscn"
+const SIDE_SELECT_SCENE := "res://scenes/side_select.tscn"
 
 const _HINT_DEFAULT := (
 	"Local Multiplayer connects to a server you start manually.\n"
@@ -31,6 +32,7 @@ func _ready() -> void:
 
 
 func _on_offline_pressed() -> void:
+	PlayerSides.clear()
 	GameModeManager.set_mode(GameMode.OFFLINE_DEV)
 	get_tree().change_scene_to_file(MAIN_SCENE)
 
@@ -42,7 +44,7 @@ func _on_multiplayer_pressed() -> void:
 
 	var connected := await NetworkClient.connect_and_wait()
 	if connected:
-		get_tree().change_scene_to_file(MAIN_SCENE)
+		get_tree().change_scene_to_file(SIDE_SELECT_SCENE)
 		return
 
 	_hint.text = _HINT_CONNECT_FAILED

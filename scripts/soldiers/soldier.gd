@@ -5,29 +5,17 @@ extends Node2D
 ## Does NOT mutate SoldierState. Emits movement signals so ActionResolver can update
 ## authoritative position via GameState when each animation step completes.
 
-const TEXTURE_USA_NE := preload("res://assets/sprites/us_soldier_ne.png")
-const TEXTURE_USA_NW := preload("res://assets/sprites/us_soldier_nw.png")
-const TEXTURE_USA_SE := preload("res://assets/sprites/us_soldier_se.png")
-const TEXTURE_USA_SW := preload("res://assets/sprites/us_soldier_sw.png")
+const TEXTURE_OG_USA := preload("res://assets/sprites/og/ABRLA1A.png")
 const TEXTURE_GERMANY := preload("res://assets/sprites/soldier_germany.svg")
 
-const _USA_TEXTURES: Dictionary = {
-	"ne": TEXTURE_USA_NE,
-	"nw": TEXTURE_USA_NW,
-	"se": TEXTURE_USA_SE,
-	"sw": TEXTURE_USA_SW,
-}
-## Match directional PNG art to the 32×48 German placeholder footprint.
+## OG Close Combat Marines soldier canvas (100x100 alignment grid).
+const _OG_CANVAS_SIZE := Vector2(100.0, 100.0)
 const _GERMAN_SPRITE_SIZE := Vector2(32.0, 48.0)
-const _USA_SPRITE_SIZE := Vector2(64.0, 104.0)
-const _USA_SPRITE_SCALE := Vector2(
-	_GERMAN_SPRITE_SIZE.x / _USA_SPRITE_SIZE.x,
-	_GERMAN_SPRITE_SIZE.y / _USA_SPRITE_SIZE.y,
+const _OG_SPRITE_SCALE := Vector2(
+	TileSizeConfig.TILE_WIDTH / _OG_CANVAS_SIZE.x,
+	TileSizeConfig.TILE_WIDTH / _OG_CANVAS_SIZE.x,
 )
-## Slightly larger than the German placeholder footprint.
-const _USA_SIZE_BOOST := 1.15
 const _PRONE_SPRITE_SCALE := Vector2(1.15, 0.42)
-## Visual-only sprite shift so feet sit on the tile center (Node2D stays on grid center).
 
 signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i)
 signal movement_finished(team_id: int, soldier_id: int)
@@ -56,6 +44,8 @@ var _last_applied_facing: Vector2i = FacingDirection.NORTH
 
 func _ready() -> void:
 	set_process(false)
+	_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_sprite.centered = true
 	_facing_arrow.position.y = TileSizeConfig.facing_arrow_y()
 	_prone_marker.position.y = TileSizeConfig.prone_marker_y()
 	_dead_marker.position.y = TileSizeConfig.dead_marker_y()
@@ -104,6 +94,7 @@ func set_selected(is_selected: bool) -> void:
 	_selection_marker.polygon = IsometricGrid.diamond_corners(Vector2.ZERO)
 	_apply_directional_sprite(_last_applied_facing, _facing_from_cell)
 
+
 func _apply_dead_visual(_is_selected: bool) -> void:
 	_applied_position_state = PositionState.DOWN
 	_facing_arrow.visible = false
@@ -136,13 +127,13 @@ func _apply_position_visual(state: SoldierState) -> void:
 func _standing_sprite_scale() -> Vector2:
 	var base := Vector2.ONE
 	if team_id == Team.USA:
-		base = _USA_SPRITE_SCALE * _USA_SIZE_BOOST
+		base = _OG_SPRITE_SCALE
 	return base * TileSizeConfig.SOLDIER_SCALE
 
 
 func _prone_sprite_scale() -> Vector2:
 	if team_id == Team.USA:
-		var base := _USA_SPRITE_SCALE * _USA_SIZE_BOOST * TileSizeConfig.SOLDIER_SCALE
+		var base := _OG_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
 		return Vector2(base.x * _PRONE_SPRITE_SCALE.x, base.y * _PRONE_SPRITE_SCALE.y)
 	return _PRONE_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
 
@@ -244,13 +235,14 @@ func _sync_facing_arrow_visibility() -> void:
 	_facing_arrow.visible = _applied_position_state != PositionState.DOWN
 
 
-## Choose USA directional art from authoritative grid facing; Germany keeps placeholder SVG.
+## USA uses OG 100x100 soldier art; Germany keeps placeholder SVG.
 func _apply_directional_sprite(facing: Vector2i, from_cell: Vector2i) -> void:
 	if _sprite == null:
 		return
 	if team_id == Team.USA:
+		_sprite.texture = TEXTURE_OG_USA
 		var quarter: String = IsometricGrid.grid_facing_to_diagonal_quarter(facing, from_cell)
-		var texture: Texture2D = _USA_TEXTURES.get(quarter, TEXTURE_USA_SE) as Texture2D
-		_sprite.texture = texture
+		_sprite.flip_h = quarter == "nw" or quarter == "sw"
 	else:
 		_sprite.texture = TEXTURE_GERMANY
+		_sprite.flip_h = false

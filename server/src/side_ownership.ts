@@ -1,0 +1,70 @@
+import type { WebSocket } from "ws";
+
+export type SideName = "USA" | "GERMANY";
+
+export interface ClientRecord {
+  ws: WebSocket;
+  clientId: string;
+  assignedSide: SideName | null;
+}
+
+const sideOwners: Record<SideName, string | null> = {
+  USA: null,
+  GERMANY: null,
+};
+
+const clients = new Map<string, ClientRecord>();
+
+export function registerClient(ws: WebSocket, clientId: string): ClientRecord {
+  const record: ClientRecord = { ws, clientId, assignedSide: null };
+  clients.set(clientId, record);
+  return record;
+}
+
+export function getClient(clientId: string): ClientRecord | undefined {
+  return clients.get(clientId);
+}
+
+export function removeClient(clientId: string): void {
+  const record = clients.get(clientId);
+  if (record?.assignedSide) {
+    sideOwners[record.assignedSide] = null;
+    console.log("%s released (client %s disconnected)", record.assignedSide, clientId);
+  }
+  clients.delete(clientId);
+}
+
+export function parseSideName(value: unknown): SideName | null {
+  if (value === "USA" || value === "GERMANY") {
+    return value;
+  }
+  return null;
+}
+
+export function requestSide(
+  clientId: string,
+  side: SideName,
+): { ok: true; side: SideName } | { ok: false; reason: string } {
+  const record = clients.get(clientId);
+  if (!record) {
+    return { ok: false, reason: "Unknown client" };
+  }
+
+  if (record.assignedSide === side) {
+    return { ok: true, side };
+  }
+
+  const ownerId = sideOwners[side];
+  if (ownerId !== null && ownerId !== clientId) {
+    return { ok: false, reason: "Side already taken" };
+  }
+
+  if (record.assignedSide && record.assignedSide !== side) {
+    sideOwners[record.assignedSide] = null;
+  }
+
+  record.assignedSide = side;
+  sideOwners[side] = clientId;
+  console.log("%s assigned to client %s", side, clientId);
+  return { ok: true, side };
+}

@@ -6,6 +6,7 @@
 export type CommandType =
   | "ping"
   | "hello"
+  | "request_side"
   | "move"
   | "face"
   | "fire"

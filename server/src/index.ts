@@ -1,18 +1,13 @@
 import { WebSocketServer, WebSocket, type RawData } from "ws";
 import { randomUUID } from "node:crypto";
+import {
+  parseSideName,
+  registerClient,
+  removeClient,
+  requestSide,
+} from "./side_ownership";
 
 const PORT = 3000;
-
-interface PongMessage {
-  type: "pong";
-  serverTime: number;
-}
-
-interface WelcomeMessage {
-  type: "welcome";
-  message: string;
-  clientId: string;
-}
 
 interface IncomingMessage {
   type?: string;
@@ -45,11 +40,7 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
   }
 
   if (message.type === "ping") {
-    const response: PongMessage = {
-      type: "pong",
-      serverTime: Date.now(),
-    };
-    sendJson(ws, response);
+    sendJson(ws, { type: "pong", serverTime: Date.now() });
     return;
   }
 
@@ -57,12 +48,29 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
     const clientName =
       typeof message.clientName === "string" ? message.clientName : "Unknown client";
     console.log("Hello from %s (%s)", clientName, clientId);
-    const response: WelcomeMessage = {
+    sendJson(ws, {
       type: "welcome",
       message: "Hello Godot client",
       clientId,
-    };
-    sendJson(ws, response);
+    });
+    return;
+  }
+
+  if (message.type === "request_side") {
+    const side = parseSideName(message.side);
+    if (side === null) {
+      sendJson(ws, { type: "side_denied", reason: "Invalid side" });
+      return;
+    }
+
+    console.log("Client requested %s (%s)", side, clientId);
+    const result = requestSide(clientId, side);
+    if (!result.ok) {
+      sendJson(ws, { type: "side_denied", reason: result.reason });
+      return;
+    }
+
+    sendJson(ws, { type: "side_assigned", side: result.side });
   }
 }
 
@@ -72,14 +80,15 @@ console.log(`Chain Revival local multiplayer server running on ws://localhost:${
 
 wss.on("connection", (ws: WebSocket) => {
   const clientId = randomUUID();
+  registerClient(ws, clientId);
   console.log("Client connected (%s)", clientId);
 
   ws.on("message", (data: RawData) => {
-    const raw = data.toString();
-    handleMessage(ws, clientId, raw);
+    handleMessage(ws, clientId, data.toString());
   });
 
   ws.on("close", () => {
+    removeClient(clientId);
     console.log("Client disconnected (%s)", clientId);
   });
 
