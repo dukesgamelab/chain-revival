@@ -73,6 +73,12 @@ var _locomotion_walking: bool = false
 
 var _configured_team_id: int = -1
 
+var _death_sequence_active: bool = false
+
+var _death_direction: String = "n"
+
+var _corpse_direction_locked: bool = false
+
 @onready var _anim: AnimatedSprite2D = $AnimatedSprite2D
 
 @onready var _selection_marker: Polygon2D = $SelectionMarker
@@ -103,6 +109,8 @@ func _ready() -> void:
 
 	_configure_team_visual()
 
+	_anim.animation_finished.connect(_on_anim_animation_finished)
+
 
 
 
@@ -125,6 +133,18 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 
 
 
+	if _death_sequence_active:
+
+		soldier_id = state.soldier_id
+
+		team_id = state.team_id
+
+		position = IsometricGrid.grid_to_world(state.grid_position)
+
+		return
+
+
+
 	if state.is_dead:
 
 		stop_movement()
@@ -135,7 +155,13 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 
 		_apply_facing(state.facing_direction, _facing_from_cell)
 
-		_apply_dead_visual(is_selected)
+		if team_id == Team.USA:
+
+			_show_usa_dead_static(_corpse_direction_for_state(state))
+
+		else:
+
+			_apply_dead_visual(is_selected)
 
 		return
 
@@ -191,6 +217,12 @@ func _apply_spotted_visual(is_selected: bool, is_spotted: bool) -> void:
 
 func set_selected(is_selected: bool) -> void:
 
+	if _death_sequence_active:
+
+		_selection_marker.visible = false
+
+		return
+
 	if _is_dead:
 
 		_selection_marker.visible = false
@@ -201,7 +233,7 @@ func set_selected(is_selected: bool) -> void:
 
 	_selection_marker.polygon = IsometricGrid.diamond_corners(Vector2.ZERO)
 
-	if not _is_moving:
+	if not _is_moving and not _death_sequence_active:
 
 		_update_locomotion_visual(_last_applied_facing, false)
 
@@ -217,7 +249,7 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 
 	_prone_marker.visible = false
 
-	_dead_marker.visible = true
+	_dead_marker.visible = false
 
 	_selection_marker.visible = false
 
@@ -227,7 +259,15 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 
 	_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
 
-	_update_locomotion_visual(_last_applied_facing, false)
+	if team_id == Team.USA:
+
+		_show_usa_dead_static(_death_direction)
+
+	else:
+
+		_update_locomotion_visual(_last_applied_facing, false)
+
+		_dead_marker.visible = true
 
 	_anim.modulate = Color(0.38, 0.38, 0.38, 0.85)
 
@@ -347,7 +387,7 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 
 	## movement_step_reached → ActionResolver.on_movement_step.
 
-	if _is_dead or path.size() <= 1:
+	if _is_dead or _death_sequence_active or path.size() <= 1:
 
 		return
 
@@ -383,7 +423,7 @@ func _process(delta: float) -> void:
 
 	# Interpolates Node2D.position only; does not write SoldierState.grid_position.
 
-	if not _is_moving or _is_dead:
+	if not _is_moving or _is_dead or _death_sequence_active:
 
 		return
 
@@ -469,7 +509,7 @@ func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> voi
 
 	_facing_from_cell = from_cell
 
-	if not _is_moving:
+	if not _is_moving and not _death_sequence_active:
 
 		_update_locomotion_visual(facing, false)
 
@@ -537,7 +577,7 @@ func _configure_team_visual() -> void:
 
 func _update_locomotion_visual(step: Vector2i, walking: bool) -> void:
 
-	if _anim == null:
+	if _anim == null or _death_sequence_active:
 
 		return
 
@@ -596,3 +636,90 @@ func _play_usa_locomotion(direction: String, walking: bool) -> void:
 	_anim.pause()
 
 	_anim.frame = 0
+
+
+
+## Play hit → fall → dead corpse using OG direction away from threat (attacker / blast).
+func play_death_sequence(threat_step: Vector2i) -> void:
+
+	if team_id != Team.USA or _death_sequence_active or _corpse_direction_locked:
+
+		return
+
+	stop_movement()
+
+	_death_sequence_active = true
+
+	_is_dead = true
+
+	_death_direction = UsSoldierSpriteFrames.direction_from_threat(threat_step)
+
+	_corpse_direction_locked = true
+
+	_facing_arrow.visible = false
+
+	_prone_marker.visible = false
+
+	_selection_marker.visible = false
+
+	_play_usa_animation("hit_%s" % _death_direction)
+
+
+
+func _on_anim_animation_finished() -> void:
+
+	if not _death_sequence_active or team_id != Team.USA:
+
+		return
+
+	var anim_name := _anim.animation
+
+	if anim_name.begins_with("hit_"):
+
+		_play_usa_animation("fall_%s" % _death_direction)
+
+	elif anim_name.begins_with("fall_"):
+
+		_finish_death_sequence()
+
+
+
+func _finish_death_sequence() -> void:
+
+	_death_sequence_active = false
+
+	_apply_dead_visual(false)
+
+
+
+func _show_usa_dead_static(direction: String) -> void:
+
+	_death_direction = direction
+
+	_play_usa_animation("dead_%s" % direction)
+
+	_anim.pause()
+
+	_anim.frame = 0
+
+
+
+func _corpse_direction_for_state(state: SoldierState) -> String:
+
+	if _corpse_direction_locked:
+
+		return _death_direction
+
+	return UsSoldierSpriteFrames.direction_from_step(state.facing_direction)
+
+
+
+func _play_usa_animation(anim_name: String) -> void:
+
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+
+		push_warning("Soldier: missing animation %s" % anim_name)
+
+		return
+
+	_anim.play(anim_name)

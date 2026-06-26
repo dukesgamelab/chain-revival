@@ -961,6 +961,10 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 				GameLog.log_combat(line)
 				combat_lines.append(line)
 
+	if not result.grenade_explosions.is_empty():
+		_spawn_grenade_explosions(result.grenade_explosions)
+		_trigger_grenade_death_animations(result.grenade_explosions)
+
 	if result.refresh_views:
 		_ensure_active_selection_alive()
 		_refresh_all_views()
@@ -971,9 +975,6 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 
 	if result.begin_fire_engagement:
 		_begin_fire_at_engagement()
-
-	if not result.grenade_explosions.is_empty():
-		_spawn_grenade_explosions(result.grenade_explosions)
 
 	if combat_tick and not combat_lines.is_empty():
 		_command_bar.show_status("\n".join(combat_lines.slice(-3)))
@@ -998,6 +999,22 @@ func _spawn_grenade_explosions(explosions: Array) -> void:
 		var cell: Vector2i = explosion.explosion_cell
 		var world_pos := IsometricGrid.grid_to_world(cell)
 		GrenadeExplosion.spawn(_tracers_root, world_pos)
+
+
+func _trigger_grenade_death_animations(explosions: Array) -> void:
+	for explosion in explosions:
+		var blast_cell: Vector2i = explosion.explosion_cell
+		for entry in explosion.killed:
+			var team_id := int(entry.get("team_id", -1))
+			var soldier_id := int(entry.get("soldier_id", -1))
+			var victim: SoldierState = _game_state.get_soldier(team_id, soldier_id)
+			if victim == null:
+				continue
+			# Vector from victim toward blast; fall plays away from the explosion.
+			var threat_step := blast_cell - victim.grid_position
+			var view: Soldier = _get_view(team_id, soldier_id)
+			if view != null:
+				view.play_death_sequence(threat_step)
 
 
 func _soldier_snap_key(team_id: int, soldier_id: int) -> String:
@@ -1177,6 +1194,12 @@ func _finalize_shot_result(
 	if result.fired and target != null:
 		_spawn_shot_tracers(shooter, target, maxi(result.tracer_count, 1))
 		result.messages.append("Tracer created")
+
+	if result.killed and target != null:
+		var threat_step := shooter.grid_position - target.grid_position
+		var target_view: Soldier = _get_view(target.team_id, target.soldier_id)
+		if target_view != null:
+			target_view.play_death_sequence(threat_step)
 
 	var lines: Array[String] = []
 	for line in result.messages:
