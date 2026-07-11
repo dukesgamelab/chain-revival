@@ -4,9 +4,3 @@
 
 [node name="AudioManager" type="Node"]
 script = ExtResource("1_audio")
-
-[node name="GunshotPlayer" type="AudioStreamPlayer" parent="."]
-bus = &"Master"
-
-[node name="DeathPlayer" type="AudioStreamPlayer" parent="."]
-bus = &"Master"

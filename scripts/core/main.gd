@@ -999,6 +999,7 @@ func _spawn_grenade_explosions(explosions: Array) -> void:
 		var cell: Vector2i = explosion.explosion_cell
 		var world_pos := IsometricGrid.grid_to_world(cell)
 		GrenadeExplosion.spawn(_tracers_root, world_pos)
+		AudioManager.play_grenade_explosion()
 
 
 func _trigger_grenade_death_animations(explosions: Array) -> void:
@@ -1012,6 +1013,7 @@ func _trigger_grenade_death_animations(explosions: Array) -> void:
 				continue
 			# Vector from victim toward blast; fall plays away from the explosion.
 			var threat_step := blast_cell - victim.grid_position
+			AudioManager.play_death(team_id)
 			var view: Soldier = _get_view(team_id, soldier_id)
 			if view != null:
 				view.play_death_sequence(threat_step)

@@ -321,7 +321,7 @@ static func resolve_shot(
 	if not auto_engagement:
 		result.messages.append("Ammo remaining: %d" % shooter.ammo_current)
 
-	AudioManager.play_gunshot()
+	AudioManager.play_weapon_fire(weapon.weapon_id)
 	apply_suppression_from_shot(game_state, shooter, target, weapon, los)
 
 	if los.target_using_wall_cover:
@@ -352,7 +352,7 @@ static func resolve_shot(
 		result.messages.append(
 			"%s Soldier %d killed" % [Team.display_name(target.team_id), target.soldier_id],
 		)
-		AudioManager.play_death()
+		AudioManager.play_death(target.team_id)
 	elif los.cover_type == CoverSystemClass.CoverType.MODERATE:
 		result.messages.append("Shot missed due to cover")
 	else:
