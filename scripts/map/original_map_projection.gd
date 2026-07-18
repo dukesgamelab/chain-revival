@@ -19,18 +19,28 @@ static func source_cell_point(cell: Vector2i) -> Vector2:
 
 
 static func cell_to_world(cell: Vector2i) -> Vector2:
-	return source_cell_point(cell) * map_scale()
+	return point_to_world(Vector2(cell))
+
+
+static func point_to_world(point: Vector2) -> Vector2:
+	return Vector2(
+		(point.x - point.y) * SOURCE_STEP_X,
+		(point.x + point.y) * SOURCE_STEP_Y,
+	) * map_scale()
+
+
+static func world_to_point(world: Vector2) -> Vector2:
+	var s := map_scale()
+	if s <= 0.0:
+		return Vector2.ZERO
+	var sx := world.x / (SOURCE_STEP_X * s)
+	var sy := world.y / (SOURCE_STEP_Y * s)
+	return Vector2((sx + sy) * 0.5, (sy - sx) * 0.5)
 
 
 static func world_to_cell(world: Vector2) -> Vector2i:
-	var s := map_scale()
-	if s <= 0.0:
-		return Vector2i.ZERO
-	var sx := world.x / (SOURCE_STEP_X * s)
-	var sy := world.y / (SOURCE_STEP_Y * s)
-	var gx := (sx + sy) * 0.5
-	var gy := (sy - sx) * 0.5
-	return Vector2i(int(floor(gx)), int(floor(gy)))
+	var point := world_to_point(world)
+	return Vector2i(int(floor(point.x)), int(floor(point.y)))
 
 
 static func sprite_top_left(cell: Vector2i, hotspot: Vector2) -> Vector2:

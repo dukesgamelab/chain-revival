@@ -91,28 +91,78 @@ static func _visual_to_logical(cell: Vector2i) -> Vector2i:
 
 
 static func _base_grid_to_world(grid: Vector2i) -> Vector2:
+	return _base_point_to_world(Vector2(grid))
+
+
+static func _base_point_to_world(point: Vector2) -> Vector2:
 	if use_original_projection:
-		return OriginalMapProjection.cell_to_world(grid)
+		return OriginalMapProjection.point_to_world(point)
 	var half_w := TILE_WIDTH * 0.5
 	var half_h := TILE_HEIGHT * 0.5
-	var x := (grid.x - grid.y) * half_w
-	var y := (grid.x + grid.y) * half_h
-	return Vector2(x, y)
+	return Vector2((point.x - point.y) * half_w, (point.x + point.y) * half_h)
+
+
+static func _base_world_to_point(world: Vector2) -> Vector2:
+	if use_original_projection:
+		return OriginalMapProjection.world_to_point(world)
+	var half_w := TILE_WIDTH * 0.5
+	var half_h := TILE_HEIGHT * 0.5
+	if half_w == 0.0 or half_h == 0.0:
+		return Vector2.ZERO
+	var sx := world.x / half_w
+	var sy := world.y / half_h
+	return Vector2((sx + sy) * 0.5, (sy - sx) * 0.5)
 
 
 static func _base_world_to_grid(world: Vector2) -> Vector2i:
-	if use_original_projection:
-		return OriginalMapProjection.world_to_cell(world)
-	var half_w := TILE_WIDTH * 0.5
-	var half_h := TILE_HEIGHT * 0.5
-	var gx := (world.x / half_w + world.y / half_h) * 0.5
-	var gy := (world.y / half_h - world.x / half_w) * 0.5
-	return Vector2i(int(floor(gx)), int(floor(gy)))
+	var point := _base_world_to_point(world)
+	return Vector2i(int(floor(point.x)), int(floor(point.y)))
+
+
+static func _logical_to_visual_point(point: Vector2) -> Vector2:
+	var x := point.x
+	var y := point.y
+	var w := float(maxi(_map_width - 1, 0))
+	var h := float(maxi(_map_height - 1, 0))
+	match current_view_rotation:
+		1:
+			return Vector2(y, w - x)
+		2:
+			return Vector2(w - x, h - y)
+		3:
+			return Vector2(h - y, x)
+		_:
+			return point
+
+
+static func _visual_to_logical_point(point: Vector2) -> Vector2:
+	var vx := point.x
+	var vy := point.y
+	var w := float(maxi(_map_width - 1, 0))
+	var h := float(maxi(_map_height - 1, 0))
+	match current_view_rotation:
+		1:
+			return Vector2(w - vy, vx)
+		2:
+			return Vector2(w - vx, h - vy)
+		3:
+			return Vector2(vy, h - vx)
+		_:
+			return point
 
 
 ## Convert a logical grid cell to the world-space CENTER of that tile (presentation).
 static func grid_to_world(grid: Vector2i) -> Vector2:
 	return _base_grid_to_world(_logical_to_visual(grid))
+
+
+## Continuous logical battlefield point ↔ presentation world (for viewport preservation).
+static func world_to_logical_point(world: Vector2) -> Vector2:
+	return _visual_to_logical_point(_base_world_to_point(world))
+
+
+static func logical_point_to_world(logical: Vector2) -> Vector2:
+	return _base_point_to_world(_logical_to_visual_point(logical))
 
 
 ## World position for soldier aim, tracers, and mouse picking (chest height above tile center).

@@ -54,6 +54,17 @@ func snap_to_cell(cell: Vector2i, vertical_offset: float = TileSizeConfig.CAMERA
 	_clamp_position()
 
 
+## World point currently at the center of the viewport (Camera2D position).
+func get_viewport_center_world() -> Vector2:
+	return position
+
+
+## Center the viewport on a presentation-world point (then clamp to map bounds).
+func center_on_world(world: Vector2) -> void:
+	position = world
+	_clamp_position()
+
+
 func _process(delta: float) -> void:
 	var move := Vector2.ZERO
 	if Input.is_action_pressed("move_up"):

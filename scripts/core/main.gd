@@ -809,13 +809,22 @@ func _on_rotate_view_right_requested() -> void:
 
 
 func _apply_view_rotation_left() -> void:
-	IsometricGrid.rotate_view_left()
-	_refresh_view_rotation()
+	_rotate_view_preserving_viewport(true)
 
 
 func _apply_view_rotation_right() -> void:
-	IsometricGrid.rotate_view_right()
+	_rotate_view_preserving_viewport(false)
+
+
+## Rotate projection while keeping the battlefield point under the viewport center.
+func _rotate_view_preserving_viewport(rotate_left: bool) -> void:
+	var focus_logical := IsometricGrid.world_to_logical_point(_camera.get_viewport_center_world())
+	if rotate_left:
+		IsometricGrid.rotate_view_left()
+	else:
+		IsometricGrid.rotate_view_right()
 	_refresh_view_rotation()
+	_camera.center_on_world(IsometricGrid.logical_point_to_world(focus_logical))
 
 
 func _refresh_view_rotation() -> void:
