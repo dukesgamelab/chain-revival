@@ -1,0 +1,32 @@
+{
+  "placements": 834,
+  "records": 3336,
+  "project_map_matches_handoff_semantics": true,
+  "sprite_selection_rule": "family + camera-relative letter \u2192 manifest (object_type ignored)",
+  "issues": {
+    "bad_png:empty": 112,
+    "bad_png:cyan_placeholder": 54,
+    "cam0_ne_source_sprite": 5,
+    "missing_manifest": 1
+  },
+  "corrupt_or_placeholder_pngs_in_package": {
+    "ASAX_sw.png": "empty",
+    "ASAX_w.png": "empty",
+    "LIHW_w.png": "cyan_placeholder",
+    "TR02_e.png": "empty"
+  },
+  "cam0_source_sprite_disagreements": 5,
+  "missing_manifest_resolutions": 1,
+  "notes": [
+    "LIHW_w.png in the authoritative package is a solid cyan 300x22 placeholder; LIHW e\u2192w fallback and natural w selection both blit this strip (protrusion).",
+    "TR02_e.png is fully empty; decoration using TR02 draws nothing.",
+    "WFLO_e is a raised 62x44 wooden/stone footing (not a flat diamond like SFLO); selection is correct per family code \u2014 visual 'wall on floor' may be this art.",
+    "SFLO archive art is green-moss; Fable footage tan is a documented unrecovered theme.",
+    "Only non-manifest resolution: TA03|w under some cameras (archive gap)."
+  ],
+  "outputs": {
+    "jsonl": "c:\\Users\\danie\\OneDrive\\Documents\\GitHub\\chain-revival\\tools\\original_map_import\\fortress_render_audit.jsonl",
+    "summary": "c:\\Users\\danie\\OneDrive\\Documents\\GitHub\\chain-revival\\tools\\original_map_import\\fortress_render_audit_summary.json"
+  },
+  "family_from_type_mismatches": 0
+}
