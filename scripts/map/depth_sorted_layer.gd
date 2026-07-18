@@ -1,6 +1,7 @@
 class_name DepthSortedLayer
 extends Node2D
 ## Y-sorted presentation layer for map object sprites and soldier views.
+## Original CoC objects always resolve facets via CocSpriteResolver (shared with editor).
 
 const META_MAP_OBJECT := &"map_object_sprite"
 
@@ -27,9 +28,8 @@ func refresh_view_rotation() -> void:
 
 
 func _rebuild_map_object_sprites() -> void:
-	for child in get_children():
-		if child.has_meta(META_MAP_OBJECT):
-			child.queue_free()
+	## Free immediately — queue_free leaves stale camera facets visible until idle frame.
+	_clear_map_object_sprites()
 
 	if map_data == null:
 		return
@@ -61,6 +61,16 @@ func _rebuild_map_object_sprites() -> void:
 		add_child(sprite)
 
 
+func _clear_map_object_sprites() -> void:
+	var stale: Array[Node] = []
+	for child in get_children():
+		if child.has_meta(META_MAP_OBJECT):
+			stale.append(child)
+	for child in stale:
+		remove_child(child)
+		child.free()
+
+
 func _rebuild_original_sprites() -> void:
 	var scale := OriginalMapProjection.map_scale()
 	var placements: Array = map_data.visual_placements.duplicate()
@@ -87,10 +97,11 @@ func _rebuild_original_sprites() -> void:
 		if family.is_empty() or family == "NEAR":
 			continue
 
+		## Authoritative data: family + world direction only. Never read baked sprite paths.
 		var direction := int(entry.get("direction", 0))
-		var draw_info := CocFacetSelector.resolve_draw(family, direction)
-		## No invented fallbacks — skip missing / solid-placeholder archive frames.
-		if CocRenderRules.is_unusable_sprite(draw_info):
+		var image1 := str(entry.get("image1", "")).to_upper()
+		var draw_info := CocSpriteResolver.resolve_placement(family, direction, image1)
+		if bool(draw_info.get("unusable", false)):
 			_placeholder_count += 1
 			continue
 		var path := str(draw_info.get("path", ""))
@@ -107,7 +118,7 @@ func _rebuild_original_sprites() -> void:
 		holder.set_meta(&"coc_path", path)
 		holder.set_meta(&"coc_cell", cell)
 		holder.set_meta(&"coc_z", int(entry.get("z", 0)))
-		holder.set_meta(&"coc_image1", str(entry.get("image1", "")))
+		holder.set_meta(&"coc_image1", image1)
 		holder.position = IsometricGrid.grid_to_world(cell)
 		add_child(holder)
 
@@ -117,7 +128,6 @@ func _rebuild_original_sprites() -> void:
 		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		sprite.texture = texture
 		sprite.scale = Vector2(scale, scale)
-		## Blit top-left at cell_screen_point + hotspot (relative to holder at cell point).
 		sprite.position = hotspot * scale
 		holder.add_child(sprite)
 

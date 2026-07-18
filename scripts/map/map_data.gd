@@ -163,23 +163,27 @@ func place_family_object(
 	var fam := family.to_upper()
 	if fam.is_empty():
 		return
+	## CoC family placement always uses the shared original visual pipeline.
+	uses_original_projection = true
 	## Editor replace semantics: new object owns the cell (clears floor/objects/decoration).
 	erase_all_at(cell, true)
 	var type_id := str(gameplay.get("object_type", MapObjectDefinition.type_id_for_family(fam)))
+	## Persist identity only — never a camera-specific sprite letter/path.
 	var source := {
 		"image": fam,
 		"direction": direction,
 		"z": z,
 		"terrain": str(gameplay.get("terrain", "_HG_EVEN")),
 		"terrain_height": int(gameplay.get("terrain_height", 0)),
-		"sprite": "%s_%s.png" % [fam, _letter_hint(fam, direction)],
 	}
 	if not image1.is_empty():
 		source["image1"] = image1.to_upper()
 	for key in gameplay.keys():
-		if key in ["object_type", "terrain", "terrain_height"]:
+		if key in ["object_type", "terrain", "terrain_height", "sprite_path", "sprite"]:
 			continue
 		source[key] = gameplay[key]
+	## Drop any legacy baked sprite keys so saves stay camera-agnostic.
+	source.erase("sprite")
 	_object_lookup[cell] = MapObjectRegistryClass.normalize_type_id(type_id)
 	_object_meta[cell] = {
 		"source": source,
@@ -187,7 +191,7 @@ func place_family_object(
 		"blocks_los": bool(gameplay.get("blocks_los", true)),
 		"provides_cover": bool(gameplay.get("provides_cover", true)),
 		"cover_type": int(gameplay.get("cover_type", 2)),
-		"sprite_path": str(gameplay.get("sprite_path", "")),
+		"sprite_path": "",
 	}
 	_upsert_visual_placement(
 		{
@@ -213,6 +217,7 @@ func place_floor_tile(cell: Vector2i, family: String, direction: int = 0) -> voi
 	if not is_in_bounds(cell):
 		return
 	var fam := family.to_upper()
+	uses_original_projection = true
 	## Editor replace semantics: floor replaces walls/objects on the cell.
 	erase_all_at(cell, true)
 	floors.append({"x": cell.x, "y": cell.y, "image": fam, "direction": direction})
@@ -314,10 +319,6 @@ func restore_snapshot(data: Dictionary) -> void:
 	_object_lookup = restored._object_lookup
 	_object_meta = restored._object_meta
 	_rebuild_blocked_tiles_list()
-
-
-func _letter_hint(family: String, direction: int) -> String:
-	return CocFacetSelector.select_letter_at_camera(family, direction, 0)
 
 
 func _upsert_visual_placement(entry: Dictionary) -> void:
@@ -675,7 +676,8 @@ static func _object_entry_to_dict(cell: Vector2i, object_def: MapObjectDef) -> D
 		"x": cell.x,
 		"y": cell.y,
 		"grid_position": {"x": cell.x, "y": cell.y},
-		"sprite_path": object_def.sprite_path,
+		## Empty for CoC families — facets resolve at draw time from source.image + direction.
+		"sprite_path": "",
 		"blocks_movement": object_def.blocks_movement,
 		"blocks_los": object_def.blocks_los,
 		"provides_cover": object_def.provides_cover,
@@ -724,13 +726,15 @@ func _load_objects_from_json(raw: Array) -> void:
 		if MapObjectRegistryClass.get_def(type_id) == null:
 			continue
 		_object_lookup[cell] = type_id
+		## Ignore baked sprite_path/sprite — presentation always re-resolves via CocSpriteResolver.
+		source.erase("sprite")
 		_object_meta[cell] = {
 			"source": source,
 			"blocks_movement": bool(entry.get("blocks_movement", false)),
 			"blocks_los": bool(entry.get("blocks_los", false)),
 			"provides_cover": bool(entry.get("provides_cover", false)),
 			"cover_type": int(entry.get("cover_type", 0)),
-			"sprite_path": str(entry.get("sprite_path", source.get("sprite", ""))),
+			"sprite_path": "",
 		}
 
 

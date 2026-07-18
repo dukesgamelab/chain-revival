@@ -1,0 +1,902 @@
+{
+ "_naming": {
+  "file_pattern": "8{CODE}{A|S}{dir}{frame}.BMP  A=action S=static; dir digit 1..8 (3=e,4=se,5=s,6=sw,7=w,8=nw,1=n,2=ne); frame letters A..; hotspots from MDL records (same chain as terrain)",
+  "prefix": "A=American, G=German; E*/U* auxiliary sets (civilian/uniform variants \u2014 3-4 anims only); DPAR/DPGR single statics (dropped kit/corpse pile) [inferred]; L000/L015/L030/LC00/LC15/LC30 = elevation/lean dummies [unknown purpose]",
+  "weapon_groups": "base S-set = SMG carrier (full animation coverage); R-group = rifle aim/fire overlays; L-group = LMG aim/fire overlays; movement/transition/hit/death animations are SHARED across weapons (only aim/fire swaps by weapon) \u2014 this matches the data: R/L groups contain ONLY aim/fire/idle poses.",
+  "confidence_legend": "90+ = data-confirmed (folder/extract/engine-state corroboration); 70-89 = strong structural inference; <70 = inferred, verify visually"
+ },
+ "American": {
+  "idle_stand": {
+   "family": "ASAX",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 90,
+   "note": "primary standing idle (SMG carried); ASID variant idle (missing s facing \u2014 use se fallback)"
+  },
+  "idle_stand_alt": {
+   "family": "ASID",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 80,
+   "note": "7 facings only"
+  },
+  "idle_kneel": {
+   "family": "AKNL",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 85
+  },
+  "idle_prone_A": {
+   "family": "APLA",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 70,
+   "note": "prone pose set L: PLA/PLH/PLI statics"
+  },
+  "idle_prone_B": {
+   "family": "APRA",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 70,
+   "note": "prone pose set R: PRA/PRH/PRI statics"
+  },
+  "walk": {
+   "family": "ASWK",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 12,
+   "confidence": 90,
+   "note": "engine state _HG_Stalking/_HG_Running family; 20-frame gait"
+  },
+  "run": {
+   "family": "ASRW",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 15,
+   "confidence": 75
+  },
+  "stalk_sneak": {
+   "family": "ASSS",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 10,
+   "confidence": 70
+  },
+  "assault_sprint": {
+   "family": "ASPR",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 15,
+   "confidence": 70
+  },
+  "crawl": {
+   "family": "APMO",
+   "directions": 8,
+   "frames": 22,
+   "frame_order": "A..V (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 10,
+   "confidence": 85,
+   "note": "prone movement \u2014 engine _HG_Crawling"
+  },
+  "fire_smg_single": {
+   "family": "ASFX",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 80,
+   "note": "standing fire; SFI = variant"
+  },
+  "fire_smg_burst": {
+   "family": "ASFB",
+   "directions": 8,
+   "frames": 12,
+   "frame_order": "A..L (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 75,
+   "note": "full-auto burst"
+  },
+  "fire_rifle_stand": {
+   "family": "ARBX",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 70,
+   "note": "R-group = rifle: RBY aim static, RBX fire"
+  },
+  "aim_rifle_stand": {
+   "family": "ARBY",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 70
+  },
+  "fire_lmg_stand": {
+   "family": "ALBX",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 70,
+   "note": "L-group = LMG: LBY aim static, LBX fire"
+  },
+  "aim_lmg_stand": {
+   "family": "ALBY",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 70
+  },
+  "aim_rifle_kneel": {
+   "family": "ARCA",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 60,
+   "note": "C-group = crouched/kneel weapon poses; RCF fire, RCI idle, RCP work-action(3f)"
+  },
+  "fire_rifle_kneel": {
+   "family": "ARCF",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 60
+  },
+  "aim_lmg_kneel": {
+   "family": "ALCA",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 60
+  },
+  "fire_lmg_kneel": {
+   "family": "ALCF",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 60
+  },
+  "fire_prone_A": {
+   "family": "APLF",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 65,
+   "note": "PLD = 2f settle"
+  },
+  "fire_prone_B": {
+   "family": "APRF",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 65,
+   "note": "PRD = 2f settle; PRN 5f = prone weapon-work (reload) [inferred]"
+  },
+  "grenade_throw": {
+   "family": "ABRL",
+   "directions": 8,
+   "frames": 21,
+   "frame_order": "A..U (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 55,
+   "note": "21f standing one-shot; BRL vs LPK assignment to grenade/reload is INFERRED \u2014 verify visually",
+   "transition_to": {
+    "to": "idle_stand"
+   }
+  },
+  "reload_long": {
+   "family": "ALPK",
+   "directions": 8,
+   "frames": 16,
+   "frame_order": "A..P (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 55,
+   "note": "16f one-shot; see grenade note \u2014 could be swapped"
+  },
+  "stand_to_kneel": {
+   "family": "ASKN",
+   "directions": 8,
+   "frames": 4,
+   "frame_order": "A..D (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 85,
+   "transition_to": {
+    "to": "idle_kneel"
+   }
+  },
+  "kneel_to_stand": {
+   "family": "AKUP",
+   "directions": 8,
+   "frames": 4,
+   "frame_order": "A..D (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 85,
+   "transition_to": {
+    "to": "idle_stand"
+   }
+  },
+  "kneel_to_stand_alt": {
+   "family": "AKST",
+   "directions": 8,
+   "frames": 7,
+   "frame_order": "A..G (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 60,
+   "note": "frame set 0-4,10-11 (two segments)"
+  },
+  "prone_to_kneel": {
+   "family": "APKN",
+   "directions": 8,
+   "frames": 7,
+   "frame_order": "A..G (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 80,
+   "transition_to": {
+    "to": "idle_kneel"
+   }
+  },
+  "stand_to_prone": {
+   "family": "ASTG",
+   "directions": 8,
+   "frames": 24,
+   "frame_order": "A..X (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 18,
+   "confidence": 80,
+   "note": "STG = stand-to-ground",
+   "transition_to": {
+    "to": "idle_prone_A"
+   }
+  },
+  "prone_to_stand": {
+   "family": "ASUP",
+   "directions": 8,
+   "frames": 24,
+   "frame_order": "A..X (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 18,
+   "confidence": 80,
+   "note": "SUP = stand-up",
+   "transition_to": {
+    "to": "idle_stand"
+   }
+  },
+  "hit_front": {
+   "family": "AHTF",
+   "directions": 8,
+   "frames": 19,
+   "frame_order": "A..S (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 80,
+   "note": "one-shot hit reaction",
+   "transition_to": {
+    "to": "idle_stand"
+   }
+  },
+  "hit_back": {
+   "family": "AHTB",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 80,
+   "transition_to": {
+    "to": "idle_stand"
+   }
+  },
+  "hit_leg_wounding": {
+   "family": "AHTL",
+   "directions": 8,
+   "frames": 23,
+   "frame_order": "A..W (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 70,
+   "note": "transitions into wounded locomotion",
+   "transition_to": {
+    "to": "wounded_walk"
+   }
+  },
+  "wounded_walk": {
+   "family": "AWLG",
+   "directions": 8,
+   "frames": 12,
+   "frame_order": "A..L (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 8,
+   "confidence": 80,
+   "note": "W-group scripted beside _HG_Run/_HG_Stalk/_HG_Crawl in MDL; limping gait; static idle exists"
+  },
+  "wounded_alt": {
+   "family": "AWSD",
+   "directions": 8,
+   "frames": 12,
+   "frame_order": "A..L (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 8,
+   "confidence": 75,
+   "note": "second wounded gait/pose; static idle exists"
+  },
+  "death_fall": {
+   "family": "AFAL",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 90,
+   "note": "frames 0-6 + 10-14: likely two death variants in one family",
+   "transition_to": {
+    "to": "corpse"
+   }
+  },
+  "corpse_face_up": {
+   "family": "ADFU",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 90,
+   "note": "persistent corpse"
+  },
+  "corpse_face_down": {
+   "family": "ADFD",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 90
+  },
+  "corpse_variants": {
+   "families": [
+    "ADOA",
+    "ADHH",
+    "APDD"
+   ],
+   "directions": 8,
+   "frames": 1,
+   "confidence": 70,
+   "note": "additional corpse/dying statics; ADHP/APDP are 2-frame dying-in-place one-shots"
+  }
+ },
+ "German": {
+  "idle_stand": {
+   "family": "GSAX",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 90,
+   "note": "primary standing idle (SMG carried); ASID variant idle (missing s facing \u2014 use se fallback)"
+  },
+  "idle_stand_alt": {
+   "family": "GSID",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 80,
+   "note": "7 facings only"
+  },
+  "idle_kneel": {
+   "family": "GKNL",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 85
+  },
+  "idle_prone_A": {
+   "family": "GPLA",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 70,
+   "note": "prone pose set L: PLA/PLH/PLI statics"
+  },
+  "idle_prone_B": {
+   "family": "GPRA",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 70,
+   "note": "prone pose set R: PRA/PRH/PRI statics"
+  },
+  "walk": {
+   "family": "GSWK",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 12,
+   "confidence": 90,
+   "note": "engine state _HG_Stalking/_HG_Running family; 20-frame gait"
+  },
+  "run": {
+   "family": "GSRW",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 15,
+   "confidence": 75
+  },
+  "stalk_sneak": {
+   "family": "GSSS",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 10,
+   "confidence": 70
+  },
+  "assault_sprint": {
+   "family": "GSPR",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 15,
+   "confidence": 70
+  },
+  "crawl": {
+   "family": "GPMO",
+   "directions": 8,
+   "frames": 22,
+   "frame_order": "A..V (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 10,
+   "confidence": 85,
+   "note": "prone movement \u2014 engine _HG_Crawling"
+  },
+  "fire_smg_single": {
+   "family": "GSFX",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 80,
+   "note": "standing fire; SFI = variant"
+  },
+  "fire_smg_burst": {
+   "family": "GSFB",
+   "directions": 8,
+   "frames": 12,
+   "frame_order": "A..L (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 75,
+   "note": "full-auto burst"
+  },
+  "fire_rifle_stand": {
+   "family": "GRBX",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 70,
+   "note": "R-group = rifle: RBY aim static, RBX fire"
+  },
+  "aim_rifle_stand": {
+   "family": "GRBY",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 70
+  },
+  "fire_lmg_stand": {
+   "family": "GLBX",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 70,
+   "note": "L-group = LMG: LBY aim static, LBX fire"
+  },
+  "aim_lmg_stand": {
+   "family": "GLBY",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 70
+  },
+  "aim_rifle_kneel": {
+   "family": "GRCA",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 60,
+   "note": "C-group = crouched/kneel weapon poses; RCF fire, RCI idle, RCP work-action(3f)"
+  },
+  "fire_rifle_kneel": {
+   "family": "GRCF",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 60
+  },
+  "aim_lmg_kneel": {
+   "family": "GLCA",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 60
+  },
+  "fire_lmg_kneel": {
+   "family": "GLCF",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 60
+  },
+  "fire_prone_A": {
+   "family": "GPLF",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 65,
+   "note": "PLD = 2f settle"
+  },
+  "fire_prone_B": {
+   "family": "GPRF",
+   "directions": 8,
+   "frames": 3,
+   "frame_order": "A..C (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 65,
+   "note": "PRD = 2f settle; PRN 5f = prone weapon-work (reload) [inferred]"
+  },
+  "grenade_throw": {
+   "family": "GBRL",
+   "directions": 8,
+   "frames": 21,
+   "frame_order": "A..U (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 55,
+   "note": "21f standing one-shot; BRL vs LPK assignment to grenade/reload is INFERRED \u2014 verify visually",
+   "transition_to": {
+    "to": "idle_stand"
+   }
+  },
+  "reload_long": {
+   "family": "GLPK",
+   "directions": 8,
+   "frames": 16,
+   "frame_order": "A..P (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 12,
+   "confidence": 55,
+   "note": "16f one-shot; see grenade note \u2014 could be swapped"
+  },
+  "stand_to_kneel": {
+   "family": "GSKN",
+   "directions": 8,
+   "frames": 4,
+   "frame_order": "A..D (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 85,
+   "transition_to": {
+    "to": "idle_kneel"
+   }
+  },
+  "kneel_to_stand": {
+   "family": "GKUP",
+   "directions": 8,
+   "frames": 4,
+   "frame_order": "A..D (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 85,
+   "transition_to": {
+    "to": "idle_stand"
+   }
+  },
+  "kneel_to_stand_alt": {
+   "family": "GKST",
+   "directions": 8,
+   "frames": 7,
+   "frame_order": "A..G (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 60,
+   "note": "frame set 0-4,10-11 (two segments)"
+  },
+  "prone_to_kneel": {
+   "family": "GPKN",
+   "directions": 8,
+   "frames": 7,
+   "frame_order": "A..G (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 80,
+   "transition_to": {
+    "to": "idle_kneel"
+   }
+  },
+  "stand_to_prone": {
+   "family": "GSTG",
+   "directions": 8,
+   "frames": 24,
+   "frame_order": "A..X (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 18,
+   "confidence": 80,
+   "note": "STG = stand-to-ground",
+   "transition_to": {
+    "to": "idle_prone_A"
+   }
+  },
+  "prone_to_stand": {
+   "family": "GSUP",
+   "directions": 8,
+   "frames": 24,
+   "frame_order": "A..X (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 18,
+   "confidence": 80,
+   "note": "SUP = stand-up",
+   "transition_to": {
+    "to": "idle_stand"
+   }
+  },
+  "hit_front": {
+   "family": "GHTF",
+   "directions": 8,
+   "frames": 19,
+   "frame_order": "A..S (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 80,
+   "note": "one-shot hit reaction",
+   "transition_to": {
+    "to": "idle_stand"
+   }
+  },
+  "hit_back": {
+   "family": "GHTB",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 80,
+   "transition_to": {
+    "to": "idle_stand"
+   }
+  },
+  "hit_leg_wounding": {
+   "family": "GHTL",
+   "directions": 8,
+   "frames": 23,
+   "frame_order": "A..W (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 70,
+   "note": "transitions into wounded locomotion",
+   "transition_to": {
+    "to": "wounded_walk"
+   }
+  },
+  "wounded_walk": {
+   "family": "GWLG",
+   "directions": 8,
+   "frames": 12,
+   "frame_order": "A..L (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 8,
+   "confidence": 80,
+   "note": "W-group scripted beside _HG_Run/_HG_Stalk/_HG_Crawl in MDL; limping gait; static idle exists"
+  },
+  "wounded_alt": {
+   "family": "GWSD",
+   "directions": 8,
+   "frames": 12,
+   "frame_order": "A..L (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": true,
+   "fps": 8,
+   "confidence": 75,
+   "note": "second wounded gait/pose; static idle exists"
+  },
+  "death_fall": {
+   "family": "GFAL",
+   "directions": 8,
+   "frames": 20,
+   "frame_order": "A..T (letters, ascending)",
+   "file_pattern": "8{CODE}A{dir1-8}{frameletter}.BMP",
+   "loop": false,
+   "fps": 15,
+   "confidence": 90,
+   "note": "frames 0-6 + 10-14: likely two death variants in one family",
+   "transition_to": {
+    "to": "corpse"
+   }
+  },
+  "corpse_face_up": {
+   "family": "GDFU",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 90,
+   "note": "persistent corpse"
+  },
+  "corpse_face_down": {
+   "family": "GDFD",
+   "directions": 8,
+   "frames": 1,
+   "frame_order": "A..A (letters, ascending)",
+   "file_pattern": "8{CODE}S{dir1-8}A.BMP",
+   "loop": true,
+   "fps": 0,
+   "confidence": 90
+  },
+  "corpse_variants": {
+   "families": [
+    "GDOA",
+    "GDHH",
+    "GPDD"
+   ],
+   "directions": 8,
+   "frames": 1,
+   "confidence": 70,
+   "note": "additional corpse/dying statics; GDHP/GPDP are 2-frame dying-in-place one-shots"
+  }
+ }
+}

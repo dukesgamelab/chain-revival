@@ -74,11 +74,8 @@ func _update_from_mouse() -> void:
 		return
 	var family := str(best.get("family", "")).to_upper()
 	var direction := int(best.get("direction", 0))
-	var draw_info: Dictionary
-	if str(best.get("layer", "")) == "floor" or CocRenderRules.is_floor_family(family):
-		draw_info = CocRenderRules.resolve_floor_display(family, direction)
-	else:
-		draw_info = CocFacetSelector.resolve_draw(family, direction)
+	var image1 := str(best.get("image1", ""))
+	var draw_info := CocSpriteResolver.resolve_placement(family, direction, image1)
 	_info["family"] = family
 	_info["direction"] = direction
 	_info["display_angle"] = int(draw_info.get("display_angle", CocFacetSelector.display_angle(direction)))
@@ -87,7 +84,7 @@ func _update_from_mouse() -> void:
 	_info["path"] = str(draw_info.get("path", ""))
 	_info["hotspot"] = draw_info.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
 	_info["z"] = int(best.get("z", 0))
-	_info["image1"] = str(best.get("image1", ""))
+	_info["image1"] = image1
 	_info["layer"] = str(best.get("layer", "object"))
 
 

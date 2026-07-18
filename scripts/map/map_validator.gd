@@ -89,8 +89,13 @@ static func _validate_placements(map_data: MapData, report: Dictionary) -> void:
 			continue
 		var direction := int(entry.get("direction", 0))
 		for cam_deg in [0, 90, 180, 270]:
-			var info := CocFacetSelector.resolve_draw_at_camera(family, direction, cam_deg)
-			if CocRenderRules.is_unusable_sprite(info):
+			var info := CocSpriteResolver.resolve_placement(
+				family,
+				direction,
+				str(entry.get("image1", "")),
+				cam_deg,
+			)
+			if bool(info.get("unusable", false)):
 				if bool(info.get("missing", true)):
 					family_bad[family] = true
 				else:

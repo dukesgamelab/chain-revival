@@ -21,6 +21,7 @@ const MODE_SELECT_SCENE := "res://scenes/mode_select.tscn"
 const MAP_WORLD_SCENE := preload("res://scenes/map/map_world.tscn")
 
 @onready var _asset_tree: Tree = %AssetTree
+@onready var _asset_context: PopupMenu = %AssetContextMenu
 @onready var _tool_option: OptionButton = %ToolOption
 @onready var _status: Label = %StatusLabel
 @onready var _coord_label: Label = %CoordLabel
@@ -58,7 +59,7 @@ var _brush_direction: int = 0
 func _ready() -> void:
 	_setup_world()
 	_setup_tools()
-	_populate_assets()
+	_setup_asset_browser()
 	_back_button.pressed.connect(_on_back_pressed)
 	_new_button.pressed.connect(_on_new_pressed)
 	_open_button.pressed.connect(_on_open_pressed)
@@ -69,11 +70,20 @@ func _ready() -> void:
 	_search.text_changed.connect(_on_search_changed)
 	_tool_option.item_selected.connect(_on_tool_selected)
 	_grid_toggle.toggled.connect(_on_grid_toggled)
-	_asset_tree.item_selected.connect(_on_asset_selected)
 	_viewport_host.mouse_filter = Control.MOUSE_FILTER_STOP
 	_viewport_host.gui_input.connect(_on_viewport_gui_input)
 	_load_map(_map_path)
 	set_process_unhandled_input(true)
+
+
+func _setup_asset_browser() -> void:
+	AssetBrowserCatalog.reload()
+	_asset_tree.item_selected.connect(_on_asset_selected)
+	_asset_tree.item_edited.connect(_on_asset_renamed)
+	_asset_tree.item_mouse_selected.connect(_on_asset_mouse_selected)
+	_asset_tree.allow_rmb_select = true
+	_asset_context.id_pressed.connect(_on_asset_context_id)
+	_populate_assets()
 
 
 func _on_viewport_gui_input(event: InputEvent) -> void:
@@ -105,23 +115,45 @@ func _setup_tools() -> void:
 func _populate_assets(filter_text: String = "") -> void:
 	_asset_tree.clear()
 	var root := _asset_tree.create_item()
-	var categories := AssetBrowserCatalog.build_categories()
+	var categories := AssetBrowserCatalog.build_categories(_map_data)
 	var filter := filter_text.strip_edges().to_lower()
-	for cat in AssetBrowserCatalog.CATEGORY_ORDER:
+	var shown := 0
+	for cat in AssetBrowserCatalog.category_order():
 		var items: Array = categories.get(cat, [])
+		if items.is_empty() and cat != "On This Map":
+			continue
 		var cat_item: TreeItem = null
 		for entry in items:
 			var label := str(entry.get("label", ""))
+			var family := str(entry.get("family", ""))
 			if not filter.is_empty() and label.to_lower().find(filter) < 0 \
-					and str(entry.get("family", "")).to_lower().find(filter) < 0:
+					and family.to_lower().find(filter) < 0 \
+					and str(entry.get("edit_label", "")).to_lower().find(filter) < 0:
 				continue
 			if cat_item == null:
 				cat_item = _asset_tree.create_item(root)
 				cat_item.set_text(0, cat)
 				cat_item.set_selectable(0, false)
+				cat_item.set_collapsed(false)
 			var item := _asset_tree.create_item(cat_item)
 			item.set_text(0, label)
 			item.set_metadata(0, entry)
+			## Editable display name (persists to editor_asset_catalog.json).
+			if str(entry.get("kind", "")) in ["family", "terrain"]:
+				item.set_editable(0, true)
+			shown += 1
+			## Update category count as filtered children appear.
+			if cat_item != null:
+				var child_count := 0
+				var walk := cat_item.get_first_child()
+				while walk != null:
+					child_count += 1
+					walk = walk.get_next()
+				cat_item.set_text(0, "%s (%d)" % [cat, child_count])
+	if shown == 0 and not filter.is_empty():
+		var empty := _asset_tree.create_item(root)
+		empty.set_text(0, "(no matches)")
+		empty.set_selectable(0, false)
 
 
 func _load_map(path: String) -> void:
@@ -138,6 +170,8 @@ func _load_map(path: String) -> void:
 	_camera.reset_to_default_view(IsometricGrid.grid_to_world(focus))
 	_dirty = false
 	_selection.clear()
+	## Rebuild browser so "On This Map" lists every family used by this map.
+	_populate_assets(_search.text if _search else "")
 	_refresh_validation()
 	_status.text = "Loaded %s" % path.get_file()
 
@@ -212,9 +246,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if event.keycode == KEY_R:
 			_brush_direction = posmod(_brush_direction + 90, 360)
-			_status.text = "Brush direction %d°" % _brush_direction
+			_status.text = "Brush direction %d° (world)" % _brush_direction
+			_refresh_placement_preview(_cell_at_mouse())
+			if _inspector_cell.x >= 0:
+				_rebuild_inspector()
 			get_viewport().set_input_as_handled()
 			return
+		if event.keycode == KEY_F2:
+			var asset := _asset_tree.get_selected()
+			if asset != null and asset.is_editable(0):
+				_asset_tree.edit_selected(true)
+				get_viewport().set_input_as_handled()
+				return
 		if event.is_action_pressed("rotate_view_left"):
 			_rotate_view(true)
 			get_viewport().set_input_as_handled()
@@ -239,11 +282,17 @@ func _unhandled_input(event: InputEvent) -> void:
 func _handle_mouse_editor_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		var cell := _cell_at_mouse()
-		_coord_label.text = "Cell %s  Cam %d°" % [cell, IsometricGrid.camera_direction_degrees()]
+		_coord_label.text = "Cell %s  Cam %d°  BrushDir %d°" % [
+			cell,
+			IsometricGrid.camera_direction_degrees(),
+			_brush_direction,
+		]
 		if _map_data != null and _map_data.is_in_bounds(cell):
 			_world.set_hover_cell(cell)
+			_refresh_placement_preview(cell)
 		else:
 			_world.clear_hover()
+			_world.clear_placement_preview()
 		if _painting and _tool in [Tool.PLACE, Tool.ERASE]:
 			_apply_tool_at(cell, false)
 	elif event is InputEventMouseButton:
@@ -268,9 +317,13 @@ func _rotate_view(left: bool) -> void:
 		IsometricGrid.rotate_view_left()
 	else:
 		IsometricGrid.rotate_view_right()
+	## Shared MapWorldView rebuilds every object via CocSpriteResolver (no editor facet logic).
 	_world.refresh_view_rotation()
 	_camera.center_on_world(IsometricGrid.logical_point_to_world(focus))
-	_status.text = "Camera %d°" % IsometricGrid.camera_direction_degrees()
+	_refresh_placement_preview(_cell_at_mouse())
+	if _inspector_cell.x >= 0:
+		_rebuild_inspector()
+	_status.text = "Camera %d° — facets re-resolved (world dirs unchanged)" % IsometricGrid.camera_direction_degrees()
 
 
 func _apply_tool_at(cell: Vector2i, is_click: bool) -> void:
@@ -319,6 +372,22 @@ func _apply_tool_at(cell: Vector2i, is_click: bool) -> void:
 	if is_click and _tool in [Tool.PLACE, Tool.SELECT, Tool.EYEDROPPER]:
 		_inspector_cell = cell
 		_rebuild_inspector()
+
+
+func _refresh_placement_preview(cell: Vector2i) -> void:
+	if _world == null or _map_data == null or not _map_data.is_in_bounds(cell):
+		if _world != null:
+			_world.clear_placement_preview()
+		return
+	if _tool != Tool.PLACE and _tool != Tool.RECT_FILL and _tool != Tool.FLOOD_FILL:
+		_world.clear_placement_preview()
+		return
+	var family := str(_brush.get("family", "")).to_upper()
+	var kind := str(_brush.get("kind", ""))
+	if family.is_empty() or kind in ["spawn_usa", "spawn_ger", "victory", "label", "terrain"]:
+		_world.clear_placement_preview()
+		return
+	_world.set_placement_preview(family, _brush_direction, cell)
 
 
 func _place_brush(cell: Vector2i, is_click: bool) -> void:
@@ -524,10 +593,20 @@ func _rebuild_inspector() -> void:
 	_add_field("Penetration", def.bullet_penetration, func(v: String) -> void: _set_source_field(cell, "bullet_penetration", v))
 	_add_field("Movement Cost", def.movement_cost, func(v: String) -> void: _set_source_field(cell, "movement_cost", v))
 	_add_field("Comments", def.comments, func(v: String) -> void: _set_source_field(cell, "comments", v))
-	var resolved := CocFacetSelector.resolve_draw(def.family, def.direction) if not def.family.is_empty() else {}
-	_add_inspector_label("Resolved letter: %s" % str(resolved.get("letter", "-")))
-	_add_inspector_label("PNG: %s" % str(resolved.get("path", "-")).get_file())
-	_add_inspector_label("Hotspot: %s" % str(resolved.get("hotspot", "-")))
+	if def.family.is_empty():
+		_add_inspector_label("Resolved: (none)")
+	else:
+		var resolved := CocSpriteResolver.resolve_placement(def.family, def.direction, def.image1)
+		_add_inspector_label(
+			"Display letter @ cam %d°: %s"
+			% [int(resolved.get("camera_direction", 0)), str(resolved.get("letter", "-"))]
+		)
+		_add_inspector_label("World direction: %d° (unchanged by camera)" % def.direction)
+		_add_inspector_label("PNG: %s" % str(resolved.get("path", "-")).get_file())
+		_add_inspector_label("Hotspot: %s" % str(resolved.get("hotspot", "-")))
+		if not str(resolved.get("image1", "")).is_empty():
+			var under: Dictionary = resolved.get("image1_resolve", {})
+			_add_inspector_label("Image1 PNG: %s" % str(under.get("path", "-")).get_file())
 
 
 func _add_inspector_label(text: String) -> void:
@@ -656,6 +735,88 @@ func _on_asset_selected() -> void:
 	_status.text = "Brush: %s" % str(_brush.get("label", ""))
 
 
+func _on_asset_renamed() -> void:
+	var item := _asset_tree.get_edited()
+	if item == null:
+		item = _asset_tree.get_selected()
+	if item == null:
+		return
+	var meta = item.get_metadata(0)
+	if meta == null or not meta is Dictionary:
+		return
+	var family := str(meta.get("family", "")).to_upper()
+	var kind := str(meta.get("kind", ""))
+	if family.is_empty() or kind not in ["family", "terrain"]:
+		return
+	var typed := item.get_text(0).strip_edges()
+	## Strip trailing [CODE] if the user left it in.
+	var code_suffix := "  [%s]" % family
+	if typed.ends_with(code_suffix):
+		typed = typed.substr(0, typed.length() - code_suffix.length()).strip_edges()
+	elif typed.ends_with("[%s]" % family):
+		typed = typed.substr(0, typed.length() - family.length() - 2).strip_edges()
+	if typed.is_empty():
+		_populate_assets(_search.text)
+		return
+	if AssetBrowserCatalog.rename_family(family, typed):
+		_status.text = "Renamed %s → %s (saved to editor_asset_catalog.json)" % [family, typed]
+		_populate_assets(_search.text)
+		## Reselect matching family brush.
+		_brush["family"] = family
+		_brush["edit_label"] = typed
+		_brush["label"] = "%s  [%s]" % [typed, family] if typed.to_upper().find(family) < 0 else typed
+	else:
+		_status.text = "Could not save rename for %s" % family
+		_populate_assets(_search.text)
+
+
+func _on_asset_mouse_selected(_mouse_position: Vector2, mouse_button_index: int) -> void:
+	if mouse_button_index != MOUSE_BUTTON_RIGHT:
+		return
+	var item := _asset_tree.get_selected()
+	if item == null:
+		return
+	var meta = item.get_metadata(0)
+	if meta == null or not meta is Dictionary:
+		return
+	var kind := str(meta.get("kind", ""))
+	if kind not in ["family", "terrain"]:
+		return
+	_asset_context.clear()
+	_asset_context.add_item("Rename (F2)", 0)
+	_asset_context.add_separator()
+	var idx := 1
+	for cat in AssetBrowserCatalog.category_order():
+		if cat == "On This Map" or cat in ["Spawn Points", "Victory Points", "Labels"]:
+			continue
+		_asset_context.add_item("Move to %s" % cat, idx)
+		_asset_context.set_item_metadata(idx, cat)
+		idx += 1
+	_asset_context.position = Vector2i(_asset_tree.get_global_mouse_position())
+	_asset_context.reset_size()
+	_asset_context.popup()
+
+
+func _on_asset_context_id(id: int) -> void:
+	var item := _asset_tree.get_selected()
+	if item == null:
+		return
+	var meta = item.get_metadata(0)
+	if meta == null or not meta is Dictionary:
+		return
+	var family := str(meta.get("family", "")).to_upper()
+	if id == 0:
+		item.set_editable(0, true)
+		_asset_tree.edit_selected(true)
+		return
+	var cat := str(_asset_context.get_item_metadata(id))
+	if cat.is_empty():
+		return
+	if AssetBrowserCatalog.set_family_category(family, cat):
+		_status.text = "Moved %s → %s" % [family, cat]
+		_populate_assets(_search.text)
+
+
 func _on_tool_selected(index: int) -> void:
 	_tool = index
 	_rect_anchor = Vector2i(-1, -1)
@@ -704,6 +865,7 @@ func _on_new_pressed() -> void:
 	_map_data = MapLoader.create_blank(100, 100, "untitled")
 	_map_path = "res://maps/untitled.json"
 	_world.apply_map_data(_map_data)
+	_populate_assets(_search.text if _search else "")
 	_dirty = true
 	_status.text = "New blank map"
 
