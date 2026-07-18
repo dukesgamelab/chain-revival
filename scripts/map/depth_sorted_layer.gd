@@ -89,19 +89,25 @@ func _rebuild_original_sprites() -> void:
 
 		var direction := int(entry.get("direction", 0))
 		var draw_info := CocFacetSelector.resolve_draw(family, direction)
+		## No invented fallbacks — skip missing / solid-placeholder archive frames.
+		if CocRenderRules.is_unusable_sprite(draw_info):
+			_placeholder_count += 1
+			continue
 		var path := str(draw_info.get("path", ""))
-		## No invented fallbacks / placeholders — skip archive gaps (e.g. TA03_w).
 		var texture := _get_object_texture(path)
 		if texture == null:
 			_placeholder_count += 1
-			push_warning(
-				"DepthSortedLayer: unresolved sprite family=%s letter=%s (skipped)"
-				% [family, str(draw_info.get("letter", "?"))]
-			)
 			continue
 
 		var holder := Node2D.new()
 		holder.set_meta(META_MAP_OBJECT, true)
+		holder.set_meta(&"coc_family", family)
+		holder.set_meta(&"coc_direction", direction)
+		holder.set_meta(&"coc_letter", str(draw_info.get("letter", "")))
+		holder.set_meta(&"coc_path", path)
+		holder.set_meta(&"coc_cell", cell)
+		holder.set_meta(&"coc_z", int(entry.get("z", 0)))
+		holder.set_meta(&"coc_image1", str(entry.get("image1", "")))
 		holder.position = IsometricGrid.grid_to_world(cell)
 		add_child(holder)
 

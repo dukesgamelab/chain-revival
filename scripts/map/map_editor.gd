@@ -1,6 +1,7 @@
 class_name MapEditor
 extends RefCounted
-## Dev map editor palette — presentation shell only; MapData holds authoritative tiles.
+## Legacy in-game palette helper (main.tscn Map Edit mode).
+## The full Chain Revival Editor lives at scenes/editor/map_editor.tscn.
 
 enum Palette { TREE, HAYBAIL, WALL, ERASE }
 

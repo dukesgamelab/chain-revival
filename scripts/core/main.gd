@@ -24,17 +24,21 @@ const ActionResultClass := preload("res://scripts/core/action_result.gd")
 const CommandContextClass := preload("res://scripts/core/command_context.gd")
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 
-@onready var _world: Node2D = $World
+@onready var _world: MapWorldView = $World
 @onready var _map_background: Node2D = $World/MapBackground
 @onready var _grass_layer: GrassTerrainLayer = $World/GrassTerrainLayer
 @onready var _original_ground_layer: OriginalGroundLayer = $World/OriginalGroundLayer
 @onready var _floor_layer: OriginalFloorLayer = $World/OriginalFloorLayer
+@onready var _underlay_layer: OriginalUnderlayLayer = $World/OriginalUnderlayLayer
 @onready var _iso_map: IsometricMap = $World/IsometricMap
 @onready var _depth_sorted: DepthSortedLayer = $World/DepthSorted
+@onready var _label_layer: OriginalLabelLayer = $World/OriginalLabelLayer
+@onready var _coc_debug_overlay: CocTileDebugOverlay = $World/CocTileDebugOverlay
 @onready var _tracers_root: Node2D = $World/Tracers
 @onready var _los_visualizer: LosVisualizerClass = $World/LosVisualizer
 @onready var _camera: MapCamera = $Camera2D
 @onready var _command_bar: CommandBar = $UI/CommandBar
+var _return_to_editor_on_exit: bool = false
 
 var _map_data = MapDataClass.create_default()
 var _session: GameSession = GameSessionClass.new([], [])
@@ -403,8 +407,13 @@ func _get_fire_at_preview_shooter() -> SoldierState:
 
 
 func _load_map_data() -> void:
-	CocTileCatalog.ensure_loaded()
-	_map_data = MapDataClass.load_from_file()
+	CocTileCatalog.reload()
+	var pending := EditorPlaySession.consume_pending_map_path()
+	_return_to_editor_on_exit = EditorPlaySession.should_return_to_editor()
+	if not pending.is_empty():
+		_map_data = MapLoader.load_path(pending)
+	else:
+		_map_data = MapLoader.load_path(MapDataClass.resolve_startup_map_path())
 	IsometricGrid.set_original_projection_enabled(
 		_map_data != null and _map_data.uses_original_projection
 	)
@@ -460,6 +469,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if event.keycode == KEY_B:
 			_toggle_grass_layer()
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_F3:
+			_world.toggle_debug_overlay()
+			_command_bar.show_status(
+				"CoC tile debug %s" % ("ON" if _coc_debug_overlay.enabled else "OFF")
+			)
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_ESCAPE and _return_to_editor_on_exit:
+			EditorPlaySession.clear_return_flag()
+			get_tree().change_scene_to_file("res://scenes/editor/map_editor.tscn")
 			get_viewport().set_input_as_handled()
 			return
 		if event.is_action_pressed("rotate_view_left"):
@@ -633,30 +654,13 @@ func _apply_map_edit_cell(cell: Vector2i, erase: bool) -> void:
 
 
 func _apply_map_presentation() -> void:
-	IsometricGrid.set_original_projection_enabled(
-		_map_data != null and _map_data.uses_original_projection
-	)
-	_iso_map.apply_map_data(_map_data)
-	_grass_layer.apply_map_data(_map_data)
-	_original_ground_layer.apply_map_data(_map_data)
-	_floor_layer.apply_map_data(_map_data)
-	_depth_sorted.apply_map_data(_map_data)
-	_sync_grass_grid_fill()
-
-
-func _sync_grass_grid_fill() -> void:
-	## Opaque grid fills hide ground textures; keep outlines-only for original maps.
-	var hide_fill: bool = _grass_layer_visible
-	if _map_data != null and _map_data.is_original_visual_map():
-		hide_fill = true
-	_iso_map.set_show_tile_fill(not hide_fill)
+	_world.apply_map_data(_map_data)
+	_world.set_grass_visible(_grass_layer_visible)
 
 
 func _toggle_grass_layer() -> void:
 	_grass_layer_visible = not _grass_layer_visible
-	_grass_layer.set_layer_visible(_grass_layer_visible)
-	_original_ground_layer.set_layer_visible(_grass_layer_visible)
-	_sync_grass_grid_fill()
+	_world.set_grass_visible(_grass_layer_visible)
 	if _grass_layer_visible:
 		_command_bar.show_status("Ground Layer Visible")
 	else:
@@ -831,12 +835,8 @@ func _refresh_view_rotation() -> void:
 	if _map_data == null:
 		return
 	_camera.set_map_size(_map_data.width, _map_data.height)
-	_map_background.set_center_cell(_get_camera_focus_cell())
-	_iso_map.refresh_view_rotation()
-	_grass_layer.refresh_view_rotation()
-	_original_ground_layer.refresh_view_rotation()
-	_floor_layer.refresh_view_rotation()
-	_depth_sorted.refresh_view_rotation()
+	_world.set_center_cell(_get_camera_focus_cell())
+	_world.refresh_view_rotation()
 	for view in _soldier_views.values():
 		var soldier_view: Soldier = view
 		soldier_view.refresh_movement_visual()

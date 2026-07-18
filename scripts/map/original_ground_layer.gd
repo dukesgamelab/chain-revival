@@ -41,7 +41,9 @@ func _draw() -> void:
 		for x in range(map_data.width):
 			var cell := Vector2i(x, y)
 			var visual := _visual_cell(cell)
-			var info := CocTileCatalog.ground_sprite(_ground_hash(cell))
+			var info := CocTileCatalog.ground_sprite(
+				CocRenderRules.ground_hash(cell, CocTileCatalog.ground_variant_count())
+			)
 			var path := str(info.get("path", ""))
 			var texture := _get_texture(path)
 			if texture == null:
@@ -54,14 +56,6 @@ func _draw() -> void:
 func _visual_cell(cell: Vector2i) -> Vector2i:
 	## Use the same presentation remap as IsometricGrid (camera rotation only).
 	return IsometricGrid.logical_to_visual_cell(cell)
-
-
-static func _ground_hash(cell: Vector2i) -> int:
-	## Well-mixed stable hash — avoid linear congruences that stripe.
-	var n := cell.x * 374761393 ^ cell.y * 668265263
-	n = (n ^ (n >> 13)) * 1274126177
-	n = (n ^ (n >> 16)) * 2246822519
-	return absi(n)
 
 
 func _get_texture(path: String) -> Texture2D:

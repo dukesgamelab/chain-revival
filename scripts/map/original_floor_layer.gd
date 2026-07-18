@@ -1,6 +1,6 @@
 class_name OriginalFloorLayer
 extends Node2D
-## Recovered floor tiles + yellow labels for original maps.
+## Authored floor tiles for original maps (labels live on OriginalLabelLayer).
 
 var map_data: MapData = null
 var _textures: Dictionary = {}
@@ -31,15 +31,16 @@ func _draw() -> void:
 			int(entry.get("direction", 0)),
 			scale,
 		)
-	for label in map_data.labels:
-		_draw_label(label, scale)
 
 
 func _draw_family_tile(cell: Vector2i, family: String, direction: int, scale: float) -> void:
 	if map_data == null or not map_data.is_in_bounds(cell):
 		return
 	var visual := IsometricGrid.logical_to_visual_cell(cell)
-	var draw_info := CocFacetSelector.resolve_draw(family, direction)
+	var draw_info := CocRenderRules.resolve_floor_display(family, direction)
+	if CocRenderRules.is_unusable_sprite(draw_info):
+		_log_missing(family, str(draw_info.get("letter", "?")))
+		return
 	var path := str(draw_info.get("path", ""))
 	var texture := _get_texture(path)
 	if texture == null:
@@ -48,19 +49,6 @@ func _draw_family_tile(cell: Vector2i, family: String, direction: int, scale: fl
 	var hotspot: Vector2 = draw_info.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
 	var top_left := OriginalMapProjection.sprite_top_left(visual, hotspot)
 	draw_texture_rect(texture, Rect2(top_left, texture.get_size() * scale), false)
-
-
-func _draw_label(entry: Dictionary, scale: float) -> void:
-	var text := str(entry.get("text", "")).strip_edges()
-	if text.is_empty():
-		return
-	var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
-	var visual := IsometricGrid.logical_to_visual_cell(cell)
-	var pos := OriginalMapProjection.cell_to_world(visual) + Vector2(0, -18.0) * scale
-	var font := ThemeDB.fallback_font
-	var size := maxi(10, int(11.0 * scale))
-	draw_string(font, pos + Vector2(1, 1), text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(0, 0, 0, 1))
-	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(1.0, 0.92, 0.2, 0.95))
 
 
 func _log_missing(family: String, letter: String) -> void:

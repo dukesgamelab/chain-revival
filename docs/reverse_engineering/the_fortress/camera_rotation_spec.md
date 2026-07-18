@@ -19,7 +19,7 @@ display_angle = (Direction - CameraDirection + 360) mod 360
 switch (Facets):                       # per family, from facets_by_family.json
   1: slot = 0
   2: slot = ((display_angle + 90) % 360) / 180      # engine frame = slot*4
-  4: slot = ((display_angle + 45) % 360) /  90      # engine frame = slot*2
+  4: slot = ((display_angle + 45) % 360) /  90      # engine frame = slot*2  (POSITIVE — sign is binary-exact; windows/doors are asymmetric, do not negate)
   8: slot = ((display_angle + 22) % 360) /  45      # engine frame = slot
 ```
 

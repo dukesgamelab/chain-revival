@@ -3145,5 +3145,6 @@
    "source_file": "8GRS9_8A.BMP",
    "source_format": "raw+cornerkey"
   }
- ]
+ ],
+ "under_image_rule": "Map tiles may carry an Image1 property naming a floor sprite to draw beneath the wall at that cell (original engine mechanism; e.g. LIHW->WFLO, WWAR/WWAQ/SWAQ/SWAR->SFL5). Draw Image1 first, then the wall. For wall cells without Image1 that neighbour interior floors, the half-diamond adjacency underlay applies (renderer rule)."
 }

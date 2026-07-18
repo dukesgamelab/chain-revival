@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://cmapworld001"]
+
+[ext_resource type="Script" path="res://scripts/map/map_world_view.gd" id="1_world"]
+[ext_resource type="Script" path="res://scripts/map/isometric_map.gd" id="2_isomap"]
+[ext_resource type="Script" path="res://scripts/map/map_background.gd" id="3_bg"]
+[ext_resource type="Script" path="res://scripts/map/grass_terrain_layer.gd" id="4_grass"]
+[ext_resource type="Script" path="res://scripts/map/original_ground_layer.gd" id="5_ground"]
+[ext_resource type="Script" path="res://scripts/map/original_floor_layer.gd" id="6_floors"]
+[ext_resource type="Script" path="res://scripts/map/original_underlay_layer.gd" id="7_underlay"]
+[ext_resource type="Script" path="res://scripts/map/depth_sorted_layer.gd" id="8_depth"]
+[ext_resource type="Script" path="res://scripts/map/original_label_layer.gd" id="9_labels"]
+[ext_resource type="Script" path="res://scripts/map/coc_tile_debug_overlay.gd" id="10_debug"]
+
+[node name="MapWorldView" type="Node2D"]
+script = ExtResource("1_world")
+
+[node name="MapBackground" type="Node2D" parent="."]
+z_index = -10
+script = ExtResource("3_bg")
+
+[node name="GrassTerrainLayer" type="Node2D" parent="."]
+z_index = -5
+script = ExtResource("4_grass")
+
+[node name="OriginalGroundLayer" type="Node2D" parent="."]
+z_index = -5
+texture_filter = 0
+script = ExtResource("5_ground")
+
+[node name="OriginalFloorLayer" type="Node2D" parent="."]
+z_index = -4
+texture_filter = 0
+script = ExtResource("6_floors")
+
+[node name="OriginalUnderlayLayer" type="Node2D" parent="."]
+z_index = -3
+texture_filter = 0
+script = ExtResource("7_underlay")
+
+[node name="IsometricMap" type="Node2D" parent="."]
+script = ExtResource("2_isomap")
+
+[node name="DepthSorted" type="Node2D" parent="."]
+y_sort_enabled = true
+texture_filter = 0
+script = ExtResource("8_depth")
+
+[node name="OriginalLabelLayer" type="Node2D" parent="."]
+z_index = 6
+texture_filter = 0
+script = ExtResource("9_labels")
+
+[node name="CocTileDebugOverlay" type="Node2D" parent="."]
+z_index = 40
+visible = false
+script = ExtResource("10_debug")

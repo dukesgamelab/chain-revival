@@ -7,6 +7,9 @@ const FACETS_PATH := "res://assets/data/facets_by_family.json"
 const FALLBACKS_PATH := "res://assets/data/irregular_fallbacks.json"
 const SPRITE_ROOT := "res://assets/sprites/coc_tiles"
 const DEFAULT_HOTSPOT := Vector2(-50, -73)
+## Reference renderer GRS filter: drop color outliers (e.g. neon 8GRS9_8A).
+const GRS_COLOR_TARGET := Vector3(143.0, 143.0, 108.0)
+const GRS_COLOR_MAX_DIST := 40.0
 
 static var _loaded: bool = false
 ## "FAMILY|letter|anim" -> { path, hotspot, size }
@@ -24,6 +27,10 @@ static var _ground_hotspots: Array[Vector2] = []
 static func ensure_loaded() -> void:
 	if _loaded:
 		return
+	reload()
+
+
+static func reload() -> void:
 	_loaded = true
 	_sprite_index.clear()
 	_facet_counts.clear()
@@ -142,7 +149,7 @@ static func _load_manifest() -> void:
 		if not letters.has(letter):
 			letters.append(letter)
 			_family_letters[fam] = letters
-		if fam == "GRS":
+		if fam == "GRS" and not _is_grs_color_outlier(path):
 			_ground_paths.append(path)
 			_ground_hotspots.append(hotspot)
 
@@ -214,6 +221,39 @@ static func _hotspot_from(raw: Variant) -> Vector2:
 	if raw is Array and raw.size() >= 2:
 		return Vector2(float(raw[0]), float(raw[1]))
 	return DEFAULT_HOTSPOT
+
+
+## Match reference_renderer.py: keep GRS whose mean opaque RGB is near olive grass.
+static func _is_grs_color_outlier(path: String) -> bool:
+	if path.is_empty() or not exists(path):
+		return true
+	var texture := load(path) as Texture2D
+	if texture == null:
+		return true
+	var image := texture.get_image()
+	if image == null:
+		return true
+	if image.get_format() != Image.FORMAT_RGBA8:
+		image = image.duplicate()
+		image.convert(Image.FORMAT_RGBA8)
+	var sum_r := 0.0
+	var sum_g := 0.0
+	var sum_b := 0.0
+	var count := 0
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			var c := image.get_pixel(x, y)
+			if c.a <= 0.0:
+				continue
+			sum_r += c.r * 255.0
+			sum_g += c.g * 255.0
+			sum_b += c.b * 255.0
+			count += 1
+	if count <= 0:
+		return true
+	var mean := Vector3(sum_r / count, sum_g / count, sum_b / count)
+	var dist := absf(mean.x - GRS_COLOR_TARGET.x) + absf(mean.y - GRS_COLOR_TARGET.y) + absf(mean.z - GRS_COLOR_TARGET.z)
+	return dist >= GRS_COLOR_MAX_DIST
 
 
 static func _read_json_dict(path: String) -> Dictionary:

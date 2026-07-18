@@ -63,6 +63,11 @@ custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
 text = "Single Player / Offline Dev"
 
+[node name="EditorButton" type="Button" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(320, 48)
+layout_mode = 2
+text = "Chain Revival Editor"
+
 [node name="MultiplayerButton" type="Button" parent="Center/Panel/Margin/VBox"]
 custom_minimum_size = Vector2(320, 48)
 layout_mode = 2

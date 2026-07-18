@@ -33,6 +33,8 @@ var starting_points: Dictionary = {}
 var unresolved: Array = []
 ## Render list for original maps (objects + decoration). Gameplay uses _object_lookup.
 var visual_placements: Array[Dictionary] = []
+## Unknown top-level JSON keys preserved round-trip by the editor/serializer.
+var extra_fields: Dictionary = {}
 
 ## Legacy list kept in sync with movement-blocking objects for older saves.
 var blocked_tiles: Array[Vector2i] = []
@@ -142,7 +144,205 @@ func create_wall_line(start_tile: Vector2i, direction: Vector2i, length: int) ->
 func clear_object(cell: Vector2i) -> void:
 	_object_lookup.erase(cell)
 	_object_meta.erase(cell)
+	_remove_visual_at(cell, "object")
 	_rebuild_blocked_tiles_list()
+
+
+## --- Editor / shared mutation API (keeps visual_placements in sync) ---
+
+func place_family_object(
+	cell: Vector2i,
+	family: String,
+	direction: int = 0,
+	image1: String = "",
+	z: int = 0,
+	gameplay: Dictionary = {},
+) -> void:
+	if not is_in_bounds(cell):
+		return
+	var fam := family.to_upper()
+	if fam.is_empty():
+		return
+	## Editor replace semantics: new object owns the cell (clears floor/objects/decoration).
+	erase_all_at(cell, true)
+	var type_id := str(gameplay.get("object_type", MapObjectDefinition.type_id_for_family(fam)))
+	var source := {
+		"image": fam,
+		"direction": direction,
+		"z": z,
+		"terrain": str(gameplay.get("terrain", "_HG_EVEN")),
+		"terrain_height": int(gameplay.get("terrain_height", 0)),
+		"sprite": "%s_%s.png" % [fam, _letter_hint(fam, direction)],
+	}
+	if not image1.is_empty():
+		source["image1"] = image1.to_upper()
+	for key in gameplay.keys():
+		if key in ["object_type", "terrain", "terrain_height"]:
+			continue
+		source[key] = gameplay[key]
+	_object_lookup[cell] = MapObjectRegistryClass.normalize_type_id(type_id)
+	_object_meta[cell] = {
+		"source": source,
+		"blocks_movement": bool(gameplay.get("blocks_movement", true)),
+		"blocks_los": bool(gameplay.get("blocks_los", true)),
+		"provides_cover": bool(gameplay.get("provides_cover", true)),
+		"cover_type": int(gameplay.get("cover_type", 2)),
+		"sprite_path": str(gameplay.get("sprite_path", "")),
+	}
+	_upsert_visual_placement(
+		{
+			"x": cell.x,
+			"y": cell.y,
+			"object_type": type_id,
+			"family": fam,
+			"direction": direction,
+			"image1": image1.to_upper(),
+			"source": source,
+			"layer": "object",
+			"z": z,
+			"blocks_movement": bool(gameplay.get("blocks_movement", true)),
+			"blocks_los": bool(gameplay.get("blocks_los", true)),
+			"provides_cover": bool(gameplay.get("provides_cover", true)),
+			"cover_type": int(gameplay.get("cover_type", 2)),
+		}
+	)
+	_rebuild_blocked_tiles_list()
+
+
+func place_floor_tile(cell: Vector2i, family: String, direction: int = 0) -> void:
+	if not is_in_bounds(cell):
+		return
+	var fam := family.to_upper()
+	## Editor replace semantics: floor replaces walls/objects on the cell.
+	erase_all_at(cell, true)
+	floors.append({"x": cell.x, "y": cell.y, "image": fam, "direction": direction})
+
+
+## Clear authored content so only the GRS ground layer remains.
+func place_ground_clear(cell: Vector2i) -> void:
+	if not is_in_bounds(cell):
+		return
+	erase_all_at(cell, true)
+
+
+func erase_floor_tile(cell: Vector2i) -> void:
+	_remove_floor_at(cell)
+
+
+func erase_all_at(cell: Vector2i, include_floors: bool = true) -> void:
+	## Clear gameplay object, visuals, floors, and marker overlays at this cell.
+	_object_lookup.erase(cell)
+	_object_meta.erase(cell)
+	_remove_visual_at(cell, "")
+	if include_floors:
+		_remove_floor_at(cell)
+	_remove_spawn_at(cell)
+	_remove_victory_at(cell)
+	_remove_label_at(cell)
+	_rebuild_blocked_tiles_list()
+
+
+func _remove_spawn_at(cell: Vector2i) -> void:
+	## Bright green/gray Grid overlays come from these spawn lists.
+	var t1: Array[Vector2i] = []
+	for spawn in team_1_spawn_points:
+		if spawn != cell:
+			t1.append(spawn)
+	team_1_spawn_points = t1
+	var t2: Array[Vector2i] = []
+	for spawn in team_2_spawn_points:
+		if spawn != cell:
+			t2.append(spawn)
+	team_2_spawn_points = t2
+
+
+func _remove_victory_at(cell: Vector2i) -> void:
+	var kept: Array[Dictionary] = []
+	for entry in victory_points:
+		if int(entry.get("x", -1)) == cell.x and int(entry.get("y", -1)) == cell.y:
+			continue
+		kept.append(entry)
+	victory_points = kept
+
+
+func _remove_label_at(cell: Vector2i) -> void:
+	var kept: Array[Dictionary] = []
+	for entry in labels:
+		if int(entry.get("x", -1)) == cell.x and int(entry.get("y", -1)) == cell.y:
+			continue
+		kept.append(entry)
+	labels = kept
+
+
+func get_visual_at(cell: Vector2i) -> Dictionary:
+	for entry in visual_placements:
+		if int(entry.get("x", -1)) == cell.x and int(entry.get("y", -1)) == cell.y:
+			return entry
+	return {}
+
+
+func get_floor_at(cell: Vector2i) -> Dictionary:
+	for entry in floors:
+		if int(entry.get("x", -1)) == cell.x and int(entry.get("y", -1)) == cell.y:
+			return entry
+	return {}
+
+
+func snapshot() -> Dictionary:
+	return to_dict().duplicate(true)
+
+
+func restore_snapshot(data: Dictionary) -> void:
+	var restored := from_dict(data)
+	map_name = restored.map_name
+	width = restored.width
+	height = restored.height
+	team_1_spawn_points = restored.team_1_spawn_points
+	team_2_spawn_points = restored.team_2_spawn_points
+	sprite_directory = restored.sprite_directory
+	source_format = restored.source_format
+	uses_original_projection = restored.uses_original_projection
+	apply_terrain_gameplay = restored.apply_terrain_gameplay
+	floors = restored.floors
+	decoration = restored.decoration
+	victory_points = restored.victory_points
+	labels = restored.labels
+	starting_points = restored.starting_points
+	unresolved = restored.unresolved
+	extra_fields = restored.extra_fields
+	visual_placements = restored.visual_placements
+	_object_lookup = restored._object_lookup
+	_object_meta = restored._object_meta
+	_rebuild_blocked_tiles_list()
+
+
+func _letter_hint(family: String, direction: int) -> String:
+	return CocFacetSelector.select_letter_at_camera(family, direction, 0)
+
+
+func _upsert_visual_placement(entry: Dictionary) -> void:
+	var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
+	_remove_visual_at(cell, str(entry.get("layer", "object")))
+	visual_placements.append(entry)
+
+
+func _remove_visual_at(cell: Vector2i, layer: String) -> void:
+	var kept: Array[Dictionary] = []
+	for entry in visual_placements:
+		if int(entry.get("x", -1)) == cell.x and int(entry.get("y", -1)) == cell.y:
+			if str(entry.get("layer", "object")) == layer or layer.is_empty():
+				continue
+		kept.append(entry)
+	visual_placements = kept
+
+
+func _remove_floor_at(cell: Vector2i) -> void:
+	var kept: Array[Dictionary] = []
+	for entry in floors:
+		if int(entry.get("x", -1)) == cell.x and int(entry.get("y", -1)) == cell.y:
+			continue
+		kept.append(entry)
+	floors = kept
 
 
 ## Flip a tree (or other default blocked object) on this tile. Returns true if now blocked.
@@ -192,6 +392,9 @@ func to_dict() -> Dictionary:
 		data["starting_points"] = starting_points.duplicate(true)
 	if not unresolved.is_empty():
 		data["unresolved"] = unresolved.duplicate(true)
+	for key in extra_fields.keys():
+		if not data.has(key):
+			data[key] = extra_fields[key]
 	return data
 
 
@@ -217,6 +420,29 @@ static func from_dict(data: Dictionary) -> MapData:
 	map_data._object_lookup.clear()
 	map_data._object_meta.clear()
 	map_data.visual_placements.clear()
+
+	var known := {
+		"map_name": true,
+		"width": true,
+		"height": true,
+		"map_objects": true,
+		"blocked_tiles": true,
+		"team_1_spawn_points": true,
+		"team_2_spawn_points": true,
+		"sprite_directory": true,
+		"source_format": true,
+		"uses_original_projection": true,
+		"apply_terrain_gameplay": true,
+		"floors": true,
+		"decoration": true,
+		"victory_points": true,
+		"labels": true,
+		"starting_points": true,
+		"unresolved": true,
+	}
+	for key in data.keys():
+		if not known.has(key):
+			map_data.extra_fields[key] = data[key]
 
 	var raw_objects: Variant = data.get("map_objects", [])
 	if raw_objects is Array and not raw_objects.is_empty():
@@ -477,12 +703,18 @@ func _load_objects_from_json(raw: Array) -> void:
 			source = (entry.get("source") as Dictionary).duplicate(true)
 		var family := str(source.get("image", "")).to_upper()
 		var direction := int(source.get("direction", 0))
+		var image1 := str(
+			source.get("image1", source.get("Image1", entry.get("image1", entry.get("Image1", ""))))
+		).to_upper()
+		if not image1.is_empty():
+			source["image1"] = image1
 		var placement := {
 			"x": cell.x,
 			"y": cell.y,
 			"object_type": type_id,
 			"family": family,
 			"direction": direction,
+			"image1": image1,
 			"source": source,
 			"layer": "object",
 			"z": int(source.get("z", 0)),
