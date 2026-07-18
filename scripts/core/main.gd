@@ -27,6 +27,8 @@ const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 @onready var _world: Node2D = $World
 @onready var _map_background: Node2D = $World/MapBackground
 @onready var _grass_layer: GrassTerrainLayer = $World/GrassTerrainLayer
+@onready var _original_ground_layer: OriginalGroundLayer = $World/OriginalGroundLayer
+@onready var _floor_layer: OriginalFloorLayer = $World/OriginalFloorLayer
 @onready var _iso_map: IsometricMap = $World/IsometricMap
 @onready var _depth_sorted: DepthSortedLayer = $World/DepthSorted
 @onready var _tracers_root: Node2D = $World/Tracers
@@ -88,6 +90,12 @@ func _log_network_mode() -> void:
 
 
 func _show_startup_status() -> void:
+	if _map_data != null and _map_data.is_original_visual_map():
+		_command_bar.show_status(
+			"%s loaded. Rotate Q/E. --test-map switches maps."
+			% str(_map_data.map_name)
+		)
+		return
 	if GameModeManager.is_local_multiplayer() and PlayerSides.has_assignment():
 		_command_bar.show_status(
 			"Controlling %s. Fire At: click an enemy to open fire. Right-click cancels."
@@ -395,7 +403,11 @@ func _get_fire_at_preview_shooter() -> SoldierState:
 
 
 func _load_map_data() -> void:
+	CocTileCatalog.ensure_loaded()
 	_map_data = MapDataClass.load_from_file()
+	IsometricGrid.set_original_projection_enabled(
+		_map_data != null and _map_data.uses_original_projection
+	)
 
 
 func _init_session_from_spawns() -> void:
@@ -621,25 +633,34 @@ func _apply_map_edit_cell(cell: Vector2i, erase: bool) -> void:
 
 
 func _apply_map_presentation() -> void:
+	IsometricGrid.set_original_projection_enabled(
+		_map_data != null and _map_data.uses_original_projection
+	)
 	_iso_map.apply_map_data(_map_data)
 	_grass_layer.apply_map_data(_map_data)
+	_original_ground_layer.apply_map_data(_map_data)
+	_floor_layer.apply_map_data(_map_data)
 	_depth_sorted.apply_map_data(_map_data)
 	_sync_grass_grid_fill()
 
 
 func _sync_grass_grid_fill() -> void:
-	## Opaque grid fills hide grass textures; outlines-only when grass is on.
-	_iso_map.set_show_tile_fill(not _grass_layer_visible)
+	## Opaque grid fills hide ground textures; keep outlines-only for original maps.
+	var hide_fill: bool = _grass_layer_visible
+	if _map_data != null and _map_data.is_original_visual_map():
+		hide_fill = true
+	_iso_map.set_show_tile_fill(not hide_fill)
 
 
 func _toggle_grass_layer() -> void:
 	_grass_layer_visible = not _grass_layer_visible
 	_grass_layer.set_layer_visible(_grass_layer_visible)
+	_original_ground_layer.set_layer_visible(_grass_layer_visible)
 	_sync_grass_grid_fill()
 	if _grass_layer_visible:
-		_command_bar.show_status("Grass Layer Visible")
+		_command_bar.show_status("Ground Layer Visible")
 	else:
-		_command_bar.show_status("Grass Layer Hidden")
+		_command_bar.show_status("Ground Layer Hidden")
 
 
 func _spawn_all_soldier_views() -> void:
@@ -804,14 +825,16 @@ func _refresh_view_rotation() -> void:
 	_map_background.set_center_cell(_get_camera_focus_cell())
 	_iso_map.refresh_view_rotation()
 	_grass_layer.refresh_view_rotation()
+	_original_ground_layer.refresh_view_rotation()
+	_floor_layer.refresh_view_rotation()
 	_depth_sorted.refresh_view_rotation()
 	for view in _soldier_views.values():
 		var soldier_view: Soldier = view
 		soldier_view.refresh_movement_visual()
 	_refresh_all_views()
 	_command_bar.show_status(
-		"View rotation %d/4 — Q/E or Rotate buttons. Gameplay grid unchanged."
-		% (IsometricGrid.current_view_rotation + 1),
+		"Camera %d° — Q/E or Rotate. Simulation grid unchanged."
+		% IsometricGrid.camera_direction_degrees(),
 	)
 
 

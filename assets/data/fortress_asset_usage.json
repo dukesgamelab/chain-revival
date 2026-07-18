@@ -1,0 +1,1731 @@
+{
+ "BH01": {
+  "usage_count": 3,
+  "facets": 1,
+  "letters": [
+   "e"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/BH01_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "BH02": {
+  "usage_count": 8,
+  "facets": 1,
+  "letters": [
+   "e"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/BH02_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "CW01": {
+  "usage_count": 1,
+  "facets": 1,
+  "letters": [
+   "e"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/CW01_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "CW02": {
+  "usage_count": 1,
+  "facets": 1,
+  "letters": [
+   "e"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/CW02_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "IWCR": {
+  "usage_count": 10,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/IWCR_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/IWCR_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/IWCR_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/IWCR_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "IWWL": {
+  "usage_count": 47,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/IWWL_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/IWWL_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/IWWL_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/IWWL_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "LIHW": {
+  "usage_count": 27,
+  "facets": "IRREGULAR ['n', 's', 'w']",
+  "letters": [
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/LIHW_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/LIHW_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/LIHW_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "SCOR": {
+  "usage_count": 8,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/SCOR_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/SCOR_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/SCOR_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/SCOR_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "SFL5": {
+  "usage_count": 4,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/SFL5_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/SFL5_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/SFL5_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/SFL5_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "SFLO": {
+  "usage_count": 228,
+  "facets": 1,
+  "letters": [
+   "e"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/SFLO_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "SICR": {
+  "usage_count": 9,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/SICR_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/SICR_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/SICR_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/SICR_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "SWAL": {
+  "usage_count": 59,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/SWAL_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/SWAL_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/SWAL_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/SWAL_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "SWAQ": {
+  "usage_count": 4,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/SWAQ_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/SWAQ_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/SWAQ_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/SWAQ_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "SWAR": {
+  "usage_count": 4,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/SWAR_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/SWAR_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/SWAR_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/SWAR_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "SWIN": {
+  "usage_count": 12,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/SWIN_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/SWIN_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/SWIN_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/SWIN_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "TA01": {
+  "usage_count": 1,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/TA01_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/TA01_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/TA01_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/TA01_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "TA02": {
+  "usage_count": 36,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/TA02_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/TA02_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/TA02_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/TA02_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "TA03": {
+  "usage_count": 1,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/TA03_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/TA03_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/TA03_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "TR01": {
+  "usage_count": 30,
+  "facets": 1,
+  "letters": [
+   "e"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/TR01_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "TR02": {
+  "usage_count": 28,
+  "facets": 1,
+  "letters": [
+   "e"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/TR02_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WCOR": {
+  "usage_count": 9,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WCOR_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WCOR_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WCOR_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WCOR_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WFL5": {
+  "usage_count": 4,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WFL5_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WFL5_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WFL5_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WFL5_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WFLO": {
+  "usage_count": 93,
+  "facets": 1,
+  "letters": [
+   "e"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WFLO_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WH01": {
+  "usage_count": 116,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WH01_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WH01_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WH01_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WH01_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WH02": {
+  "usage_count": 22,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WH02_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WH02_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WH02_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WH02_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WH11": {
+  "usage_count": 2,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WH11_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WH11_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WH11_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WH11_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WICR": {
+  "usage_count": 10,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WICR_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WICR_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WICR_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WICR_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WWAI": {
+  "usage_count": 1,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WWAI_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WWAI_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WWAI_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WWAI_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WWAL": {
+  "usage_count": 40,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WWAL_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WWAL_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WWAL_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WWAL_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WWAQ": {
+  "usage_count": 4,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WWAQ_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WWAQ_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WWAQ_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WWAQ_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WWAR": {
+  "usage_count": 4,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WWAR_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WWAR_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WWAR_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WWAR_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "WWIN": {
+  "usage_count": 8,
+  "facets": 4,
+  "letters": [
+   "e",
+   "n",
+   "s",
+   "w"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/WWIN_e.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "n",
+    "path": "sprites/coc_tiles/WWIN_n.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "s",
+    "path": "sprites/coc_tiles/WWIN_s.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "w",
+    "path": "sprites/coc_tiles/WWIN_w.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ },
+ "GRS": {
+  "usage_count": "implicit (default ground for all cells absent from map data)",
+  "facets": 1,
+  "letters": [
+   "e"
+  ],
+  "anim_frames": 1,
+  "sprites": [
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS2_1A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS2_2A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS2_3A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS2_4A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS2_5A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS2_6A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS2_7A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS2_8A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS3_1A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS3_2A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS3_3A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS3_4A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS3_5A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS3_6A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS3_7A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS3_8A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS4_1A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS4_2A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS4_3A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS4_4A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS4_5A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS4_6A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS4_7A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS4_8A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS5_1A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS5_2A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS5_3A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS5_4A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS5_5A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS5_6A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS5_7A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS5_8A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS6_1A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS6_2A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS6_3A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS6_4A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS6_5A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS6_6A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS6_7A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS6_8A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS7_1A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS7_2A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS7_3A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS7_4A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS7_5A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS7_6A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS7_7A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS7_8A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS8_1A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS8_2A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS8_3A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS8_4A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS8_5A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS8_6A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS8_7A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS8_8A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS9_1A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS9_2A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS9_3A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS9_4A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS9_5A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS9_6A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS9_7A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   },
+   {
+    "letter": "e",
+    "path": "sprites/coc_tiles/8GRS9_8A.png",
+    "hotspot": [
+     -50,
+     -73
+    ]
+   }
+  ]
+ }
+}

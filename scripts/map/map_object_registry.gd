@@ -73,7 +73,30 @@ static func get_def(type_id: String) -> MapObjectDef:
 				"",
 			)
 		_:
+			if type_id.begins_with("coc_"):
+				return _coc_default_def(type_id)
 			return null
+
+
+static func _coc_default_def(type_id: String) -> MapObjectDef:
+	## Tooling defaults only — per-tile JSON flags override via MapData meta.
+	match type_id:
+		"coc_window", "coc_door_wood", "coc_bush", "coc_cw01", "coc_cw02", "coc_swin", "coc_wh11":
+			return MapObjectDef.new(
+				type_id, type_id, false, false, true, CoverSystem.CoverType.MODERATE, ""
+			)
+		"coc_tree", "coc_bush_cluster":
+			return MapObjectDef.new(
+				type_id, type_id, true, true, true, CoverSystem.CoverType.MODERATE, ""
+			)
+		"coc_blocker":
+			return MapObjectDef.new(
+				type_id, type_id, true, true, false, CoverSystem.CoverType.NONE, ""
+			)
+		_:
+			return MapObjectDef.new(
+				type_id, type_id, true, true, true, CoverSystem.CoverType.COMPLETE, ""
+			)
 
 
 static func cover_type_name(cover_type: int) -> String:

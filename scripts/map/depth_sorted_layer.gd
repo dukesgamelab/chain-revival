@@ -9,6 +9,11 @@ const _TEXTURE_WALL_STRAIGHT := preload("res://assets/sprites/wall-straight-1-ti
 var map_data: MapData = null
 
 var _object_textures: Dictionary = {}
+var _placeholder_count: int = 0
+
+
+func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 
 func apply_map_data(data: MapData) -> void:
@@ -29,6 +34,11 @@ func _rebuild_map_object_sprites() -> void:
 	if map_data == null:
 		return
 
+	_placeholder_count = 0
+	if map_data.is_original_visual_map():
+		_rebuild_original_sprites()
+		return
+
 	for cell in map_data.get_object_cells():
 		var type_id: String = map_data.get_object_type(cell)
 		var object_def := MapObjectRegistry.get_def(type_id)
@@ -41,26 +51,86 @@ func _rebuild_map_object_sprites() -> void:
 
 		var sprite := Sprite2D.new()
 		sprite.set_meta(META_MAP_OBJECT, true)
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		sprite.texture = texture
 		var scale_factor := TileSizeConfig.object_scale_for_type(type_id)
 		sprite.scale = Vector2(scale_factor, scale_factor)
 		var center := IsometricGrid.grid_to_world(cell)
 		var size := texture.get_size() * scale_factor
-		sprite.position = _map_object_position(type_id, center, size)
+		sprite.position = _native_map_object_position(type_id, center, size)
 		add_child(sprite)
 
 
-func _map_object_position(type_id: String, center: Vector2, size: Vector2) -> Vector2:
+func _rebuild_original_sprites() -> void:
+	var scale := OriginalMapProjection.map_scale()
+	var placements: Array = map_data.visual_placements.duplicate()
+	placements.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var a_cell := Vector2i(int(a.get("x", 0)), int(a.get("y", 0)))
+		var b_cell := Vector2i(int(b.get("x", 0)), int(b.get("y", 0)))
+		var av := IsometricGrid.logical_to_visual_cell(a_cell)
+		var bv := IsometricGrid.logical_to_visual_cell(b_cell)
+		var a_key := av.x + av.y
+		var b_key := bv.x + bv.y
+		if a_key == b_key:
+			return int(a.get("z", 0)) < int(b.get("z", 0))
+		return a_key < b_key
+	)
+
+	for entry in placements:
+		var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
+		if not map_data.is_in_bounds(cell):
+			continue
+		var family := str(entry.get("family", "")).to_upper()
+		if family.is_empty():
+			var source: Dictionary = entry.get("source", {}) if entry.get("source", {}) is Dictionary else {}
+			family = str(source.get("image", "")).to_upper()
+		if family.is_empty() or family == "NEAR":
+			continue
+
+		var direction := int(entry.get("direction", 0))
+		var draw_info := CocFacetSelector.resolve_draw(family, direction)
+		var path := str(draw_info.get("path", ""))
+		## No invented fallbacks / placeholders — skip archive gaps (e.g. TA03_w).
+		var texture := _get_object_texture(path)
+		if texture == null:
+			_placeholder_count += 1
+			push_warning(
+				"DepthSortedLayer: unresolved sprite family=%s letter=%s (skipped)"
+				% [family, str(draw_info.get("letter", "?"))]
+			)
+			continue
+
+		var holder := Node2D.new()
+		holder.set_meta(META_MAP_OBJECT, true)
+		holder.position = IsometricGrid.grid_to_world(cell)
+		add_child(holder)
+
+		var hotspot: Vector2 = draw_info.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
+		var sprite := Sprite2D.new()
+		sprite.centered = false
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		sprite.texture = texture
+		sprite.scale = Vector2(scale, scale)
+		## Blit top-left at cell_screen_point + hotspot (relative to holder at cell point).
+		sprite.position = hotspot * scale
+		holder.add_child(sprite)
+
+
+func _native_map_object_position(type_id: String, center: Vector2, size: Vector2) -> Vector2:
 	if type_id == MapObjectRegistry.TYPE_WALL_STRAIGHT:
 		return Vector2(center.x, center.y + TileSizeConfig.wall_anchor_y(size.y))
 	return center + TileSizeConfig.map_object_offset()
 
 
 func _get_object_texture(sprite_path: String) -> Texture2D:
+	if sprite_path.is_empty():
+		return null
 	if sprite_path == MapObjectRegistry.SPRITE_WALL_STRAIGHT:
 		return _TEXTURE_WALL_STRAIGHT
 	if _object_textures.has(sprite_path):
 		return _object_textures[sprite_path] as Texture2D
+	if not CocTileCatalog.exists(sprite_path) and not ResourceLoader.exists(sprite_path):
+		return null
 	var texture: Texture2D = load(sprite_path) as Texture2D
 	if texture != null:
 		_object_textures[sprite_path] = texture

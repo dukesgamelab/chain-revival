@@ -3,6 +3,9 @@ extends RefCounted
 ## Pure map gameplay data: size, map objects, and team spawn points.
 
 const DEFAULT_FILE := "res://maps/test_map.json"
+## Single switch for the development startup map.
+const USE_ORIGINAL_MAP_FOR_DEV := true
+const DEV_MAP_FILE := "res://maps/TheFortress.json"
 const DEFAULT_WIDTH := 60
 const DEFAULT_HEIGHT := 60
 const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
@@ -17,11 +20,25 @@ var width: int = DEFAULT_WIDTH
 var height: int = DEFAULT_HEIGHT
 var team_1_spawn_points: Array[Vector2i] = []
 var team_2_spawn_points: Array[Vector2i] = []
+var sprite_directory: String = ""
+var source_format: String = ""
+var uses_original_projection: bool = false
+var apply_terrain_gameplay: bool = true
+
+var floors: Array[Dictionary] = []
+var decoration: Array[Dictionary] = []
+var victory_points: Array[Dictionary] = []
+var labels: Array[Dictionary] = []
+var starting_points: Dictionary = {}
+var unresolved: Array = []
+## Render list for original maps (objects + decoration). Gameplay uses _object_lookup.
+var visual_placements: Array[Dictionary] = []
 
 ## Legacy list kept in sync with movement-blocking objects for older saves.
 var blocked_tiles: Array[Vector2i] = []
 
 var _object_lookup: Dictionary = {}
+var _object_meta: Dictionary = {}
 
 
 func _init() -> void:
@@ -40,7 +57,31 @@ func get_object_def(cell: Vector2i) -> MapObjectDef:
 	var type_id := get_object_type(cell)
 	if type_id.is_empty():
 		return null
-	return MapObjectRegistryClass.get_def(type_id)
+	var base_def := MapObjectRegistryClass.get_def(type_id)
+	if base_def == null:
+		return null
+	var meta: Dictionary = _object_meta.get(cell, {})
+	if meta.is_empty():
+		return base_def
+	return MapObjectDef.new(
+		base_def.type_id,
+		base_def.display_name,
+		bool(meta.get("blocks_movement", base_def.blocks_movement)),
+		bool(meta.get("blocks_los", base_def.blocks_los)),
+		bool(meta.get("provides_cover", base_def.provides_cover)),
+		int(meta.get("cover_type", base_def.cover_type)),
+		str(meta.get("sprite_path", base_def.sprite_path)),
+	)
+
+
+func get_object_source(cell: Vector2i) -> Dictionary:
+	var meta: Dictionary = _object_meta.get(cell, {})
+	var source: Variant = meta.get("source", {})
+	return source if source is Dictionary else {}
+
+
+func is_original_visual_map() -> bool:
+	return uses_original_projection or not floors.is_empty() or not visual_placements.is_empty()
 
 
 func has_object(cell: Vector2i) -> bool:
@@ -55,6 +96,8 @@ func get_object_cells() -> Array[Vector2i]:
 
 
 func is_blocked(cell: Vector2i) -> bool:
+	if not apply_terrain_gameplay:
+		return false
 	var object_def := get_object_def(cell)
 	return object_def != null and object_def.blocks_movement
 
@@ -70,6 +113,7 @@ func set_object(cell: Vector2i, type_id: String) -> void:
 		clear_object(cell)
 		return
 	_object_lookup[cell] = MapObjectRegistryClass.normalize_type_id(type_id)
+	_object_meta.erase(cell)
 	_rebuild_blocked_tiles_list()
 
 
@@ -97,6 +141,7 @@ func create_wall_line(start_tile: Vector2i, direction: Vector2i, length: int) ->
 
 func clear_object(cell: Vector2i) -> void:
 	_object_lookup.erase(cell)
+	_object_meta.erase(cell)
 	_rebuild_blocked_tiles_list()
 
 
@@ -119,7 +164,7 @@ func set_blocked(cell: Vector2i, blocked: bool) -> void:
 
 
 func to_dict() -> Dictionary:
-	return {
+	var data := {
 		"map_name": map_name,
 		"width": width,
 		"height": height,
@@ -128,6 +173,26 @@ func to_dict() -> Dictionary:
 		"team_1_spawn_points": _cells_to_json(team_1_spawn_points),
 		"team_2_spawn_points": _cells_to_json(team_2_spawn_points),
 	}
+	if not sprite_directory.is_empty():
+		data["sprite_directory"] = sprite_directory
+	if not source_format.is_empty():
+		data["source_format"] = source_format
+	if uses_original_projection:
+		data["uses_original_projection"] = true
+	data["apply_terrain_gameplay"] = apply_terrain_gameplay
+	if not floors.is_empty():
+		data["floors"] = floors.duplicate(true)
+	if not decoration.is_empty():
+		data["decoration"] = decoration.duplicate(true)
+	if not victory_points.is_empty():
+		data["victory_points"] = victory_points.duplicate(true)
+	if not labels.is_empty():
+		data["labels"] = labels.duplicate(true)
+	if not starting_points.is_empty():
+		data["starting_points"] = starting_points.duplicate(true)
+	if not unresolved.is_empty():
+		data["unresolved"] = unresolved.duplicate(true)
+	return data
 
 
 static func from_dict(data: Dictionary) -> MapData:
@@ -137,15 +202,30 @@ static func from_dict(data: Dictionary) -> MapData:
 	map_data.height = int(data.get("height", DEFAULT_HEIGHT))
 	map_data.team_1_spawn_points = _cells_from_json(data.get("team_1_spawn_points", []))
 	map_data.team_2_spawn_points = _cells_from_json(data.get("team_2_spawn_points", []))
+	map_data.sprite_directory = str(data.get("sprite_directory", ""))
+	map_data.source_format = str(data.get("source_format", ""))
+	map_data.uses_original_projection = bool(data.get("uses_original_projection", false))
+	map_data.apply_terrain_gameplay = bool(data.get("apply_terrain_gameplay", true))
+	map_data.floors = _dict_array_from_json(data.get("floors", []))
+	map_data.decoration = _dict_array_from_json(data.get("decoration", []))
+	map_data.victory_points = _dict_array_from_json(data.get("victory_points", []))
+	map_data.labels = _dict_array_from_json(data.get("labels", []))
+	map_data.starting_points = (
+		data.get("starting_points", {}) if data.get("starting_points", {}) is Dictionary else {}
+	)
+	map_data.unresolved = data.get("unresolved", []) if data.get("unresolved", []) is Array else []
 	map_data._object_lookup.clear()
+	map_data._object_meta.clear()
+	map_data.visual_placements.clear()
 
 	var raw_objects: Variant = data.get("map_objects", [])
 	if raw_objects is Array and not raw_objects.is_empty():
 		map_data._load_objects_from_json(raw_objects)
-	else:
+	elif map_data.apply_terrain_gameplay:
 		for cell in _cells_from_json(data.get("blocked_tiles", [])):
 			map_data.set_object(cell, MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE)
 
+	map_data._append_decoration_visuals()
 	map_data._rebuild_blocked_tiles_list()
 	return map_data
 
@@ -285,24 +365,61 @@ static func save_to_file(map_data: MapData, file_path: String = DEFAULT_FILE) ->
 	return true
 
 
-static func load_from_file(file_path: String = DEFAULT_FILE) -> MapData:
-	if not FileAccess.file_exists(file_path):
-		push_warning("MapData: missing %s, creating default map." % file_path)
+static func resolve_startup_map_path(file_path: String = "") -> String:
+	if not file_path.is_empty():
+		return file_path
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--map="):
+			return arg.substr("--map=".length())
+		if arg == "--the-fortress" or arg == "--fortress":
+			return DEV_MAP_FILE
+		if arg == "--test-map":
+			return DEFAULT_FILE
+	if USE_ORIGINAL_MAP_FOR_DEV and FileAccess.file_exists(DEV_MAP_FILE):
+		return DEV_MAP_FILE
+	return DEFAULT_FILE
+
+
+static func load_from_file(file_path: String = "") -> MapData:
+	var path := resolve_startup_map_path(file_path)
+	if not FileAccess.file_exists(path):
+		push_warning("MapData: missing %s, creating default map." % path)
 		var default_map := create_default()
-		save_to_file(default_map, file_path)
+		if path == DEFAULT_FILE:
+			save_to_file(default_map, path)
 		return default_map
 
-	var file := FileAccess.open(file_path, FileAccess.READ)
+	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		push_error("MapData: could not read %s" % file_path)
+		push_error("MapData: could not read %s" % path)
 		return create_default()
 
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	if parsed == null or not parsed is Dictionary:
-		push_error("MapData: invalid JSON in %s" % file_path)
+		push_error("MapData: invalid JSON in %s" % path)
 		return create_default()
 
-	return from_dict(parsed)
+	var map_data := from_dict(parsed)
+	_log_load_summary(map_data, path)
+	return map_data
+
+
+static func _log_load_summary(map_data: MapData, path: String) -> void:
+	print(
+		"MapData loaded %s (%s): %dx%d visual=%d floors=%d blocked=%d spawns=%d/%d unresolved=%d"
+		% [
+			map_data.map_name,
+			path,
+			map_data.width,
+			map_data.height,
+			map_data.visual_placements.size(),
+			map_data.floors.size(),
+			map_data.blocked_tiles.size(),
+			map_data.team_1_spawn_points.size(),
+			map_data.team_2_spawn_points.size(),
+			map_data.unresolved.size(),
+		]
+	)
 
 
 ## Guarantee the between-teams lane cover (haybail, tree, 5-tile wall line).
@@ -313,11 +430,14 @@ static func ensure_default_lane_cover(map_data: MapData) -> void:
 func _objects_to_json() -> Array:
 	var result: Array = []
 	for cell in _object_lookup.keys():
-		var type_id: String = _object_lookup[cell]
-		var object_def := MapObjectRegistryClass.get_def(type_id)
+		var object_def := get_object_def(cell)
 		if object_def == null:
 			continue
-		result.append(_object_entry_to_dict(cell, object_def))
+		var entry := _object_entry_to_dict(cell, object_def)
+		var meta: Dictionary = _object_meta.get(cell, {})
+		if meta.has("source"):
+			entry["source"] = meta["source"]
+		result.append(entry)
 	return result
 
 
@@ -340,20 +460,85 @@ static func _object_entry_to_dict(cell: Vector2i, object_def: MapObjectDef) -> D
 
 func _load_objects_from_json(raw: Array) -> void:
 	_object_lookup.clear()
+	_object_meta.clear()
+	visual_placements.clear()
 	for entry in raw:
 		if not entry is Dictionary:
 			continue
-		var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
+		var cell := _cell_from_object_entry(entry)
+		if not is_in_bounds(cell):
+			continue
 		var type_id := str(
 			entry.get("object_type", entry.get("type", MapObjectRegistryClass.DEFAULT_BLOCKED_TYPE))
 		)
 		type_id = MapObjectRegistryClass.normalize_type_id(type_id)
-		if is_in_bounds(cell) and MapObjectRegistryClass.get_def(type_id) != null:
-			_object_lookup[cell] = type_id
+		var source: Dictionary = {}
+		if entry.get("source", {}) is Dictionary:
+			source = (entry.get("source") as Dictionary).duplicate(true)
+		var family := str(source.get("image", "")).to_upper()
+		var direction := int(source.get("direction", 0))
+		var placement := {
+			"x": cell.x,
+			"y": cell.y,
+			"object_type": type_id,
+			"family": family,
+			"direction": direction,
+			"source": source,
+			"layer": "object",
+			"z": int(source.get("z", 0)),
+		}
+		visual_placements.append(placement)
+
+		if MapObjectRegistryClass.get_def(type_id) == null:
+			continue
+		_object_lookup[cell] = type_id
+		_object_meta[cell] = {
+			"source": source,
+			"blocks_movement": bool(entry.get("blocks_movement", false)),
+			"blocks_los": bool(entry.get("blocks_los", false)),
+			"provides_cover": bool(entry.get("provides_cover", false)),
+			"cover_type": int(entry.get("cover_type", 0)),
+			"sprite_path": str(entry.get("sprite_path", source.get("sprite", ""))),
+		}
+
+
+func _append_decoration_visuals() -> void:
+	for entry in decoration:
+		var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
+		if not is_in_bounds(cell):
+			continue
+		visual_placements.append(
+			{
+				"x": cell.x,
+				"y": cell.y,
+				"object_type": "decoration",
+				"family": str(entry.get("image", "")).to_upper(),
+				"direction": int(entry.get("direction", 0)),
+				"source": {
+					"image": str(entry.get("image", "")).to_upper(),
+					"direction": int(entry.get("direction", 0)),
+					"z": 0,
+					"terrain": "_HG_EVEN",
+				},
+				"layer": "decoration",
+				"z": 0,
+			}
+		)
+
+
+static func _cell_from_object_entry(entry: Dictionary) -> Vector2i:
+	if entry.has("x") or entry.has("y"):
+		return Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
+	var grid: Variant = entry.get("grid_position", {})
+	if grid is Dictionary:
+		return Vector2i(int(grid.get("x", 0)), int(grid.get("y", 0)))
+	return Vector2i.ZERO
 
 
 func _rebuild_blocked_tiles_list() -> void:
 	blocked_tiles.clear()
+	if not apply_terrain_gameplay:
+		return
 	for cell in _object_lookup.keys():
 		if is_blocked(cell):
 			blocked_tiles.append(cell)
@@ -373,3 +558,12 @@ static func _cells_from_json(raw: Variant) -> Array[Vector2i]:
 			if entry is Dictionary:
 				cells.append(Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0))))
 	return cells
+
+
+static func _dict_array_from_json(raw: Variant) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if raw is Array:
+		for entry in raw:
+			if entry is Dictionary:
+				result.append((entry as Dictionary).duplicate(true))
+	return result

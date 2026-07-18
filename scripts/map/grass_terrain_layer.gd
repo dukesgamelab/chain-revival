@@ -53,6 +53,9 @@ func _load_grass_textures() -> void:
 func _draw() -> void:
 	if not _layer_visible or map_data == null or _grass_textures.is_empty():
 		return
+	## Original maps use OriginalGroundLayer (recovered GRS tiles).
+	if map_data.is_original_visual_map():
+		return
 
 	for y in range(map_data.height):
 		for x in range(map_data.width):

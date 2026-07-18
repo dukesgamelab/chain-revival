@@ -1,0 +1,2542 @@
+{
+ "method": "Facets inferred from the MDL bmp/clip declarations: one file exists per facet slot letter; sets {e}=1, {e,w} or {e,s}=2, {e,s,w,n}=4, 8-compass=8. This matches the engine facet switch at 2amhost.exe:0x4b05f0.",
+ "families": {
+  "ABRL:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 21
+  },
+  "ACTL:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "ADFD:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ADFU:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ADHH:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ADHP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 2
+  },
+  "ADOA:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "AFAL:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "AHTB:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "AHTF:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 19
+  },
+  "AHTL:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 23
+  },
+  "AKNL:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "AKST:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 7
+  },
+  "AKUP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 4
+  },
+  "ALBX:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "ALBY:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ALCA:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ALCF:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "ALCI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ALCP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "ALPK:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 16
+  },
+  "AMAR:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "APDD:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "APDP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 2
+  },
+  "APKN:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 7
+  },
+  "APLA:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "APLD:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 2
+  },
+  "APLF:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "APLH:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "APLI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "APMO:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 22
+  },
+  "APRA:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "APRD:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 2
+  },
+  "APRF:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "APRH:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "APRI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "APRN:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 5
+  },
+  "ARBX:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "ARBY:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ARCA:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ARCF:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "ARCI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ARCP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "ASAX:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ASFB:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 12
+  },
+  "ASFI:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "ASFX:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "ASID:static": {
+   "facets": "IRREGULAR ['e', 'n', 'ne', 'nw', 'se', 'sw', 'w']",
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ASKN:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 4
+  },
+  "ASMO:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 8
+  },
+  "ASPR:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "ASRW:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "ASSS:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "ASTG:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 24
+  },
+  "ASUP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 24
+  },
+  "ASWK:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "ATTL:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "AWLG:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 12
+  },
+  "AWLG:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "AWSD:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 12
+  },
+  "AWSD:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "BG01:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "BH01:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "BH02:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "CLRB:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "CVCR:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "CVSI:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "CW01:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "CW02:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "DIBG:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "DOT1:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "DOT2:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "DOT3:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "DOT4:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "DPAR:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "DPGR:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "DTT1:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "DTT2:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "DTT3:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "DTT4:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "EFAL:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 7
+  },
+  "EPAI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "ESUP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 10
+  },
+  "ESWK:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "EXP2:action": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 24
+  },
+  "GBRL:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 21
+  },
+  "GCTL:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "GDFD:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GDFU:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GDHH:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GDHP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 2
+  },
+  "GDOA:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GEAR:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "GFAL:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "GHTB:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "GHTF:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 19
+  },
+  "GHTL:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 23
+  },
+  "GKNL:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GKST:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 7
+  },
+  "GKUP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 4
+  },
+  "GLBX:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GLBY:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GLCA:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GLCF:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GLCI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GLCP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GLPK:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 16
+  },
+  "GOTO:action": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 2
+  },
+  "GPAI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GPDD:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GPDP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 2
+  },
+  "GPFI:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GPID:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GPKN:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 7
+  },
+  "GPLA:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GPLD:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 2
+  },
+  "GPLF:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GPLH:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GPLI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GPMO:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 22
+  },
+  "GPRA:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GPRD:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 2
+  },
+  "GPRF:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GPRH:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GPRI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GPRN:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 5
+  },
+  "GR01:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "GR02:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "GR03:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "GRBX:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GRBY:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GRCA:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GRCF:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GRCI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GRCP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GREX:action": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 24
+  },
+  "GRPK:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 16
+  },
+  "GSAI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GSAP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 10
+  },
+  "GSAX:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GSFB:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 12
+  },
+  "GSFI:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GSFX:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 3
+  },
+  "GSID:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GSKN:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 4
+  },
+  "GSMO:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 8
+  },
+  "GSPR:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "GSRW:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "GSSS:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "GSTG:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 24
+  },
+  "GSUP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 24
+  },
+  "GSWK:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "GTTL:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "GWLG:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 12
+  },
+  "GWLG:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "GWSD:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 12
+  },
+  "GWSD:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "HE01:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "HE03:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "HE07:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "IWCL:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "IWCR:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "IWDR:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "IWWL:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "L000:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "L015:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "L030:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "LC00:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "LC15:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "LC30:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "LIHW:static": {
+   "facets": "IRREGULAR ['n', 's', 'w']",
+   "letters": [
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "LINE:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "NEAR:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "PLAG:action": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 7
+  },
+  "PLGA:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "RIHW:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "SCOR:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "SDOR:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "SFAR:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "SFL5:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "SFLO:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "SFR2:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "SICR:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "SWAI:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "SWAL:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "SWAQ:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "SWAR:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "SWIN:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "TA01:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "TA02:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "TA03:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "TR01:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "TR02:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "UFAL:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 7
+  },
+  "UPAI:static": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "USUP:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 10
+  },
+  "USWK:action": {
+   "facets": 8,
+   "letters": [
+    "e",
+    "n",
+    "ne",
+    "nw",
+    "s",
+    "se",
+    "sw",
+    "w"
+   ],
+   "anim_frames": 20
+  },
+  "WCOR:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WDOR:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WFL5:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WFLO:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "WH00:static": {
+   "facets": 1,
+   "letters": [
+    "e"
+   ],
+   "anim_frames": 1
+  },
+  "WH01:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WH02:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WH11:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WICR:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WWAI:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WWAL:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WWAQ:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WWAR:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WWIN:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  }
+ }
+}

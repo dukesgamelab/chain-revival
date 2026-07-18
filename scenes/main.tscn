@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://scripts/map/map_camera.gd" id="4_camera"]
 [ext_resource type="Script" path="res://scripts/map/map_background.gd" id="5_bg"]
 [ext_resource type="Script" path="res://scripts/map/grass_terrain_layer.gd" id="8_grass"]
+[ext_resource type="Script" path="res://scripts/map/original_ground_layer.gd" id="11_ground"]
+[ext_resource type="Script" path="res://scripts/map/original_floor_layer.gd" id="12_floors"]
 [ext_resource type="Script" path="res://scripts/map/depth_sorted_layer.gd" id="9_depth"]
 [ext_resource type="Script" path="res://scripts/effects/los_visualizer.gd" id="6_losviz"]
 [ext_resource type="Script" path="res://scripts/ui/network_status_hud.gd" id="10_network"]
@@ -24,11 +26,22 @@ script = ExtResource("5_bg")
 z_index = -5
 script = ExtResource("8_grass")
 
+[node name="OriginalGroundLayer" type="Node2D" parent="World"]
+z_index = -5
+texture_filter = 0
+script = ExtResource("11_ground")
+
+[node name="OriginalFloorLayer" type="Node2D" parent="World"]
+z_index = -4
+texture_filter = 0
+script = ExtResource("12_floors")
+
 [node name="IsometricMap" type="Node2D" parent="World" unique_id=903530778]
 script = ExtResource("2_isomap")
 
 [node name="DepthSorted" type="Node2D" parent="World"]
 y_sort_enabled = true
+texture_filter = 0
 script = ExtResource("9_depth")
 
 [node name="Tracers" type="Node2D" parent="World"]

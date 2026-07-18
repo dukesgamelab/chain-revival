@@ -20,6 +20,9 @@ const MAP_VISUAL_BORDER := 12
 ## Presentation-only view rotation: 0-3 = 0, 90, 180, 270 degrees clockwise.
 static var current_view_rotation: int = 0
 
+## When true, base projection uses recovered CoC 62×32 pitch (scaled).
+static var use_original_projection: bool = false
+
 static var _map_width: int = 0
 static var _map_height: int = 0
 
@@ -28,6 +31,14 @@ static var _map_height: int = 0
 static func set_view_pivot_for_map(map_width: int, map_height: int) -> void:
 	_map_width = maxi(map_width, 0)
 	_map_height = maxi(map_height, 0)
+
+
+static func set_original_projection_enabled(enabled: bool) -> void:
+	use_original_projection = enabled
+
+
+static func camera_direction_degrees() -> int:
+	return posmod(current_view_rotation, 4) * 90
 
 
 static func reset_view_rotation() -> void:
@@ -58,6 +69,11 @@ static func _logical_to_visual(cell: Vector2i) -> Vector2i:
 			return cell
 
 
+## Public alias for presentation remaps (camera rotation only).
+static func logical_to_visual_cell(cell: Vector2i) -> Vector2i:
+	return _logical_to_visual(cell)
+
+
 static func _visual_to_logical(cell: Vector2i) -> Vector2i:
 	var vx := cell.x
 	var vy := cell.y
@@ -75,6 +91,8 @@ static func _visual_to_logical(cell: Vector2i) -> Vector2i:
 
 
 static func _base_grid_to_world(grid: Vector2i) -> Vector2:
+	if use_original_projection:
+		return OriginalMapProjection.cell_to_world(grid)
 	var half_w := TILE_WIDTH * 0.5
 	var half_h := TILE_HEIGHT * 0.5
 	var x := (grid.x - grid.y) * half_w
@@ -83,6 +101,8 @@ static func _base_grid_to_world(grid: Vector2i) -> Vector2:
 
 
 static func _base_world_to_grid(world: Vector2) -> Vector2i:
+	if use_original_projection:
+		return OriginalMapProjection.world_to_cell(world)
 	var half_w := TILE_WIDTH * 0.5
 	var half_h := TILE_HEIGHT * 0.5
 	var gx := (world.x / half_w + world.y / half_h) * 0.5

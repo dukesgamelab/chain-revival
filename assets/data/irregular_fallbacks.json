@@ -1,0 +1,26 @@
+{
+ "LIHW": {
+  "missing_letter": "e",
+  "present": [
+   "n",
+   "s",
+   "w"
+  ],
+  "original_behavior": "UNRESOLVED - the MDL simply declares no e-frame for LIHW:static; the engine-side handling of an absent frame slot was not recovered from the binary",
+  "compatibility_rule": "deterministic nearest: when the quantizer selects slot e (0deg view-relative), use the w frame (same wall diagonal, opposite face). Flag as non-original."
+ },
+ "ASID": {
+  "missing_letter": "s",
+  "present": [
+   "e",
+   "ne",
+   "n",
+   "nw",
+   "w",
+   "sw",
+   "se"
+  ],
+  "original_behavior": "UNRESOLVED - same as above",
+  "compatibility_rule": "deterministic nearest: when the quantizer selects slot s (90deg), use se (adjacent facet at 45deg, lower angle). Flag as non-original."
+ }
+}

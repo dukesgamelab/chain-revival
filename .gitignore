@@ -8,3 +8,8 @@ server/dist/
 
 # Archives
 *.zip
+
+# Local extract scratch
+_tmp_fable_extract/
+_tmp_fortress/
+_tmp_fortress_handoff/
