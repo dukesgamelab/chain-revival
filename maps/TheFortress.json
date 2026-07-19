@@ -231,26 +231,6 @@
 		},
 		{
 			"x": 7,
-			"y": 94
-		},
-		{
-			"x": 6,
-			"y": 94
-		},
-		{
-			"x": 5,
-			"y": 94
-		},
-		{
-			"x": 8,
-			"y": 94
-		},
-		{
-			"x": 9,
-			"y": 94
-		},
-		{
-			"x": 7,
 			"y": 98
 		},
 		{
@@ -3439,12 +3419,6 @@
 			"direction": 0.0,
 			"image": "SFL5",
 			"x": 9.0,
-			"y": 94.0
-		},
-		{
-			"direction": 0.0,
-			"image": "SFL5",
-			"x": 9.0,
 			"y": 95.0
 		},
 		{
@@ -3462,14 +3436,38 @@
 		{
 			"direction": 0.0,
 			"image": "SFLO",
-			"x": 8.0,
-			"y": 94.0
-		},
-		{
-			"direction": 0.0,
-			"image": "SFLO",
 			"x": 9.0,
 			"y": 93.0
+		},
+		{
+			"direction": 0,
+			"image": "WFLO",
+			"x": 8,
+			"y": 94
+		},
+		{
+			"direction": 0,
+			"image": "WFLO",
+			"x": 9,
+			"y": 94
+		},
+		{
+			"direction": 0,
+			"image": "WFLO",
+			"x": 7,
+			"y": 94
+		},
+		{
+			"direction": 0,
+			"image": "WFLO",
+			"x": 6,
+			"y": 94
+		},
+		{
+			"direction": 0,
+			"image": "WFLO",
+			"x": 5,
+			"y": 94
 		}
 	],
 	"height": 100,
@@ -3557,12 +3555,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH02",
-				"sprite": "WH02_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 82
@@ -3582,12 +3579,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 81
@@ -3607,12 +3603,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 80
@@ -3632,12 +3627,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 79
@@ -3657,12 +3651,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 77
@@ -3682,12 +3675,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 76
@@ -3707,12 +3699,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 75
@@ -3732,12 +3723,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 74
@@ -3757,12 +3747,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 72
@@ -3782,12 +3771,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 71
@@ -3807,12 +3795,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"sprite": "WH02_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 70
@@ -3832,12 +3819,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"sprite": "BH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "BH01_e.png",
+			"sprite_path": "",
 			"type": "coc_bush",
 			"x": 18,
 			"y": 78
@@ -3857,12 +3843,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"sprite": "BH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "BH01_e.png",
+			"sprite_path": "",
 			"type": "coc_bush",
 			"x": 43,
 			"y": 86
@@ -3882,12 +3867,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 31,
 			"y": 86
@@ -3907,12 +3891,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH02",
-				"sprite": "BH02_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "BH02_e.png",
+			"sprite_path": "",
 			"type": "coc_bush",
 			"x": 27,
 			"y": 68
@@ -3932,12 +3915,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 34,
 			"y": 67
@@ -3957,12 +3939,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 48,
 			"y": 82
@@ -3982,12 +3963,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 24,
 			"y": 91
@@ -4007,12 +3987,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 48,
 			"y": 74
@@ -4032,12 +4011,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 38,
 			"y": 67
@@ -4057,12 +4035,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH02",
-				"sprite": "WH02_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 38,
 			"y": 68
@@ -4082,12 +4059,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH02",
-				"sprite": "WH02_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 34,
 			"y": 68
@@ -4107,12 +4083,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH01",
-				"sprite": "WH01_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 35,
 			"y": 68
@@ -4132,12 +4107,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH01",
-				"sprite": "WH01_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 37,
 			"y": 68
@@ -4157,12 +4131,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"sprite": "WWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 4,
 			"y": 98
@@ -4182,12 +4155,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 5,
 			"y": 99
@@ -4207,12 +4179,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 6,
 			"y": 99
@@ -4232,12 +4203,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WICR",
-				"sprite": "WICR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WICR_s.png",
+			"sprite_path": "",
 			"type": "coc_wicr",
 			"x": 7,
 			"y": 99
@@ -4257,12 +4227,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 8,
 			"y": 99
@@ -4282,12 +4251,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 9,
 			"y": 99
@@ -4307,12 +4275,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WICR",
-				"sprite": "WICR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WICR_s.png",
+			"sprite_path": "",
 			"type": "coc_wicr",
 			"x": 10,
 			"y": 99
@@ -4332,12 +4299,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 11,
 			"y": 99
@@ -4357,12 +4323,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAI",
-				"sprite": "WWAI_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAI_n.png",
+			"sprite_path": "",
 			"type": "coc_wwai",
 			"x": 12,
 			"y": 94
@@ -4382,12 +4347,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 12,
 			"y": 99
@@ -4407,12 +4371,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WICR",
-				"sprite": "WICR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WICR_n.png",
+			"sprite_path": "",
 			"type": "coc_wicr",
 			"x": 13,
 			"y": 94
@@ -4432,12 +4395,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 13,
 			"y": 95
@@ -4457,12 +4419,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "LIHW",
-				"sprite": "LIHW_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_w.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 13,
 			"y": 96
@@ -4482,12 +4443,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 13,
 			"y": 98
@@ -4507,12 +4467,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WICR",
-				"sprite": "WICR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WICR_s.png",
+			"sprite_path": "",
 			"type": "coc_wicr",
 			"x": 13,
 			"y": 99
@@ -4532,12 +4491,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 14,
 			"y": 94
@@ -4557,12 +4515,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 15,
 			"y": 94
@@ -4582,12 +4539,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "LIHW",
-				"sprite": "LIHW_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_n.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 15,
 			"y": 97
@@ -4607,12 +4563,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WICR",
-				"sprite": "WICR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WICR_n.png",
+			"sprite_path": "",
 			"type": "coc_wicr",
 			"x": 16,
 			"y": 94
@@ -4632,12 +4587,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 16,
 			"y": 95
@@ -4657,12 +4611,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 16,
 			"y": 96
@@ -4682,12 +4635,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "IWCR",
-				"sprite": "IWCR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWCR_n.png",
+			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 16,
 			"y": 97
@@ -4707,12 +4659,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWIN",
-				"sprite": "WWIN_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWIN_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 17,
 			"y": 94
@@ -4732,12 +4683,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 17,
 			"y": 97
@@ -4757,12 +4707,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 18,
 			"y": 94
@@ -4782,12 +4731,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "LIHW",
-				"sprite": "LIHW_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 18,
 			"y": 97
@@ -4807,12 +4755,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WICR",
-				"sprite": "WICR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WICR_n.png",
+			"sprite_path": "",
 			"type": "coc_wicr",
 			"x": 19,
 			"y": 94
@@ -4832,12 +4779,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 20,
 			"y": 94
@@ -4857,12 +4803,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 21,
 			"y": 94
@@ -4882,12 +4827,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAL",
-				"sprite": "WWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 22,
 			"y": 95
@@ -4907,12 +4851,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 21,
 			"y": 99
@@ -4932,12 +4875,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 20,
 			"y": 99
@@ -4957,12 +4899,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 19,
 			"y": 99
@@ -4982,12 +4923,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 19,
 			"y": 95
@@ -5007,12 +4947,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WICR",
-				"sprite": "WICR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WICR_s.png",
+			"sprite_path": "",
 			"type": "coc_wicr",
 			"x": 17,
 			"y": 99
@@ -5032,12 +4971,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 18,
 			"y": 99
@@ -5057,12 +4995,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 16,
 			"y": 99
@@ -5082,12 +5019,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 15,
 			"y": 99
@@ -5107,12 +5043,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 14,
 			"y": 99
@@ -5132,12 +5067,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"sprite": "WWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 4,
 			"y": 97
@@ -5157,12 +5091,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWIN",
-				"sprite": "WWIN_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWIN_w.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 4,
 			"y": 96
@@ -5182,12 +5115,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"sprite": "WWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 4,
 			"y": 95
@@ -5207,12 +5139,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WICR",
-				"sprite": "WICR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WICR_w.png",
+			"sprite_path": "",
 			"type": "coc_wicr",
 			"x": 4,
 			"y": 94
@@ -5232,12 +5163,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"sprite": "WWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 4,
 			"y": 93
@@ -5257,12 +5187,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"sprite": "WWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 4,
 			"y": 92
@@ -5282,12 +5211,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"sprite": "WWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 4,
 			"y": 91
@@ -5307,12 +5235,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WCOR",
-				"sprite": "WCOR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WCOR_w.png",
+			"sprite_path": "",
 			"type": "coc_wcor",
 			"x": 4,
 			"y": 90
@@ -5332,12 +5259,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 5,
 			"y": 90
@@ -5357,12 +5283,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWIN",
-				"sprite": "WWIN_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWIN_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 6,
 			"y": 90
@@ -5382,12 +5307,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WICR",
-				"sprite": "WICR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WICR_n.png",
+			"sprite_path": "",
 			"type": "coc_wicr",
 			"x": 7,
 			"y": 90
@@ -5407,12 +5331,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAR",
-				"sprite": "WWAR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAR_n.png",
+			"sprite_path": "",
 			"type": "coc_wwar",
 			"x": 8,
 			"y": 90
@@ -5432,12 +5355,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAQ",
-				"sprite": "WWAQ_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAQ_n.png",
+			"sprite_path": "",
 			"type": "coc_wwaq",
 			"x": 10,
 			"y": 90
@@ -5457,12 +5379,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 11,
 			"y": 90
@@ -5482,12 +5403,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WCOR",
-				"sprite": "WCOR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WCOR_n.png",
+			"sprite_path": "",
 			"type": "coc_wcor",
 			"x": 12,
 			"y": 90
@@ -5507,12 +5427,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWIN",
-				"sprite": "WWIN_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWIN_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 12,
 			"y": 91
@@ -5532,12 +5451,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAL",
-				"sprite": "WWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 12,
 			"y": 92
@@ -5557,12 +5475,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWIN",
-				"sprite": "WWIN_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWIN_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 12,
 			"y": 93
@@ -5582,12 +5499,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "LIHW",
-				"sprite": "LIHW_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_w.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 7,
 			"y": 91
@@ -5607,140 +5523,14 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 7,
 			"y": 93
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 7,
-				"y": 94
-			},
-			"object_id": "coc_wall_corner@7,94",
-			"object_type": "coc_wall_corner",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "IWCR",
-				"sprite": "IWCR_n.png",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
-				"z": 200.0
-			},
-			"sprite_path": "IWCR_n.png",
-			"type": "coc_wall_corner",
-			"x": 7,
-			"y": 94
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 6,
-				"y": 94
-			},
-			"object_id": "coc_wall@6,94",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"sprite": "IWWL_s.png",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
-				"z": 200.0
-			},
-			"sprite_path": "IWWL_s.png",
-			"type": "coc_wall",
-			"x": 6,
-			"y": 94
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 5,
-				"y": 94
-			},
-			"object_id": "coc_wall@5,94",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"sprite": "IWWL_s.png",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
-				"z": 200.0
-			},
-			"sprite_path": "IWWL_s.png",
-			"type": "coc_wall",
-			"x": 5,
-			"y": 94
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 8,
-				"y": 94
-			},
-			"object_id": "coc_wall@8,94",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"sprite": "IWWL_s.png",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
-				"z": 200.0
-			},
-			"sprite_path": "IWWL_s.png",
-			"type": "coc_wall",
-			"x": 8,
-			"y": 94
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 9,
-				"y": 94
-			},
-			"object_id": "coc_wall@9,94",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "LIHW",
-				"sprite": "LIHW_s.png",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
-				"z": 200.0
-			},
-			"sprite_path": "LIHW_s.png",
-			"type": "coc_wall",
-			"x": 9,
-			"y": 94
 		},
 		{
 			"blocks_los": true,
@@ -5757,12 +5547,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 7,
 			"y": 98
@@ -5782,12 +5571,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 10,
 			"y": 98
@@ -5807,12 +5595,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 7,
 			"y": 97
@@ -5832,12 +5619,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 10,
 			"y": 97
@@ -5857,12 +5643,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "LIHW",
-				"sprite": "LIHW_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_w.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 19,
 			"y": 96
@@ -5882,12 +5667,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SCOR",
-				"sprite": "SCOR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SCOR_s.png",
+			"sprite_path": "",
 			"type": "coc_scor",
 			"x": 24,
 			"y": 84
@@ -5907,12 +5691,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"sprite": "SWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 24,
 			"y": 83
@@ -5932,12 +5715,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWIN",
-				"sprite": "SWIN_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_w.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 24,
 			"y": 82
@@ -5957,12 +5739,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SICR",
-				"sprite": "SICR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SICR_w.png",
+			"sprite_path": "",
 			"type": "coc_sicr",
 			"x": 24,
 			"y": 81
@@ -5982,12 +5763,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAR",
-				"sprite": "SWAR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAR_w.png",
+			"sprite_path": "",
 			"type": "coc_swar",
 			"x": 24,
 			"y": 80
@@ -6007,12 +5787,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAQ",
-				"sprite": "SWAQ_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAQ_w.png",
+			"sprite_path": "",
 			"type": "coc_swaq",
 			"x": 24,
 			"y": 78
@@ -6032,12 +5811,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"sprite": "SWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 24,
 			"y": 77
@@ -6057,12 +5835,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SICR",
-				"sprite": "SICR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SICR_w.png",
+			"sprite_path": "",
 			"type": "coc_sicr",
 			"x": 24,
 			"y": 76
@@ -6082,12 +5859,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"sprite": "SWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 24,
 			"y": 75
@@ -6107,12 +5883,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWIN",
-				"sprite": "SWIN_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_w.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 24,
 			"y": 74
@@ -6132,12 +5907,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"sprite": "SWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 24,
 			"y": 73
@@ -6157,12 +5931,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"sprite": "SWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 24,
 			"y": 72
@@ -6182,12 +5955,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SCOR",
-				"sprite": "SCOR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SCOR_w.png",
+			"sprite_path": "",
 			"type": "coc_scor",
 			"x": 24,
 			"y": 71
@@ -6207,12 +5979,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SCOR",
-				"sprite": "SCOR_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SCOR_e.png",
+			"sprite_path": "",
 			"type": "coc_scor",
 			"x": 45,
 			"y": 84
@@ -6232,12 +6003,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SICR",
-				"sprite": "SICR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SICR_n.png",
+			"sprite_path": "",
 			"type": "coc_sicr",
 			"x": 42,
 			"y": 71
@@ -6257,12 +6027,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWIN",
-				"sprite": "SWIN_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_n.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 40,
 			"y": 71
@@ -6282,12 +6051,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SICR",
-				"sprite": "SICR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SICR_n.png",
+			"sprite_path": "",
 			"type": "coc_sicr",
 			"x": 38,
 			"y": 71
@@ -6307,12 +6075,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAQ",
-				"sprite": "SWAQ_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAQ_n.png",
+			"sprite_path": "",
 			"type": "coc_swaq",
 			"x": 37,
 			"y": 71
@@ -6332,12 +6099,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAR",
-				"sprite": "SWAR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAR_n.png",
+			"sprite_path": "",
 			"type": "coc_swar",
 			"x": 35,
 			"y": 71
@@ -6357,12 +6123,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SICR",
-				"sprite": "SICR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SICR_n.png",
+			"sprite_path": "",
 			"type": "coc_sicr",
 			"x": 32,
 			"y": 71
@@ -6382,12 +6147,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWIN",
-				"sprite": "SWIN_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_s.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 41,
 			"y": 84
@@ -6407,12 +6171,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWIN",
-				"sprite": "SWIN_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_s.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 38,
 			"y": 84
@@ -6432,12 +6195,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SICR",
-				"sprite": "SICR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SICR_s.png",
+			"sprite_path": "",
 			"type": "coc_sicr",
 			"x": 35,
 			"y": 84
@@ -6457,12 +6219,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWIN",
-				"sprite": "SWIN_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_e.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 45,
 			"y": 81
@@ -6482,12 +6243,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 25,
 			"y": 81
@@ -6507,12 +6267,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 26,
 			"y": 81
@@ -6532,12 +6291,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 27,
 			"y": 81
@@ -6557,12 +6315,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 28,
 			"y": 81
@@ -6582,12 +6339,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "IWCR",
-				"sprite": "IWCR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWCR_w.png",
+			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 29,
 			"y": 81
@@ -6607,12 +6363,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 35,
 			"y": 83
@@ -6632,12 +6387,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 35,
 			"y": 82
@@ -6657,12 +6411,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWCR",
-				"sprite": "IWCR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWCR_s.png",
+			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 35,
 			"y": 81
@@ -6682,12 +6435,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 34,
 			"y": 81
@@ -6707,12 +6459,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 33,
 			"y": 81
@@ -6732,12 +6483,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "LIHW",
-				"sprite": "LIHW_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_n.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 32,
 			"y": 81
@@ -6757,12 +6507,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWIN",
-				"sprite": "SWIN_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_s.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 28,
 			"y": 84
@@ -6782,12 +6531,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 25,
 			"y": 84
@@ -6807,12 +6555,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 26,
 			"y": 84
@@ -6832,12 +6579,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 27,
 			"y": 84
@@ -6857,12 +6603,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 29,
 			"y": 84
@@ -6882,12 +6627,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 30,
 			"y": 84
@@ -6907,12 +6651,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 31,
 			"y": 84
@@ -6932,12 +6675,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 16,
 			"y": 87
@@ -6957,12 +6699,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 20,
 			"y": 90
@@ -6982,12 +6723,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 16,
 			"y": 91
@@ -7007,12 +6747,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 32,
 			"y": 84
@@ -7032,12 +6771,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWIN",
-				"sprite": "SWIN_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_s.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 33,
 			"y": 84
@@ -7057,12 +6795,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 34,
 			"y": 84
@@ -7082,12 +6819,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 36,
 			"y": 84
@@ -7107,12 +6843,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 37,
 			"y": 84
@@ -7132,12 +6867,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 39,
 			"y": 84
@@ -7157,12 +6891,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 40,
 			"y": 84
@@ -7182,12 +6915,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 42,
 			"y": 84
@@ -7207,12 +6939,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 43,
 			"y": 84
@@ -7232,12 +6963,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 44,
 			"y": 84
@@ -7257,12 +6987,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "LIHW",
-				"sprite": "LIHW_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_n.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 38,
 			"y": 81
@@ -7282,12 +7011,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 39,
 			"y": 81
@@ -7307,12 +7035,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "IWCR",
-				"sprite": "IWCR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWCR_n.png",
+			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 40,
 			"y": 81
@@ -7332,12 +7059,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "LIHW",
-				"sprite": "LIHW_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 42,
 			"y": 81
@@ -7357,12 +7083,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 41,
 			"y": 81
@@ -7382,12 +7107,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 45,
 			"y": 83
@@ -7407,12 +7131,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 45,
 			"y": 82
@@ -7432,12 +7155,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 40,
 			"y": 80
@@ -7457,12 +7179,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 40,
 			"y": 79
@@ -7482,12 +7203,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "IWCR",
-				"sprite": "IWCR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWCR_w.png",
+			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 40,
 			"y": 78
@@ -7507,12 +7227,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 39,
 			"y": 78
@@ -7532,12 +7251,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 38,
 			"y": 78
@@ -7557,12 +7275,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "LIHW",
-				"sprite": "LIHW_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_n.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 37,
 			"y": 78
@@ -7582,12 +7299,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 29,
 			"y": 80
@@ -7607,12 +7323,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 29,
 			"y": 79
@@ -7632,12 +7347,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 29,
 			"y": 78
@@ -7657,12 +7371,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 25,
 			"y": 76
@@ -7682,12 +7395,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 26,
 			"y": 76
@@ -7707,12 +7419,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 27,
 			"y": 76
@@ -7732,12 +7443,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 25,
 			"y": 71
@@ -7757,12 +7467,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 26,
 			"y": 71
@@ -7782,12 +7491,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 27,
 			"y": 71
@@ -7807,12 +7515,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWIN",
-				"sprite": "SWIN_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_n.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 28,
 			"y": 71
@@ -7832,12 +7539,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 29,
 			"y": 71
@@ -7857,12 +7563,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 30,
 			"y": 71
@@ -7882,12 +7587,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 31,
 			"y": 71
@@ -7907,12 +7611,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 32,
 			"y": 72
@@ -7932,12 +7635,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 32,
 			"y": 73
@@ -7957,12 +7659,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 32,
 			"y": 74
@@ -7982,12 +7683,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "LIHW",
-				"sprite": "LIHW_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_w.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 32,
 			"y": 75
@@ -8007,12 +7707,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWCR",
-				"sprite": "IWCR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWCR_s.png",
+			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 28,
 			"y": 73
@@ -8032,12 +7731,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 29,
 			"y": 73
@@ -8057,12 +7755,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "LIHW",
-				"sprite": "LIHW_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_n.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 26,
 			"y": 73
@@ -8082,12 +7779,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SICR",
-				"sprite": "SICR_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SICR_e.png",
+			"sprite_path": "",
 			"type": "coc_sicr",
 			"x": 45,
 			"y": 75
@@ -8107,12 +7803,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "LIHW",
-				"sprite": "LIHW_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_n.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 44,
 			"y": 75
@@ -8132,12 +7827,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 33,
 			"y": 71
@@ -8157,12 +7851,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 34,
 			"y": 71
@@ -8182,12 +7875,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 39,
 			"y": 71
@@ -8207,12 +7899,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 41,
 			"y": 71
@@ -8232,12 +7923,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 43,
 			"y": 71
@@ -8257,12 +7947,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 45,
 			"y": 72
@@ -8282,12 +7971,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 45,
 			"y": 80
@@ -8307,12 +7995,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 27,
 			"y": 89
@@ -8332,12 +8019,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 29,
 			"y": 92
@@ -8357,12 +8043,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 32,
 			"y": 90
@@ -8382,12 +8067,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 33,
 			"y": 98
@@ -8407,12 +8091,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 35,
 			"y": 97
@@ -8432,12 +8115,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 38,
 			"y": 95
@@ -8457,12 +8139,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 36,
 			"y": 93
@@ -8482,12 +8163,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 33,
 			"y": 94
@@ -8507,12 +8187,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 39,
 			"y": 91
@@ -8532,12 +8211,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 29,
 			"y": 96
@@ -8557,12 +8235,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 43,
 			"y": 90
@@ -8582,12 +8259,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 41,
 			"y": 93
@@ -8607,12 +8283,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 40,
 			"y": 88
@@ -8632,12 +8307,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 36,
 			"y": 87
@@ -8657,12 +8331,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 27,
 			"y": 94
@@ -8682,12 +8355,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 46,
 			"y": 92
@@ -8707,12 +8379,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 43,
 			"y": 97
@@ -8732,12 +8403,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 40,
 			"y": 99
@@ -8757,12 +8427,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 38,
 			"y": 98
@@ -8782,12 +8451,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 41,
 			"y": 96
@@ -8807,12 +8475,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 38,
 			"y": 72
@@ -8832,12 +8499,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 38,
 			"y": 73
@@ -8857,12 +8523,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWCR",
-				"sprite": "IWCR_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWCR_e.png",
+			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 38,
 			"y": 74
@@ -8882,12 +8547,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "LIHW",
-				"sprite": "LIHW_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_w.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 38,
 			"y": 75
@@ -8907,12 +8571,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "LIHW",
-				"sprite": "LIHW_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 39,
 			"y": 74
@@ -8932,12 +8595,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 44,
 			"y": 71
@@ -8957,12 +8619,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "LIHW",
-				"sprite": "LIHW_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 28,
 			"y": 76
@@ -8982,12 +8643,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 76
@@ -9007,12 +8667,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 71
@@ -9032,12 +8691,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 15,
 			"y": 82
@@ -9057,12 +8715,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 16,
 			"y": 82
@@ -9082,12 +8739,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 17,
 			"y": 82
@@ -9107,12 +8763,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 18,
 			"y": 82
@@ -9132,12 +8787,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 73
@@ -9157,12 +8811,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 74
@@ -9182,12 +8835,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 75
@@ -9207,12 +8859,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 10,
 			"y": 87
@@ -9232,12 +8883,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 10,
 			"y": 85
@@ -9257,12 +8907,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 78
@@ -9282,12 +8931,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 79
@@ -9307,12 +8955,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 80
@@ -9332,12 +8979,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 81
@@ -9357,12 +9003,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH02",
-				"sprite": "WH02_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 82
@@ -9382,12 +9027,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 14,
 			"y": 82
@@ -9407,12 +9051,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH02",
-				"sprite": "WH02_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_w.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 13,
 			"y": 70
@@ -9432,12 +9075,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 14,
 			"y": 70
@@ -9457,12 +9099,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 15,
 			"y": 70
@@ -9482,12 +9123,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 16,
 			"y": 70
@@ -9507,12 +9147,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 17,
 			"y": 70
@@ -9532,12 +9171,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 18,
 			"y": 70
@@ -9557,12 +9195,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 42,
 			"y": 72
@@ -9582,12 +9219,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 42,
 			"y": 73
@@ -9607,12 +9243,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "IWCR",
-				"sprite": "IWCR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWCR_w.png",
+			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 42,
 			"y": 74
@@ -9632,12 +9267,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "LIHW",
-				"sprite": "LIHW_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_w.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 42,
 			"y": 75
@@ -9657,12 +9291,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 24,
 			"y": 62
@@ -9682,12 +9315,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 29,
 			"y": 63
@@ -9707,12 +9339,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 32,
 			"y": 66
@@ -9732,12 +9363,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 33,
 			"y": 66
@@ -9757,12 +9387,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"sprite": "WH02_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 34,
 			"y": 66
@@ -9782,12 +9411,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH11",
-				"sprite": "WH11_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH11_s.png",
+			"sprite_path": "",
 			"type": "coc_wh11",
 			"x": 36,
 			"y": 66
@@ -9807,12 +9435,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH02",
-				"sprite": "WH02_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_w.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 38,
 			"y": 66
@@ -9832,12 +9459,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 39,
 			"y": 66
@@ -9857,12 +9483,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 40,
 			"y": 66
@@ -9882,12 +9507,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 36,
 			"y": 61
@@ -9907,12 +9531,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 36,
 			"y": 62
@@ -9932,12 +9555,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 36,
 			"y": 63
@@ -9957,12 +9579,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 36,
 			"y": 64
@@ -9982,12 +9603,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 36,
 			"y": 65
@@ -10007,12 +9627,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 33,
 			"y": 60
@@ -10032,12 +9651,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"sprite": "WH02_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 33,
 			"y": 59
@@ -10057,12 +9675,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 39,
 			"y": 60
@@ -10082,12 +9699,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 40,
 			"y": 59
@@ -10107,12 +9723,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 36,
 			"y": 57
@@ -10132,12 +9747,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WCOR",
-				"sprite": "WCOR_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WCOR_e.png",
+			"sprite_path": "",
 			"type": "coc_wcor",
 			"x": 22,
 			"y": 52
@@ -10157,12 +9771,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 45,
 			"y": 67
@@ -10182,12 +9795,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 46,
 			"y": 57
@@ -10207,12 +9819,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 26,
 			"y": 58
@@ -10232,12 +9843,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WCOR",
-				"sprite": "WCOR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WCOR_s.png",
+			"sprite_path": "",
 			"type": "coc_wcor",
 			"x": 13,
 			"y": 52
@@ -10257,12 +9867,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WCOR",
-				"sprite": "WCOR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WCOR_w.png",
+			"sprite_path": "",
 			"type": "coc_wcor",
 			"x": 13,
 			"y": 48
@@ -10282,12 +9891,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WCOR",
-				"sprite": "WCOR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WCOR_n.png",
+			"sprite_path": "",
 			"type": "coc_wcor",
 			"x": 22,
 			"y": 48
@@ -10307,12 +9915,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 27,
 			"y": 73
@@ -10332,12 +9939,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "LIHW",
-				"sprite": "LIHW_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_w.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 28,
 			"y": 74
@@ -10357,12 +9963,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "LIHW",
-				"sprite": "LIHW_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 30,
 			"y": 73
@@ -10382,12 +9987,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH02",
-				"sprite": "WH02_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 48,
 			"y": 75
@@ -10407,12 +10011,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 46,
 			"y": 88
@@ -10432,12 +10035,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 46,
 			"y": 96
@@ -10457,12 +10059,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 32,
 			"y": 59
@@ -10482,12 +10083,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH02",
-				"sprite": "WH02_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_w.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 39,
 			"y": 59
@@ -10507,12 +10107,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 25,
 			"y": 67
@@ -10532,12 +10131,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 42,
 			"y": 63
@@ -10557,12 +10155,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 44,
 			"y": 61
@@ -10582,12 +10179,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAR",
-				"sprite": "WWAR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAR_w.png",
+			"sprite_path": "",
 			"type": "coc_wwar",
 			"x": 13,
 			"y": 51
@@ -10607,12 +10203,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAQ",
-				"sprite": "WWAQ_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAQ_w.png",
+			"sprite_path": "",
 			"type": "coc_wwaq",
 			"x": 13,
 			"y": 49
@@ -10632,12 +10227,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 14,
 			"y": 52
@@ -10657,12 +10251,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 15,
 			"y": 48
@@ -10682,12 +10275,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 16,
 			"y": 48
@@ -10707,12 +10299,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 17,
 			"y": 48
@@ -10732,12 +10323,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 18,
 			"y": 48
@@ -10757,12 +10347,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 19,
 			"y": 48
@@ -10782,12 +10371,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 20,
 			"y": 48
@@ -10807,12 +10395,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 21,
 			"y": 48
@@ -10832,12 +10419,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"sprite": "WWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 14,
 			"y": 48
@@ -10857,12 +10443,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAQ",
-				"sprite": "WWAQ_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAQ_e.png",
+			"sprite_path": "",
 			"type": "coc_wwaq",
 			"x": 22,
 			"y": 51
@@ -10882,12 +10467,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWIN",
-				"sprite": "WWIN_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWIN_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 15,
 			"y": 52
@@ -10907,12 +10491,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAR",
-				"sprite": "WWAR_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAR_e.png",
+			"sprite_path": "",
 			"type": "coc_wwar",
 			"x": 22,
 			"y": 49
@@ -10932,12 +10515,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 16,
 			"y": 52
@@ -10957,12 +10539,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WICR",
-				"sprite": "WICR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WICR_s.png",
+			"sprite_path": "",
 			"type": "coc_wicr",
 			"x": 17,
 			"y": 52
@@ -10982,12 +10563,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWIN",
-				"sprite": "WWIN_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWIN_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 18,
 			"y": 52
@@ -11007,12 +10587,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 19,
 			"y": 52
@@ -11032,12 +10611,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWIN",
-				"sprite": "WWIN_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWIN_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 20,
 			"y": 52
@@ -11057,12 +10635,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"sprite": "WWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "WWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_wwal",
 			"x": 21,
 			"y": 52
@@ -11082,12 +10659,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWCR",
-				"sprite": "IWCR_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWCR_e.png",
+			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 17,
 			"y": 50
@@ -11107,12 +10683,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_e.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 17,
 			"y": 51
@@ -11132,12 +10707,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 18,
 			"y": 50
@@ -11157,12 +10731,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 19,
 			"y": 50
@@ -11182,12 +10755,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "LIHW",
-				"sprite": "LIHW_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 20,
 			"y": 50
@@ -11207,12 +10779,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SCOR",
-				"sprite": "SCOR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SCOR_w.png",
+			"sprite_path": "",
 			"type": "coc_scor",
 			"x": 56,
 			"y": 53
@@ -11232,12 +10803,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SCOR",
-				"sprite": "SCOR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SCOR_s.png",
+			"sprite_path": "",
 			"type": "coc_scor",
 			"x": 56,
 			"y": 63
@@ -11257,12 +10827,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SCOR",
-				"sprite": "SCOR_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SCOR_e.png",
+			"sprite_path": "",
 			"type": "coc_scor",
 			"x": 62,
 			"y": 63
@@ -11282,12 +10851,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SCOR",
-				"sprite": "SCOR_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SCOR_n.png",
+			"sprite_path": "",
 			"type": "coc_scor",
 			"x": 62,
 			"y": 53
@@ -11307,12 +10875,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"sprite": "SWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 56,
 			"y": 62
@@ -11332,12 +10899,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"sprite": "SWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 56,
 			"y": 54
@@ -11357,12 +10923,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWIN",
-				"sprite": "SWIN_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_w.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 56,
 			"y": 55
@@ -11382,12 +10947,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SICR",
-				"sprite": "SICR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SICR_w.png",
+			"sprite_path": "",
 			"type": "coc_sicr",
 			"x": 56,
 			"y": 56
@@ -11407,12 +10971,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"sprite": "SWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 56,
 			"y": 57
@@ -11432,12 +10995,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWIN",
-				"sprite": "SWIN_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_w.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 56,
 			"y": 58
@@ -11457,12 +11019,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SICR",
-				"sprite": "SICR_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SICR_w.png",
+			"sprite_path": "",
 			"type": "coc_sicr",
 			"x": 56,
 			"y": 59
@@ -11482,12 +11043,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"sprite": "SWAL_w.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_w.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 56,
 			"y": 60
@@ -11507,12 +11067,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWIN",
-				"sprite": "SWIN_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWIN_w.png",
+			"sprite_path": "",
 			"type": "coc_swin",
 			"x": 56,
 			"y": 61
@@ -11532,12 +11091,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 62,
 			"y": 54
@@ -11557,12 +11115,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 62,
 			"y": 55
@@ -11582,12 +11139,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 62,
 			"y": 56
@@ -11607,12 +11163,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 62,
 			"y": 57
@@ -11632,12 +11187,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 62,
 			"y": 58
@@ -11657,12 +11211,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 62,
 			"y": 59
@@ -11682,12 +11235,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 62,
 			"y": 60
@@ -11707,12 +11259,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 62,
 			"y": 61
@@ -11732,12 +11283,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 62,
 			"y": 62
@@ -11757,12 +11307,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 57,
 			"y": 53
@@ -11782,12 +11331,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 58,
 			"y": 53
@@ -11807,12 +11355,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 59,
 			"y": 53
@@ -11832,12 +11379,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 60,
 			"y": 53
@@ -11857,12 +11403,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"sprite": "SWAL_n.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_n.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 61,
 			"y": 53
@@ -11882,12 +11427,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 57,
 			"y": 63
@@ -11907,12 +11451,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"sprite": "SWAL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_s.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 58,
 			"y": 63
@@ -11932,12 +11475,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAQ",
-				"sprite": "SWAQ_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAQ_s.png",
+			"sprite_path": "",
 			"type": "coc_swaq",
 			"x": 59,
 			"y": 63
@@ -11957,12 +11499,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAR",
-				"sprite": "SWAR_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAR_s.png",
+			"sprite_path": "",
 			"type": "coc_swar",
 			"x": 61,
 			"y": 63
@@ -11982,12 +11523,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 57,
 			"y": 56
@@ -12007,12 +11547,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 57,
 			"y": 59
@@ -12032,12 +11571,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 58,
 			"y": 56
@@ -12057,12 +11595,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 58,
 			"y": 59
@@ -12082,12 +11619,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 59,
 			"y": 56
@@ -12107,12 +11643,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"sprite": "IWWL_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "IWWL_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 59,
 			"y": 59
@@ -12132,12 +11667,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "LIHW",
-				"sprite": "LIHW_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 60,
 			"y": 56
@@ -12157,12 +11691,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "LIHW",
-				"sprite": "LIHW_s.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "LIHW_s.png",
+			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 60,
 			"y": 59
@@ -12182,12 +11715,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 45,
 			"y": 74
@@ -12207,12 +11739,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "SWAL_e.png",
+			"sprite_path": "",
 			"type": "coc_swal",
 			"x": 45,
 			"y": 79
@@ -12232,12 +11763,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 51,
 			"y": 62
@@ -12257,12 +11787,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 50,
 			"y": 50
@@ -12282,12 +11811,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 43,
 			"y": 54
@@ -12307,12 +11835,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "CW01",
-				"sprite": "CW01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "CW01_e.png",
+			"sprite_path": "",
 			"type": "coc_cw01",
 			"x": 49,
 			"y": 55
@@ -12332,12 +11859,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 52,
 			"y": 57
@@ -12357,12 +11883,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 10,
 			"y": 84
@@ -12382,12 +11907,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 7,
 			"y": 87
@@ -12407,12 +11931,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 7,
 			"y": 86
@@ -12432,12 +11955,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 7,
 			"y": 85
@@ -12457,12 +11979,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 7,
 			"y": 84
@@ -12482,12 +12003,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 0,
 			"y": 77
@@ -12507,12 +12027,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 1,
 			"y": 77
@@ -12532,12 +12051,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 2,
 			"y": 77
@@ -12557,12 +12075,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 3,
 			"y": 77
@@ -12582,12 +12099,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 5,
 			"y": 77
@@ -12607,12 +12123,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 6,
 			"y": 77
@@ -12632,12 +12147,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"sprite": "WH02_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 7,
 			"y": 77
@@ -12657,12 +12171,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 7,
 			"y": 78
@@ -12682,12 +12195,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 7,
 			"y": 81
@@ -12707,12 +12219,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH02",
-				"sprite": "WH02_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 7,
 			"y": 82
@@ -12732,12 +12243,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 6,
 			"y": 82
@@ -12757,12 +12267,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 5,
 			"y": 82
@@ -12782,12 +12291,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 3,
 			"y": 82
@@ -12807,12 +12315,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 2,
 			"y": 82
@@ -12832,12 +12339,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 1,
 			"y": 82
@@ -12857,12 +12363,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 0,
 			"y": 82
@@ -12882,12 +12387,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH02",
-				"sprite": "WH02_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 55,
 			"y": 97
@@ -12907,12 +12411,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 56,
 			"y": 97
@@ -12932,12 +12435,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 58,
 			"y": 97
@@ -12957,12 +12459,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 59,
 			"y": 97
@@ -12982,12 +12483,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 60,
 			"y": 97
@@ -13007,12 +12507,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 62,
 			"y": 97
@@ -13032,12 +12531,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 63,
 			"y": 97
@@ -13057,12 +12555,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH02",
-				"sprite": "WH02_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 97
@@ -13082,12 +12579,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 55,
 			"y": 96
@@ -13107,12 +12603,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 55,
 			"y": 95
@@ -13132,12 +12627,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH11",
-				"sprite": "WH11_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH11_w.png",
+			"sprite_path": "",
 			"type": "coc_wh11",
 			"x": 55,
 			"y": 94
@@ -13157,12 +12651,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 55,
 			"y": 93
@@ -13182,12 +12675,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 55,
 			"y": 91
@@ -13207,12 +12699,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"sprite": "WH02_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 55,
 			"y": 90
@@ -13232,12 +12723,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 54,
 			"y": 90
@@ -13257,12 +12747,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 53,
 			"y": 90
@@ -13282,12 +12771,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH02",
-				"sprite": "WH02_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 52,
 			"y": 90
@@ -13307,12 +12795,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 52,
 			"y": 89
@@ -13332,12 +12819,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 52,
 			"y": 88
@@ -13357,12 +12843,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH02",
-				"sprite": "WH02_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_w.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 52,
 			"y": 86
@@ -13382,12 +12867,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 53,
 			"y": 86
@@ -13407,12 +12891,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 54,
 			"y": 86
@@ -13432,12 +12915,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 55,
 			"y": 86
@@ -13457,12 +12939,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 56,
 			"y": 86
@@ -13482,12 +12963,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 58,
 			"y": 86
@@ -13507,12 +12987,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 59,
 			"y": 86
@@ -13532,12 +13011,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 60,
 			"y": 86
@@ -13557,12 +13035,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 61,
 			"y": 86
@@ -13582,12 +13059,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 56,
 			"y": 94
@@ -13607,12 +13083,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 57,
 			"y": 94
@@ -13632,12 +13107,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 58,
 			"y": 94
@@ -13657,12 +13131,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH02",
-				"sprite": "WH02_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 59,
 			"y": 94
@@ -13682,12 +13155,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 59,
 			"y": 93
@@ -13707,12 +13179,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 59,
 			"y": 92
@@ -13732,12 +13203,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"sprite": "WH02_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 86
@@ -13757,12 +13227,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 87
@@ -13782,12 +13251,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 88
@@ -13807,12 +13275,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 89
@@ -13832,12 +13299,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 90
@@ -13857,12 +13323,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 91
@@ -13882,12 +13347,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 92
@@ -13907,12 +13371,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 93
@@ -13932,12 +13395,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 94
@@ -13957,12 +13419,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 95
@@ -13982,12 +13443,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 64,
 			"y": 96
@@ -14007,12 +13467,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 63,
 			"y": 86
@@ -14032,12 +13491,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 59,
 			"y": 91
@@ -14057,12 +13515,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 59,
 			"y": 90
@@ -14082,12 +13539,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH02",
-				"sprite": "BH02_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "BH02_e.png",
+			"sprite_path": "",
 			"type": "coc_bush",
 			"x": 56,
 			"y": 88
@@ -14107,12 +13563,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 61,
 			"y": 89
@@ -14132,12 +13587,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 61,
 			"y": 88
@@ -14157,12 +13611,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 1,
 			"y": 67
@@ -14182,12 +13635,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 7,
 			"y": 64
@@ -14207,12 +13659,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 6,
 			"y": 60
@@ -14232,12 +13683,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 1,
 			"y": 59
@@ -14257,12 +13707,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 1,
 			"y": 64
@@ -14282,12 +13731,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 4,
 			"y": 65
@@ -14307,12 +13755,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 4,
 			"y": 58
@@ -14332,12 +13779,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 4,
 			"y": 61
@@ -14357,12 +13803,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 0,
 			"y": 62
@@ -14382,12 +13827,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"sprite": "BH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "BH01_e.png",
+			"sprite_path": "",
 			"type": "coc_bush",
 			"x": 61,
 			"y": 95
@@ -14407,12 +13851,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 53,
 			"y": 73
@@ -14432,12 +13875,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 56,
 			"y": 81
@@ -14457,12 +13899,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 63,
 			"y": 71
@@ -14482,12 +13923,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 61,
 			"y": 77
@@ -14507,12 +13947,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 67,
 			"y": 81
@@ -14532,12 +13971,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"sprite": "TR02_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR02_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 67,
 			"y": 76
@@ -14557,12 +13995,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 57,
 			"y": 75
@@ -14582,12 +14019,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"sprite": "TR01_e.png",
 				"terrain": "_HG_NoPass",
 				"terrain_height": 2.0,
 				"z": 200.0
 			},
-			"sprite_path": "TR01_e.png",
+			"sprite_path": "",
 			"type": "coc_tree",
 			"x": 51,
 			"y": 79
@@ -14607,12 +14043,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 50,
 			"y": 71
@@ -14632,12 +14067,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 51,
 			"y": 71
@@ -14657,12 +14091,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH02",
-				"sprite": "WH02_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 52,
 			"y": 71
@@ -14682,12 +14115,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 52,
 			"y": 70
@@ -14707,12 +14139,11 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH02",
-				"sprite": "WH02_w.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH02_w.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 52,
 			"y": 69
@@ -14732,12 +14163,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 53,
 			"y": 69
@@ -14757,12 +14187,11 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"sprite": "WH01_s.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_s.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 54,
 			"y": 69
@@ -14782,12 +14211,11 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH01",
-				"sprite": "WH01_n.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_n.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 49,
 			"y": 75
@@ -14807,12 +14235,11 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"sprite": "WH01_e.png",
 				"terrain": "_HG_Climb",
 				"terrain_height": 1.0,
 				"z": 200.0
 			},
-			"sprite_path": "WH01_e.png",
+			"sprite_path": "",
 			"type": "coc_window",
 			"x": 10,
 			"y": 86
@@ -14832,7 +14259,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWCR",
-				"sprite": "IWCR_e.png",
 				"terrain": "_HG_EVEN",
 				"terrain_height": 0.0,
 				"z": 0.0
@@ -14857,7 +14283,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWCR",
-				"sprite": "IWCR_e.png",
 				"terrain": "_HG_EVEN",
 				"terrain_height": 0.0,
 				"z": 0.0
@@ -14882,7 +14307,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWCR",
-				"sprite": "IWCR_e.png",
 				"terrain": "_HG_EVEN",
 				"terrain_height": 0.0,
 				"z": 0.0
@@ -14907,7 +14331,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_EVEN",
 				"terrain_height": 0.0,
 				"z": 0.0
@@ -14932,7 +14355,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_EVEN",
 				"terrain_height": 0.0,
 				"z": 0.0
@@ -14957,7 +14379,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_EVEN",
 				"terrain_height": 0.0,
 				"z": 0.0
@@ -14982,7 +14403,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_EVEN",
 				"terrain_height": 0.0,
 				"z": 0.0
@@ -15007,7 +14427,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_EVEN",
 				"terrain_height": 0.0,
 				"z": 0.0
@@ -15032,7 +14451,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_EVEN",
 				"terrain_height": 0.0,
 				"z": 0.0
@@ -15055,12 +14473,11 @@
 			"object_type": "coc_ta01",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "TA01",
-				"sprite": "TA01_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_ta01",
@@ -15080,12 +14497,11 @@
 			"object_type": "coc_iwcr",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWCR",
-				"sprite": "IWCR_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_iwcr",
@@ -15105,12 +14521,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWWL",
-				"sprite": "IWWL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -15130,12 +14545,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "LIHW",
-				"sprite": "LIHW_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -15155,12 +14569,11 @@
 			"object_type": "coc_swal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_swal",
@@ -15180,12 +14593,11 @@
 			"object_type": "coc_wwal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAL",
-				"sprite": "WWAL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wwal",
@@ -15205,12 +14617,11 @@
 			"object_type": "coc_wwal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAL",
-				"sprite": "WWAL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wwal",
@@ -15230,12 +14641,11 @@
 			"object_type": "coc_wwal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAL",
-				"sprite": "WWAL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wwal",
@@ -15255,12 +14665,11 @@
 			"object_type": "coc_wwal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAL",
-				"sprite": "WWAL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wwal",
@@ -15280,12 +14689,11 @@
 			"object_type": "coc_wwal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAL",
-				"sprite": "WWAL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wwal",
@@ -15305,12 +14713,11 @@
 			"object_type": "coc_wwal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAL",
-				"sprite": "WWAL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wwal",
@@ -15330,12 +14737,11 @@
 			"object_type": "coc_wwal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAL",
-				"sprite": "WWAL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wwal",
@@ -15355,12 +14761,11 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWIN",
-				"sprite": "SWIN_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_window",
@@ -15380,12 +14785,11 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWIN",
-				"sprite": "SWIN_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_window",
@@ -15405,12 +14809,11 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWIN",
-				"sprite": "SWIN_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_window",
@@ -15430,12 +14833,11 @@
 			"object_type": "coc_swal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_swal",
@@ -15455,12 +14857,11 @@
 			"object_type": "coc_swal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWAL",
-				"sprite": "SWAL_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_swal",
@@ -15480,12 +14881,11 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWIN",
-				"sprite": "SWIN_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_window",
@@ -15505,12 +14905,11 @@
 			"object_type": "coc_door_wood",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWAR",
-				"sprite": "SWAR_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_door_wood",
@@ -15530,12 +14929,11 @@
 			"object_type": "coc_door_wood",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWAQ",
-				"sprite": "SWAQ_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_door_wood",
@@ -15555,12 +14953,11 @@
 			"object_type": "coc_door_wood",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAI",
-				"sprite": "WWAI_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_door_wood",
@@ -15580,12 +14977,11 @@
 			"object_type": "coc_door_wood",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAI",
-				"sprite": "WWAI_e.png",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_door_wood",

@@ -93,11 +93,21 @@ unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Search name or code (WWAL)…"
 
+[node name="BrowserActions" type="HBoxContainer" parent="Root/Body/LeftPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="RenameAssetButton" type="Button" parent="Root/Body/LeftPanel/BrowserActions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Rename Selected"
+
 [node name="BrowserHint" type="Label" parent="Root/Body/LeftPanel"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.65, 0.7, 0.66, 1)
-text = "F2 / double-click rename · Right-click move category
+text = "Click selects brush · Rename button / F2 / right-click
 Names: assets/data/editor_asset_catalog.json"
 autowrap_mode = 3
 
@@ -111,6 +121,12 @@ select_mode = 1
 
 [node name="AssetContextMenu" type="PopupMenu" parent="Root/Body/LeftPanel"]
 unique_name_in_owner = true
+
+[node name="RenameAssetDialog" type="ConfirmationDialog" parent="Root/Body/LeftPanel"]
+unique_name_in_owner = true
+title = "Rename Asset"
+ok_button_text = "Save"
+dialog_hide_on_ok = true
 
 [node name="CenterPanel" type="VBoxContainer" parent="Root/Body"]
 layout_mode = 2

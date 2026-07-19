@@ -1,61 +1,246 @@
 {
-  "_comment": "Editable Chain Revival Editor asset browser labels and categories. Family codes stay fixed (WWAL, TR01, …). Edit 'label' / 'category' / 'sort' here, or rename in the editor tree (F2 / double-click) — changes are saved back to this file. Sprite PNGs still come from assets/sprites/coc_tiles/manifest.json.",
-  "category_order": [
-    "On This Map",
-    "Terrain",
-    "Floors",
-    "Walls",
-    "Corners",
-    "Windows",
-    "Doors",
-    "Trees",
-    "Bushes",
-    "Props",
-    "Rocks",
-    "Hay",
-    "Vehicles",
-    "Special",
-    "Spawn Points",
-    "Victory Points",
-    "Labels"
-  ],
-  "entries": {
-    "GRS": { "label": "Ground Grass", "category": "Terrain", "kind": "terrain", "sort": 0 },
-    "SFL5": { "label": "Stone Floor (flat)", "category": "Floors", "kind": "family", "sort": 10 },
-    "SFLO": { "label": "Stone Floor", "category": "Floors", "kind": "family", "sort": 20 },
-    "WFL5": { "label": "Wood Floor (flat)", "category": "Floors", "kind": "family", "sort": 30 },
-    "WFLO": { "label": "Wood Floor", "category": "Floors", "kind": "family", "sort": 40 },
-    "WWAL": { "label": "Wood Wall", "category": "Walls", "kind": "family", "sort": 10 },
-    "SWAL": { "label": "Stone Wall", "category": "Walls", "kind": "family", "sort": 20 },
-    "IWWL": { "label": "Interior Wood Wall", "category": "Walls", "kind": "family", "sort": 30 },
-    "LIHW": { "label": "Low Interior Wall", "category": "Walls", "kind": "family", "sort": 40 },
-    "IWCR": { "label": "Interior Wall Corner", "category": "Corners", "kind": "family", "sort": 10 },
-    "WCOR": { "label": "Wood Corner", "category": "Corners", "kind": "family", "sort": 20 },
-    "SCOR": { "label": "Stone Corner", "category": "Corners", "kind": "family", "sort": 30 },
-    "WICR": { "label": "Wood Inner Corner", "category": "Corners", "kind": "family", "sort": 40 },
-    "SICR": { "label": "Stone Inner Corner", "category": "Corners", "kind": "family", "sort": 50 },
-    "SWIN": { "label": "Stone Window", "category": "Windows", "kind": "family", "sort": 10 },
-    "WWIN": { "label": "Wood Window", "category": "Windows", "kind": "family", "sort": 20 },
-    "WH01": { "label": "Wall Window 01", "category": "Windows", "kind": "family", "sort": 30 },
-    "WH02": { "label": "Wall Window 02", "category": "Windows", "kind": "family", "sort": 40 },
-    "WH11": { "label": "Wall Window 11", "category": "Windows", "kind": "family", "sort": 50 },
-    "WWAR": { "label": "Wood Door Right", "category": "Doors", "kind": "family", "sort": 10 },
-    "WWAQ": { "label": "Wood Door Left", "category": "Doors", "kind": "family", "sort": 20 },
-    "SWAR": { "label": "Stone Door Right", "category": "Doors", "kind": "family", "sort": 30 },
-    "SWAQ": { "label": "Stone Door Left", "category": "Doors", "kind": "family", "sort": 40 },
-    "WWAI": { "label": "Wood Doorframe", "category": "Doors", "kind": "family", "sort": 50 },
-    "TR01": { "label": "Tree 01", "category": "Trees", "kind": "family", "sort": 10 },
-    "TR02": { "label": "Tree 02", "category": "Trees", "kind": "family", "sort": 20 },
-    "BH01": { "label": "Bush 01", "category": "Bushes", "kind": "family", "sort": 10 },
-    "BH02": { "label": "Bush 02", "category": "Bushes", "kind": "family", "sort": 20 },
-    "CW01": { "label": "Hedge / Cover 01", "category": "Bushes", "kind": "family", "sort": 30 },
-    "CW02": { "label": "Hedge / Cover 02", "category": "Bushes", "kind": "family", "sort": 40 },
-    "TA01": { "label": "Sandbag / Prop 01", "category": "Props", "kind": "family", "sort": 10 },
-    "TA02": { "label": "Hay / Sandbag Prop", "category": "Props", "kind": "family", "sort": 20 },
-    "TA03": { "label": "Prop 03 (archive gap)", "category": "Props", "kind": "family", "sort": 30 },
-    "SPAWN_USA": { "label": "USA Spawn", "category": "Spawn Points", "kind": "spawn_usa", "sort": 10 },
-    "SPAWN_GER": { "label": "Germany Spawn", "category": "Spawn Points", "kind": "spawn_ger", "sort": 20 },
-    "VP": { "label": "Victory Point", "category": "Victory Points", "kind": "victory", "sort": 10 },
-    "LABEL": { "label": "Label", "category": "Labels", "kind": "label", "sort": 10 }
-  }
+	"_comment": "Editable Chain Revival Editor asset browser labels and categories. Family codes stay fixed (WWAL, TR01, …). Edit 'label' / 'category' / 'sort' here, or rename in the editor tree (F2 / double-click) — changes are saved back to this file. Sprite PNGs still come from assets/sprites/coc_tiles/manifest.json.",
+	"category_order": [
+		"On This Map",
+		"Terrain",
+		"Floors",
+		"Walls",
+		"Corners",
+		"Windows",
+		"Doors",
+		"Trees",
+		"Bushes",
+		"Props",
+		"Rocks",
+		"Hay",
+		"Vehicles",
+		"Special",
+		"Spawn Points",
+		"Victory Points",
+		"Labels"
+	],
+	"entries": {
+		"BH01": {
+			"category": "Bushes",
+			"kind": "family",
+			"label": "Haybail 1",
+			"sort": 10.0
+		},
+		"BH02": {
+			"category": "Bushes",
+			"kind": "family",
+			"label": "Red Dot 1",
+			"sort": 20.0
+		},
+		"CW01": {
+			"category": "Bushes",
+			"kind": "family",
+			"label": "Cow 1",
+			"sort": 30.0
+		},
+		"CW02": {
+			"category": "Bushes",
+			"kind": "family",
+			"label": "Hedge / Cover 02",
+			"sort": 40.0
+		},
+		"GRS": {
+			"category": "Terrain",
+			"kind": "terrain",
+			"label": "Ground Grass",
+			"sort": 0.0
+		},
+		"IWCR": {
+			"category": "Corners",
+			"kind": "family",
+			"label": "Interior Wall Corner",
+			"sort": 10.0
+		},
+		"IWWL": {
+			"category": "Walls",
+			"kind": "family",
+			"label": "Interior Wood Wall",
+			"sort": 30.0
+		},
+		"LABEL": {
+			"category": "Labels",
+			"kind": "label",
+			"label": "Label",
+			"sort": 10.0
+		},
+		"LIHW": {
+			"category": "Walls",
+			"kind": "family",
+			"label": "Low Interior Wall",
+			"sort": 40.0
+		},
+		"SCOR": {
+			"category": "Corners",
+			"kind": "family",
+			"label": "Stone Corner",
+			"sort": 30.0
+		},
+		"SFL5": {
+			"category": "Floors",
+			"kind": "family",
+			"label": "Stone Floor (flat)",
+			"sort": 10.0
+		},
+		"SFLO": {
+			"category": "Floors",
+			"kind": "family",
+			"label": "Stone Floor",
+			"sort": 20.0
+		},
+		"SICR": {
+			"category": "Corners",
+			"kind": "family",
+			"label": "Stone Inner Corner",
+			"sort": 50.0
+		},
+		"SPAWN_GER": {
+			"category": "Spawn Points",
+			"kind": "spawn_ger",
+			"label": "Germany Spawn",
+			"sort": 20.0
+		},
+		"SPAWN_USA": {
+			"category": "Spawn Points",
+			"kind": "spawn_usa",
+			"label": "USA Spawn",
+			"sort": 10.0
+		},
+		"SWAL": {
+			"category": "Walls",
+			"kind": "family",
+			"label": "Stone Wall",
+			"sort": 20.0
+		},
+		"SWAQ": {
+			"category": "Doors",
+			"kind": "family",
+			"label": "Stone Door Left",
+			"sort": 40.0
+		},
+		"SWAR": {
+			"category": "Doors",
+			"kind": "family",
+			"label": "Stone Door Right",
+			"sort": 30.0
+		},
+		"SWIN": {
+			"category": "Windows",
+			"kind": "family",
+			"label": "Stone Window",
+			"sort": 10.0
+		},
+		"TA01": {
+			"category": "Props",
+			"kind": "family",
+			"label": "Sandbag / Prop 01",
+			"sort": 10.0
+		},
+		"TA02": {
+			"category": "Props",
+			"kind": "family",
+			"label": "Hay / Sandbag Prop",
+			"sort": 20.0
+		},
+		"TA03": {
+			"category": "Props",
+			"kind": "family",
+			"label": "Prop 03 (archive gap)",
+			"sort": 30.0
+		},
+		"TR01": {
+			"category": "Trees",
+			"kind": "family",
+			"label": "Tree 01",
+			"sort": 10.0
+		},
+		"TR02": {
+			"category": "Trees",
+			"kind": "family",
+			"label": "Tree (incorrect)",
+			"sort": 20.0
+		},
+		"VP": {
+			"category": "Victory Points",
+			"kind": "victory",
+			"label": "Victory Point",
+			"sort": 10.0
+		},
+		"WCOR": {
+			"category": "Corners",
+			"kind": "family",
+			"label": "Wood Corner",
+			"sort": 20.0
+		},
+		"WFL5": {
+			"category": "Floors",
+			"kind": "family",
+			"label": "Wood Floor (flat)",
+			"sort": 30.0
+		},
+		"WFLO": {
+			"category": "Floors",
+			"kind": "family",
+			"label": "Wood Floor",
+			"sort": 40.0
+		},
+		"WH01": {
+			"category": "Windows",
+			"kind": "family",
+			"label": "Wall Window 01",
+			"sort": 30.0
+		},
+		"WH02": {
+			"category": "Windows",
+			"kind": "family",
+			"label": "Wall Window 02",
+			"sort": 40.0
+		},
+		"WH11": {
+			"category": "Windows",
+			"kind": "family",
+			"label": "Wall Window 11",
+			"sort": 50.0
+		},
+		"WICR": {
+			"category": "Corners",
+			"kind": "family",
+			"label": "Wood Inner Corner",
+			"sort": 40.0
+		},
+		"WWAI": {
+			"category": "Doors",
+			"kind": "family",
+			"label": "Wood Doorframe",
+			"sort": 50.0
+		},
+		"WWAL": {
+			"category": "Walls",
+			"kind": "family",
+			"label": "Wood Wall",
+			"sort": 10.0
+		},
+		"WWAQ": {
+			"category": "Doors",
+			"kind": "family",
+			"label": "Wood Door Left",
+			"sort": 20.0
+		},
+		"WWAR": {
+			"category": "Doors",
+			"kind": "family",
+			"label": "Wood Door Right",
+			"sort": 10.0
+		},
+		"WWIN": {
+			"category": "Windows",
+			"kind": "family",
+			"label": "Wood Window",
+			"sort": 20.0
+		}
+	}
 }

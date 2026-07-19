@@ -1,23 +1,33 @@
 class_name UsSoldierSpriteFrames
 extends RefCounted
-## OG US soldier sprite families (see coc_sprite_browser/family_labels.json).
+## Proven OG soldier sprite families (US + German mirrors).
 ##
-##   ASMOA  — walk (A–H)
-##   AHTLA  — hit reaction (A–W)
-##   AFALA  — fall / dying (A–W)
-##   ADFUS  — dead fallen corpse (A)
+##   Walk:        ASMOA / GSMOA  (A–H)
+##   Hit:         AHTLA / GHTLA  (A–W)
+##   Fall/death:  AFALA / GFALA  (A–W)
+##   Corpse:      ADFUS / GDFUS  (A)
 ##
 ## Direction digits: 1=W, 2=SW, 3=S, 4=SE, 5=E, 6=NE, 7=N, 8=NW.
 
-const WALK_SPRITES_DIR := "res://assets/sprites/us_soldier/walk"
-const HIT_SPRITES_DIR := "res://assets/sprites/us_soldier/hit_reaction"
-const FALL_SPRITES_DIR := "res://assets/sprites/us_soldier/fall_or_death"
-const DEAD_SPRITES_DIR := "res://assets/sprites/us_soldier/dead_fallen"
+const WALK_SPRITES_DIR_USA := "res://assets/sprites/us_soldier/walk"
+const HIT_SPRITES_DIR_USA := "res://assets/sprites/us_soldier/hit_reaction"
+const FALL_SPRITES_DIR_USA := "res://assets/sprites/us_soldier/fall_or_death"
+const DEAD_SPRITES_DIR_USA := "res://assets/sprites/us_soldier/dead_fallen"
 
-const WALK_PREFIX := "ASMOA"
-const HIT_PREFIX := "AHTLA"
-const FALL_PREFIX := "AFALA"
-const DEAD_PREFIX := "ADFUS"
+const WALK_SPRITES_DIR_GER := "res://assets/sprites/german_soldier/walk"
+const HIT_SPRITES_DIR_GER := "res://assets/sprites/german_soldier/hit_reaction"
+const FALL_SPRITES_DIR_GER := "res://assets/sprites/german_soldier/fall_or_death"
+const DEAD_SPRITES_DIR_GER := "res://assets/sprites/german_soldier/dead_fallen"
+
+const WALK_PREFIX_USA := "ASMOA"
+const HIT_PREFIX_USA := "AHTLA"
+const FALL_PREFIX_USA := "AFALA"
+const DEAD_PREFIX_USA := "ADFUS"
+
+const WALK_PREFIX_GER := "GSMOA"
+const HIT_PREFIX_GER := "GHTLA"
+const FALL_PREFIX_GER := "GFALA"
+const DEAD_PREFIX_GER := "GDFUS"
 
 const WALK_FRAME_FIRST := "A"
 const WALK_FRAME_LAST := "H"
@@ -36,21 +46,38 @@ const _DIRECTION_DIGITS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8]
 
 static var _usa_frames: SpriteFrames
 static var _germany_frames: SpriteFrames
+static var _missing_warned: Dictionary = {}
 
 
 static func get_usa_sprite_frames() -> SpriteFrames:
 	if _usa_frames == null:
-		_usa_frames = _build_usa_sprite_frames()
+		_usa_frames = _build_sprite_frames(
+			WALK_SPRITES_DIR_USA,
+			WALK_PREFIX_USA,
+			HIT_SPRITES_DIR_USA,
+			HIT_PREFIX_USA,
+			FALL_SPRITES_DIR_USA,
+			FALL_PREFIX_USA,
+			DEAD_SPRITES_DIR_USA,
+			DEAD_PREFIX_USA,
+			"USA",
+		)
 	return _usa_frames
 
 
-static func get_germany_placeholder_frames(texture: Texture2D) -> SpriteFrames:
+static func get_germany_sprite_frames() -> SpriteFrames:
 	if _germany_frames == null:
-		_germany_frames = SpriteFrames.new()
-		_germany_frames.add_animation("placeholder")
-		_germany_frames.set_animation_loop("placeholder", true)
-		_germany_frames.add_frame("placeholder", texture, 1.0)
-		_germany_frames.set_animation_speed("placeholder", 1.0)
+		_germany_frames = _build_sprite_frames(
+			WALK_SPRITES_DIR_GER,
+			WALK_PREFIX_GER,
+			HIT_SPRITES_DIR_GER,
+			HIT_PREFIX_GER,
+			FALL_SPRITES_DIR_GER,
+			FALL_PREFIX_GER,
+			DEAD_SPRITES_DIR_GER,
+			DEAD_PREFIX_GER,
+			"Germany",
+		)
 	return _germany_frames
 
 
@@ -91,48 +118,65 @@ static func snap_step_to_eight_way(step: Vector2i) -> Vector2i:
 	return Vector2i(clampi(step.x, -1, 1), clampi(step.y, -1, 1))
 
 
-static func _build_usa_sprite_frames() -> SpriteFrames:
+static func _build_sprite_frames(
+	walk_dir: String,
+	walk_prefix: String,
+	hit_dir: String,
+	hit_prefix: String,
+	fall_dir: String,
+	fall_prefix: String,
+	dead_dir: String,
+	dead_prefix: String,
+	faction_label: String,
+) -> SpriteFrames:
 	var sprite_frames := SpriteFrames.new()
+	var missing_total := 0
 
 	for i in _DIRECTION_SUFFIXES.size():
 		var suffix: String = _DIRECTION_SUFFIXES[i]
 		var digit: int = _DIRECTION_DIGITS[i]
 
-		_add_loop_animation(
+		missing_total += _add_loop_animation(
 			sprite_frames,
 			"walk_%s" % suffix,
-			WALK_SPRITES_DIR,
-			"%s%d" % [WALK_PREFIX, digit],
+			walk_dir,
+			"%s%d" % [walk_prefix, digit],
 			WALK_FRAME_FIRST,
 			WALK_FRAME_LAST,
 			WALK_FPS,
 		)
-		_add_oneshot_animation(
+		missing_total += _add_oneshot_animation(
 			sprite_frames,
 			"hit_%s" % suffix,
-			HIT_SPRITES_DIR,
-			"%s%d" % [HIT_PREFIX, digit],
+			hit_dir,
+			"%s%d" % [hit_prefix, digit],
 			HIT_FRAME_FIRST,
 			HIT_FRAME_LAST,
 			HIT_FPS,
 		)
-		_add_oneshot_animation(
+		missing_total += _add_oneshot_animation(
 			sprite_frames,
 			"fall_%s" % suffix,
-			FALL_SPRITES_DIR,
-			"%s%d" % [FALL_PREFIX, digit],
+			fall_dir,
+			"%s%d" % [fall_prefix, digit],
 			FALL_FRAME_FIRST,
 			FALL_FRAME_LAST,
 			FALL_FPS,
 		)
-		_add_static_animation(
+		missing_total += _add_static_animation(
 			sprite_frames,
 			"dead_%s" % suffix,
-			DEAD_SPRITES_DIR,
-			"%s%d" % [DEAD_PREFIX, digit],
+			dead_dir,
+			"%s%d" % [dead_prefix, digit],
 			DEAD_FRAME,
 		)
 
+	if missing_total > 0:
+		_warn_once(
+			"missing_%s" % faction_label,
+			"UsSoldierSpriteFrames: %s missing %d frame file(s) under %s / %s / %s / %s"
+			% [faction_label, missing_total, walk_dir, hit_dir, fall_dir, dead_dir],
+		)
 	return sprite_frames
 
 
@@ -144,13 +188,14 @@ static func _add_loop_animation(
 	first_letter: String,
 	last_letter: String,
 	fps: float,
-) -> void:
-	var textures := OgFrameSequence.load_letter_range(dir, prefix, first_letter, last_letter)
+) -> int:
+	var result := _load_textures(dir, prefix, first_letter, last_letter)
 	sprite_frames.add_animation(anim_name)
 	sprite_frames.set_animation_loop(anim_name, true)
-	for texture in textures:
+	for texture in result.textures:
 		sprite_frames.add_frame(anim_name, texture, 1.0)
 	sprite_frames.set_animation_speed(anim_name, fps)
+	return int(result.missing)
 
 
 static func _add_oneshot_animation(
@@ -161,13 +206,14 @@ static func _add_oneshot_animation(
 	first_letter: String,
 	last_letter: String,
 	fps: float,
-) -> void:
-	var textures := OgFrameSequence.load_letter_range(dir, prefix, first_letter, last_letter)
+) -> int:
+	var result := _load_textures(dir, prefix, first_letter, last_letter)
 	sprite_frames.add_animation(anim_name)
 	sprite_frames.set_animation_loop(anim_name, false)
-	for texture in textures:
+	for texture in result.textures:
 		sprite_frames.add_frame(anim_name, texture, 1.0)
 	sprite_frames.set_animation_speed(anim_name, fps)
+	return int(result.missing)
 
 
 static func _add_static_animation(
@@ -176,10 +222,45 @@ static func _add_static_animation(
 	dir: String,
 	prefix: String,
 	frame_letter: String,
-) -> void:
-	var textures := OgFrameSequence.load_letter_range(dir, prefix, frame_letter, frame_letter)
+) -> int:
+	var result := _load_textures(dir, prefix, frame_letter, frame_letter)
 	sprite_frames.add_animation(anim_name)
 	sprite_frames.set_animation_loop(anim_name, true)
-	if not textures.is_empty():
-		sprite_frames.add_frame(anim_name, textures[0], 1.0)
+	if not result.textures.is_empty():
+		sprite_frames.add_frame(anim_name, result.textures[0], 1.0)
 	sprite_frames.set_animation_speed(anim_name, 1.0)
+	return int(result.missing)
+
+
+static func _load_textures(
+	dir: String,
+	prefix: String,
+	first_letter: String,
+	last_letter: String,
+) -> Dictionary:
+	## Match OgFrameSequence.load_letter_range but count missing without per-frame spam.
+	var textures: Array[Texture2D] = []
+	var missing := 0
+	var first_code := first_letter.to_upper().unicode_at(0)
+	var last_code := last_letter.to_upper().unicode_at(0)
+	if last_code < first_code:
+		return {"textures": textures, "missing": 1}
+	for code in range(first_code, last_code + 1):
+		var letter := String.chr(code)
+		var frame_path := "%s/%s%s.png" % [dir, prefix, letter]
+		if not ResourceLoader.exists(frame_path) and not FileAccess.file_exists(frame_path):
+			missing += 1
+			continue
+		var texture: Texture2D = load(frame_path) as Texture2D
+		if texture == null:
+			missing += 1
+			continue
+		textures.append(texture)
+	return {"textures": textures, "missing": missing}
+
+
+static func _warn_once(key: String, message: String) -> void:
+	if _missing_warned.has(key):
+		return
+	_missing_warned[key] = true
+	push_warning(message)

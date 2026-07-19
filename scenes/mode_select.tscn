@@ -73,7 +73,13 @@ custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
 text = "Local Multiplayer"
 
+[node name="SoldierParityButton" type="Button" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(320, 40)
+layout_mode = 2
+text = "Dev: US vs German Soldier Parity"
+
 [node name="Hint" type="Label" parent="Center/Panel/Margin/VBox"]
+
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.78, 0.72, 1)
 theme_override_font_sizes/font_size = 13

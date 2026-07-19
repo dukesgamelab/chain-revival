@@ -22,6 +22,8 @@ const MAP_WORLD_SCENE := preload("res://scenes/map/map_world.tscn")
 
 @onready var _asset_tree: Tree = %AssetTree
 @onready var _asset_context: PopupMenu = %AssetContextMenu
+@onready var _rename_asset_button: Button = %RenameAssetButton
+@onready var _rename_dialog: ConfirmationDialog = %RenameAssetDialog
 @onready var _tool_option: OptionButton = %ToolOption
 @onready var _status: Label = %StatusLabel
 @onready var _coord_label: Label = %CoordLabel
@@ -54,6 +56,10 @@ var _dirty: bool = false
 var _show_grid: bool = false
 var _inspector_cell: Vector2i = Vector2i(-1, -1)
 var _brush_direction: int = 0
+var _rename_line: LineEdit
+var _rename_family: String = ""
+var _asset_rebuild_pending: bool = false
+var _pending_asset_filter: String = ""
 
 
 func _ready() -> void:
@@ -79,10 +85,15 @@ func _ready() -> void:
 func _setup_asset_browser() -> void:
 	AssetBrowserCatalog.reload()
 	_asset_tree.item_selected.connect(_on_asset_selected)
-	_asset_tree.item_edited.connect(_on_asset_renamed)
 	_asset_tree.item_mouse_selected.connect(_on_asset_mouse_selected)
 	_asset_tree.allow_rmb_select = true
+	## Do not mark items editable — click must select the brush, not rename.
 	_asset_context.id_pressed.connect(_on_asset_context_id)
+	_rename_asset_button.pressed.connect(_open_rename_dialog)
+	_rename_line = LineEdit.new()
+	_rename_line.placeholder_text = "Display name"
+	_rename_dialog.add_child(_rename_line)
+	_rename_dialog.confirmed.connect(_on_rename_dialog_confirmed)
 	_populate_assets()
 
 
@@ -113,16 +124,37 @@ func _setup_tools() -> void:
 
 
 func _populate_assets(filter_text: String = "") -> void:
+	## Defer rebuilds — clearing the Tree during search/edit callbacks can yield a null root.
+	if not is_inside_tree() or _asset_tree == null:
+		return
+	_pending_asset_filter = filter_text
+	if _asset_rebuild_pending:
+		return
+	_asset_rebuild_pending = true
+	call_deferred("_populate_assets_now")
+
+
+func _populate_assets_now() -> void:
+	_asset_rebuild_pending = false
+	if not is_instance_valid(_asset_tree) or not _asset_tree.is_inside_tree():
+		return
 	_asset_tree.clear()
-	var root := _asset_tree.create_item()
+	var root := _asset_tree.get_root()
+	if root == null:
+		root = _asset_tree.create_item()
+	if root == null:
+		push_warning("MapEditor: AssetTree root could not be created")
+		return
+
 	var categories := AssetBrowserCatalog.build_categories(_map_data)
-	var filter := filter_text.strip_edges().to_lower()
+	var filter := _pending_asset_filter.strip_edges().to_lower()
 	var shown := 0
 	for cat in AssetBrowserCatalog.category_order():
 		var items: Array = categories.get(cat, [])
 		if items.is_empty() and cat != "On This Map":
 			continue
 		var cat_item: TreeItem = null
+		var child_count := 0
 		for entry in items:
 			var label := str(entry.get("label", ""))
 			var family := str(entry.get("family", ""))
@@ -132,28 +164,26 @@ func _populate_assets(filter_text: String = "") -> void:
 				continue
 			if cat_item == null:
 				cat_item = _asset_tree.create_item(root)
+				if cat_item == null:
+					continue
 				cat_item.set_text(0, cat)
 				cat_item.set_selectable(0, false)
 				cat_item.set_collapsed(false)
 			var item := _asset_tree.create_item(cat_item)
+			if item == null:
+				continue
 			item.set_text(0, label)
 			item.set_metadata(0, entry)
-			## Editable display name (persists to editor_asset_catalog.json).
-			if str(entry.get("kind", "")) in ["family", "terrain"]:
-				item.set_editable(0, true)
+			item.set_editable(0, false)
+			child_count += 1
 			shown += 1
-			## Update category count as filtered children appear.
-			if cat_item != null:
-				var child_count := 0
-				var walk := cat_item.get_first_child()
-				while walk != null:
-					child_count += 1
-					walk = walk.get_next()
-				cat_item.set_text(0, "%s (%d)" % [cat, child_count])
+		if cat_item != null:
+			cat_item.set_text(0, "%s (%d)" % [cat, child_count])
 	if shown == 0 and not filter.is_empty():
 		var empty := _asset_tree.create_item(root)
-		empty.set_text(0, "(no matches)")
-		empty.set_selectable(0, false)
+		if empty != null:
+			empty.set_text(0, "(no matches)")
+			empty.set_selectable(0, false)
 
 
 func _load_map(path: String) -> void:
@@ -253,11 +283,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		if event.keycode == KEY_F2:
-			var asset := _asset_tree.get_selected()
-			if asset != null and asset.is_editable(0):
-				_asset_tree.edit_selected(true)
-				get_viewport().set_input_as_handled()
-				return
+			_open_rename_dialog()
+			get_viewport().set_input_as_handled()
+			return
 		if event.is_action_pressed("rotate_view_left"):
 			_rotate_view(true)
 			get_viewport().set_input_as_handled()
@@ -735,55 +763,62 @@ func _on_asset_selected() -> void:
 	_status.text = "Brush: %s" % str(_brush.get("label", ""))
 
 
-func _on_asset_renamed() -> void:
-	var item := _asset_tree.get_edited()
+func _selected_renamable_meta() -> Dictionary:
+	var item := _asset_tree.get_selected()
 	if item == null:
-		item = _asset_tree.get_selected()
-	if item == null:
-		return
+		return {}
 	var meta = item.get_metadata(0)
 	if meta == null or not meta is Dictionary:
-		return
-	var family := str(meta.get("family", "")).to_upper()
+		return {}
 	var kind := str(meta.get("kind", ""))
-	if family.is_empty() or kind not in ["family", "terrain"]:
+	if kind not in ["family", "terrain"]:
+		return {}
+	return meta
+
+
+func _open_rename_dialog() -> void:
+	var meta := _selected_renamable_meta()
+	if meta.is_empty():
+		_status.text = "Select a tile family first, then click Rename Selected"
 		return
-	var typed := item.get_text(0).strip_edges()
-	## Strip trailing [CODE] if the user left it in.
-	var code_suffix := "  [%s]" % family
-	if typed.ends_with(code_suffix):
-		typed = typed.substr(0, typed.length() - code_suffix.length()).strip_edges()
-	elif typed.ends_with("[%s]" % family):
-		typed = typed.substr(0, typed.length() - family.length() - 2).strip_edges()
-	if typed.is_empty():
-		_populate_assets(_search.text)
+	_rename_family = str(meta.get("family", "")).to_upper()
+	var current := str(meta.get("edit_label", meta.get("label", _rename_family)))
+	var code_suffix := "  [%s]" % _rename_family
+	if current.ends_with(code_suffix):
+		current = current.substr(0, current.length() - code_suffix.length()).strip_edges()
+	_rename_line.text = current
+	_rename_dialog.title = "Rename %s" % _rename_family
+	_rename_dialog.popup_centered(Vector2i(360, 120))
+	_rename_line.grab_focus()
+	_rename_line.select_all()
+
+
+func _on_rename_dialog_confirmed() -> void:
+	var typed := _rename_line.text.strip_edges()
+	if _rename_family.is_empty() or typed.is_empty():
 		return
-	if AssetBrowserCatalog.rename_family(family, typed):
-		_status.text = "Renamed %s → %s (saved to editor_asset_catalog.json)" % [family, typed]
-		_populate_assets(_search.text)
-		## Reselect matching family brush.
-		_brush["family"] = family
+	if AssetBrowserCatalog.rename_family(_rename_family, typed):
+		_status.text = "Renamed %s → %s (saved to editor_asset_catalog.json)" % [_rename_family, typed]
+		_brush["family"] = _rename_family
 		_brush["edit_label"] = typed
-		_brush["label"] = "%s  [%s]" % [typed, family] if typed.to_upper().find(family) < 0 else typed
-	else:
-		_status.text = "Could not save rename for %s" % family
+		_brush["label"] = (
+			"%s  [%s]" % [typed, _rename_family]
+			if typed.to_upper().find(_rename_family) < 0
+			else typed
+		)
 		_populate_assets(_search.text)
+	else:
+		_status.text = "Could not save rename for %s" % _rename_family
 
 
 func _on_asset_mouse_selected(_mouse_position: Vector2, mouse_button_index: int) -> void:
 	if mouse_button_index != MOUSE_BUTTON_RIGHT:
 		return
-	var item := _asset_tree.get_selected()
-	if item == null:
-		return
-	var meta = item.get_metadata(0)
-	if meta == null or not meta is Dictionary:
-		return
-	var kind := str(meta.get("kind", ""))
-	if kind not in ["family", "terrain"]:
+	var meta := _selected_renamable_meta()
+	if meta.is_empty():
 		return
 	_asset_context.clear()
-	_asset_context.add_item("Rename (F2)", 0)
+	_asset_context.add_item("Rename…", 0)
 	_asset_context.add_separator()
 	var idx := 1
 	for cat in AssetBrowserCatalog.category_order():
@@ -798,16 +833,12 @@ func _on_asset_mouse_selected(_mouse_position: Vector2, mouse_button_index: int)
 
 
 func _on_asset_context_id(id: int) -> void:
-	var item := _asset_tree.get_selected()
-	if item == null:
-		return
-	var meta = item.get_metadata(0)
-	if meta == null or not meta is Dictionary:
+	var meta := _selected_renamable_meta()
+	if meta.is_empty():
 		return
 	var family := str(meta.get("family", "")).to_upper()
 	if id == 0:
-		item.set_editable(0, true)
-		_asset_tree.edit_selected(true)
+		_open_rename_dialog()
 		return
 	var cat := str(_asset_context.get_item_metadata(id))
 	if cat.is_empty():
