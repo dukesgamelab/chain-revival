@@ -77,7 +77,7 @@
 		"SCOR": {
 			"category": "Corners",
 			"kind": "family",
-			"label": "Stone Corner",
+			"label": "Stone Corner - SE",
 			"sort": 30.0
 		},
 		"SFL5": {
@@ -113,7 +113,7 @@
 		"SWAL": {
 			"category": "Walls",
 			"kind": "family",
-			"label": "Stone Wall",
+			"label": "Stone Wall - NW - Small",
 			"sort": 20.0
 		},
 		"SWAQ": {
@@ -143,7 +143,7 @@
 		"TA02": {
 			"category": "Props",
 			"kind": "family",
-			"label": "Hay / Sandbag Prop",
+			"label": "Street - SE",
 			"sort": 20.0
 		},
 		"TA03": {
@@ -209,19 +209,19 @@
 		"WICR": {
 			"category": "Corners",
 			"kind": "family",
-			"label": "Wood Inner Corner",
+			"label": "Wood Wall - SE 2",
 			"sort": 40.0
 		},
 		"WWAI": {
 			"category": "Doors",
 			"kind": "family",
-			"label": "Wood Doorframe",
+			"label": "Wood Wall Corner - NW",
 			"sort": 50.0
 		},
 		"WWAL": {
 			"category": "Walls",
 			"kind": "family",
-			"label": "Wood Wall",
+			"label": "Wood Wall - SE",
 			"sort": 10.0
 		},
 		"WWAQ": {
@@ -233,13 +233,13 @@
 		"WWAR": {
 			"category": "Doors",
 			"kind": "family",
-			"label": "Wood Door Right",
+			"label": "Wood Wall - SE Small",
 			"sort": 10.0
 		},
 		"WWIN": {
 			"category": "Windows",
 			"kind": "family",
-			"label": "Wood Window",
+			"label": "Wood Window - SE",
 			"sort": 20.0
 		}
 	}

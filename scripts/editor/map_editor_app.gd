@@ -79,6 +79,7 @@ func _ready() -> void:
 	_viewport_host.mouse_filter = Control.MOUSE_FILTER_STOP
 	_viewport_host.gui_input.connect(_on_viewport_gui_input)
 	_load_map(_map_path)
+	set_process_input(true)
 	set_process_unhandled_input(true)
 
 
@@ -87,6 +88,9 @@ func _setup_asset_browser() -> void:
 	_asset_tree.item_selected.connect(_on_asset_selected)
 	_asset_tree.item_mouse_selected.connect(_on_asset_mouse_selected)
 	_asset_tree.allow_rmb_select = true
+	## Mouse/wheel scroll only — arrow keys must not walk the asset list.
+	_asset_tree.focus_mode = Control.FOCUS_NONE
+	_asset_tree.gui_input.connect(_on_asset_tree_gui_input)
 	## Do not mark items editable — click must select the brush, not rename.
 	_asset_context.id_pressed.connect(_on_asset_context_id)
 	_rename_asset_button.pressed.connect(_open_rename_dialog)
@@ -95,6 +99,13 @@ func _setup_asset_browser() -> void:
 	_rename_dialog.add_child(_rename_line)
 	_rename_dialog.confirmed.connect(_on_rename_dialog_confirmed)
 	_populate_assets()
+
+
+func _on_asset_tree_gui_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed:
+		match event.keycode:
+			KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_PAGEUP, KEY_PAGEDOWN, KEY_HOME, KEY_END:
+				_asset_tree.accept_event()
 
 
 func _on_viewport_gui_input(event: InputEvent) -> void:
@@ -227,6 +238,18 @@ func _refresh_world() -> void:
 	_refresh_validation()
 
 
+func _apply_history_map(next: MapData, status: String) -> void:
+	## Undo/redo returns a new MapData — must re-bind the world, not just refresh.
+	_map_data = next
+	_world.apply_map_data(_map_data)
+	_dirty = true
+	_refresh_validation()
+	_populate_assets(_search.text if _search else "")
+	if _inspector_cell.x >= 0:
+		_rebuild_inspector()
+	_status.text = status
+
+
 func _refresh_validation() -> void:
 	var report := MapValidator.validate_and_log(_map_data)
 	var warns: Array = report.get("warnings", [])
@@ -240,28 +263,41 @@ func _cell_at_mouse() -> Vector2i:
 	return IsometricGrid.world_to_cell_at_point(world)
 
 
+func _editor_dialogs_open() -> bool:
+	return (
+		(_rename_dialog != null and _rename_dialog.visible)
+		or (_file_dialog != null and _file_dialog.visible)
+		or (_asset_context != null and _asset_context.visible)
+	)
+
+
+func _input(event: InputEvent) -> void:
+	## Handle map shortcuts before focused controls (Search/Tree) swallow them.
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if _editor_dialogs_open():
+		return
+	var key := event as InputEventKey
+	if key.ctrl_pressed and key.keycode == KEY_Z and not key.shift_pressed:
+		var undone := _history.undo(_map_data)
+		if undone != null:
+			_apply_history_map(undone, "Undo")
+		get_viewport().set_input_as_handled()
+		return
+	if key.ctrl_pressed and (key.keycode == KEY_Y or (key.keycode == KEY_Z and key.shift_pressed)):
+		var redone := _history.redo(_map_data)
+		if redone != null:
+			_apply_history_map(redone, "Redo")
+		get_viewport().set_input_as_handled()
+		return
+	if key.ctrl_pressed and key.keycode == KEY_S:
+		_save_map()
+		get_viewport().set_input_as_handled()
+		return
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.ctrl_pressed and event.keycode == KEY_Z:
-			var undone := _history.undo(_map_data)
-			if undone != null:
-				_map_data = undone
-				_refresh_world()
-				_status.text = "Undo"
-			get_viewport().set_input_as_handled()
-			return
-		if event.ctrl_pressed and event.keycode == KEY_Y:
-			var redone := _history.redo(_map_data)
-			if redone != null:
-				_map_data = redone
-				_refresh_world()
-				_status.text = "Redo"
-			get_viewport().set_input_as_handled()
-			return
-		if event.ctrl_pressed and event.keycode == KEY_S:
-			_save_map()
-			get_viewport().set_input_as_handled()
-			return
 		if event.ctrl_pressed and event.keycode == KEY_C:
 			_copy_selection()
 			get_viewport().set_input_as_handled()
