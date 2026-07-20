@@ -49,11 +49,41 @@ const _DIRECTION_DIGITS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8]
 static var _usa_frames: SpriteFrames
 static var _germany_frames: SpriteFrames
 static var _missing_warned: Dictionary = {}
+## When true (default), prefer AnimationDatabase families us_rifle / german_rifle.
+## Falls back to hardcoded ASMOA packs if DB entries are missing/empty.
+const USE_ANIMATION_DATABASE := true
+const DB_FAMILY_USA := "us_rifle"
+const DB_FAMILY_GERMANY := "german_rifle"
 
 
 static func get_usa_sprite_frames() -> SpriteFrames:
 	if _usa_frames == null:
-		_usa_frames = _build_sprite_frames(
+		_usa_frames = _load_faction_frames(true)
+	return _usa_frames
+
+
+static func get_germany_sprite_frames() -> SpriteFrames:
+	if _germany_frames == null:
+		_germany_frames = _load_faction_frames(false)
+	return _germany_frames
+
+
+static func reload_cached_frames() -> void:
+	_usa_frames = null
+	_germany_frames = null
+	AnimationDatabase.reload()
+
+
+static func _load_faction_frames(is_usa: bool) -> SpriteFrames:
+	if USE_ANIMATION_DATABASE:
+		var family_id := DB_FAMILY_USA if is_usa else DB_FAMILY_GERMANY
+		AnimationDatabase.ensure_loaded()
+		var fam := AnimationDatabase.get_family(family_id)
+		var walk := AnimationDatabase.get_direction_frames(family_id, "walk", "n")
+		if not fam.is_empty() and walk.size() > 0:
+			return AnimationDatabase.build_soldier_compatible_sprite_frames(family_id)
+	if is_usa:
+		return _build_sprite_frames(
 			WALK_SPRITES_DIR_USA,
 			WALK_PREFIX_USA,
 			HIT_SPRITES_DIR_USA,
@@ -64,23 +94,17 @@ static func get_usa_sprite_frames() -> SpriteFrames:
 			DEAD_PREFIX_USA,
 			"USA",
 		)
-	return _usa_frames
-
-
-static func get_germany_sprite_frames() -> SpriteFrames:
-	if _germany_frames == null:
-		_germany_frames = _build_sprite_frames(
-			WALK_SPRITES_DIR_GER,
-			WALK_PREFIX_GER,
-			HIT_SPRITES_DIR_GER,
-			HIT_PREFIX_GER,
-			FALL_SPRITES_DIR_GER,
-			FALL_PREFIX_GER,
-			DEAD_SPRITES_DIR_GER,
-			DEAD_PREFIX_GER,
-			"Germany",
-		)
-	return _germany_frames
+	return _build_sprite_frames(
+		WALK_SPRITES_DIR_GER,
+		WALK_PREFIX_GER,
+		HIT_SPRITES_DIR_GER,
+		HIT_PREFIX_GER,
+		FALL_SPRITES_DIR_GER,
+		FALL_PREFIX_GER,
+		DEAD_SPRITES_DIR_GER,
+		DEAD_PREFIX_GER,
+		"Germany",
+	)
 
 
 ## Map a grid step or cardinal facing vector to an OG direction suffix (w, sw, …).

@@ -1,0 +1,384 @@
+[gd_scene format=3 uid="uid://cdj0ttuhcamoe"]
+
+[ext_resource type="Script" path="res://scripts/editor/asset_animation_editor_app.gd" id="1_app"]
+
+[node name="AssetAnimationEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_app")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.11, 0.13, 1)
+
+[node name="Root" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="TopBar" type="HBoxContainer" parent="Root"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BackButton" type="Button" parent="Root/TopBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Back"
+
+[node name="Title" type="Label" parent="Root/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "Asset & Animation Editor"
+
+[node name="StatusLabel" type="Label" parent="Root/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "Ready"
+horizontal_alignment = 2
+
+[node name="SaveButton" type="Button" parent="Root/TopBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Save"
+
+[node name="MainRow" type="HBoxContainer" parent="Root"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="FamilyPanel" type="VBoxContainer" parent="Root/MainRow"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FamilyHeader" type="Label" parent="Root/MainRow/FamilyPanel"]
+layout_mode = 2
+text = "Asset Families"
+
+[node name="FamilyList" type="ItemList" parent="Root/MainRow/FamilyPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="NewFamilyButton" type="Button" parent="Root/MainRow/FamilyPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "New Family"
+
+[node name="AnimPanel" type="VBoxContainer" parent="Root/MainRow"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="AnimHeader" type="Label" parent="Root/MainRow/AnimPanel"]
+layout_mode = 2
+text = "Animations"
+
+[node name="AnimList" type="ItemList" parent="Root/MainRow/AnimPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="NewAnimButton" type="Button" parent="Root/MainRow/AnimPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "New Animation"
+
+[node name="CenterPanel" type="VBoxContainer" parent="Root/MainRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="DirHeader" type="Label" parent="Root/MainRow/CenterPanel"]
+layout_mode = 2
+text = "Directions"
+
+[node name="DirList" type="ItemList" parent="Root/MainRow/CenterPanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+max_columns = 4
+same_column_width = true
+
+[node name="TimelineHeader" type="HBoxContainer" parent="Root/MainRow/CenterPanel"]
+layout_mode = 2
+
+[node name="TimelineLabel" type="Label" parent="Root/MainRow/CenterPanel/TimelineHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Timeline (right-click frame: delete / duplicate / reorder)"
+
+[node name="AddFrameButton" type="Button" parent="Root/MainRow/CenterPanel/TimelineHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Add Frame…"
+
+[node name="TimelineScroll" type="ScrollContainer" parent="Root/MainRow/CenterPanel"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 0
+
+[node name="Timeline" type="HBoxContainer" parent="Root/MainRow/CenterPanel/TimelineScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="AutoDetectBox" type="VBoxContainer" parent="Root/MainRow/CenterPanel"]
+layout_mode = 2
+
+[node name="AutoDetectTitle" type="Label" parent="Root/MainRow/CenterPanel/AutoDetectBox"]
+layout_mode = 2
+text = "Auto Detect (PREFIX + digit 1–8 + letter)"
+
+[node name="AutoRow" type="HBoxContainer" parent="Root/MainRow/CenterPanel/AutoDetectBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AutoFolder" type="LineEdit" parent="Root/MainRow/CenterPanel/AutoDetectBox/AutoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "res://assets/sprites/us_soldier/walk"
+text = "res://assets/sprites/us_soldier/walk"
+
+[node name="AutoPrefix" type="LineEdit" parent="Root/MainRow/CenterPanel/AutoDetectBox/AutoRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+placeholder_text = "ASMOA"
+text = "ASMOA"
+
+[node name="AutoAnimName" type="LineEdit" parent="Root/MainRow/CenterPanel/AutoDetectBox/AutoRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+placeholder_text = "walk"
+text = "walk"
+
+[node name="AutoDetectButton" type="Button" parent="Root/MainRow/CenterPanel/AutoDetectBox/AutoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Auto Detect"
+
+[node name="RightPanel" type="VBoxContainer" parent="Root/MainRow"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="PreviewHeader" type="Label" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+text = "Live Preview"
+
+[node name="PreviewFrame" type="PanelContainer" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PreviewCenter" type="CenterContainer" parent="Root/MainRow/RightPanel/PreviewFrame"]
+layout_mode = 2
+
+[node name="Preview" type="TextureRect" parent="Root/MainRow/RightPanel/PreviewFrame/PreviewCenter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+
+[node name="FrameInfo" type="Label" parent="Root/MainRow/RightPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Frame —"
+autowrap_mode = 2
+
+[node name="PlaybackRow" type="HBoxContainer" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="Root/MainRow/RightPanel/PlaybackRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Play"
+
+[node name="PauseButton" type="Button" parent="Root/MainRow/RightPanel/PlaybackRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Pause"
+
+[node name="PrevButton" type="Button" parent="Root/MainRow/RightPanel/PlaybackRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "◀"
+
+[node name="NextButton" type="Button" parent="Root/MainRow/RightPanel/PlaybackRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "▶"
+
+[node name="FpsRow" type="HBoxContainer" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+
+[node name="FpsLabel" type="Label" parent="Root/MainRow/RightPanel/FpsRow"]
+layout_mode = 2
+text = "FPS"
+
+[node name="FpsSlider" type="HSlider" parent="Root/MainRow/RightPanel/FpsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 30.0
+step = 1.0
+value = 12.0
+
+[node name="FpsValue" type="Label" parent="Root/MainRow/RightPanel/FpsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+text = "12"
+
+[node name="ZoomRow" type="HBoxContainer" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+
+[node name="ZoomLabel" type="Label" parent="Root/MainRow/RightPanel/ZoomRow"]
+layout_mode = 2
+text = "Zoom"
+
+[node name="ZoomSlider" type="HSlider" parent="Root/MainRow/RightPanel/ZoomRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 6.0
+step = 0.5
+value = 2.0
+
+[node name="CamHeader" type="Label" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+text = "Camera Rotation Preview"
+
+[node name="CamRow" type="HBoxContainer" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+
+[node name="Cam0" type="Button" parent="Root/MainRow/RightPanel/CamRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0°"
+
+[node name="Cam90" type="Button" parent="Root/MainRow/RightPanel/CamRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "90°"
+
+[node name="Cam180" type="Button" parent="Root/MainRow/RightPanel/CamRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "180°"
+
+[node name="Cam270" type="Button" parent="Root/MainRow/RightPanel/CamRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "270°"
+
+[node name="CamLabel" type="Label" parent="Root/MainRow/RightPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Cam 0°"
+autowrap_mode = 2
+
+[node name="WorldFacingRow" type="HBoxContainer" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+
+[node name="WorldFacingLabel" type="Label" parent="Root/MainRow/RightPanel/WorldFacingRow"]
+layout_mode = 2
+text = "World facing"
+
+[node name="WorldFacingOption" type="OptionButton" parent="Root/MainRow/RightPanel/WorldFacingRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MetaHeader" type="Label" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+text = "Animation Metadata"
+
+[node name="MetaLoop" type="CheckBox" parent="Root/MainRow/RightPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Loop"
+
+[node name="MetaSound" type="LineEdit" parent="Root/MainRow/RightPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "Sound effect path / id"
+
+[node name="MetaNums" type="GridContainer" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+columns = 2
+
+[node name="MuzzleLbl" type="Label" parent="Root/MainRow/RightPanel/MetaNums"]
+layout_mode = 2
+text = "Muzzle frame"
+
+[node name="MetaMuzzle" type="SpinBox" parent="Root/MainRow/RightPanel/MetaNums"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = -1.0
+max_value = 64.0
+value = -1.0
+
+[node name="FootLbl" type="Label" parent="Root/MainRow/RightPanel/MetaNums"]
+layout_mode = 2
+text = "Footstep frame"
+
+[node name="MetaFootstep" type="SpinBox" parent="Root/MainRow/RightPanel/MetaNums"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = -1.0
+max_value = 64.0
+value = -1.0
+
+[node name="MoveLbl" type="Label" parent="Root/MainRow/RightPanel/MetaNums"]
+layout_mode = 2
+text = "Move / cycle"
+
+[node name="MetaMove" type="SpinBox" parent="Root/MainRow/RightPanel/MetaNums"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 32.0
+step = 0.1
+
+[node name="NotesLbl" type="Label" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+text = "Notes"
+
+[node name="MetaNotes" type="TextEdit" parent="Root/MainRow/RightPanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2

@@ -68,6 +68,11 @@ custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
 text = "Chain Revival Editor"
 
+[node name="AssetAnimEditorButton" type="Button" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(320, 48)
+layout_mode = 2
+text = "Dev: Asset & Animation Editor"
+
 [node name="MultiplayerButton" type="Button" parent="Center/Panel/Margin/VBox"]
 custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
