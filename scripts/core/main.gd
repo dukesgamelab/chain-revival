@@ -312,8 +312,8 @@ func _update_los_preview() -> void:
 
 
 func _update_grenade_preview() -> void:
-	var shooter: SoldierState = _game_state.get_soldier(_session.active_team_id, _grenade_soldier_id)
-	if shooter == null or shooter.is_dead:
+	var shooter: SoldierState = _grenade_preview_shooter()
+	if shooter == null:
 		_los_visualizer.hide_preview()
 		return
 
@@ -328,14 +328,37 @@ func _update_grenade_preview() -> void:
 	)
 	_los_visualizer.show_grenade_throw_preview(from_world, target_world, in_range)
 
-	var fireteam: Fireteam = _session.get_active_fireteam()
-	if ActionResolverClass.preview_grenade_facing(
-		_game_state,
-		shooter.team_id,
-		shooter.soldier_id,
-		target_cell,
-	):
-		_sync_soldier_view(shooter.team_id, shooter.soldier_id, true)
+	if _grenade_soldier_id == CommandBar.SQUAD_ID:
+		var fireteam: Fireteam = _session.get_active_fireteam()
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if (
+				soldier_state == null
+				or soldier_state.is_dead
+				or soldier_state.grenade_count <= 0
+				or soldier_state.is_stunned()
+				or soldier_state.has_pending_grenade()
+			):
+				continue
+			if ActionResolverClass.preview_grenade_facing(
+				_game_state,
+				soldier_state.team_id,
+				soldier_state.soldier_id,
+				target_cell,
+			):
+				_sync_soldier_view(
+					soldier_state.team_id,
+					soldier_state.soldier_id,
+					soldier_state.soldier_id == fireteam.selected_soldier_id,
+				)
+	else:
+		if ActionResolverClass.preview_grenade_facing(
+			_game_state,
+			shooter.team_id,
+			shooter.soldier_id,
+			target_cell,
+		):
+			_sync_soldier_view(shooter.team_id, shooter.soldier_id, true)
 
 
 func _update_squad_los_preview(
@@ -578,8 +601,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			face_target_cell = face_target_soldier.grid_position
 		var face_cmd := FaceCommand.new()
 		face_cmd.team_id = _session.active_team_id
-		face_cmd.soldier_id = _face_soldier_id
 		face_cmd.target_cell = face_target_cell
+		if _face_soldier_id == CommandBar.SQUAD_ID:
+			face_cmd.scope = FaceCommand.Scope.SQUAD
+		else:
+			face_cmd.scope = FaceCommand.Scope.SINGLE
+			face_cmd.soldier_id = _face_soldier_id
 		_apply_face_command(face_cmd)
 		get_viewport().set_input_as_handled()
 		return
@@ -1130,6 +1157,10 @@ func _make_grenade_context(soldier_state: SoldierState) -> CommandContextClass:
 
 
 func _apply_grenade_command(target_cell: Vector2i) -> void:
+	if _grenade_soldier_id == CommandBar.SQUAD_ID:
+		_apply_squad_grenade_command(target_cell)
+		return
+
 	var soldier_state: SoldierState = _game_state.get_soldier(
 		_session.active_team_id,
 		_grenade_soldier_id,
@@ -1153,6 +1184,69 @@ func _apply_grenade_command(target_cell: Vector2i) -> void:
 		_command_bar.clear_grenade_mode()
 		_los_visualizer.hide_preview()
 	_present_action_result(result)
+
+
+func _apply_squad_grenade_command(target_cell: Vector2i) -> void:
+	var thrown := 0
+	var last_result: ActionResultClass = null
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	for state in fireteam.soldiers:
+		var soldier_state: SoldierState = state
+		if (
+			soldier_state == null
+			or soldier_state.is_dead
+			or soldier_state.grenade_count <= 0
+			or soldier_state.is_stunned()
+			or soldier_state.has_pending_grenade()
+			or soldier_state.is_moving
+		):
+			continue
+		var cmd := GrenadeCommand.new()
+		cmd.team_id = _session.active_team_id
+		cmd.soldier_id = soldier_state.soldier_id
+		cmd.target_cell = target_cell
+		var result: ActionResultClass = CommandRouter.submit_command(
+			_game_state,
+			cmd,
+			_make_grenade_context(soldier_state),
+		)
+		last_result = result
+		if result.success:
+			thrown += 1
+	if thrown > 0:
+		_grenade_mode = false
+		_command_bar.clear_grenade_mode()
+		_los_visualizer.hide_preview()
+		if last_result != null:
+			_present_action_result(last_result)
+		_command_bar.show_status("Fireteam grenade — %d thrown." % thrown)
+	elif last_result != null:
+		_present_action_result(last_result)
+	else:
+		_command_bar.show_status("No soldiers available to throw grenades.")
+
+
+func _grenade_preview_shooter() -> SoldierState:
+	if _grenade_soldier_id == CommandBar.SQUAD_ID:
+		var fireteam: Fireteam = _session.get_active_fireteam()
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if (
+				soldier_state != null
+				and soldier_state.is_alive()
+				and soldier_state.grenade_count > 0
+				and not soldier_state.is_stunned()
+				and not soldier_state.has_pending_grenade()
+			):
+				return soldier_state
+		return null
+	var shooter: SoldierState = _game_state.get_soldier(
+		_session.active_team_id,
+		_grenade_soldier_id,
+	)
+	if shooter == null or shooter.is_dead:
+		return null
+	return shooter
 
 
 func _apply_move_command(cmd: MoveCommand) -> void:
@@ -1193,6 +1287,24 @@ func _apply_position_command(cmd: PositionCommand) -> void:
 
 
 func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int) -> void:
+	if soldier_id == CommandBar.SQUAD_ID:
+		var last_result: ActionResultClass = null
+		var fireteam: Fireteam = _session.get_active_fireteam()
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if soldier_state == null or soldier_state.is_dead:
+				continue
+			var cmd := FireControlCommandClass.new()
+			cmd.team_id = _session.active_team_id
+			cmd.soldier_id = soldier_state.soldier_id
+			cmd.fire_control_state = fire_control_state
+			last_result = CommandRouter.submit_command(_game_state, cmd)
+		if last_result != null:
+			_present_action_result(last_result)
+		else:
+			_command_bar.show_status("No soldiers available.")
+		return
+
 	var cmd := FireControlCommandClass.new()
 	cmd.team_id = _session.active_team_id
 	cmd.soldier_id = soldier_id
@@ -1202,6 +1314,35 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 
 
 func _on_position_change_requested(soldier_id: int, position_state: int) -> void:
+	if soldier_id == CommandBar.SQUAD_ID:
+		var last_result: ActionResultClass = null
+		var fireteam: Fireteam = _session.get_active_fireteam()
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if soldier_state == null or soldier_state.is_dead or soldier_state.is_stunned():
+				continue
+			var cmd := PositionCommand.new()
+			cmd.team_id = _session.active_team_id
+			cmd.soldier_id = soldier_state.soldier_id
+			cmd.position_state = position_state
+			last_result = CommandRouter.submit_command(_game_state, cmd)
+		if (
+			last_result != null
+			and last_result.success
+			and position_state == PositionStateClass.DOWN
+			and _move_targeting
+			and not MovementModeClass.is_allowed(PositionStateClass.DOWN, _active_movement_mode)
+		):
+			_command_bar.clear_move_targeting()
+			_move_targeting = false
+			_squad_move_targeting = false
+		_command_bar.sync_squad_position_state(position_state)
+		if last_result != null:
+			_present_action_result(last_result)
+		else:
+			_command_bar.show_status("No soldiers available.")
+		return
+
 	var cmd := PositionCommand.new()
 	cmd.team_id = _session.active_team_id
 	cmd.soldier_id = soldier_id

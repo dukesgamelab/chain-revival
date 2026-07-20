@@ -47,31 +47,45 @@ layout_mode = 2
 toggle_mode = true
 text = "Crawl To"
 
-[node name="CenterButton" type="Button" parent="."]
+[node name="FaceButton" type="Button" parent="."]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(52, 24)
 layout_mode = 2
-text = "Center"
+toggle_mode = true
+text = "Face..."
 
-[node name="PositionSpacer" type="PanelContainer" parent="."]
+[node name="PositionButton" type="Button" parent="."]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(44, 24)
 layout_mode = 2
+toggle_mode = true
+text = "Down"
 
-[node name="GrenadeSpacer" type="PanelContainer" parent="."]
+[node name="GrenadeButton" type="Button" parent="."]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(58, 24)
 layout_mode = 2
+toggle_mode = true
+text = "Grenade"
 
-[node name="AssaultSpacer" type="PanelContainer" parent="."]
+[node name="AssaultButton" type="Button" parent="."]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(58, 24)
 layout_mode = 2
+disabled = true
+text = "Assault"
 
-[node name="FireAtWillSpacer" type="PanelContainer" parent="."]
+[node name="FireAtWillButton" type="Button" parent="."]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(68, 24)
 layout_mode = 2
+text = "Fire At Will"
 
-[node name="HoldFireSpacer" type="PanelContainer" parent="."]
+[node name="HoldFireButton" type="Button" parent="."]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(58, 24)
 layout_mode = 2
+text = "Hold Fire"
 
 [node name="StatusHeader" type="PanelContainer" parent="."]
 custom_minimum_size = Vector2(64, 24)

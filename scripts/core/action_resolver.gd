@@ -335,6 +335,9 @@ static func execute_move(
 
 
 static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> ActionResult:
+	if cmd.scope == FaceCommandClass.Scope.SQUAD:
+		return _execute_face_squad(game_state, cmd)
+
 	var fireteam := game_state.session.get_fireteam(cmd.team_id)
 	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
 	if soldier_state == null or soldier_state.is_dead:
@@ -345,6 +348,36 @@ static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> A
 	if not fireteam.face_toward_tile(cmd.soldier_id, cmd.target_cell):
 		return ActionResult.fail("Pick a different tile to face.")
 
+	return _face_result_after_reorient(game_state, cmd.team_id, soldier_state)
+
+
+static func _execute_face_squad(game_state: GameStateClass, cmd: FaceCommandClass) -> ActionResult:
+	var fireteam := game_state.session.get_fireteam(cmd.team_id)
+	var faced := 0
+	var result := ActionResult.new()
+	for state in fireteam.soldiers:
+		var soldier_state: SoldierState = state
+		if soldier_state == null or soldier_state.is_dead or soldier_state.is_stunned():
+			continue
+		if not fireteam.face_toward_tile(soldier_state.soldier_id, cmd.target_cell):
+			continue
+		faced += 1
+		var one := _face_result_after_reorient(game_state, cmd.team_id, soldier_state)
+		if one.sync_fire_at_ui:
+			result.sync_fire_at_ui = true
+	if faced <= 0:
+		return ActionResult.fail("No soldiers available to face.")
+	return result.set_status(
+		"%s Fireteam facing — %d soldier(s) reoriented."
+		% [Team.display_name(cmd.team_id), faced],
+	)
+
+
+static func _face_result_after_reorient(
+	game_state: GameStateClass,
+	team_id: int,
+	soldier_state: SoldierState,
+) -> ActionResult:
 	var result := ActionResult.new()
 
 	if soldier_state.is_sustained_fire():
@@ -358,8 +391,8 @@ static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> A
 			return result.set_status(
 				"%s Soldier %d ceased fire — facing %s."
 				% [
-					Team.display_name(cmd.team_id),
-					cmd.soldier_id,
+					Team.display_name(team_id),
+					soldier_state.soldier_id,
 					FacingDirection.direction_name(soldier_state.facing_direction),
 				],
 			)
@@ -374,8 +407,8 @@ static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> A
 			return result.set_status(
 				"%s Soldier %d ceased fire — facing %s."
 				% [
-					Team.display_name(cmd.team_id),
-					cmd.soldier_id,
+					Team.display_name(team_id),
+					soldier_state.soldier_id,
 					FacingDirection.direction_name(soldier_state.facing_direction),
 				],
 			)
@@ -383,8 +416,8 @@ static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> A
 	return result.set_status(
 		"%s Soldier %d facing %s."
 		% [
-			Team.display_name(cmd.team_id),
-			cmd.soldier_id,
+			Team.display_name(team_id),
+			soldier_state.soldier_id,
 			FacingDirection.direction_name(soldier_state.facing_direction),
 		],
 	)

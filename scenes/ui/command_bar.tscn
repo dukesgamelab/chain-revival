@@ -122,6 +122,12 @@ text = "Erase"
 layout_mode = 2
 theme_override_constants/separation = 4
 
+[node name="CenterButton" type="Button" parent="Panel/Margin/HBox/ViewRotation"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 24)
+layout_mode = 2
+text = "Center"
+
 [node name="RotateLeftButton" type="Button" parent="Panel/Margin/HBox/ViewRotation"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 24)

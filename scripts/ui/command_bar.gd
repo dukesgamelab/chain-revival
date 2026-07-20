@@ -53,7 +53,10 @@ func _ready() -> void:
 		_status_hud = ui.get_node("StatusHud") as StatusHud
 	_squad_row.move_mode_toggled.connect(_on_squad_move_mode_toggled)
 	_squad_row.fire_at_toggled.connect(_on_squad_fire_at_toggled)
-	_squad_row.center_requested.connect(func() -> void: center_camera_requested.emit())
+	_squad_row.face_toggled.connect(_on_squad_face_toggled)
+	_squad_row.position_toggled.connect(_on_squad_position_toggled)
+	_squad_row.grenade_toggled.connect(_on_squad_grenade_toggled)
+	_squad_row.fire_control_selected.connect(_on_squad_fire_control_selected)
 
 	for row in _rows:
 		row.move_mode_toggled.connect(_on_row_move_mode_toggled)
@@ -63,6 +66,8 @@ func _ready() -> void:
 		row.fire_control_selected.connect(_on_row_fire_control_selected)
 		row.grenade_toggled.connect(_on_row_grenade_toggled)
 
+	%CenterButton.pressed.connect(func() -> void: center_camera_requested.emit())
+	%CenterButton.tooltip_text = "Center the camera on the active fireteam."
 	%SaveButton.pressed.connect(func() -> void: save_requested.emit())
 	%LoadButton.pressed.connect(func() -> void: load_requested.emit())
 	%MapSaveButton.pressed.connect(func() -> void: map_save_requested.emit())
@@ -171,6 +176,7 @@ func set_fire_at_engaged(engaged: bool) -> void:
 
 func clear_face_mode() -> void:
 	_face_soldier_id = -1
+	_squad_row.set_face_pressed(false)
 	for row in _rows:
 		row.set_face_pressed(false)
 	face_mode_changed.emit(false, _selected_soldier_id)
@@ -179,10 +185,15 @@ func clear_face_mode() -> void:
 
 func clear_grenade_mode() -> void:
 	_grenade_soldier_id = -1
+	_squad_row.set_grenade_pressed(false)
 	for row in _rows:
 		row.set_grenade_pressed(false)
 	grenade_mode_changed.emit(false, _selected_soldier_id)
 	_update_status()
+
+
+func sync_squad_position_state(position_state: int) -> void:
+	_squad_row.set_position_state(position_state)
 
 
 func clear_map_edit_mode() -> void:
@@ -260,6 +271,53 @@ func _on_squad_fire_at_toggled(is_pressed: bool) -> void:
 	_update_status()
 
 
+func _on_squad_face_toggled(is_pressed: bool) -> void:
+	if is_pressed:
+		clear_map_edit_mode()
+		clear_move_targeting()
+		clear_fire_at_mode()
+		clear_grenade_mode()
+		for row in _rows:
+			row.set_face_pressed(false)
+		_face_soldier_id = SQUAD_ID
+		face_mode_changed.emit(true, SQUAD_ID)
+	else:
+		if _face_soldier_id == SQUAD_ID:
+			_face_soldier_id = -1
+		face_mode_changed.emit(false, SQUAD_ID)
+
+	_update_status()
+
+
+func _on_squad_grenade_toggled(is_pressed: bool) -> void:
+	if is_pressed:
+		clear_map_edit_mode()
+		clear_move_targeting()
+		clear_fire_at_mode()
+		clear_face_mode()
+		for row in _rows:
+			row.set_grenade_pressed(false)
+		_grenade_soldier_id = SQUAD_ID
+		grenade_mode_changed.emit(true, SQUAD_ID)
+	else:
+		if _grenade_soldier_id == SQUAD_ID:
+			_grenade_soldier_id = -1
+		grenade_mode_changed.emit(false, SQUAD_ID)
+
+	_update_status()
+
+
+func _on_squad_position_toggled(is_down: bool) -> void:
+	position_change_requested.emit(
+		SQUAD_ID,
+		PositionState.DOWN if is_down else PositionState.UP,
+	)
+
+
+func _on_squad_fire_control_selected(fire_control_state: int) -> void:
+	fire_control_change_requested.emit(SQUAD_ID, fire_control_state)
+
+
 func _on_row_move_mode_toggled(soldier_id: int, movement_mode: int, is_pressed: bool) -> void:
 	if is_pressed:
 		clear_map_edit_mode()
@@ -311,6 +369,7 @@ func _on_row_face_toggled(soldier_id: int, is_pressed: bool) -> void:
 		clear_move_targeting()
 		clear_fire_at_mode()
 		clear_grenade_mode()
+		_squad_row.set_face_pressed(false)
 		for row in _rows:
 			if row.soldier_id != soldier_id:
 				row.set_face_pressed(false)
@@ -331,6 +390,7 @@ func _on_row_grenade_toggled(soldier_id: int, is_pressed: bool) -> void:
 		clear_move_targeting()
 		clear_fire_at_mode()
 		clear_face_mode()
+		_squad_row.set_grenade_pressed(false)
 		for row in _rows:
 			if row.soldier_id != soldier_id:
 				row.set_grenade_pressed(false)
@@ -402,8 +462,15 @@ func _update_status() -> void:
 				"%s Soldier %d: Fire At — click an enemy to open fire. Right-click cancels."
 				% [team_name, _fire_at_soldier_id],
 			)
+	elif _face_soldier_id == SQUAD_ID:
+		show_status("%s Fireteam: Face... — click a tile or enemy. Right-click cancels." % team_name)
 	elif _face_soldier_id > 0:
 		show_status("%s Soldier %d: Face... — click a tile or enemy. Right-click cancels." % [team_name, _face_soldier_id])
+	elif _grenade_soldier_id == SQUAD_ID:
+		show_status(
+			"%s Fireteam: Grenade — click a tile within 7 tiles. All soldiers with grenades throw."
+			% team_name,
+		)
 	elif _grenade_soldier_id > 0:
 		show_status(
 			"%s Soldier %d: Grenade — click a tile within 7 tiles. Right-click cancels."
