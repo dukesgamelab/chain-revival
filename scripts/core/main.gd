@@ -23,6 +23,7 @@ const ActionResolverClass := preload("res://scripts/core/action_resolver.gd")
 const ActionResultClass := preload("res://scripts/core/action_result.gd")
 const CommandContextClass := preload("res://scripts/core/command_context.gd")
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
+const SimpleAIControllerClass := preload("res://scripts/ai/simple_ai_controller.gd")
 
 @onready var _world: MapWorldView = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -61,6 +62,7 @@ var _map_edit_mode: bool = false
 var _map_edit_palette: int = MapEditorClass.Palette.WALL
 var _auto_fire_timer: float = 0.0
 var _grass_layer_visible: bool = true
+var _simple_ai: SimpleAIControllerClass
 
 
 func _ready() -> void:
@@ -79,6 +81,19 @@ func _ready() -> void:
 	_command_bar.set_active_team(_session.active_team_id)
 	_refresh_all_views()
 	_show_startup_status()
+	_start_simple_ai()
+
+
+func _start_simple_ai() -> void:
+	_simple_ai = SimpleAIControllerClass.new()
+	## Defer one frame so soldier views finish entering the tree before paths animate.
+	call_deferred("_run_simple_ai_opening")
+
+
+func _run_simple_ai_opening() -> void:
+	if _simple_ai == null:
+		return
+	_simple_ai.on_match_started(_game_state, _map_data, _apply_move_command)
 
 
 func _log_network_mode() -> void:
