@@ -3,7 +3,8 @@ extends RefCounted
 ## Camera-relative facet selection from the recovered engine quantizer.
 ##
 ## display_angle = (presentation_world - CameraDirection + 360) mod 360
-## Map-data Direction is unchanged; X-flip applies +180° for presentation only.
+## Map-data Direction is unchanged. Under CoC X-flip, exterior wall families get
+## +180° for facet selection only (outward faces); interiors stay identity.
 
 const LETTERS_4: PackedStringArray = ["e", "s", "w", "n"]
 const LETTERS_8: PackedStringArray = ["e", "se", "s", "sw", "w", "nw", "n", "ne"]
@@ -14,8 +15,24 @@ static func camera_degrees() -> int:
 	return IsometricGrid.camera_direction_degrees()
 
 
-static func display_angle(world_direction_degrees: int) -> int:
+static func presentation_world_for_family(family: String, world_direction_degrees: int) -> int:
 	var world := MapCoordinateTransform.presentation_world_direction(world_direction_degrees)
+	## Opposite face ≡ +180° (e↔w and s↔n). Only when X-flip is active — that is
+	## what inverted exterior textured sides relative to OG.
+	if (
+		MapCoordinateTransform.uses_coc_x_flip()
+		and CocRenderRules.uses_outward_face_remap(family)
+	):
+		world = posmod(world + 180, 360)
+	return world
+
+
+static func display_angle(world_direction_degrees: int, family: String = "") -> int:
+	var world: int
+	if family.is_empty():
+		world = MapCoordinateTransform.presentation_world_direction(world_direction_degrees)
+	else:
+		world = presentation_world_for_family(family, world_direction_degrees)
 	return posmod(world - camera_degrees(), 360)
 
 
@@ -62,7 +79,7 @@ static func select_letter_at_camera(
 	camera_direction_degrees: int,
 ) -> String:
 	var facets := CocTileCatalog.facet_count(family)
-	var world := MapCoordinateTransform.presentation_world_direction(world_direction_degrees)
+	var world := presentation_world_for_family(family, world_direction_degrees)
 	var angle := posmod(world - camera_direction_degrees, 360)
 	var slot := slot_for_facets(angle, facets)
 	return MapCoordinateTransform.reflect_facet_letter(letter_for_slot(slot, facets))
@@ -79,7 +96,7 @@ static func resolve_draw_at_camera(
 	anim_frame: int = 0,
 ) -> Dictionary:
 	var letter := select_letter_at_camera(family, world_direction_degrees, camera_direction_degrees)
-	var world := MapCoordinateTransform.presentation_world_direction(world_direction_degrees)
+	var world := presentation_world_for_family(family, world_direction_degrees)
 	var angle := posmod(world - camera_direction_degrees, 360)
 	var resolved := CocTileCatalog.resolve(family, letter, anim_frame)
 	if resolved.is_empty():

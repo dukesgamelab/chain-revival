@@ -111,21 +111,33 @@ static func run() -> Dictionary:
 	else:
 		lines.append("PASS reverse-cam: rotate_right → 270° (OG spin)")
 
-	## 7) X-flip facet offset: world 0° draws as w at cam 0 (not e).
+	## 7) Interior facets stay identity; exterior get opposite face under X-flip.
 	IsometricGrid.reset_view_rotation()
 	MapCoordinateTransform.reset_candidate()
-	var letter0 := CocFacetSelector.select_letter("SWAL", 0)
-	if letter0 != "w":
+	var letter0 := CocFacetSelector.select_letter("IWWL", 0)
+	if letter0 != "e":
 		ok = false
-		lines.append("FAIL X-flip facet offset: SWAL dir0 @cam0 expected w, got %s" % letter0)
+		lines.append("FAIL facet cam0: IWWL dir0 expected e, got %s" % letter0)
 	else:
-		lines.append("PASS X-flip facet offset: SWAL dir0 @cam0 → w")
-	var letter90 := CocFacetSelector.select_letter("SWAL", 90)
-	if letter90 != "n":
+		lines.append("PASS facet cam0: IWWL dir0 → e (clean interior face)")
+	var letter90 := CocFacetSelector.select_letter("IWWL", 90)
+	if letter90 != "s":
 		ok = false
-		lines.append("FAIL X-flip facet offset: SWAL dir90 @cam0 expected n, got %s" % letter90)
+		lines.append("FAIL facet cam0: IWWL dir90 expected s, got %s" % letter90)
 	else:
-		lines.append("PASS X-flip facet offset: SWAL dir90 @cam0 → n")
+		lines.append("PASS facet cam0: IWWL dir90 → s")
+	var swal0 := CocFacetSelector.select_letter("SWAL", 0)
+	if swal0 != "w":
+		ok = false
+		lines.append("FAIL facet cam0: SWAL dir0 expected w (outward under X-flip), got %s" % swal0)
+	else:
+		lines.append("PASS facet cam0: SWAL dir0 → w (exterior outward face)")
+	var swal90 := CocFacetSelector.select_letter("SWAL", 90)
+	if swal90 != "n":
+		ok = false
+		lines.append("FAIL facet cam0: SWAL dir90 expected n (outward under X-flip), got %s" % swal90)
+	else:
+		lines.append("PASS facet cam0: SWAL dir90 → n (exterior outward face)")
 
 	var summary := "map_handedness_validation ok=%s" % ok
 	return {"ok": ok, "lines": lines, "summary": summary}

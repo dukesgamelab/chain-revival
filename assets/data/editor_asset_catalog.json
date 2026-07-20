@@ -1,9 +1,10 @@
 {
-	"_comment": "Editable Chain Revival Editor asset browser labels and categories. Family codes stay fixed (WWAL, TR01, …). Edit 'label' / 'category' / 'sort' here, or rename in the editor tree (F2 / double-click) — changes are saved back to this file. Sprite PNGs still come from assets/sprites/coc_tiles/manifest.json.",
+	"_comment": "Editable Chain Revival Editor asset browser labels and categories. Family codes stay fixed (WWAL, TR01, \u2026). Edit 'label' / 'category' / 'sort' here, or rename in the editor tree (F2 / double-click) \u2014 changes are saved back to this file. Sprite PNGs still come from assets/sprites/coc_tiles/manifest.json.",
 	"category_order": [
 		"On This Map",
 		"Terrain",
 		"Floors",
+		"Interior Walls",
 		"Walls",
 		"Corners",
 		"Windows",
@@ -20,6 +21,12 @@
 		"Labels"
 	],
 	"entries": {
+		"BG01": {
+			"category": "Special",
+			"kind": "family",
+			"label": "BG01 (BG01)",
+			"sort": 100.0
+		},
 		"BH01": {
 			"category": "Bushes",
 			"kind": "family",
@@ -50,17 +57,35 @@
 			"label": "Ground Grass",
 			"sort": 0.0
 		},
+		"IWAL": {
+			"category": "Interior Walls",
+			"kind": "family",
+			"label": "Interior Wall Junction",
+			"sort": 50.0
+		},
+		"IWCL": {
+			"category": "Interior Walls",
+			"kind": "family",
+			"label": "Interior Wall T Junction",
+			"sort": 30.0
+		},
 		"IWCR": {
-			"category": "Corners",
+			"category": "Interior Walls",
 			"kind": "family",
 			"label": "Interior Wall Corner",
-			"sort": 10.0
+			"sort": 20.0
+		},
+		"IWDR": {
+			"category": "Interior Walls",
+			"kind": "family",
+			"label": "Interior Wall Cross",
+			"sort": 40.0
 		},
 		"IWWL": {
-			"category": "Walls",
+			"category": "Interior Walls",
 			"kind": "family",
 			"label": "Interior Wood Wall",
-			"sort": 30.0
+			"sort": 10.0
 		},
 		"LABEL": {
 			"category": "Labels",
@@ -69,16 +94,28 @@
 			"sort": 10.0
 		},
 		"LIHW": {
-			"category": "Walls",
+			"category": "Interior Walls",
 			"kind": "family",
 			"label": "Low Interior Wall",
-			"sort": 40.0
+			"sort": 60.0
+		},
+		"RIHW": {
+			"category": "Corners",
+			"kind": "family",
+			"label": "Small Stone Corner (new)",
+			"sort": 55.0
 		},
 		"SCOR": {
 			"category": "Corners",
 			"kind": "family",
-			"label": "Stone Wall - NW",
+			"label": "Stone Corner (new)",
 			"sort": 30.0
+		},
+		"SCRS": {
+			"category": "Walls",
+			"kind": "family",
+			"label": "Small Stone Wall (new)",
+			"sort": 26.0
 		},
 		"SFL5": {
 			"category": "Floors",
@@ -110,10 +147,16 @@
 			"label": "USA Spawn",
 			"sort": 10.0
 		},
+		"SWAI": {
+			"category": "Corners",
+			"kind": "family",
+			"label": "Stone Exterior Corner (new)",
+			"sort": 35.0
+		},
 		"SWAL": {
 			"category": "Walls",
 			"kind": "family",
-			"label": "Stone Wall - NW - Small",
+			"label": "Stone Wall Small (new)",
 			"sort": 20.0
 		},
 		"SWAQ": {
@@ -131,7 +174,7 @@
 		"SWIN": {
 			"category": "Windows",
 			"kind": "family",
-			"label": "Street",
+			"label": "Stone Window",
 			"sort": 10.0
 		},
 		"TA01": {
@@ -173,7 +216,7 @@
 		"WCOR": {
 			"category": "Corners",
 			"kind": "family",
-			"label": "Wood Corner",
+			"label": "Bunker Window",
 			"sort": 20.0
 		},
 		"WFL5": {
@@ -188,23 +231,35 @@
 			"label": "Wood Floor",
 			"sort": 40.0
 		},
-		"WH01": {
-			"category": "Windows",
+		"WH00": {
+			"category": "Walls",
 			"kind": "family",
-			"label": "Wall Window 01",
-			"sort": 30.0
+			"label": "Small Stone Wall 00 (new)",
+			"sort": 21.0
+		},
+		"WH01": {
+			"category": "Walls",
+			"kind": "family",
+			"label": "NEW CORRECT Small Stone Wall 01",
+			"sort": 15.0
 		},
 		"WH02": {
-			"category": "Windows",
+			"category": "Walls",
 			"kind": "family",
-			"label": "Wall Window 02",
-			"sort": 40.0
+			"label": "Small Stone Wall 02 (new)",
+			"sort": 23.0
+		},
+		"WH09": {
+			"category": "Walls",
+			"kind": "family",
+			"label": "Small Stone Wall 09 (new)",
+			"sort": 24.0
 		},
 		"WH11": {
-			"category": "Windows",
+			"category": "Walls",
 			"kind": "family",
-			"label": "Wall Window 11",
-			"sort": 50.0
+			"label": "Small Stone Wall 11 (new)",
+			"sort": 25.0
 		},
 		"WICR": {
 			"category": "Corners",

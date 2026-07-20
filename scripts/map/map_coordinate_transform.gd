@@ -7,15 +7,15 @@ extends RefCounted
 ##   1) CoC X-flip: (x,y) → (width-1-x, y)
 ##   2) camera remap with reversed step order 0,3,2,1 (OG rotate spin)
 ##   3) isometric project: screen = (vx-vy)·31·s, (vx+vy)·16·s
-##   4) facets: display_angle = (presentation_world - camera) mod 360
-##      With X-flip, presentation_world = world + 180 (map data unchanged).
-##      Pairs flipped positions with correct exterior/interior wall faces.
+##   4) facets: display_angle = (world - camera) mod 360
+##      World Direction in map data is unchanged by camera / X-flip.
+##      Exterior walls get a selective +180° in CocFacetSelector only
+##      (see CocRenderRules.EXTERIOR_OUTWARD_FACE_FAMILIES). Interiors stay identity.
 ##
-## Confirmed vs OG Fortress screenshots + F5 diagnostics:
+## Confirmed vs OG Fortress screenshots:
 ##   - X-flip restores Woods-left / Hay-right at camera 0°
-##   - +180° facet offset matches F5×5 (FLIP_Y) + E×2 (cam 180°) wall faces
 ##   - Reversed camera steps match OG rotate spin
-## Compare landmarks to OG at Camera 0°.
+##   - Global +180° on all facets breaks interiors (IWWL dir0@cam0 → w).
 
 enum Candidate {
 	CURRENT, ## Authoritative: X-flip + reversed cam steps
@@ -128,10 +128,8 @@ static func project_visual_point_scaled(point: Vector2) -> Vector2:
 
 
 static func presentation_world_direction(world_direction_degrees: int) -> int:
-	## X-flip mirrors +X↔−X on screen; authored Direction must be turned 180° for
-	## facet pick so exterior faces stay outward. Never write this back to JSON.
-	if uses_coc_x_flip():
-		return posmod(world_direction_degrees + 180, 360)
+	## Identity — kept as a single hook if a future candidate needs a remap.
+	## X-flip is coordinate-only; facet math uses authored world Direction as-is.
 	return posmod(world_direction_degrees, 360)
 
 

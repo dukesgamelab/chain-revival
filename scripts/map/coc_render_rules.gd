@@ -18,12 +18,16 @@ const FLOOR_FAMILIES := {
 ## Families that receive Image1 / half-diamond underlays (from reference_renderer WALLISH).
 const WALLISH_FAMILIES := {
 	"IWWL": true,
+	"IWAL": true,
+	"IWDR": true,
 	"RIHW": true,
 	"LIHW": true,
 	"SWAL": true,
 	"WWAL": true,
 	"WH01": true,
 	"WH02": true,
+	"WH09": true,
+	"SCRS": true,
 	"SWIN": true,
 	"WWIN": true,
 	"IWCR": true,
@@ -36,11 +40,40 @@ const WALLISH_FAMILIES := {
 	"WWAQ": true,
 	"SWAQ": true,
 	"SWAR": true,
+	"SWAI": true,
 	"WWAI": true,
 	"WH11": true,
 	"WH00": true,
 	"SDOR": true,
 	"WDOR": true,
+}
+
+## Exterior walls: under CoC X-flip, facet world dir needs +180 so the textured /
+## outward face matches OG. Interior families (IWWL, IWCR, LIHW, …) stay identity
+## so dir0@cam0 keeps the clean interior face (not opposite/burned archive art).
+const EXTERIOR_OUTWARD_FACE_FAMILIES := {
+	"SWAL": true,
+	"SCOR": true,
+	"SICR": true,
+	"SWIN": true,
+	"SWAQ": true,
+	"SWAR": true,
+	"SWAI": true,
+	"SDOR": true,
+	"WWAL": true,
+	"WCOR": true,
+	"WICR": true,
+	"WWIN": true,
+	"WWAR": true,
+	"WWAQ": true,
+	"WWAI": true,
+	"WDOR": true,
+	"WH01": true,
+	"WH02": true,
+	"WH09": true,
+	"WH11": true,
+	"WH00": true,
+	"SCRS": true,
 }
 
 ## Cardinal neighbor → screen-space half-diamond direction (source pitch units).
@@ -78,6 +111,10 @@ static func is_floor_family(family: String) -> bool:
 
 static func is_wallish_family(family: String) -> bool:
 	return WALLISH_FAMILIES.has(family.to_upper())
+
+
+static func uses_outward_face_remap(family: String) -> bool:
+	return EXTERIOR_OUTWARD_FACE_FAMILIES.has(family.to_upper())
 
 
 ## Resolve the sprite used when drawing a floor family (authored floors / Image1 / underlay).

@@ -105,11 +105,14 @@ static func type_id_for_family(family: String) -> String:
 	var fam := family.to_upper()
 	if fam.is_empty():
 		return "coc_prop"
-	if fam.begins_with("WH") or fam.ends_with("WIN") or fam == "SWIN" or fam == "WWIN":
+	if fam == "SWAL" or fam.begins_with("WH") or fam == "SCRS":
+		## WH* / SCRS = small stone wall segments (not windows).
+		return "coc_swal"
+	if fam.ends_with("WIN") or fam == "SWIN" or fam == "WWIN":
 		return "coc_window"
 	if fam in ["WWAR", "WWAQ", "SWAR", "SWAQ", "WWAI"]:
 		return "coc_door_wood"
-	if fam.ends_with("COR") or fam.ends_with("ICR"):
+	if fam == "SWAI" or fam.ends_with("COR") or fam.ends_with("ICR"):
 		return "coc_wall_corner"
 	if fam.begins_with("TR"):
 		return "coc_tree"

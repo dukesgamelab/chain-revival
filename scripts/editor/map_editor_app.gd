@@ -23,7 +23,9 @@ const MAP_WORLD_SCENE := preload("res://scenes/map/map_world.tscn")
 @onready var _asset_tree: Tree = %AssetTree
 @onready var _asset_context: PopupMenu = %AssetContextMenu
 @onready var _rename_asset_button: Button = %RenameAssetButton
+@onready var _delete_asset_button: Button = %DeleteAssetButton
 @onready var _rename_dialog: ConfirmationDialog = %RenameAssetDialog
+@onready var _delete_dialog: ConfirmationDialog = %DeleteAssetDialog
 @onready var _tool_option: OptionButton = %ToolOption
 @onready var _status: Label = %StatusLabel
 @onready var _coord_label: Label = %CoordLabel
@@ -58,6 +60,7 @@ var _inspector_cell: Vector2i = Vector2i(-1, -1)
 var _brush_direction: int = 0
 var _rename_line: LineEdit
 var _rename_family: String = ""
+var _delete_family: String = ""
 var _asset_rebuild_pending: bool = false
 var _pending_asset_filter: String = ""
 
@@ -96,10 +99,12 @@ func _setup_asset_browser() -> void:
 	## Do not mark items editable — click must select the brush, not rename.
 	_asset_context.id_pressed.connect(_on_asset_context_id)
 	_rename_asset_button.pressed.connect(_open_rename_dialog)
+	_delete_asset_button.pressed.connect(_open_delete_dialog)
 	_rename_line = LineEdit.new()
 	_rename_line.placeholder_text = "Display name"
 	_rename_dialog.add_child(_rename_line)
 	_rename_dialog.confirmed.connect(_on_rename_dialog_confirmed)
+	_delete_dialog.confirmed.connect(_on_delete_dialog_confirmed)
 	_populate_assets()
 
 
@@ -268,6 +273,7 @@ func _cell_at_mouse() -> Vector2i:
 func _editor_dialogs_open() -> bool:
 	return (
 		(_rename_dialog != null and _rename_dialog.visible)
+		or (_delete_dialog != null and _delete_dialog.visible)
 		or (_file_dialog != null and _file_dialog.visible)
 		or (_asset_context != null and _asset_context.visible)
 	)
@@ -864,6 +870,38 @@ func _on_rename_dialog_confirmed() -> void:
 		_status.text = "Could not save rename for %s" % _rename_family
 
 
+func _open_delete_dialog() -> void:
+	var meta := _selected_renamable_meta()
+	if meta.is_empty():
+		_status.text = "Select a tile family first, then click Delete from Browser"
+		return
+	var kind := str(meta.get("kind", ""))
+	if kind in ["spawn_usa", "spawn_ger", "victory", "label"]:
+		_status.text = "Can't remove spawn / victory / label markers from the browser"
+		return
+	_delete_family = str(meta.get("family", "")).to_upper()
+	var label := str(meta.get("edit_label", meta.get("label", _delete_family)))
+	_delete_dialog.dialog_text = (
+		"Hide \"%s\" [%s] from the asset browser?\n\nPlaced map tiles stay. PNG files are not deleted.\nYou can restore later by clearing \"hidden\" in editor_asset_catalog.json."
+		% [label, _delete_family]
+	)
+	_delete_dialog.title = "Delete %s from Browser" % _delete_family
+	_delete_dialog.popup_centered(Vector2i(420, 180))
+
+
+func _on_delete_dialog_confirmed() -> void:
+	if _delete_family.is_empty():
+		return
+	if AssetBrowserCatalog.hide_family(_delete_family):
+		_status.text = "Hid %s from asset browser (catalog saved)" % _delete_family
+		if str(_brush.get("family", "")).to_upper() == _delete_family:
+			_brush.clear()
+		_delete_family = ""
+		_populate_assets(_search.text)
+	else:
+		_status.text = "Could not hide %s (protected or save failed)" % _delete_family
+
+
 func _on_asset_mouse_selected(_mouse_position: Vector2, mouse_button_index: int) -> void:
 	if mouse_button_index != MOUSE_BUTTON_RIGHT:
 		return
@@ -872,6 +910,7 @@ func _on_asset_mouse_selected(_mouse_position: Vector2, mouse_button_index: int)
 		return
 	_asset_context.clear()
 	_asset_context.add_item("Rename…", 0)
+	_asset_context.add_item("Delete from Browser…", 100)
 	_asset_context.add_separator()
 	var idx := 1
 	for cat in AssetBrowserCatalog.category_order():
@@ -892,6 +931,9 @@ func _on_asset_context_id(id: int) -> void:
 	var family := str(meta.get("family", "")).to_upper()
 	if id == 0:
 		_open_rename_dialog()
+		return
+	if id == 100:
+		_open_delete_dialog()
 		return
 	var cat := str(_asset_context.get_item_metadata(id))
 	if cat.is_empty():

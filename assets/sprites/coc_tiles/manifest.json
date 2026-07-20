@@ -158,6 +158,24 @@
    "source_format": "u8span"
   },
   {
+   "family": "BG01",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/BG01_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "BG01S3A.PNG",
+   "source_format": "user_import"
+  },
+  {
    "family": "BH01",
    "class": "static",
    "letter": "e",
@@ -244,8 +262,8 @@
     100,
     100
    ],
-   "source_file": "8IWCRS3A.BMP",
-   "source_format": "u8span"
+   "source_file": "IWCRS3A.BMP",
+   "source_format": "user_import"
   },
   {
    "family": "IWCR",
@@ -262,8 +280,8 @@
     100,
     100
    ],
-   "source_file": "8IWCRS1A.BMP",
-   "source_format": "u8span"
+   "source_file": "IWCRS1A.BMP",
+   "source_format": "user_import"
   },
   {
    "family": "IWCR",
@@ -280,8 +298,8 @@
     100,
     100
    ],
-   "source_file": "8IWCRS5A.BMP",
-   "source_format": "u8span"
+   "source_file": "IWCRS5A.BMP",
+   "source_format": "user_import"
   },
   {
    "family": "IWCR",
@@ -316,8 +334,8 @@
     100,
     100
    ],
-   "source_file": "8IWWLS3A.BMP",
-   "source_format": "u8span"
+   "source_file": "IWWLS3C.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "IWWL",
@@ -334,8 +352,8 @@
     100,
     100
    ],
-   "source_file": "8IWWLS1A.BMP",
-   "source_format": "u8span"
+   "source_file": "IWWLS1C.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "IWWL",
@@ -352,8 +370,8 @@
     100,
     100
    ],
-   "source_file": "8IWWLS5A.BMP",
-   "source_format": "u8span"
+   "source_file": "IWWLS5C.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "IWWL",
@@ -370,8 +388,8 @@
     100,
     100
    ],
-   "source_file": "8IWWLS7A.BMP",
-   "source_format": "u8span"
+   "source_file": "IWWLS3C.PNG (mirrored stand-in; archive IWWLS7A is burned outdoor art, IWWLS7C missing)",
+   "source_format": "user_import"
   },
   {
    "family": "LIHW",
@@ -478,8 +496,8 @@
     100,
     100
    ],
-   "source_file": "8SCORS5A.BMP",
-   "source_format": "u8span"
+   "source_file": "SCORS5A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "SCOR",
@@ -946,8 +964,8 @@
     100,
     100
    ],
-   "source_file": "8SWINS7A.BMP",
-   "source_format": "u8span"
+   "source_file": "SWINS27A.PNG (user import; replaces empty archive 8SWINS7A decode)",
+   "source_format": "user_import"
   },
   {
    "family": "TA01",
@@ -1342,8 +1360,8 @@
     100,
     100
    ],
-   "source_file": "8WFLOS3A.BMP",
-   "source_format": "u8span"
+   "source_file": "WFLOS3A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH01",
@@ -1360,8 +1378,8 @@
     100,
     100
    ],
-   "source_file": "8WH01S3A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH01S3A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH01",
@@ -1378,8 +1396,8 @@
     100,
     100
    ],
-   "source_file": "8WH01S1A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH01S1A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH01",
@@ -1396,8 +1414,8 @@
     100,
     100
    ],
-   "source_file": "8WH01S5A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH01S5A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH01",
@@ -1414,8 +1432,8 @@
     100,
     100
    ],
-   "source_file": "8WH01S7A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH01S7A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH02",
@@ -1432,8 +1450,8 @@
     100,
     100
    ],
-   "source_file": "8WH02S3A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH02S3A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH02",
@@ -1450,8 +1468,8 @@
     100,
     100
    ],
-   "source_file": "8WH02S1A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH02S1A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH02",
@@ -1468,8 +1486,8 @@
     100,
     100
    ],
-   "source_file": "8WH02S5A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH02S5A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH02",
@@ -1486,8 +1504,8 @@
     100,
     100
    ],
-   "source_file": "8WH02S7A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH02S7A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH11",
@@ -1504,8 +1522,8 @@
     100,
     100
    ],
-   "source_file": "8WH11S3A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH11S3A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH11",
@@ -1522,8 +1540,8 @@
     100,
     100
    ],
-   "source_file": "8WH11S1A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH11S1A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH11",
@@ -1540,8 +1558,8 @@
     100,
     100
    ],
-   "source_file": "8WH11S5A.BMP",
-   "source_format": "u8span"
+   "source_file": "WH11S5A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WH11",
@@ -1558,8 +1576,8 @@
     100,
     100
    ],
-   "source_file": "8WH11S7A.BMP",
-   "source_format": "raw+cornerkey"
+   "source_file": "WH11S7A.PNG",
+   "source_format": "user_import"
   },
   {
    "family": "WICR",
@@ -3144,6 +3162,312 @@
    ],
    "source_file": "8GRS9_8A.BMP",
    "source_format": "raw+cornerkey"
+  },
+  {
+   "family": "IWDR",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWDR_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWDRS7A.BMP",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWAL",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWAL_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWALS7A.BMP",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWCL",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCL_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCLS3A.BMP",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SWAI",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAI_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS3A.PNG",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SWAI",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAI_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS1A.PNG",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SWAI",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAI_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS1A.PNG (mirrored stand-in; S5A not provided)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SWAI",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAI_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS7A.PNG",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WH00",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH00_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH00S3A.PNG",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WH09",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH09_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH09S5A.PNG",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WH09",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH09_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH09S3A.PNG",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WH09",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH09_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH09S1A.PNG",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WH09",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH09_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH09S7A.PNG",
+   "source_format": "user_import"
+  },
+  {
+   "family": "RIHW",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/RIHW_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "RIHWS7A.PNG",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SCRS",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SCRS_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SCRS13A.PNG",
+   "source_format": "user_import"
+  },
+  {
+   "family": "RIHW",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/RIHW_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "RIHWS7A.PNG (stand-in)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "RIHW",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/RIHW_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "RIHWS7A.PNG (stand-in)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "RIHW",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/RIHW_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "RIHWS7A.PNG (stand-in)",
+   "source_format": "user_import"
   }
  ],
  "under_image_rule": "Map tiles may carry an Image1 property naming a floor sprite to draw beneath the wall at that cell (original engine mechanism; e.g. LIHW->WFLO, WWAR/WWAQ/SWAQ/SWAR->SFL5). Draw Image1 first, then the wall. For wall cells without Image1 that neighbour interior floors, the half-diamond adjacency underlay applies (renderer rule)."

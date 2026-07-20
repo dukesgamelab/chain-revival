@@ -12,6 +12,7 @@ const DEFAULT_CATEGORY_ORDER: PackedStringArray = [
 	"On This Map",
 	"Terrain",
 	"Floors",
+	"Interior Walls",
 	"Walls",
 	"Corners",
 	"Windows",
@@ -81,6 +82,8 @@ static func build_categories(map_data: MapData = null) -> Dictionary:
 	for key in sorted_keys:
 		var fam := str(key).to_upper()
 		var entry: Dictionary = entries[key]
+		if bool(entry.get("hidden", false)):
+			continue
 		var cat := str(entry.get("category", categorize_family(fam)))
 		if not categories.has(cat):
 			categories[cat] = []
@@ -143,6 +146,35 @@ static func set_family_category(family: String, category: String) -> bool:
 	return _save_catalog()
 
 
+## Hide a family from the asset browser (does not delete PNG/manifest files).
+## Soft-delete so _sync_manifest_families will not resurrect it unmarked.
+static func hide_family(family: String) -> bool:
+	_ensure_catalog()
+	var fam := family.to_upper()
+	if fam.is_empty():
+		return false
+	var entries: Dictionary = _catalog_cache.get("entries", {})
+	if not entries.has(fam):
+		_ensure_entry(fam)
+	var entry: Dictionary = entries[fam]
+	var kind := str(entry.get("kind", "family"))
+	if kind in ["spawn_usa", "spawn_ger", "victory", "label"]:
+		return false
+	entry["hidden"] = true
+	entries[fam] = entry
+	_catalog_cache["entries"] = entries
+	return _save_catalog()
+
+
+static func is_family_hidden(family: String) -> bool:
+	_ensure_catalog()
+	var fam := family.to_upper()
+	var entries: Dictionary = _catalog_cache.get("entries", {})
+	if not entries.has(fam):
+		return false
+	return bool(entries[fam].get("hidden", false))
+
+
 static func display_label(family: String) -> String:
 	_ensure_catalog()
 	var fam := family.to_upper()
@@ -158,22 +190,26 @@ static func categorize_family(family: String) -> String:
 		return "Terrain"
 	if CocRenderRules.is_floor_family(fam):
 		return "Floors"
-	if fam.begins_with("WH") or fam.ends_with("WIN") or fam in ["SWIN", "WWIN", "WH11"]:
+	if fam.ends_with("WIN") or fam in ["SWIN", "WWIN"]:
 		return "Windows"
+	if fam.begins_with("WH") or fam == "SCRS":
+		return "Walls"
 	if fam in ["WWAR", "WWAQ", "SWAR", "SWAQ", "WWAI", "SDOR", "WDOR"]:
 		return "Doors"
-	if fam.ends_with("COR") or fam.ends_with("ICR") or fam == "IWCR":
+	if fam in ["IWWL", "IWCR", "IWCL", "IWDR", "IWAL", "LIHW", "RIHW"]:
+		return "Interior Walls"
+	if fam == "SWAI" or fam.ends_with("COR") or fam.ends_with("ICR"):
 		return "Corners"
-	if CocRenderRules.is_wallish_family(fam) or fam in ["WWAL", "SWAL", "LIHW", "IWWL"]:
+	if CocRenderRules.is_wallish_family(fam) or fam in ["WWAL", "SWAL"]:
 		return "Walls"
 	if fam.begins_with("TR"):
 		return "Trees"
+	if fam.begins_with("HY") or fam.begins_with("HAY") or fam.begins_with("BG") or fam == "BH01":
+		return "Hay"
 	if fam.begins_with("BH") or fam.begins_with("CW"):
 		return "Bushes"
 	if fam.begins_with("RK") or fam.begins_with("RO"):
 		return "Rocks"
-	if fam.begins_with("HY") or fam.begins_with("HAY"):
-		return "Hay"
 	if fam.begins_with("VH") or fam.begins_with("VEH") or fam.begins_with("JE"):
 		return "Vehicles"
 	if fam.begins_with("TA") or fam.begins_with("SF") or fam.begins_with("WF"):

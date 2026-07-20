@@ -103,11 +103,18 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Rename Selected"
 
+[node name="DeleteAssetButton" type="Button" parent="Root/Body/LeftPanel/BrowserActions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Delete from Browser"
+
 [node name="BrowserHint" type="Label" parent="Root/Body/LeftPanel"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.65, 0.7, 0.66, 1)
-text = "Click selects brush · Rename button / F2 / right-click
+text = "Click selects brush · Rename / F2 · Delete hides from list
+Right-click for rename / move / delete
 Names: assets/data/editor_asset_catalog.json"
 autowrap_mode = 3
 
@@ -126,6 +133,13 @@ unique_name_in_owner = true
 unique_name_in_owner = true
 title = "Rename Asset"
 ok_button_text = "Save"
+dialog_hide_on_ok = true
+
+[node name="DeleteAssetDialog" type="ConfirmationDialog" parent="Root/Body/LeftPanel"]
+unique_name_in_owner = true
+title = "Delete from Browser"
+ok_button_text = "Delete"
+dialog_text = "Hide this asset from the browser? Map tiles already placed stay; PNG files are not deleted."
 dialog_hide_on_ok = true
 
 [node name="CenterPanel" type="VBoxContainer" parent="Root/Body"]

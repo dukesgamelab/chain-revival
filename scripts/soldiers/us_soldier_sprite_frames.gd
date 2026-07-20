@@ -7,7 +7,9 @@ extends RefCounted
 ##   Fall/death:  AFALA / GFALA  (A–W)
 ##   Corpse:      ADFUS / GDFUS  (A)
 ##
-## Direction digits: 1=W, 2=SW, 3=S, 4=SE, 5=E, 6=NE, 7=N, 8=NW.
+## Direction digits (soldier BMP convention — NOT ASAX tile digits):
+## 1=W, 2=SW, 3=S, 4=SE, 5=E, 6=NE, 7=N, 8=NW.
+## Verified vs ASMOA1/3/5/7 idle frames (upper-left / lower-left / lower-right / upper-right).
 
 const WALK_SPRITES_DIR_USA := "res://assets/sprites/us_soldier/walk"
 const HIT_SPRITES_DIR_USA := "res://assets/sprites/us_soldier/hit_reaction"
@@ -82,8 +84,32 @@ static func get_germany_sprite_frames() -> SpriteFrames:
 
 
 ## Map a grid step or cardinal facing vector to an OG direction suffix (w, sw, …).
+## Under CoC X-flip, logical ±X steps reverse on screen — pick the letter from the
+## visual step so bodies match aim lines / movement on the flipped map.
 static func direction_from_step(step: Vector2i) -> String:
-	match snap_step_to_eight_way(step):
+	var snapped := snap_step_to_eight_way(step)
+	if MapCoordinateTransform.uses_coc_x_flip():
+		## visual_delta = (-logical_dx, logical_dy) for the authoritative X-flip.
+		snapped = Vector2i(-snapped.x, snapped.y)
+	return _letter_from_visual_step(snapped)
+
+
+## Threat step points from victim toward attacker / blast. Fall direction is away from threat.
+static func direction_from_threat(threat_step: Vector2i) -> String:
+	var snapped := snap_step_to_eight_way(threat_step)
+	if snapped == Vector2i.ZERO:
+		return direction_from_step(FacingDirection.NORTH)
+	return direction_from_step(-snapped)
+
+
+static func snap_step_to_eight_way(step: Vector2i) -> Vector2i:
+	if step == Vector2i.ZERO:
+		return Vector2i.ZERO
+	return Vector2i(clampi(step.x, -1, 1), clampi(step.y, -1, 1))
+
+
+static func _letter_from_visual_step(step: Vector2i) -> String:
+	match step:
 		Vector2i(-1, 0):
 			return "w"
 		Vector2i(-1, 1):
@@ -102,20 +128,6 @@ static func direction_from_step(step: Vector2i) -> String:
 			return "nw"
 		_:
 			return "n"
-
-
-## Threat step points from victim toward attacker / blast. Fall direction is away from threat.
-static func direction_from_threat(threat_step: Vector2i) -> String:
-	var snapped := snap_step_to_eight_way(threat_step)
-	if snapped == Vector2i.ZERO:
-		return "n"
-	return direction_from_step(-snapped)
-
-
-static func snap_step_to_eight_way(step: Vector2i) -> Vector2i:
-	if step == Vector2i.ZERO:
-		return Vector2i.ZERO
-	return Vector2i(clampi(step.x, -1, 1), clampi(step.y, -1, 1))
 
 
 static func _build_sprite_frames(
