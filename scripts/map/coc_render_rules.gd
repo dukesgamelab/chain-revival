@@ -44,6 +44,7 @@ const WALLISH_FAMILIES := {
 }
 
 ## Cardinal neighbor → screen-space half-diamond direction (source pitch units).
+## Values assume presentation without CoC X-flip. Use neighbor_screen_dirs().
 const NEIGHBOR_DIRS: Array[Vector2i] = [
 	Vector2i(0, 1),
 	Vector2i(1, 0),
@@ -56,6 +57,19 @@ const NEIGHBOR_SCREEN: Array[Vector2] = [
 	Vector2(31, -16),
 	Vector2(-31, -16),
 ]
+## After authoritative CoC X-flip, logical ±X neighbors land on the opposite screen diagonal.
+const NEIGHBOR_SCREEN_XFLIP: Array[Vector2] = [
+	Vector2(-31, 16),
+	Vector2(-31, -16),
+	Vector2(31, -16),
+	Vector2(31, 16),
+]
+
+
+static func neighbor_screen_dirs() -> Array[Vector2]:
+	if MapCoordinateTransform.uses_coc_x_flip():
+		return NEIGHBOR_SCREEN_XFLIP
+	return NEIGHBOR_SCREEN
 
 
 static func is_floor_family(family: String) -> bool:

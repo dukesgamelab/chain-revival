@@ -77,7 +77,7 @@
 		"SCOR": {
 			"category": "Corners",
 			"kind": "family",
-			"label": "Stone Corner - SE",
+			"label": "Stone Wall - NW",
 			"sort": 30.0
 		},
 		"SFL5": {
@@ -119,19 +119,19 @@
 		"SWAQ": {
 			"category": "Doors",
 			"kind": "family",
-			"label": "Stone Door Left",
+			"label": "Stone Wall - Small - NW -  Left",
 			"sort": 40.0
 		},
 		"SWAR": {
 			"category": "Doors",
 			"kind": "family",
-			"label": "Stone Door Right",
+			"label": "Stone Door - NW",
 			"sort": 30.0
 		},
 		"SWIN": {
 			"category": "Windows",
 			"kind": "family",
-			"label": "Stone Window",
+			"label": "Street",
 			"sort": 10.0
 		},
 		"TA01": {
@@ -209,7 +209,7 @@
 		"WICR": {
 			"category": "Corners",
 			"kind": "family",
-			"label": "Wood Wall - SE 2",
+			"label": "Wood Wall - Corner - SE",
 			"sort": 40.0
 		},
 		"WWAI": {

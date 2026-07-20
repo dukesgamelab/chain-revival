@@ -177,7 +177,7 @@ size_flags_horizontal = 3
 [node name="Help" type="Label" parent="Root/Body/RightPanel"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
-text = "Q/E rotate · R brush dir · Ctrl+Z/Y undo/redo · Ctrl+S save · F3 debug · Esc back"
+text = "Q/E rotate · R brush dir · Ctrl+Z/Y undo/redo · Ctrl+S save · F3 debug · F4/F5 handedness · Esc back"
 autowrap_mode = 3
 
 [node name="FileDialog" type="FileDialog" parent="."]

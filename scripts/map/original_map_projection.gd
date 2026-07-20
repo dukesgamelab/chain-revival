@@ -1,6 +1,7 @@
 class_name OriginalMapProjection
 extends RefCounted
 ## Recovered CoC tile pitch 62×32. Scale whole map by TILE_WIDTH / 62.
+## Handedness (X-flip) lives in MapCoordinateTransform — not here.
 
 const SOURCE_PITCH_WIDTH := 62.0
 const SOURCE_STEP_X := 31.0
@@ -12,10 +13,8 @@ static func map_scale() -> float:
 
 
 static func source_cell_point(cell: Vector2i) -> Vector2:
-	return Vector2(
-		float(cell.x - cell.y) * SOURCE_STEP_X,
-		float(cell.x + cell.y) * SOURCE_STEP_Y,
-	)
+	## Unscaled source pitch — routes through MapCoordinateTransform for candidates.
+	return MapCoordinateTransform.project_visual_point(Vector2(cell))
 
 
 static func cell_to_world(cell: Vector2i) -> Vector2:
@@ -23,19 +22,11 @@ static func cell_to_world(cell: Vector2i) -> Vector2:
 
 
 static func point_to_world(point: Vector2) -> Vector2:
-	return Vector2(
-		(point.x - point.y) * SOURCE_STEP_X,
-		(point.x + point.y) * SOURCE_STEP_Y,
-	) * map_scale()
+	return MapCoordinateTransform.project_visual_point_scaled(point)
 
 
 static func world_to_point(world: Vector2) -> Vector2:
-	var s := map_scale()
-	if s <= 0.0:
-		return Vector2.ZERO
-	var sx := world.x / (SOURCE_STEP_X * s)
-	var sy := world.y / (SOURCE_STEP_Y * s)
-	return Vector2((sx + sy) * 0.5, (sy - sx) * 0.5)
+	return MapCoordinateTransform.unproject_to_visual_point(world)
 
 
 static func world_to_cell(world: Vector2) -> Vector2i:

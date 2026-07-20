@@ -120,7 +120,11 @@ func _half_texture(wood: bool, nbrs: Array[Vector2i]) -> Texture2D:
 	for i in range(CocRenderRules.NEIGHBOR_DIRS.size()):
 		if nbrs.has(CocRenderRules.NEIGHBOR_DIRS[i]):
 			mask_bits |= 1 << i
-	var key := "%s|%d" % ["W" if wood else "S", mask_bits]
+	var key := "%s|%d|%s" % [
+		"W" if wood else "S",
+		mask_bits,
+		MapCoordinateTransform.candidate_name(),
+	]
 	if _half_cache.has(key):
 		return _half_cache[key] as Texture2D
 	var base := _tan_wood if wood else _tan_stone
@@ -137,10 +141,11 @@ func _half_texture(wood: bool, nbrs: Array[Vector2i]) -> Texture2D:
 	for y in range(h):
 		for x in range(w):
 			var keep := false
+			var screen_dirs := CocRenderRules.neighbor_screen_dirs()
 			for i in range(CocRenderRules.NEIGHBOR_DIRS.size()):
 				if (mask_bits & (1 << i)) == 0:
 					continue
-				var d: Vector2 = CocRenderRules.NEIGHBOR_SCREEN[i]
+				var d: Vector2 = screen_dirs[i]
 				if (float(x) - 52.0) * d.x + (float(y) - 74.0) * d.y > 0.0:
 					keep = true
 					break

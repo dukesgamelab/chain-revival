@@ -38,7 +38,8 @@ static func set_original_projection_enabled(enabled: bool) -> void:
 
 
 static func camera_direction_degrees() -> int:
-	return posmod(current_view_rotation, 4) * 90
+	## Facet math uses the effective camera step (candidate F may reverse order).
+	return MapCoordinateTransform.camera_step_for_rotation(current_view_rotation) * 90
 
 
 static func reset_view_rotation() -> void:
@@ -54,11 +55,13 @@ static func rotate_view_right() -> void:
 
 
 static func _logical_to_visual(cell: Vector2i) -> Vector2i:
-	var x := cell.x
-	var y := cell.y
+	var pre := MapCoordinateTransform.preprocess_logical_cell(cell, _map_width, _map_height)
+	var x := pre.x
+	var y := pre.y
 	var w := _map_width
 	var h := _map_height
-	match current_view_rotation:
+	var step := MapCoordinateTransform.camera_step_for_rotation(current_view_rotation)
+	match step:
 		1:
 			return Vector2i(y, w - 1 - x)
 		2:
@@ -66,7 +69,7 @@ static func _logical_to_visual(cell: Vector2i) -> Vector2i:
 		3:
 			return Vector2i(h - 1 - y, x)
 		_:
-			return cell
+			return pre
 
 
 ## Public alias for presentation remaps (camera rotation only).
@@ -79,15 +82,25 @@ static func _visual_to_logical(cell: Vector2i) -> Vector2i:
 	var vy := cell.y
 	var w := _map_width
 	var h := _map_height
-	match current_view_rotation:
+	var step := MapCoordinateTransform.camera_step_for_rotation(current_view_rotation)
+	var logical: Vector2i
+	match step:
 		1:
-			return Vector2i(w - 1 - vy, vx)
+			logical = Vector2i(w - 1 - vy, vx)
 		2:
-			return Vector2i(w - 1 - vx, h - 1 - vy)
+			logical = Vector2i(w - 1 - vx, h - 1 - vy)
 		3:
-			return Vector2i(vy, h - 1 - vx)
+			logical = Vector2i(vy, h - 1 - vx)
 		_:
-			return cell
+			logical = cell
+	return _inverse_preprocess_logical(logical)
+
+
+static func _inverse_preprocess_logical(cell: Vector2i) -> Vector2i:
+	## Undo presentation preprocess so mouse picking returns logical map cells.
+	return MapCoordinateTransform.inverse_preprocess_logical_cell(
+		cell, _map_width, _map_height
+	)
 
 
 static func _base_grid_to_world(grid: Vector2i) -> Vector2:
@@ -120,11 +133,19 @@ static func _base_world_to_grid(world: Vector2) -> Vector2i:
 
 
 static func _logical_to_visual_point(point: Vector2) -> Vector2:
-	var x := point.x
-	var y := point.y
+	var pre := MapCoordinateTransform.preprocess_logical_cell(
+		Vector2i(int(round(point.x)), int(round(point.y))),
+		_map_width,
+		_map_height,
+	)
+	## Keep fractional part relative to the integer preprocess for smooth camera focus.
+	var frac := point - Vector2(Vector2i(int(round(point.x)), int(round(point.y))))
+	var x := float(pre.x) + frac.x
+	var y := float(pre.y) + frac.y
 	var w := float(maxi(_map_width - 1, 0))
 	var h := float(maxi(_map_height - 1, 0))
-	match current_view_rotation:
+	var step := MapCoordinateTransform.camera_step_for_rotation(current_view_rotation)
+	match step:
 		1:
 			return Vector2(y, w - x)
 		2:
@@ -132,7 +153,7 @@ static func _logical_to_visual_point(point: Vector2) -> Vector2:
 		3:
 			return Vector2(h - y, x)
 		_:
-			return point
+			return Vector2(x, y)
 
 
 static func _visual_to_logical_point(point: Vector2) -> Vector2:
@@ -140,15 +161,20 @@ static func _visual_to_logical_point(point: Vector2) -> Vector2:
 	var vy := point.y
 	var w := float(maxi(_map_width - 1, 0))
 	var h := float(maxi(_map_height - 1, 0))
-	match current_view_rotation:
+	var step := MapCoordinateTransform.camera_step_for_rotation(current_view_rotation)
+	var logical: Vector2
+	match step:
 		1:
-			return Vector2(w - vy, vx)
+			logical = Vector2(w - vy, vx)
 		2:
-			return Vector2(w - vx, h - vy)
+			logical = Vector2(w - vx, h - vy)
 		3:
-			return Vector2(vy, h - vx)
+			logical = Vector2(vy, h - vx)
 		_:
-			return point
+			logical = point
+	var inv := _inverse_preprocess_logical(Vector2i(int(round(logical.x)), int(round(logical.y))))
+	var frac := logical - Vector2(Vector2i(int(round(logical.x)), int(round(logical.y))))
+	return Vector2(inv) + frac
 
 
 ## Convert a logical grid cell to the world-space CENTER of that tile (presentation).

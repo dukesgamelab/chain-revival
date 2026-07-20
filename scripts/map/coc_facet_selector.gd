@@ -2,20 +2,21 @@ class_name CocFacetSelector
 extends RefCounted
 ## Camera-relative facet selection from the recovered engine quantizer.
 ##
-## display_angle = (Direction - CameraDirection + 360) mod 360
-## World Direction stays in map data; camera is presentation-only.
+## display_angle = (presentation_world - CameraDirection + 360) mod 360
+## Map-data Direction is unchanged; X-flip applies +180° for presentation only.
 
 const LETTERS_4: PackedStringArray = ["e", "s", "w", "n"]
 const LETTERS_8: PackedStringArray = ["e", "se", "s", "sw", "w", "nw", "n", "ne"]
 
 
 static func camera_degrees() -> int:
-	## Matches IsometricGrid view rotation steps (0/90/180/270 clockwise).
-	return posmod(IsometricGrid.current_view_rotation, 4) * 90
+	## Same effective camera step as position remap (includes reverse-cam).
+	return IsometricGrid.camera_direction_degrees()
 
 
 static func display_angle(world_direction_degrees: int) -> int:
-	return posmod(world_direction_degrees - camera_degrees(), 360)
+	var world := MapCoordinateTransform.presentation_world_direction(world_direction_degrees)
+	return posmod(world - camera_degrees(), 360)
 
 
 static func slot_for_facets(display_angle_deg: int, facets: int) -> int:
@@ -61,9 +62,10 @@ static func select_letter_at_camera(
 	camera_direction_degrees: int,
 ) -> String:
 	var facets := CocTileCatalog.facet_count(family)
-	var angle := posmod(world_direction_degrees - camera_direction_degrees, 360)
+	var world := MapCoordinateTransform.presentation_world_direction(world_direction_degrees)
+	var angle := posmod(world - camera_direction_degrees, 360)
 	var slot := slot_for_facets(angle, facets)
-	return letter_for_slot(slot, facets)
+	return MapCoordinateTransform.reflect_facet_letter(letter_for_slot(slot, facets))
 
 
 static func resolve_draw(family: String, world_direction_degrees: int, anim_frame: int = 0) -> Dictionary:
@@ -77,6 +79,8 @@ static func resolve_draw_at_camera(
 	anim_frame: int = 0,
 ) -> Dictionary:
 	var letter := select_letter_at_camera(family, world_direction_degrees, camera_direction_degrees)
+	var world := MapCoordinateTransform.presentation_world_direction(world_direction_degrees)
+	var angle := posmod(world - camera_direction_degrees, 360)
 	var resolved := CocTileCatalog.resolve(family, letter, anim_frame)
 	if resolved.is_empty():
 		return {
@@ -85,11 +89,11 @@ static func resolve_draw_at_camera(
 			"path": "",
 			"hotspot": CocTileCatalog.DEFAULT_HOTSPOT,
 			"missing": true,
-			"display_angle": posmod(world_direction_degrees - camera_direction_degrees, 360),
+			"display_angle": angle,
 			"facet_count": CocTileCatalog.facet_count(family),
 		}
 	resolved["letter"] = letter
 	resolved["missing"] = false
-	resolved["display_angle"] = posmod(world_direction_degrees - camera_direction_degrees, 360)
+	resolved["display_angle"] = angle
 	resolved["facet_count"] = CocTileCatalog.facet_count(family)
 	return resolved

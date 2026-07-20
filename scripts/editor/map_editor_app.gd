@@ -63,6 +63,8 @@ var _pending_asset_filter: String = ""
 
 
 func _ready() -> void:
+	MapCoordinateTransform.reset_candidate()
+	IsometricGrid.reset_view_rotation()
 	_setup_world()
 	_setup_tools()
 	_setup_asset_browser()
@@ -334,6 +336,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			_world.toggle_debug_overlay()
 			get_viewport().set_input_as_handled()
 			return
+		if event.keycode == KEY_F4:
+			_world.toggle_handedness_overlay()
+			_status.text = "Handedness overlay toggled (F5 cycles transform candidates)"
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_F5:
+			var cand := _world.cycle_handedness_candidate()
+			_status.text = (
+				"Handedness: %s — compare OG at Cam 0° (Q/E). Default A needs 0 presses."
+				% cand
+			)
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_ESCAPE:
 			get_tree().change_scene_to_file(MODE_SELECT_SCENE)
 			get_viewport().set_input_as_handled()
@@ -351,6 +366,8 @@ func _handle_mouse_editor_input(event: InputEvent) -> void:
 			IsometricGrid.camera_direction_degrees(),
 			_brush_direction,
 		]
+		if _world != null:
+			_world.set_handedness_selected_cell(cell)
 		if _map_data != null and _map_data.is_in_bounds(cell):
 			_world.set_hover_cell(cell)
 			_refresh_placement_preview(cell)

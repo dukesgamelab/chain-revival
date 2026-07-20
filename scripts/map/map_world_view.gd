@@ -15,6 +15,7 @@ signal map_applied(map_data: MapData)
 @onready var label_layer: OriginalLabelLayer = $OriginalLabelLayer
 @onready var placement_preview: CocPlacementPreviewLayer = $CocPlacementPreviewLayer
 @onready var debug_overlay: CocTileDebugOverlay = $CocTileDebugOverlay
+@onready var handedness_overlay: HandednessDebugOverlay = $HandednessDebugOverlay
 
 var map_data: MapData = null
 var show_grid_fill: bool = false
@@ -24,6 +25,8 @@ var _grass_visible: bool = true
 func _ready() -> void:
 	if debug_overlay != null:
 		debug_overlay.visible = false
+	if handedness_overlay != null:
+		handedness_overlay.visible = false
 
 
 func apply_map_data(data: MapData) -> void:
@@ -42,6 +45,8 @@ func apply_map_data(data: MapData) -> void:
 	label_layer.apply_map_data(map_data)
 	if debug_overlay != null:
 		debug_overlay.apply_map_data(map_data)
+	if handedness_overlay != null:
+		handedness_overlay.apply_map_data(map_data)
 	_sync_grid_fill()
 	map_applied.emit(map_data)
 
@@ -65,6 +70,8 @@ func refresh_view_rotation() -> void:
 		placement_preview.refresh_view_rotation()
 	if debug_overlay != null:
 		debug_overlay.refresh_view_rotation()
+	if handedness_overlay != null:
+		handedness_overlay.refresh_view_rotation()
 
 
 func set_grass_visible(visible_on: bool) -> void:
@@ -105,6 +112,23 @@ func clear_placement_preview() -> void:
 func toggle_debug_overlay() -> void:
 	if debug_overlay != null:
 		debug_overlay.toggle()
+
+
+func toggle_handedness_overlay() -> void:
+	if handedness_overlay != null:
+		handedness_overlay.toggle()
+
+
+func cycle_handedness_candidate() -> String:
+	var name := MapCoordinateTransform.cycle_candidate()
+	refresh_presentation()
+	refresh_view_rotation()
+	return name
+
+
+func set_handedness_selected_cell(cell: Vector2i) -> void:
+	if handedness_overlay != null:
+		handedness_overlay.set_selected_cell(cell)
 
 
 func set_center_cell(cell: Vector2i) -> void:

@@ -1020,6 +1020,10 @@
 		{
 			"x": 45,
 			"y": 71
+		},
+		{
+			"x": 17,
+			"y": 75
 		}
 	],
 	"decoration": [
@@ -7822,30 +7826,6 @@
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
-				"x": 18,
-				"y": 82
-			},
-			"object_id": "coc_window@18,82",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 18,
-			"y": 82
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": false,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
 				"x": 13,
 				"y": 73
 			},
@@ -13671,6 +13651,30 @@
 			"type": "coc_wall_corner",
 			"x": 45,
 			"y": 71
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 17,
+				"y": 75
+			},
+			"object_id": "coc_bush@17,75",
+			"object_type": "coc_bush",
+			"provides_cover": true,
+			"source": {
+				"direction": 0,
+				"image": "CW01",
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"z": 0
+			},
+			"sprite_path": "",
+			"type": "coc_bush",
+			"x": 17,
+			"y": 75
 		}
 	],
 	"source_format": "Chain of Command OIX (decoded)",

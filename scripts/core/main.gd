@@ -478,6 +478,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			)
 			get_viewport().set_input_as_handled()
 			return
+		if event.keycode == KEY_F4:
+			_world.toggle_handedness_overlay()
+			_command_bar.show_status("Handedness overlay toggled (F5 cycles candidates)")
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_F5:
+			var cand := _world.cycle_handedness_candidate()
+			_command_bar.show_status("Handedness candidate: %s" % cand)
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_ESCAPE and _return_to_editor_on_exit:
 			EditorPlaySession.clear_return_flag()
 			get_tree().change_scene_to_file("res://scenes/editor/map_editor.tscn")
