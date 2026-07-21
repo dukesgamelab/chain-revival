@@ -81,7 +81,7 @@ func set_face_pressed(is_pressed: bool) -> void:
 	if not _row_enabled:
 		return
 	_face_button.set_pressed_no_signal(is_pressed)
-	_face_button.modulate = Color(0.75, 1.0, 0.85) if is_pressed else Color.WHITE
+	_face_button.modulate = CocUiTheme.selected_modulate(is_pressed)
 
 
 func set_weapon_info(state: SoldierState) -> void:
@@ -146,7 +146,14 @@ func set_row_enabled(enabled: bool) -> void:
 	_face_button.disabled = not enabled
 	_position_button.disabled = not enabled
 	_grenade_button.disabled = not enabled
-	modulate = Color.WHITE if enabled else Color(0.45, 0.45, 0.45, 1.0)
+	modulate = Color.WHITE if enabled else Color(0.75, 0.75, 0.75, 1.0)
+
+
+func apply_coc_inset_wells(inset: StyleBox) -> void:
+	for panel_name in ["DotPanel", "WeaponPanel", "AmmoPanel", "StatusPanel", "StressPanel", "HitPanel"]:
+		var panel := get_node_or_null(panel_name) as PanelContainer
+		if panel != null:
+			panel.add_theme_stylebox_override("panel", inset)
 
 
 func set_move_button_enabled(movement_mode: int, enabled: bool) -> void:
@@ -162,13 +169,13 @@ func set_position_state(position_state: int) -> void:
 	var is_down := position_state == PositionState.DOWN
 	_position_button.set_pressed_no_signal(is_down)
 	_position_button.text = "Up" if is_down else "Down"
-	_position_button.modulate = Color(1.15, 0.85, 0.55) if is_down else Color.WHITE
+	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
 
 
 func set_fire_control_state(fire_control_state: int) -> void:
 	var is_hold := fire_control_state == FireControlState.HOLD_FIRE
-	_hold_fire_button.modulate = Color(1.1, 0.85, 0.55) if is_hold else Color.WHITE
-	_fire_at_will_button.modulate = Color(1.15, 0.75, 0.55) if not is_hold else Color.WHITE
+	_hold_fire_button.modulate = CocUiTheme.selected_modulate(is_hold)
+	_fire_at_will_button.modulate = CocUiTheme.selected_modulate(not is_hold)
 
 
 func is_interactive() -> bool:
@@ -208,7 +215,7 @@ func _on_fire_at_toggled(is_pressed: bool) -> void:
 func _on_face_toggled(is_pressed: bool) -> void:
 	if not _row_enabled:
 		return
-	_face_button.modulate = Color(0.75, 1.0, 0.85) if is_pressed else Color.WHITE
+	_face_button.modulate = CocUiTheme.selected_modulate(is_pressed)
 	face_toggled.emit(soldier_id, is_pressed)
 
 
@@ -223,7 +230,7 @@ func _on_position_toggled(is_down: bool) -> void:
 	if not _row_enabled:
 		return
 	_position_button.text = "Up" if is_down else "Down"
-	_position_button.modulate = Color(1.15, 0.85, 0.55) if is_down else Color.WHITE
+	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
 	position_toggled.emit(soldier_id, is_down)
 
 
@@ -240,11 +247,11 @@ func _on_fire_at_will_pressed() -> void:
 
 
 func _update_fire_at_highlight(is_active: bool) -> void:
-	_fire_at_button.modulate = Color(1.25, 1.05, 0.45) if is_active else Color.WHITE
+	_fire_at_button.modulate = CocUiTheme.selected_modulate(is_active)
 
 
 func _update_grenade_highlight(is_active: bool) -> void:
-	_grenade_button.modulate = Color(1.0, 0.82, 0.45) if is_active else Color.WHITE
+	_grenade_button.modulate = CocUiTheme.selected_modulate(is_active)
 
 
 func _make_dots(count: int) -> String:

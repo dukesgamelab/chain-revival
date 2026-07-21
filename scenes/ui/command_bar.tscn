@@ -10,7 +10,9 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -228.0
+offset_left = 4.0
+offset_top = -148.0
+offset_right = -4.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("1_cmdbar")
@@ -25,27 +27,29 @@ grow_vertical = 2
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 3
 
 [node name="HBox" type="HBoxContainer" parent="Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 4
 
 [node name="TeamLabel" type="Label" parent="Panel/Margin/HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(42, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.72, 0.38, 1)
-theme_override_font_sizes/font_size = 16
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 11
 text = "USA"
 vertical_alignment = 1
 
 [node name="SoldierRows" type="VBoxContainer" parent="Panel/Margin/HBox"]
 layout_mode = 2
-theme_override_constants/separation = 4
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
 [node name="SquadRow" parent="Panel/Margin/HBox/SoldierRows" instance=ExtResource("3_squad")]
 unique_name_in_owner = true
@@ -75,31 +79,31 @@ soldier_id = 4
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 
 [node name="MapEditButton" type="Button" parent="Panel/Margin/HBox/MapEditPanel"]
 unique_name_in_owner = true
 toggle_mode = true
-custom_minimum_size = Vector2(88, 24)
+custom_minimum_size = Vector2(72, 18)
 layout_mode = 2
 text = "Map Edit"
 
 [node name="PaletteRow" type="HBoxContainer" parent="Panel/Margin/HBox/MapEditPanel"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 
 [node name="TreeButton" type="Button" parent="Panel/Margin/HBox/MapEditPanel/PaletteRow"]
 unique_name_in_owner = true
 toggle_mode = true
-custom_minimum_size = Vector2(52, 24)
+custom_minimum_size = Vector2(40, 18)
 layout_mode = 2
 text = "Tree"
 
 [node name="HaybailButton" type="Button" parent="Panel/Margin/HBox/MapEditPanel/PaletteRow"]
 unique_name_in_owner = true
 toggle_mode = true
-custom_minimum_size = Vector2(56, 24)
+custom_minimum_size = Vector2(48, 18)
 layout_mode = 2
 text = "Haybail"
 
@@ -107,62 +111,67 @@ text = "Haybail"
 unique_name_in_owner = true
 toggle_mode = true
 button_pressed = true
-custom_minimum_size = Vector2(48, 24)
+custom_minimum_size = Vector2(36, 18)
 layout_mode = 2
 text = "Wall"
 
 [node name="EraseButton" type="Button" parent="Panel/Margin/HBox/MapEditPanel/PaletteRow"]
 unique_name_in_owner = true
 toggle_mode = true
-custom_minimum_size = Vector2(52, 24)
+custom_minimum_size = Vector2(40, 18)
 layout_mode = 2
 text = "Erase"
 
-[node name="ViewRotation" type="VBoxContainer" parent="Panel/Margin/HBox"]
+[node name="RightControls" type="HBoxContainer" parent="Panel/Margin/HBox"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 
-[node name="CenterButton" type="Button" parent="Panel/Margin/HBox/ViewRotation"]
+[node name="ViewRotation" type="VBoxContainer" parent="Panel/Margin/HBox/RightControls"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="CenterButton" type="Button" parent="Panel/Margin/HBox/RightControls/ViewRotation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 24)
+custom_minimum_size = Vector2(78, 18)
 layout_mode = 2
 text = "Center"
 
-[node name="RotateLeftButton" type="Button" parent="Panel/Margin/HBox/ViewRotation"]
+[node name="RotateLeftButton" type="Button" parent="Panel/Margin/HBox/RightControls/ViewRotation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 24)
+custom_minimum_size = Vector2(78, 18)
 layout_mode = 2
 text = "Rotate Left"
 
-[node name="RotateRightButton" type="Button" parent="Panel/Margin/HBox/ViewRotation"]
+[node name="RotateRightButton" type="Button" parent="Panel/Margin/HBox/RightControls/ViewRotation"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(78, 18)
 layout_mode = 2
 text = "Rotate Right"
 
-[node name="UtilityButtons" type="VBoxContainer" parent="Panel/Margin/HBox"]
+[node name="UtilityButtons" type="VBoxContainer" parent="Panel/Margin/HBox/RightControls"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 
-[node name="SaveButton" type="Button" parent="Panel/Margin/HBox/UtilityButtons"]
+[node name="SaveButton" type="Button" parent="Panel/Margin/HBox/RightControls/UtilityButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 24)
+custom_minimum_size = Vector2(64, 18)
 layout_mode = 2
 text = "Save"
 
-[node name="LoadButton" type="Button" parent="Panel/Margin/HBox/UtilityButtons"]
+[node name="LoadButton" type="Button" parent="Panel/Margin/HBox/RightControls/UtilityButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 24)
+custom_minimum_size = Vector2(64, 18)
 layout_mode = 2
 text = "Load"
 
-[node name="MapSaveButton" type="Button" parent="Panel/Margin/HBox/UtilityButtons"]
+[node name="MapSaveButton" type="Button" parent="Panel/Margin/HBox/RightControls/UtilityButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 24)
+custom_minimum_size = Vector2(64, 18)
 layout_mode = 2
 text = "Map Save"
 
-[node name="MapLoadButton" type="Button" parent="Panel/Margin/HBox/UtilityButtons"]
+[node name="MapLoadButton" type="Button" parent="Panel/Margin/HBox/RightControls/UtilityButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 24)
+custom_minimum_size = Vector2(64, 18)
 layout_mode = 2
 text = "Map Load"

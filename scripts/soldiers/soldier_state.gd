@@ -13,6 +13,7 @@ const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
 const FireteamLoadoutClass := preload("res://scripts/soldiers/fireteam_loadout.gd")
 const StressLabelsClass := preload("res://scripts/combat/stress_labels.gd")
 const GrenadePolicyClass := preload("res://scripts/gameplay_policies/grenade_policy.gd")
+const MovementPolicyClass := preload("res://scripts/gameplay_policies/movement_policy.gd")
 
 var soldier_id: int = 1
 var team_id: int = Team.USA
@@ -23,6 +24,14 @@ var grid_position: Vector2i = Vector2i.ZERO
 var facing_direction: Vector2i = FacingDirection.NORTH
 var current_path: Array[Vector2i] = []
 var is_moving: bool = false
+## Next index in current_path the soldier is advancing toward (1..size-1 while moving).
+var path_index: int = 0
+## Accumulated sim msec toward the current path step.
+var move_accum_msec: int = 0
+## Cost in sim msec for the current path step (from path[path_index-1] → path[path_index]).
+var move_step_cost_msec: int = 0
+## Effective speed multiplier for the active path (mode × stress).
+var move_speed_mult: float = 1.0
 var ammo_current: int = 0
 var ammo_max: int = 0
 var is_dead: bool = false
@@ -257,17 +266,32 @@ func reset_fire_prep() -> void:
 func clear_path() -> void:
 	current_path.clear()
 	is_moving = false
+	path_index = 0
+	move_accum_msec = 0
+	move_step_cost_msec = 0
+	move_speed_mult = 1.0
 
 
-func assign_path(path: Array[Vector2i]) -> void:
+func assign_path(path: Array[Vector2i], speed_mult: float = 1.0) -> void:
 	if is_dead:
 		return
 	current_path = path.duplicate()
+	move_speed_mult = speed_mult
+	move_accum_msec = 0
+	path_index = 1
 	is_moving = current_path.size() > 1
 	if is_moving:
+		move_step_cost_msec = MovementPolicyClass.step_cost_msec(
+			current_path[0],
+			current_path[1],
+			move_speed_mult,
+		)
 		# Movement cancels fire orders; Fire At Will may reacquire after stopping.
 		clear_engagement()
 		end_sustained_fire()
+	else:
+		move_step_cost_msec = 0
+		path_index = 0
 
 
 func to_dict() -> Dictionary:

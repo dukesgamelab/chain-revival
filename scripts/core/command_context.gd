@@ -2,13 +2,14 @@ class_name CommandContext
 extends RefCounted
 ## Optional inputs the resolver cannot derive from GameState alone.
 ##
-## In a networked build the server would not need view snap cells or a scene pathfinder;
-## clients supply these locally today while everything runs on one machine.
+## find_path is supplied by the local map view. soldier_snap_cells is retained for
+## compatibility but gameplay no longer reads interpolated presentation positions —
+## mid-move commands use SoldierState.grid_position.
 
 ## func(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]
 var find_path: Callable = Callable()
 
-## Mid-movement grid cell per soldier key "team_id:soldier_id" (from presentation).
+## Deprecated for gameplay authority. Prefer SoldierState.grid_position.
 var soldier_snap_cells: Dictionary = {}
 
 ## Soldier ids included in a Fire At order (single or squad scope).

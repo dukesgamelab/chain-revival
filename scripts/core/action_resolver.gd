@@ -175,7 +175,8 @@ static func arm_movement_mode(
 	return result.set_status("\n".join(lines))
 
 
-## Movement animation reached a tile — updates authoritative position and facing.
+## Authoritative movement step — updates grid_position and facing.
+## Called from process_movement_tick (sim) or tests; never from render interpolation.
 static func on_movement_step(
 	game_state: GameStateClass,
 	team_id: int,
@@ -186,13 +187,72 @@ static func on_movement_step(
 	game_state.session.get_fireteam(team_id).on_soldier_reached_tile(soldier_id, tile, step_delta)
 
 
-## Movement animation finished — clears path flags on authoritative state.
+## Authoritative movement finished — clears path flags on SoldierState.
 static func on_movement_complete(
 	game_state: GameStateClass,
 	team_id: int,
 	soldier_id: int,
 ) -> void:
 	game_state.session.get_fireteam(team_id).on_soldier_finished_moving(soldier_id)
+
+
+## Advance all in-progress paths by one simulation tick. Presentation-free.
+static func process_movement_tick(game_state: GameStateClass) -> ActionResult:
+	var result := ActionResult.new()
+	result.refresh_views = false
+	var tick_msec := SimulationClock.tick_msec()
+	for fireteam in game_state.session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier: SoldierState = state
+			if soldier == null or soldier.is_dead or not soldier.is_moving:
+				continue
+			_advance_soldier_movement(game_state, soldier, tick_msec, result)
+	if not result.movement_steps.is_empty() or not result.movement_completions.is_empty():
+		result.refresh_views = true
+	return result
+
+
+static func _advance_soldier_movement(
+	game_state: GameStateClass,
+	soldier: SoldierState,
+	tick_msec: int,
+	result: ActionResult,
+) -> void:
+	if soldier.current_path.size() < 2 or soldier.path_index <= 0:
+		on_movement_complete(game_state, soldier.team_id, soldier.soldier_id)
+		result.movement_completions.append({
+			"team_id": soldier.team_id,
+			"soldier_id": soldier.soldier_id,
+		})
+		return
+
+	soldier.move_accum_msec += tick_msec
+	## Multiple tiles may complete in one tick if speed is high or hitch catch-up is large.
+	while soldier.is_moving and soldier.move_accum_msec >= soldier.move_step_cost_msec:
+		soldier.move_accum_msec -= soldier.move_step_cost_msec
+		var from_cell := soldier.current_path[soldier.path_index - 1]
+		var to_cell := soldier.current_path[soldier.path_index]
+		var step_delta := to_cell - from_cell
+		on_movement_step(game_state, soldier.team_id, soldier.soldier_id, to_cell, step_delta)
+		result.movement_steps.append({
+			"team_id": soldier.team_id,
+			"soldier_id": soldier.soldier_id,
+			"tile": to_cell,
+			"step_delta": step_delta,
+		})
+		soldier.path_index += 1
+		if soldier.path_index >= soldier.current_path.size():
+			on_movement_complete(game_state, soldier.team_id, soldier.soldier_id)
+			result.movement_completions.append({
+				"team_id": soldier.team_id,
+				"soldier_id": soldier.soldier_id,
+			})
+			return
+		soldier.move_step_cost_msec = MovementPolicy.step_cost_msec(
+			soldier.current_path[soldier.path_index - 1],
+			soldier.current_path[soldier.path_index],
+			soldier.move_speed_mult,
+		)
 
 
 ## Periodic combat tick: sustained Fire At (priority) + Fire At Will (auto) + stress recovery.
@@ -809,16 +869,15 @@ static func _assign_move_path(
 		return false
 
 	var start_cell := _start_cell_for_soldier(context, state)
-	var snap_key := ObjectId.team_soldier_key(state.team_id, state.soldier_id)
-	if context.soldier_snap_cells.has(snap_key) and state.is_moving:
-		start_cell = context.soldier_snap_cells[snap_key]
-		state.grid_position = start_cell
-		state.clear_path()
+	## Mid-move redirect: halt presentation at the authoritative cell, then repath.
+	if state.is_moving:
 		result.movement_halts.append({
 			"team_id": state.team_id,
 			"soldier_id": state.soldier_id,
-			"snap_cell": start_cell,
+			"snap_cell": state.grid_position,
 		})
+		state.clear_path()
+		start_cell = state.grid_position
 
 	if cmd.target_cell == start_cell:
 		return false
@@ -830,11 +889,11 @@ static func _assign_move_path(
 		return false
 
 	state.movement_mode = mode
-	fireteam.order_path(state.soldier_id, path)
 	var speed_mult := (
 		MovementModeClass.speed_multiplier(mode)
 		* CombatSystem.get_stress_movement_modifier(state.stress)
 	)
+	fireteam.order_path(state.soldier_id, path, speed_mult)
 	result.move_orders.append({
 		"team_id": state.team_id,
 		"soldier_id": state.soldier_id,
@@ -908,36 +967,26 @@ static func _has_stance_transitions(family_id: String) -> bool:
 	)
 
 
-static func _start_cell_for_soldier(context: CommandContext, state: SoldierState) -> Vector2i:
-	var key := ObjectId.team_soldier_key(state.team_id, state.soldier_id)
-	if context != null and context.soldier_snap_cells.has(key):
-		return context.soldier_snap_cells[key]
+static func _start_cell_for_soldier(_context: CommandContext, state: SoldierState) -> Vector2i:
+	## Authoritative only — never use interpolated presentation positions.
 	return state.grid_position
 
 
 static func _halt_soldier_for_combat(
-	context: CommandContext,
+	_context: CommandContext,
 	state: SoldierState,
 	result: ActionResult,
 ) -> bool:
-	var key := ObjectId.team_soldier_key(state.team_id, state.soldier_id)
-	if context == null or not context.soldier_snap_cells.has(key):
-		if not state.is_moving:
-			return false
-		state.clear_path()
-		return true
-
-	var snap_cell: Vector2i = context.soldier_snap_cells[key]
-	var was_active := state.is_moving or snap_cell != state.grid_position
-	state.grid_position = snap_cell
+	if not state.is_moving:
+		return false
+	var halt_cell := state.grid_position
 	state.clear_path()
-	if was_active:
-		result.movement_halts.append({
-			"team_id": state.team_id,
-			"soldier_id": state.soldier_id,
-			"snap_cell": snap_cell,
-		})
-	return was_active
+	result.movement_halts.append({
+		"team_id": state.team_id,
+		"soldier_id": state.soldier_id,
+		"snap_cell": halt_cell,
+	})
+	return true
 
 
 static func _fire_at_face_cell(

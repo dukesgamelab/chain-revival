@@ -35,6 +35,7 @@ func _ready() -> void:
 	_test_grenade_sequence_reproducibility()
 	_test_policy_defaults_unchanged()
 	_test_fixed_simulation_tick()
+	_test_movement_frame_rate_independence()
 	_test_object_id_and_registry()
 	_test_map_object_registry()
 	_test_grenade_object_registry()
@@ -186,20 +187,17 @@ func _test_soldier_movement() -> void:
 		"is_moving=%s path_len=%d" % [soldier.is_moving, soldier.current_path.size()],
 	)
 
-	var step := soldier.current_path[1]
-	var step_delta := step - start
-	ActionResolverClass.on_movement_step(game_state, Team.USA, 1, step, step_delta)
+	## Advance via simulation ticks until arrival (not presentation lerp).
+	var guard := 0
+	while soldier.is_moving and guard < 10000:
+		SimulationClock.advance_tick()
+		ActionResolverClass.process_movement_tick(game_state)
+		guard += 1
+	_assert("Soldier movement completes via sim ticks", not soldier.is_moving, "guard=%d" % guard)
 	_assert(
-		"Soldier movement advances grid position",
-		soldier.grid_position == step,
-		"expected %s got %s" % [step, soldier.grid_position],
-	)
-
-	ActionResolverClass.on_movement_complete(game_state, Team.USA, 1)
-	_assert(
-		"Soldier movement completion clears moving flag",
-		not soldier.is_moving,
-		"is_moving still true",
+		"Soldier movement ends on target cell",
+		soldier.grid_position == target,
+		"expected %s got %s" % [target, soldier.grid_position],
 	)
 
 
@@ -544,6 +542,87 @@ func _test_fixed_simulation_tick() -> void:
 		scan_msec / SimulationClock.tick_msec() == 10,
 		"ticks_per_scan=%d" % (scan_msec / SimulationClock.tick_msec()),
 	)
+
+
+func _test_movement_frame_rate_independence() -> void:
+	## Same seed + same sim time ⇒ identical movement tiles regardless of render FPS.
+	var fps_list: Array[int] = [30, 60, 120, 240]
+	var timelines: Array[Dictionary] = []
+	for fps in fps_list:
+		timelines.append(_simulate_move_timeline_at_fps(fps))
+
+	var reference: Dictionary = timelines[0]
+	_assert(
+		"Frame-rate move timelines are non-empty",
+		not (reference.get("tiles", []) as Array).is_empty(),
+	)
+	for i in range(1, timelines.size()):
+		var other: Dictionary = timelines[i]
+		_assert(
+			"Movement tiles identical at %d FPS vs 30 FPS" % fps_list[i],
+			reference.get("tiles", []) == other.get("tiles", []),
+			"ref=%s other=%s" % [reference.get("tiles", []), other.get("tiles", [])],
+		)
+		_assert(
+			"Final cell identical at %d FPS vs 30 FPS" % fps_list[i],
+			reference.get("final_cell", Vector2i(-1, -1)) == other.get("final_cell", Vector2i(-1, -1)),
+		)
+		_assert(
+			"Completion sim msec identical at %d FPS vs 30 FPS" % fps_list[i],
+			int(reference.get("complete_msec", -1)) == int(other.get("complete_msec", -2)),
+			"ref=%s other=%s" % [reference.get("complete_msec", -1), other.get("complete_msec", -2)],
+		)
+		_assert(
+			"RNG snapshot identical at %d FPS after move" % fps_list[i],
+			reference.get("rng_snapshot", {}) == other.get("rng_snapshot", {}),
+		)
+
+
+func _simulate_move_timeline_at_fps(fps: int) -> Dictionary:
+	_bootstrap()
+	SimulationClock.reset()
+	GameRandom.begin_match(GameRandom.DEFAULT_SEED)
+	var game_state := _make_game_state()
+	var soldier := game_state.get_soldier(Team.USA, 1)
+	var start := soldier.grid_position
+	var target := start + Vector2i(3, 0)
+	if not game_state.map_data.is_walkable(target):
+		target = start + Vector2i(0, 3)
+
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = 1
+	cmd.target_cell = target
+	cmd.movement_mode = MovementModeClass.RUN
+	cmd.scope = MoveCommandClass.Scope.SINGLE
+	var order := ActionResolverClass.execute_move(game_state, cmd, _path_context(game_state.map_data))
+	if not order.success:
+		return {"tiles": [], "final_cell": Vector2i(-1, -1), "complete_msec": -1, "rng_snapshot": {}}
+
+	var frame_delta := 1.0 / float(fps)
+	var accum := 0.0
+	var tick_sec := SimulationClock.tick_sec()
+	var tiles: Array[Vector2i] = [soldier.grid_position]
+	var complete_msec := -1
+	var guard := 0
+	while soldier.is_moving and guard < 200000:
+		guard += 1
+		accum += frame_delta
+		while accum >= tick_sec:
+			accum -= tick_sec
+			SimulationClock.advance_tick()
+			var move_result := ActionResolverClass.process_movement_tick(game_state)
+			for step in move_result.movement_steps:
+				tiles.append(step.tile)
+			if not move_result.movement_completions.is_empty() and complete_msec < 0:
+				complete_msec = SimulationClock.get_ticks_msec()
+
+	return {
+		"tiles": tiles,
+		"final_cell": soldier.grid_position,
+		"complete_msec": complete_msec,
+		"rng_snapshot": GameRandom.get_snapshot(),
+	}
 
 
 func _test_object_id_and_registry() -> void:

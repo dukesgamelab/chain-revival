@@ -124,9 +124,9 @@
 					"label": "Death",
 					"loop": false,
 					"metadata": {
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
@@ -200,9 +200,9 @@
 					"label": "Hit",
 					"loop": false,
 					"metadata": {
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
@@ -238,9 +238,9 @@
 					"label": "Idle",
 					"loop": true,
 					"metadata": {
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
@@ -276,9 +276,9 @@
 					"label": "Throw Grenade",
 					"loop": false,
 					"metadata": {
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
@@ -314,9 +314,9 @@
 					"label": "Walk",
 					"loop": true,
 					"metadata": {
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
@@ -1121,11 +1121,71 @@
 					"label": "Idle",
 					"loop": true,
 					"metadata": {
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "Idle uses first walk frame until dedicated idle pack is assigned",
 						"sound_effect": ""
+					}
+				},
+				"idle_prone": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_prone/GPRIS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_prone/GPRIS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_prone/GPRIS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_prone/GPRIS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_prone/GPRIS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_prone/GPRIS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_prone/GPRIS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_prone/GPRIS1A.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Prone Idle",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/idle_prone",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "GPRIS wired as idle_prone",
+						"sound_effect": "",
+						"source_family": "GPRIS",
+						"stance": "prone",
+						"verification": "specified by user for German stance system",
+						"verified": true
 					}
 				},
 				"idle_standing": {
@@ -1337,9 +1397,9 @@
 					"metadata": {
 						"category": "soldier/idle_standing",
 						"faction": "German",
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "Standing/upright idle A-U x 8 directions. Not walking (ASMOA/GSMOA).",
 						"sound_effect": "",
 						"source_family": "GBRLA",
@@ -1588,6 +1648,342 @@
 						"verified": true
 					}
 				},
+				"transition_prone_to_standing": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA5A.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA5B.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA5C.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA5D.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA5E.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA7A.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA7B.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA7C.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA7D.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA7E.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA6A.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA6B.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA6C.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA6D.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA6E.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA8A.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA8B.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA8C.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA8D.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA8E.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA3A.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA3B.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA3C.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA3D.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA3E.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA4A.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA4B.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA4C.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA4D.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA4E.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA2A.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA2B.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA2C.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA2D.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA2E.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA1A.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA1B.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA1C.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA1D.png",
+								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA1E.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Prone to Standing",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/transition_prone_to_standing",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "GPRNA wired as transition_prone_to_standing",
+						"sound_effect": "",
+						"source_family": "GPRNA",
+						"stance": "transition",
+						"verification": "specified by user for German stance system",
+						"verified": true
+					}
+				},
+				"transition_standing_to_prone": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5A.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5B.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5C.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5D.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5E.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5F.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5G.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5H.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5I.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5J.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5K.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5L.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5M.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5N.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5O.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5P.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5Q.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5R.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5S.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5T.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5U.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5V.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5W.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5X.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7A.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7B.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7C.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7D.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7E.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7F.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7G.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7H.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7I.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7J.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7K.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7L.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7M.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7N.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7O.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7P.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7Q.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7R.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7S.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7T.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7U.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7V.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7W.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7X.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6A.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6B.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6C.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6D.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6E.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6F.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6G.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6H.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6I.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6J.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6K.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6L.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6M.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6N.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6O.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6P.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6Q.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6R.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6S.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6T.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6U.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6V.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6W.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6X.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8A.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8B.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8C.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8D.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8E.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8F.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8G.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8H.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8I.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8J.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8K.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8L.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8M.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8N.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8O.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8P.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8Q.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8R.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8S.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8T.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8U.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8V.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8W.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8X.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3A.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3B.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3C.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3D.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3E.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3F.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3G.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3H.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3I.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3J.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3K.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3L.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3M.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3N.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3O.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3P.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3Q.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3R.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3S.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3T.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3U.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3V.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3W.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3X.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4A.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4B.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4C.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4D.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4E.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4F.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4G.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4H.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4I.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4J.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4K.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4L.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4M.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4N.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4O.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4P.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4Q.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4R.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4S.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4T.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4U.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4V.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4W.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4X.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2A.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2B.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2C.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2D.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2E.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2F.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2G.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2H.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2I.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2J.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2K.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2L.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2M.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2N.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2O.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2P.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2Q.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2R.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2S.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2T.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2U.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2V.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2W.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2X.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1A.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1B.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1C.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1D.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1E.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1F.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1G.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1H.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1I.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1J.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1K.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1L.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1M.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1N.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1O.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1P.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1Q.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1R.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1S.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1T.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1U.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1V.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1W.png",
+								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1X.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Standing to Prone",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/transition_standing_to_prone",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "GSUPA wired as transition_standing_to_prone",
+						"sound_effect": "",
+						"source_family": "GSUPA",
+						"stance": "prone",
+						"verification": "specified by user for German stance system",
+						"verified": true
+					}
+				},
 				"walk": {
 					"directions": {
 						"e": {
@@ -1696,402 +2092,6 @@
 						"muzzle_flash_frame": -1.0,
 						"notes": "",
 						"sound_effect": ""
-					}
-				},
-				"idle_prone": {
-					"label": "German Prone Idle",
-					"loop": true,
-					"fps": 8.0,
-					"metadata": {
-						"source_family": "GPRIS",
-						"category": "soldier/idle_prone",
-						"faction": "German",
-						"verified": true,
-						"verification": "specified by user for German stance system",
-						"stance": "prone",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"sound_effect": "",
-						"notes": "GPRIS wired as idle_prone"
-					},
-					"directions": {
-						"w": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS1A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS2A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS4A.png"
-							]
-						},
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS5A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS6A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS7A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS8A.png"
-							]
-						}
-					}
-				},
-				"transition_prone_to_standing": {
-					"label": "German Prone to Standing",
-					"loop": false,
-					"fps": 8.0,
-					"metadata": {
-						"source_family": "GPRNA",
-						"category": "soldier/transition_prone_to_standing",
-						"faction": "German",
-						"verified": true,
-						"verification": "specified by user for German stance system",
-						"stance": "transition",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"sound_effect": "",
-						"notes": "GPRNA wired as transition_prone_to_standing"
-					},
-					"directions": {
-						"w": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA1A.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA1B.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA1C.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA1D.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA1E.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA2A.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA2B.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA2C.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA2D.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA2E.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA3A.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA3B.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA3C.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA3D.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA3E.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA4A.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA4B.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA4C.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA4D.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA4E.png"
-							]
-						},
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA5A.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA5B.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA5C.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA5D.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA5E.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA6A.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA6B.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA6C.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA6D.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA6E.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA7A.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA7B.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA7C.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA7D.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA7E.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA8A.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA8B.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA8C.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA8D.png",
-								"res://assets/sprites/german_soldier/transition_prone_to_standing/GPRNA8E.png"
-							]
-						}
-					}
-				},
-				"transition_standing_to_prone": {
-					"label": "German Standing to Prone",
-					"loop": false,
-					"fps": 8.0,
-					"metadata": {
-						"source_family": "GSUPA",
-						"category": "soldier/transition_standing_to_prone",
-						"faction": "German",
-						"verified": true,
-						"verification": "specified by user for German stance system",
-						"stance": "prone",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"sound_effect": "",
-						"notes": "GSUPA wired as transition_standing_to_prone"
-					},
-					"directions": {
-						"w": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1A.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1B.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1C.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1D.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1E.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1F.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1G.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1H.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1I.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1J.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1K.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1L.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1M.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1N.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1O.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1P.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1Q.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1R.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1S.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1T.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1U.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1V.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1W.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA1X.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2A.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2B.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2C.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2D.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2E.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2F.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2G.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2H.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2I.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2J.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2K.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2L.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2M.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2N.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2O.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2P.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2Q.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2R.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2S.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2T.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2U.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2V.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2W.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA2X.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3A.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3B.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3C.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3D.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3E.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3F.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3G.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3H.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3I.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3J.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3K.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3L.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3M.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3N.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3O.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3P.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3Q.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3R.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3S.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3T.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3U.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3V.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3W.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA3X.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4A.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4B.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4C.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4D.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4E.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4F.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4G.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4H.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4I.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4J.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4K.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4L.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4M.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4N.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4O.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4P.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4Q.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4R.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4S.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4T.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4U.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4V.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4W.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA4X.png"
-							]
-						},
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5A.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5B.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5C.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5D.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5E.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5F.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5G.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5H.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5I.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5J.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5K.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5L.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5M.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5N.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5O.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5P.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5Q.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5R.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5S.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5T.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5U.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5V.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5W.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA5X.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6A.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6B.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6C.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6D.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6E.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6F.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6G.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6H.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6I.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6J.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6K.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6L.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6M.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6N.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6O.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6P.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6Q.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6R.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6S.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6T.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6U.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6V.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6W.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA6X.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7A.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7B.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7C.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7D.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7E.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7F.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7G.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7H.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7I.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7J.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7K.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7L.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7M.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7N.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7O.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7P.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7Q.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7R.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7S.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7T.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7U.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7V.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7W.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA7X.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8A.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8B.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8C.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8D.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8E.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8F.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8G.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8H.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8I.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8J.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8K.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8L.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8M.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8N.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8O.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8P.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8Q.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8R.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8S.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8T.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8U.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8V.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8W.png",
-								"res://assets/sprites/german_soldier/transition_standing_to_prone/GSUPA8X.png"
-							]
-						}
 					}
 				}
 			},
@@ -3079,9 +3079,9 @@
 					"metadata": {
 						"category": "soldier/rifle_fire",
 						"faction": "American",
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 1,
+						"muzzle_flash_frame": 1.0,
 						"notes": "Per-shot oneshot at 8 FPS.",
 						"sound_effect": "",
 						"source_family": "APRFA",
@@ -3155,9 +3155,9 @@
 					"metadata": {
 						"category": "soldier/rifle_fire",
 						"faction": "American",
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 1,
+						"muzzle_flash_frame": 1.0,
 						"notes": "Per-shot oneshot at 8 FPS. ASFIA nw is A-B only (no 8C).",
 						"sound_effect": "",
 						"source_family": "ASFIA",
@@ -3625,9 +3625,9 @@
 					"metadata": {
 						"category": "us_soldier/hit_reaction",
 						"faction": "American",
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "",
 						"sound_effect": "",
 						"source_family": "AHTLA",
@@ -3828,9 +3828,9 @@
 					"metadata": {
 						"category": "us_soldier/hit_reaction",
 						"faction": "American",
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "",
 						"sound_effect": "",
 						"source_family": "AHTFA",
@@ -3885,115 +3885,15 @@
 					"label": "Idle",
 					"loop": true,
 					"metadata": {
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "Idle uses first walk frame until dedicated idle pack is assigned",
 						"sound_effect": ""
 					}
 				},
 				"idle_standing": {
 					"directions": {
-						"w": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1U.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2U.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3U.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4U.png"
-							]
-						},
 						"e": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA5A.png",
@@ -4015,33 +3915,7 @@
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA5Q.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA5R.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA5S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5U.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6U.png"
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5T.png"
 							]
 						},
 						"n": {
@@ -4065,8 +3939,31 @@
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA7Q.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA7R.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA7S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7U.png"
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7T.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6A.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6D.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6E.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6F.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6S.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6T.png"
 							]
 						},
 						"nw": {
@@ -4089,9 +3986,100 @@
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA8P.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA8Q.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA8R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8U.png"
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8S.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3A.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3D.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3E.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3F.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3S.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3T.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4A.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4D.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4E.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4F.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4S.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4T.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2A.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2D.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2E.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2F.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2S.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1A.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1S.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1T.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1U.png"
 							]
 						}
 					},

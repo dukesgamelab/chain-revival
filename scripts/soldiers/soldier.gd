@@ -1,9 +1,9 @@
 class_name Soldier
 extends Node2D
-## Presentation only: sprites, selection, facing arrow, movement animation.
+## Presentation only: sprites, selection, facing arrow, movement interpolation.
 ##
-## Does NOT mutate SoldierState. Emits movement signals so ActionResolver can update
-## authoritative position via GameState when each animation step completes.
+## Does NOT mutate SoldierState. Authoritative movement advances on simulation ticks;
+## this node only lerps toward the current sim cell / next path cell.
 
 const UsSoldierSpriteFrames := preload("res://scripts/soldiers/us_soldier_sprite_frames.gd")
 
@@ -25,7 +25,7 @@ signal stance_transition_cancelled(team_id: int, soldier_id: int)
 var soldier_id: int = 1
 var team_id: int = Team.USA
 
-@export var move_speed := 95.0 / 3.0
+@export var move_speed := 95.0 / 3.0 ## Keep in sync with MovementPolicy.BASE_WORLD_SPEED
 
 var _path: Array[Vector2i] = []
 var _path_index: int = 0
@@ -124,15 +124,17 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 		return
 
 	_dead_marker.visible = false
-	if not _is_moving:
+	if state.is_moving or _is_moving:
+		sync_movement_chase_from_state(state)
+	elif not _is_moving:
 		position = IsometricGrid.grid_to_world(state.grid_position)
 	_facing_from_cell = state.grid_position
 	_apply_facing(state.facing_direction, _facing_from_cell)
 	_apply_position_visual(state)
 	_apply_spotted_visual(is_selected, is_spotted)
 	set_selected(is_selected)
-	if _is_moving and _uses_og_frames() and _path_index < _path.size():
-		var step_delta := _path[_path_index] - _previous_grid_pos
+	if _is_moving and _uses_og_frames() and state.is_moving and state.path_index < state.current_path.size():
+		var step_delta := state.current_path[state.path_index] - state.grid_position
 		_update_locomotion_visual(step_delta, true)
 
 
@@ -220,8 +222,7 @@ func stop_movement() -> void:
 
 
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
-	## Presentation-only path animation. Authoritative grid_position updates via
-	## movement_step_reached → ActionResolver.on_movement_step.
+	## Presentation-only path chase. Authoritative grid_position advances on sim ticks.
 	_cancel_stance_transition_visual(false)
 	if _is_dead or _blocks_action_override() or path.size() <= 1:
 		return
@@ -232,6 +233,7 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	_is_moving = true
 	_previous_grid_pos = _path[0]
 	position = IsometricGrid.grid_to_world(_path[0])
+	## Chase the next authoritative cell; sync_from_state keeps this aligned with sim.
 	_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
 	var first_step := _path[1] - _path[0]
 	_apply_facing(FacingDirection.from_step(first_step), _previous_grid_pos)
@@ -240,44 +242,55 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 
 
 func _process(delta: float) -> void:
-	# Interpolates Node2D.position only; does not write SoldierState.grid_position.
+	## Interpolates Node2D.position only — never mutates SoldierState or emits gameplay steps.
 	if not _is_moving or _is_dead or _blocks_action_override():
 		return
 
 	var to_target := _move_target_world - position
 	var distance := to_target.length()
-	var step_delta := _path[_path_index] - _previous_grid_pos
-	_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
-	_update_locomotion_visual(step_delta, true)
+	if _path_index < _path.size():
+		var step_delta := _path[_path_index] - _previous_grid_pos
+		_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
+		_update_locomotion_visual(step_delta, true)
 
 	if distance <= 0.001:
-		_advance_path_step()
+		position = _move_target_world
 		return
 
 	var move_amount := move_speed * _speed_multiplier * delta
 	if move_amount >= distance:
 		position = _move_target_world
-		_advance_path_step()
 	else:
 		position += to_target.normalized() * move_amount
 
 
-func _advance_path_step() -> void:
-	var step_delta := _path[_path_index] - _previous_grid_pos
-	position = _move_target_world
-	movement_step_reached.emit(team_id, soldier_id, _path[_path_index], step_delta)
-	_previous_grid_pos = _path[_path_index]
-	_path_index += 1
-
-	if _path_index >= _path.size():
-		_is_moving = false
-		set_process(false)
-		_update_locomotion_visual(step_delta, false)
-		movement_finished.emit(team_id, soldier_id)
+## Align visual chase target with authoritative simulation state (presentation only).
+func sync_movement_chase_from_state(state: SoldierState) -> void:
+	if state == null or _is_dead or _blocks_action_override():
+		return
+	_speed_multiplier = state.move_speed_mult if state.move_speed_mult > 0.0 else _speed_multiplier
+	if state.is_moving and state.current_path.size() > state.path_index and state.path_index > 0:
+		_path = state.current_path.duplicate()
+		_path_index = state.path_index
+		_previous_grid_pos = state.grid_position
+		_move_target_world = IsometricGrid.grid_to_world(state.current_path[state.path_index])
+		_is_moving = true
+		var step_delta := state.current_path[state.path_index] - state.grid_position
+		_apply_facing(FacingDirection.from_step(step_delta), state.grid_position)
+		_update_locomotion_visual(step_delta, true)
+		set_process(true)
+		return
+	## Path finished in sim — finish interpolating to the final cell, then idle.
+	_move_target_world = IsometricGrid.grid_to_world(state.grid_position)
+	if position.distance_to(_move_target_world) <= 0.5:
+		position = _move_target_world
+		if _is_moving:
+			_is_moving = false
+			set_process(false)
+			_update_locomotion_visual(_last_applied_facing, false)
 	else:
-		_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
-		var next_step := _path[_path_index] - _previous_grid_pos
-		_update_locomotion_visual(next_step, true)
+		_is_moving = true
+		set_process(true)
 
 
 func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:

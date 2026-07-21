@@ -46,12 +46,12 @@ func select_first_alive() -> void:
 			return
 
 
-func order_path(soldier_id: int, path: Array[Vector2i]) -> void:
+func order_path(soldier_id: int, path: Array[Vector2i], speed_mult: float = 1.0) -> void:
 	## Called by ActionResolver.execute_move only.
 	var state := get_soldier(soldier_id)
 	if state == null or state.is_dead:
 		return
-	state.assign_path(path)
+	state.assign_path(path, speed_mult)
 
 
 func on_soldier_reached_tile(soldier_id: int, tile: Vector2i, step_from: Vector2i) -> void:

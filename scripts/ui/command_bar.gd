@@ -48,9 +48,11 @@ var _map_edit_palette: int = MapEditorClass.Palette.WALL
 
 
 func _ready() -> void:
+	CocUiTheme.apply_to(self)
+	_apply_inset_wells()
 	var ui := get_parent()
 	if ui != null:
-		_status_hud = ui.get_node("StatusHud") as StatusHud
+		_status_hud = ui.get_node_or_null("StatusHud") as StatusHud
 	_squad_row.move_mode_toggled.connect(_on_squad_move_mode_toggled)
 	_squad_row.fire_at_toggled.connect(_on_squad_fire_at_toggled)
 	_squad_row.face_toggled.connect(_on_squad_face_toggled)
@@ -86,16 +88,21 @@ func _ready() -> void:
 func set_active_team(team_id: int) -> void:
 	_active_team_id = team_id
 	_team_label.text = Team.display_name(team_id)
-	_team_label.add_theme_color_override(
-		"font_color",
-		Team.COLOR_USA if team_id == Team.USA else Team.COLOR_GERMANY,
-	)
+	## Keep black text on CoC gray; team identity is the label string.
+	_team_label.add_theme_color_override("font_color", CocUiTheme.TEXT_BLACK)
 	clear_move_targeting()
 	clear_fire_at_mode()
 	clear_face_mode()
 	clear_grenade_mode()
 	clear_map_edit_mode()
 	_update_status()
+
+
+func _apply_inset_wells() -> void:
+	var inset := CocUiTheme.inset_label_panel()
+	for row in _rows:
+		row.apply_coc_inset_wells(inset)
+	_squad_row.apply_coc_inset_wells(inset)
 
 
 func set_selected_soldier(soldier_id: int) -> void:

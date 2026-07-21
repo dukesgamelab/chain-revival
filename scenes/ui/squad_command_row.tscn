@@ -3,122 +3,123 @@
 [ext_resource type="Script" path="res://scripts/ui/squad_command_row.gd" id="1_row"]
 
 [node name="SquadCommandRow" type="HBoxContainer"]
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 script = ExtResource("1_row")
 
 [node name="DotSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(36, 24)
+custom_minimum_size = Vector2(28, 18)
 layout_mode = 2
 
 [node name="AllLabel" type="Label" parent="DotSpacer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 11
 text = "All"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="WeaponSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(88, 24)
+custom_minimum_size = Vector2(78, 18)
 layout_mode = 2
 
 [node name="AmmoSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(36, 24)
+custom_minimum_size = Vector2(30, 18)
 layout_mode = 2
 
 [node name="FireAtButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 24)
+custom_minimum_size = Vector2(46, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Fire At"
 
 [node name="RunToButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 24)
+custom_minimum_size = Vector2(46, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Run To"
 
 [node name="CrawlToButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 24)
+custom_minimum_size = Vector2(52, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Crawl To"
 
 [node name="FaceButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 24)
+custom_minimum_size = Vector2(44, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Face..."
 
 [node name="PositionButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(44, 24)
+custom_minimum_size = Vector2(40, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Down"
 
 [node name="GrenadeButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 24)
+custom_minimum_size = Vector2(72, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Grenade"
 
 [node name="AssaultButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 24)
+custom_minimum_size = Vector2(50, 18)
 layout_mode = 2
 disabled = true
 text = "Assault"
 
 [node name="FireAtWillButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(68, 24)
+custom_minimum_size = Vector2(68, 18)
 layout_mode = 2
 text = "Fire At Will"
 
 [node name="HoldFireButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 24)
+custom_minimum_size = Vector2(58, 18)
 layout_mode = 2
 text = "Hold Fire"
 
 [node name="StatusHeader" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(64, 24)
+custom_minimum_size = Vector2(58, 18)
 layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="StatusHeaderLabel" type="Label" parent="StatusHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.7, 0.78, 1)
-theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 11
 text = "Status"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="StressHeader" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(48, 24)
+custom_minimum_size = Vector2(40, 18)
 layout_mode = 2
 
 [node name="StressHeaderLabel" type="Label" parent="StressHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.7, 0.78, 1)
-theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 11
 text = "Stress"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HitHeader" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(48, 24)
+custom_minimum_size = Vector2(40, 18)
 layout_mode = 2
 
 [node name="HitHeaderLabel" type="Label" parent="HitHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.7, 0.78, 1)
-theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 11
 text = "Hit %"
 horizontal_alignment = 1
 vertical_alignment = 1

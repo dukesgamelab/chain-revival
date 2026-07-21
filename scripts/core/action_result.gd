@@ -8,6 +8,12 @@ var status_message: String = ""
 ## Per-soldier path orders for the view layer: {team_id, soldier_id, path, speed_mult}
 var move_orders: Array[Dictionary] = []
 
+## Authoritative movement steps this sim tick: {team_id, soldier_id, tile, step_delta}
+var movement_steps: Array[Dictionary] = []
+
+## Authoritative movement completions this sim tick: {team_id, soldier_id}
+var movement_completions: Array[Dictionary] = []
+
 ## Soldiers halted mid-move before a combat order: {team_id, soldier_id, snap_cell}
 var movement_halts: Array[Dictionary] = []
 

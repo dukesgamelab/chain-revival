@@ -170,22 +170,17 @@ func _log_fireteam_loadouts() -> void:
 
 
 func _process(delta: float) -> void:
-	## Frame path: presentation / UI only (LOS preview, hit columns, path lerp refresh).
-	if not _map_edit_mode:
-		_update_los_preview()
-		_update_command_bar_hit_columns()
-		_apply_spotting_cell_overrides()
-		if _any_soldier_moving():
-			_refresh_all_views()
-
-	## Gameplay path: accumulate render delta into fixed simulation ticks.
+	## Sim first (authoritative), then presentation so views reflect the latest tick.
 	_step_fixed_simulation(delta)
 
 	if not _map_edit_mode:
-		_clear_spotting_cell_overrides()
+		_update_los_preview()
+		_update_command_bar_hit_columns()
+		if _any_soldier_moving():
+			_refresh_all_views()
 
 
-## Advance SimulationClock in fixed ticks; run combat scans on policy cadence.
+## Advance SimulationClock in fixed ticks; run movement every tick and combat on policy cadence.
 func _step_fixed_simulation(frame_delta: float) -> void:
 	if frame_delta <= 0.0:
 		return
@@ -205,6 +200,14 @@ func _step_simulation_tick() -> void:
 	var stepped := SimulationClock.advance_tick()
 	if _map_edit_mode:
 		return
+
+	var move_result: ActionResultClass = ActionResolverClass.process_movement_tick(_game_state)
+	if (
+		not move_result.movement_steps.is_empty()
+		or not move_result.movement_completions.is_empty()
+	):
+		_present_movement_tick_result(move_result)
+
 	_combat_scan_accum_msec += stepped
 	var scan_msec := _combat_scan_interval_msec()
 	if _combat_scan_accum_msec < scan_msec:
@@ -212,6 +215,33 @@ func _step_simulation_tick() -> void:
 	_combat_scan_accum_msec -= scan_msec
 	var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
 	_present_action_result(tick_result, true)
+
+
+func _present_movement_tick_result(result: ActionResultClass) -> void:
+	if result == null:
+		return
+	for step in result.movement_steps:
+		var step_view: Soldier = _get_view(int(step.team_id), int(step.soldier_id))
+		var step_state: SoldierState = _game_state.get_soldier(int(step.team_id), int(step.soldier_id))
+		if step_view != null and step_state != null:
+			step_view.sync_movement_chase_from_state(step_state)
+	for done in result.movement_completions:
+		var team_id := int(done.team_id)
+		var soldier_id := int(done.soldier_id)
+		var state: SoldierState = _game_state.get_soldier(team_id, soldier_id)
+		var view: Soldier = _get_view(team_id, soldier_id)
+		if view != null and state != null:
+			view.sync_movement_chase_from_state(state)
+		_log_move_complete(soldier_id, state, view)
+		if team_id == _session.active_team_id and not _any_active_team_soldier_moving():
+			_iso_map.clear_path()
+		_ensure_active_selection_alive()
+		_refresh_command_bar()
+		_command_bar.show_status(
+			"%s Soldier %d move complete." % [Team.display_name(team_id), soldier_id]
+		)
+	if result.refresh_views:
+		_refresh_all_views()
 
 
 func _combat_scan_interval_msec() -> int:
@@ -1010,28 +1040,17 @@ func _any_soldier_moving() -> bool:
 func _is_soldier_moving(state: SoldierState) -> bool:
 	if state == null or state.is_dead:
 		return false
-	if state.is_moving:
-		return true
-	var view: Soldier = _get_view(state.team_id, state.soldier_id)
-	return view != null and view.is_moving()
+	## Authoritative only — presentation lerp must not keep gameplay "moving".
+	return state.is_moving
 
 
 func _build_spotting_cell_overrides() -> Dictionary:
-	var overrides: Dictionary = {}
-	for fireteam in _session.all_fireteams():
-		for state in fireteam.soldiers:
-			var soldier_state: SoldierState = state
-			if soldier_state.is_dead:
-				continue
-			if _is_soldier_moving(soldier_state):
-				overrides[Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)] = (
-					_snap_cell_for_soldier(soldier_state)
-				)
-	return overrides
+	## Deprecated: spotting uses SoldierState.grid_position only.
+	return {}
 
 
 func _apply_spotting_cell_overrides() -> void:
-	CombatSystem.set_spotting_cell_overrides(_build_spotting_cell_overrides())
+	CombatSystem.clear_spotting_cell_overrides()
 
 
 func _clear_spotting_cell_overrides() -> void:
@@ -1164,51 +1183,31 @@ func _trigger_grenade_death_animations(explosions: Array) -> void:
 
 
 func _snap_cell_for_soldier(state: SoldierState) -> Vector2i:
-	var view: Soldier = _get_view(state.team_id, state.soldier_id)
-	if view != null and view.is_moving():
-		return IsometricGrid.world_to_cell_at_point(view.position)
+	## Authoritative grid only — presentation interpolation is never queried for gameplay.
 	return state.grid_position
 
 
 func _make_move_context(cmd: MoveCommand) -> CommandContextClass:
 	var ctx := CommandContextClass.new()
 	ctx.find_path = _iso_map.find_path
-	var fireteam: Fireteam = _get_fireteam(cmd.team_id)
-	if cmd.scope == MoveCommand.Scope.SQUAD:
-		for state in fireteam.soldiers:
-			var soldier_state: SoldierState = state
-			_add_snap_cell_if_animating(ctx, soldier_state)
-	else:
-		var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
-		if soldier_state != null:
-			_add_snap_cell_if_animating(ctx, soldier_state)
 	return ctx
 
 
-func _add_snap_cell_if_animating(ctx: CommandContextClass, state: SoldierState) -> void:
-	var view: Soldier = _get_view(state.team_id, state.soldier_id)
-	if not state.is_moving and (view == null or not view.is_moving()):
-		return
-	ctx.soldier_snap_cells[Team.soldier_key(state.team_id, state.soldier_id)] = (
-		_snap_cell_for_soldier(state)
-	)
+func _add_snap_cell_if_animating(_ctx: CommandContextClass, _state: SoldierState) -> void:
+	## No-op: mid-move gameplay uses SoldierState.grid_position.
+	pass
 
 
 func _make_fire_context(shooters: Array[SoldierState]) -> CommandContextClass:
 	var ctx := CommandContextClass.new()
 	for shooter in shooters:
 		ctx.shooter_ids.append(shooter.soldier_id)
-		var view: Soldier = _get_view(shooter.team_id, shooter.soldier_id)
-		if shooter.is_moving or (view != null and view.is_moving()):
-			ctx.soldier_snap_cells[Team.soldier_key(shooter.team_id, shooter.soldier_id)] = (
-				_snap_cell_for_soldier(shooter)
-			)
 	return ctx
 
 
 func _make_grenade_context(soldier_state: SoldierState) -> CommandContextClass:
 	var ctx := CommandContextClass.new()
-	_add_snap_cell_if_animating(ctx, soldier_state)
+	ctx.shooter_ids.append(soldier_state.soldier_id)
 	return ctx
 
 
@@ -1508,22 +1507,14 @@ func _get_soldier_tracer_point(soldier_state: SoldierState) -> Vector2:
 	return IsometricGrid.soldier_aim_point(soldier_state.grid_position)
 
 
-func _on_soldier_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i) -> void:
-	ActionResolverClass.on_movement_step(_game_state, team_id, soldier_id, tile, step_delta)
-	_refresh_all_views()
+func _on_soldier_step_reached(_team_id: int, _soldier_id: int, _tile: Vector2i, _step_delta: Vector2i) -> void:
+	## Legacy presentation signal — authoritative steps come from process_movement_tick.
+	pass
 
 
-func _on_soldier_movement_finished(team_id: int, soldier_id: int) -> void:
-	ActionResolverClass.on_movement_complete(_game_state, team_id, soldier_id)
-	var state: SoldierState = _get_fireteam(team_id).get_soldier(soldier_id)
-	var view: Soldier = _get_view(team_id, soldier_id)
-	_log_move_complete(soldier_id, state, view)
-	if team_id == _session.active_team_id and not _any_active_team_soldier_moving():
-		_iso_map.clear_path()
-	_refresh_all_views()
-	_ensure_active_selection_alive()
-	_refresh_command_bar()
-	_command_bar.show_status("%s Soldier %d move complete." % [Team.display_name(team_id), soldier_id])
+func _on_soldier_movement_finished(_team_id: int, _soldier_id: int) -> void:
+	## Legacy presentation signal — authoritative completion comes from process_movement_tick.
+	pass
 
 
 func _on_soldier_stance_transition_finished(
