@@ -117,7 +117,7 @@ static func _load_faction_frames(is_usa: bool) -> SpriteFrames:
 	)
 
 
-## Map a grid step or cardinal facing vector to an OG direction suffix (w, sw, …).
+## Map a grid step or 8-way facing vector to an OG direction suffix (w, sw, …).
 ## Under CoC X-flip, logical ±X steps reverse on screen — pick the letter from the
 ## visual step so bodies match aim lines / movement on the flipped map.
 static func direction_from_step(step: Vector2i) -> String:
@@ -137,6 +137,7 @@ static func direction_from_threat(threat_step: Vector2i) -> String:
 
 
 static func snap_step_to_eight_way(step: Vector2i) -> Vector2i:
+	## Sign-normalize without the ZERO→NORTH fallback used by FacingDirection.from_step.
 	if step == Vector2i.ZERO:
 		return Vector2i.ZERO
 	return Vector2i(clampi(step.x, -1, 1), clampi(step.y, -1, 1))

@@ -68,6 +68,7 @@ const DEBUG_THROW_GRENADE := true
 const DEBUG_FIRE_ANIM := true
 const DEBUG_IDLE_STANDING := true
 const DEBUG_STANCE_TRANSITION := true
+const DEBUG_FACING := true
 
 
 @onready var _anim: AnimatedSprite2D = $AnimatedSprite2D
@@ -294,13 +295,52 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 
 
 func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:
-	_last_applied_facing = facing
+	var normalized := FacingDirection.normalize(facing)
+	var changed := normalized != _last_applied_facing
+	_last_applied_facing = normalized
 	_facing_from_cell = from_cell
 	if not _is_moving and not _blocks_action_override():
-		_update_locomotion_visual(facing, false)
+		_update_locomotion_visual(normalized, false)
 	if _facing_arrow != null and _show_facing_arrow():
-		_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(facing, from_cell)
+		_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(normalized, from_cell)
 	_sync_facing_arrow_visibility()
+	if changed:
+		_log_facing_debug("APPLY")
+
+
+## Manual / debug validation snapshot for 8-way facing + camera remap.
+func dump_facing_validation() -> Dictionary:
+	var world := FacingDirection.normalize(_last_applied_facing)
+	var cam := IsometricGrid.camera_direction_degrees()
+	var anim_dir := UsSoldierSpriteFrames.direction_from_step(world)
+	var display_dir := AnimationDatabase.display_direction(anim_dir, cam)
+	var anim_name := str(_anim.animation) if _anim != null else ""
+	return {
+		"world_facing": world,
+		"direction_name": FacingDirection.direction_name(world),
+		"camera_rotation": cam,
+		"anim_suffix_world": FacingDirection.to_anim_suffix(world),
+		"resolved_anim_direction": display_dir,
+		"active_animation": anim_name,
+	}
+
+
+func _log_facing_debug(status: String) -> void:
+	if not DEBUG_FACING:
+		return
+	var info := dump_facing_validation()
+	GameLog.log_system(
+		"facing | %s | world=%s %s | cam=%d | anim_dir=%s | display=%s | anim=%s"
+		% [
+			status,
+			info.world_facing,
+			info.direction_name,
+			info.camera_rotation,
+			info.anim_suffix_world,
+			info.resolved_anim_direction,
+			info.active_animation,
+		]
+	)
 
 
 func _show_facing_arrow() -> bool:

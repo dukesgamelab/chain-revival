@@ -21,12 +21,12 @@ static func is_cell_in_cone(
 	max_range: int,
 ) -> bool:
 	var forward := _forward_tiles(from_cell, facing, target_cell)
-	if forward <= 0 or forward > max_range:
+	if forward <= 0.0 or forward > float(max_range) + 0.001:
 		return false
 	var lateral := _lateral_tiles(from_cell, facing, target_cell)
 	var width := float(GameplayPolicies.vision.cone_width_at_max_range)
-	var half_width := (float(forward) / float(max_range)) * (width * 0.5)
-	return float(lateral) <= half_width + 0.001
+	var half_width := (forward / float(max_range)) * (width * 0.5)
+	return lateral <= half_width + 0.001
 
 
 ## Spotting uses a broad forward arc (no lateral squeeze) — facing the fight, not a fire cone.
@@ -37,7 +37,7 @@ static func is_in_spotting_forward_arc(
 	max_range: int,
 ) -> bool:
 	var forward := _forward_tiles(from_cell, facing, target_cell)
-	return forward > 0 and forward <= max_range
+	return forward > 0.0 and forward <= float(max_range) + 0.001
 
 
 static func is_facing_toward_target(
@@ -51,7 +51,7 @@ static func is_facing_toward_target(
 	return is_in_spotting_forward_arc(from_cell, facing, target_cell, max_range)
 
 
-## Grid-facing cone (combat acquisition).
+## Grid-facing cone (combat acquisition). Works for all eight facings.
 static func cone_outline_world(from_cell: Vector2i, facing: Vector2i, max_range: int) -> PackedVector2Array:
 	var normalized := FacingDirection.normalize(facing)
 	var lateral := Vector2i(-normalized.y, normalized.x)
@@ -153,21 +153,27 @@ static func _world_half_width(from_cell: Vector2i, aim_world: Vector2, max_range
 	return far_center.distance_to(far_left)
 
 
-static func _forward_tiles(from_cell: Vector2i, facing: Vector2i, target_cell: Vector2i) -> int:
+static func _forward_tiles(from_cell: Vector2i, facing: Vector2i, target_cell: Vector2i) -> float:
+	## Steps along facing. Divide by |facing|^2 so diagonal unit steps count as 1
+	## (same effective range as cardinals; avoids √2 stretch from (1,1)).
 	var normalized := FacingDirection.normalize(facing)
-	if normalized == FacingDirection.NORTH:
-		return maxi(0, from_cell.y - target_cell.y)
-	if normalized == FacingDirection.SOUTH:
-		return maxi(0, target_cell.y - from_cell.y)
-	if normalized == FacingDirection.EAST:
-		return maxi(0, target_cell.x - from_cell.x)
-	if normalized == FacingDirection.WEST:
-		return maxi(0, from_cell.x - target_cell.x)
-	return 0
+	if normalized == Vector2i.ZERO:
+		return 0.0
+	var offset := Vector2(target_cell - from_cell)
+	var forward_v := Vector2(normalized)
+	var denom := forward_v.length_squared()
+	if denom < 0.0001:
+		return 0.0
+	return offset.dot(forward_v) / denom
 
 
-static func _lateral_tiles(from_cell: Vector2i, facing: Vector2i, target_cell: Vector2i) -> int:
+static func _lateral_tiles(from_cell: Vector2i, facing: Vector2i, target_cell: Vector2i) -> float:
 	var normalized := FacingDirection.normalize(facing)
-	if normalized == FacingDirection.NORTH or normalized == FacingDirection.SOUTH:
-		return absi(target_cell.x - from_cell.x)
-	return absi(target_cell.y - from_cell.y)
+	if normalized == Vector2i.ZERO:
+		return 0.0
+	var offset := Vector2(target_cell - from_cell)
+	var lateral_v := Vector2(-normalized.y, normalized.x)
+	var denom := lateral_v.length_squared()
+	if denom < 0.0001:
+		return 0.0
+	return absf(offset.dot(lateral_v) / denom)
