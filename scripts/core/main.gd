@@ -62,7 +62,8 @@ var _grenade_mode: bool = false
 var _grenade_soldier_id: int = 1
 var _map_edit_mode: bool = false
 var _map_edit_palette: int = MapEditorClass.Palette.WALL
-var _auto_fire_timer: float = 0.0
+var _sim_accum_sec: float = 0.0
+var _combat_scan_accum_msec: int = 0
 var _grass_layer_visible: bool = true
 var _simple_ai: SimpleAIControllerClass
 
@@ -90,8 +91,12 @@ func _ready() -> void:
 ## Seeded RNG + sim clock for reproducible gameplay timing (not wall-clock).
 func _bootstrap_simulation() -> void:
 	SimulationClock.reset()
-	DeterministicRNG.reseed(DeterministicRNG.DEFAULT_SEED)
+	SimulationClock.reset_tick_defaults()
+	GameRandom.begin_match(GameRandom.DEFAULT_SEED)
 	GameplayPolicies.reset_all_to_defaults()
+	GameplayPolicies.reload_from_config()
+	_sim_accum_sec = 0.0
+	_combat_scan_accum_msec = 0
 
 
 func _start_simple_ai() -> void:
@@ -165,7 +170,7 @@ func _log_fireteam_loadouts() -> void:
 
 
 func _process(delta: float) -> void:
-	SimulationClock.advance_sec(delta)
+	## Frame path: presentation / UI only (LOS preview, hit columns, path lerp refresh).
 	if not _map_edit_mode:
 		_update_los_preview()
 		_update_command_bar_hit_columns()
@@ -173,14 +178,44 @@ func _process(delta: float) -> void:
 		if _any_soldier_moving():
 			_refresh_all_views()
 
-		_auto_fire_timer += delta
-		if _auto_fire_timer < GameplayPolicies.hit.auto_fire_scan_interval:
-			_clear_spotting_cell_overrides()
-			return
-		_auto_fire_timer = 0.0
-		var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
-		_present_action_result(tick_result, true)
+	## Gameplay path: accumulate render delta into fixed simulation ticks.
+	_step_fixed_simulation(delta)
+
+	if not _map_edit_mode:
 		_clear_spotting_cell_overrides()
+
+
+## Advance SimulationClock in fixed ticks; run combat scans on policy cadence.
+func _step_fixed_simulation(frame_delta: float) -> void:
+	if frame_delta <= 0.0:
+		return
+	_sim_accum_sec += frame_delta
+	var tick_sec := SimulationClock.tick_sec()
+	var steps := 0
+	while _sim_accum_sec >= tick_sec and steps < SimulationClock.max_catchup_ticks:
+		_sim_accum_sec -= tick_sec
+		_step_simulation_tick()
+		steps += 1
+	## Drop excess accumulator after catch-up cap so a long hitch does not spiral.
+	if steps >= SimulationClock.max_catchup_ticks and _sim_accum_sec >= tick_sec:
+		_sim_accum_sec = fmod(_sim_accum_sec, tick_sec)
+
+
+func _step_simulation_tick() -> void:
+	var stepped := SimulationClock.advance_tick()
+	if _map_edit_mode:
+		return
+	_combat_scan_accum_msec += stepped
+	var scan_msec := _combat_scan_interval_msec()
+	if _combat_scan_accum_msec < scan_msec:
+		return
+	_combat_scan_accum_msec -= scan_msec
+	var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
+	_present_action_result(tick_result, true)
+
+
+func _combat_scan_interval_msec() -> int:
+	return maxi(int(round(GameplayPolicies.hit.auto_fire_scan_interval * 1000.0)), 1)
 
 
 func _input(event: InputEvent) -> void:
@@ -1551,7 +1586,8 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 
 
 func _begin_fire_at_engagement() -> void:
-	_auto_fire_timer = GameplayPolicies.hit.auto_fire_scan_interval
+	## Arm an immediate combat scan on the next simulation tick (preserve prior kick behavior).
+	_combat_scan_accum_msec = _combat_scan_interval_msec()
 	_sync_fire_at_ui_from_engagements()
 
 

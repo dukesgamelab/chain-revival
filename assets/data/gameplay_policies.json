@@ -50,9 +50,27 @@
 		"band_suppressed": 25.0,
 		"band_pinned": 45.0,
 		"band_panicked": 70.0,
-		"accuracy_by_band": [1.0, 0.85, 0.65, 0.4, 0.2],
-		"movement_by_band": [1.0, 0.9, 0.75, 0.5, 0.35],
-		"fire_delay_by_band": [1.0, 1.1, 1.25, 1.5, 2.0],
+		"accuracy_by_band": [
+			1.0,
+			0.85,
+			0.65,
+			0.4,
+			0.2
+		],
+		"movement_by_band": [
+			1.0,
+			0.9,
+			0.75,
+			0.5,
+			0.35
+		],
+		"fire_delay_by_band": [
+			1.0,
+			1.1,
+			1.25,
+			1.5,
+			2.0
+		],
 		"suppression_mg42": 2.0,
 		"suppression_bar": 1.2,
 		"suppression_smg": 0.8,
@@ -154,5 +172,10 @@
 				"aim_delay_sec": 0.7
 			}
 		}
+	},
+	"simulation": {
+		"comment": "20 Hz divides auto_fire_scan_interval 0.5s into exactly 10 ticks. Combat scans stay at 0.5s sim time.",
+		"tick_hz": 20,
+		"max_catchup_ticks": 10
 	}
 }

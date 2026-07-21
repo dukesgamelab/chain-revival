@@ -24,6 +24,7 @@ PlayerSides="*res://scripts/network/player_side_manager.gd"
 CommandRouter="*res://scripts/core/command_router.gd"
 NetworkClient="*res://scripts/network/network_client.gd"
 GameplayPolicies="*res://scripts/gameplay_policies/gameplay_policies.gd"
+GameRandom="*res://scripts/core/game_random.gd"
 DeterministicRNG="*res://scripts/core/deterministic_rng.gd"
 SimulationClock="*res://scripts/core/simulation_clock.gd"
 

@@ -345,7 +345,7 @@ static func resolve_shot(
 		)
 
 	# V1: one hit roll per burst; future version can roll once per bullet in rounds_per_attack.
-	if DeterministicRNG.randf() <= chance:
+	if GameRandom.chance(chance):
 		result.hit = true
 		result.messages.append("%s hit" % weapon.weapon_name)
 		target.mark_killed()
@@ -1641,7 +1641,7 @@ static func resolve_grenade(
 				continue
 
 			if distance <= GameplayPolicies.grenade.kill_radius:
-				if DeterministicRNG.randf() <= GameplayPolicies.grenade.kill_chance:
+				if GameRandom.chance(GameplayPolicies.grenade.kill_chance):
 					soldier.mark_killed()
 					result.killed.append({
 						"team_id": soldier.team_id,

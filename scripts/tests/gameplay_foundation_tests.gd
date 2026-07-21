@@ -34,6 +34,7 @@ func _ready() -> void:
 	_test_firing_sequence_reproducibility()
 	_test_grenade_sequence_reproducibility()
 	_test_policy_defaults_unchanged()
+	_test_fixed_simulation_tick()
 	_test_object_id_and_registry()
 	_test_map_object_registry()
 	_test_grenade_object_registry()
@@ -46,7 +47,7 @@ func _ready() -> void:
 
 func _bootstrap() -> void:
 	SimulationClock.reset()
-	DeterministicRNG.reseed(DeterministicRNG.DEFAULT_SEED)
+	GameRandom.reseed(GameRandom.DEFAULT_SEED)
 	GameplayPolicies.reset_all_to_defaults()
 
 
@@ -369,28 +370,47 @@ func _test_wall_cover_fixture() -> void:
 
 
 func _test_rng_seed_reproducibility() -> void:
-	DeterministicRNG.reseed(42)
+	GameRandom.reseed(42)
 	var a: Array[float] = []
 	for i in range(8):
-		a.append(DeterministicRNG.randf())
+		a.append(GameRandom.randf())
 
-	DeterministicRNG.reseed(42)
+	GameRandom.reseed(42)
 	var b: Array[float] = []
 	for i in range(8):
-		b.append(DeterministicRNG.randf())
+		b.append(GameRandom.randf())
 
 	_assert("Same RNG seed produces identical sequence", a == b, "a=%s b=%s" % [str(a), str(b)])
 
-	DeterministicRNG.reseed(99)
+	GameRandom.reseed(99)
 	var c: Array[float] = []
 	for i in range(8):
-		c.append(DeterministicRNG.randf())
+		c.append(GameRandom.randf())
 	_assert("Different RNG seed diverges", a != c)
+
+	## Snapshot/restore for replay debugging.
+	GameRandom.reseed(7)
+	GameRandom.randf()
+	GameRandom.randf()
+	var snap := GameRandom.get_snapshot()
+	var next_a := GameRandom.randf()
+	GameRandom.restore_snapshot(snap)
+	var next_b := GameRandom.randf()
+	_assert(
+		"RNG snapshot restore continues the same stream",
+		is_equal_approx(next_a, next_b),
+		"a=%s b=%s" % [next_a, next_b],
+	)
+	## Bounded probability helpers (isolated seed so they cannot pollute later tests).
+	GameRandom.reseed(1)
+	_assert("chance(1.0) always true", GameRandom.chance(1.0))
+	GameRandom.reseed(1)
+	_assert("chance(0.0) always false", not GameRandom.chance(0.0))
 
 
 func _capture_shot_outcomes(seed_value: int) -> Array[bool]:
 	_bootstrap()
-	DeterministicRNG.reseed(seed_value)
+	GameRandom.reseed(seed_value)
 	SimulationClock.reset()
 
 	var map_data := MapDataClass.create_default()
@@ -430,7 +450,7 @@ func _test_firing_sequence_reproducibility() -> void:
 
 func _capture_grenade_outcomes(seed_value: int) -> Array[String]:
 	_bootstrap()
-	DeterministicRNG.reseed(seed_value)
+	GameRandom.reseed(seed_value)
 	SimulationClock.reset()
 
 	var map_data := MapDataClass.create_default()
@@ -446,6 +466,7 @@ func _capture_grenade_outcomes(seed_value: int) -> Array[String]:
 
 	var outcomes: Array[String] = []
 	for i in range(5):
+		thrower.is_dead = false
 		victim.is_dead = false
 		victim.stunned_until_msec = 0
 		victim.stand_on_stun_recovery = false
@@ -496,6 +517,32 @@ func _test_policy_defaults_unchanged() -> void:
 	_assert(
 		"Config reload preserves M1 Garand interval",
 		is_equal_approx(GameplayPolicies.weapons.fire_interval_sec("m1_garand"), 1.2),
+	)
+	_assert("Simulation tick hz default 20", SimulationClock.tick_hz == 20)
+	_assert("Simulation tick msec is 50", SimulationClock.tick_msec() == 50)
+
+
+func _test_fixed_simulation_tick() -> void:
+	_bootstrap()
+	SimulationClock.reset()
+	SimulationClock.reset_tick_defaults()
+	_assert("Tick hz is 20", SimulationClock.tick_hz == SimulationClock.DEFAULT_TICK_HZ)
+	_assert("Tick msec is 50", SimulationClock.tick_msec() == 50)
+	## 10 ticks = 500 ms = one combat scan interval at default policy.
+	for _i in 10:
+		SimulationClock.advance_tick()
+	_assert(
+		"10 ticks advance exactly 500 msec",
+		SimulationClock.get_ticks_msec() == 500,
+		"msec=%d" % SimulationClock.get_ticks_msec(),
+	)
+	## Combat scan cadence stays 0.5s of sim time (not every tick).
+	var scan_msec := int(round(GameplayPolicies.hit.auto_fire_scan_interval * 1000.0))
+	_assert("Combat scan interval still 500 msec", scan_msec == 500)
+	_assert(
+		"Combat scans per second unchanged at 2 Hz",
+		scan_msec / SimulationClock.tick_msec() == 10,
+		"ticks_per_scan=%d" % (scan_msec / SimulationClock.tick_msec()),
 	)
 
 

@@ -45,6 +45,7 @@ func reset_all_to_defaults() -> void:
 	vision.reset_to_defaults()
 	cover.reset_to_defaults()
 	los.reset_to_defaults()
+	SimulationClock.reset_tick_defaults()
 	_sync_cross_policy_aliases()
 
 
@@ -79,6 +80,8 @@ func reload_from_config() -> void:
 		cover.apply_config(root.cover)
 	if root.has("los") and root.los is Dictionary:
 		los.apply_config(root.los)
+	if root.has("simulation") and root.simulation is Dictionary:
+		SimulationClock.apply_config(root.simulation)
 	_sync_cross_policy_aliases()
 
 
