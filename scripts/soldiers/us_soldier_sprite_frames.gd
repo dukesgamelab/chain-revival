@@ -9,6 +9,7 @@ extends RefCounted
 ##   Throw grenade:     ASTGA / GSPRA  (A–X)  → throw_grenade_*
 ##   Fire standing:     ASFIA / GLCFA  (A–C; ASFIA NW A–B) → fire_standing_*
 ##   Fire prone:        APRFA / GPRFA  (A–C)  → fire_prone_*
+##   Idle standing:     ABRLA / GBRLA  (A–U)  → idle_standing_*
 ##   Fall/death:        AFALA / GFALA  (A–W)
 ##   Corpse (US):       ADDSS          (A)  — post-fall dead pose
 ##   Corpse (German):   GDFUS          (A)

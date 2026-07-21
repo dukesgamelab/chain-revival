@@ -58,6 +58,7 @@ var _fire_restart_pending: bool = false
 const DEBUG_HIT_REACTION := true
 const DEBUG_THROW_GRENADE := true
 const DEBUG_FIRE_ANIM := true
+const DEBUG_IDLE_STANDING := true
 
 
 @onready var _anim: AnimatedSprite2D = $AnimatedSprite2D
@@ -329,20 +330,105 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			_anim.play("walk_%s" % direction)
 		return
 	if not walking and _locomotion_direction == direction and not _locomotion_walking:
-		return
+		## Already stationary in this world facing — keep current idle/walk pose
+		## unless standing idle is missing and we still need to start it.
+		if (
+			_applied_position_state != PositionState.DOWN
+			and _anim.sprite_frames.has_animation("idle_standing_%s" % _idle_display_direction(direction))
+			and str(_anim.animation).begins_with("idle_standing_")
+		):
+			return
+		if _applied_position_state == PositionState.DOWN:
+			return
+
 	_locomotion_direction = direction
 	_locomotion_walking = walking
 
-	var anim_name := "walk_%s" % direction
-	if not _anim.sprite_frames.has_animation(anim_name):
-		push_warning("Soldier: missing animation %s" % anim_name)
+	if walking:
+		var walk_name := "walk_%s" % direction
+		if not _anim.sprite_frames.has_animation(walk_name):
+			push_warning("Soldier: missing animation %s" % walk_name)
+			return
+		_anim.play(walk_name)
 		return
 
-	_anim.play(anim_name)
-	if walking:
+	## Stationary: standing → looping idle_standing; prone → legacy paused walk frame.
+	if _applied_position_state == PositionState.DOWN:
+		var prone_idle := "walk_%s" % direction
+		if not _anim.sprite_frames.has_animation(prone_idle):
+			push_warning("Soldier: missing animation %s" % prone_idle)
+			return
+		_anim.play(prone_idle)
+		_anim.pause()
+		_anim.frame = 0
 		return
-	_anim.pause()
-	_anim.frame = 0
+
+	_play_idle_standing(direction)
+
+
+func _idle_display_direction(world_direction: String) -> String:
+	return AnimationDatabase.display_direction(
+		world_direction,
+		IsometricGrid.camera_direction_degrees(),
+	)
+
+
+func _idle_source_family() -> String:
+	return "GBRLA" if team_id == Team.GERMANY else "ABRLA"
+
+
+func _play_idle_standing(world_direction: String) -> void:
+	var display_dir := _idle_display_direction(world_direction)
+	var anim_name := "idle_standing_%s" % display_dir
+	if not _anim.sprite_frames.has_animation(anim_name):
+		push_error(
+			"Soldier: missing idle_standing animation %s (team=%d soldier=%d family=%s)"
+			% [anim_name, team_id, soldier_id, _idle_source_family()]
+		)
+		_log_idle_standing(anim_name, "MISSING_ANIMATION")
+		return
+	var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
+	if frame_count <= 0:
+		push_error("Soldier: idle_standing animation %s has zero frames" % anim_name)
+		_log_idle_standing(anim_name, "EMPTY_FRAMES")
+		return
+	if str(_anim.animation) == anim_name and _anim.is_playing():
+		return
+	_anim.play(anim_name)
+	_log_idle_standing(anim_name, "PLAY")
+
+
+## Preserve throw/fire/idle progress across camera rotation; remaps visual direction only.
+func refresh_action_visual_for_camera() -> void:
+	if _anim == null or _anim.sprite_frames == null:
+		return
+	if _throw_grenade_active:
+		_remap_throw_for_camera()
+		return
+	if _fire_active:
+		_remap_fire_for_camera()
+		return
+	if _blocks_action_override():
+		return
+	if _is_moving or _applied_position_state == PositionState.DOWN:
+		return
+	_remap_idle_standing_for_camera()
+
+
+func _remap_idle_standing_for_camera() -> void:
+	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	var saved_frame := _anim.frame
+	var display_dir := _idle_display_direction(world_dir)
+	var anim_name := "idle_standing_%s" % display_dir
+	if not _anim.sprite_frames.has_animation(anim_name):
+		push_error("Soldier: missing idle_standing on camera rotate: %s" % anim_name)
+		return
+	if str(_anim.animation) == anim_name:
+		return
+	var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
+	_anim.play(anim_name)
+	_anim.frame = mini(saved_frame, max_frame)
+	_log_idle_standing(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
 
 
 ## Survivable flinch. US uses hit_standing / hit_prone; never falls back to idle/walk frames.
@@ -500,17 +586,6 @@ func _begin_fire_sequence(position_state: int, facing_direction: Vector2i) -> vo
 	GameplayPolicies.fire_anim.note_visual_firing_trigger()
 	_anim.play(anim_name)
 	_log_fire_anim(anim_name, "PLAY")
-
-
-## Preserve throw/fire progress across camera rotation; remaps visual direction only.
-func refresh_action_visual_for_camera() -> void:
-	if _anim == null or _anim.sprite_frames == null:
-		return
-	if _throw_grenade_active:
-		_remap_throw_for_camera()
-		return
-	if _fire_active:
-		_remap_fire_for_camera()
 
 
 func _remap_throw_for_camera() -> void:
@@ -872,6 +947,8 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return _throw_source_family()
 		"fire_standing", "fire_prone":
 			return _fire_source_family()
+		"idle_standing":
+			return _idle_source_family()
 		_:
 			return "?"
 
@@ -969,6 +1046,64 @@ func _log_fire_anim(anim_name: String, status: String) -> void:
 			"[FireAnim] ordered_frames=%s"
 			% ", ".join(frame_paths)
 		)
+
+
+func _log_idle_standing(anim_name: String, status: String) -> void:
+	if not DEBUG_IDLE_STANDING:
+		return
+	var cam_rot := IsometricGrid.camera_direction_degrees()
+	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	var display_dir := _idle_display_direction(world_dir)
+	var family_id := (
+		UsSoldierSpriteFrames.DB_FAMILY_USA
+		if team_id == Team.USA
+		else UsSoldierSpriteFrames.DB_FAMILY_GERMANY
+	)
+	var frame_paths := AnimationDatabase.get_direction_frames(family_id, "idle_standing", display_dir)
+	var fps := 0.0
+	var loop := false
+	var frame_count := 0
+	if _anim.sprite_frames != null and _anim.sprite_frames.has_animation(anim_name):
+		fps = _anim.sprite_frames.get_animation_speed(anim_name)
+		loop = _anim.sprite_frames.get_animation_loop(anim_name)
+		frame_count = _anim.sprite_frames.get_frame_count(anim_name)
+	var digit := -1
+	match display_dir:
+		"w":
+			digit = 1
+		"sw":
+			digit = 2
+		"s":
+			digit = 3
+		"se":
+			digit = 4
+		"e":
+			digit = 5
+		"ne":
+			digit = 6
+		"n":
+			digit = 7
+		"nw":
+			digit = 8
+	var first_name := frame_paths[0].get_file() if not frame_paths.is_empty() else "?"
+	var last_name := frame_paths[frame_paths.size() - 1].get_file() if not frame_paths.is_empty() else "?"
+	GameLog.log_system(
+		"idle_standing | %s | %s | world_dir=%s | camera_rotation=%d | source_dir=%d | fps=%.0f | loop=%s | frames=%d | %s..%s | status=%s anim=%s"
+		% [
+			Team.display_name(team_id).to_lower(),
+			_idle_source_family(),
+			world_dir.to_upper(),
+			cam_rot,
+			digit,
+			fps,
+			str(loop).to_lower(),
+			frame_count,
+			first_name,
+			last_name,
+			status,
+			anim_name,
+		]
+	)
 
 
 func _ordered_frame_paths_for_log() -> Array[String]:
