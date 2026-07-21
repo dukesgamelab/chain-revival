@@ -1323,6 +1323,160 @@
 						"notes": "",
 						"sound_effect": ""
 					}
+				},
+				"fire_standing": {
+					"label": "German Standing Rifle Fire",
+					"loop": false,
+					"fps": 8.0,
+					"metadata": {
+						"source_family": "GLCFA",
+						"category": "soldier/rifle_fire",
+						"faction": "German",
+						"verified": true,
+						"verification": "manually confirmed by user",
+						"visual_shot_frame": 1,
+						"visual_shot_frame_letter": "B",
+						"muzzle_flash_frame": 1.0,
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"sound_effect": "",
+						"notes": "Per-shot oneshot at 8 FPS."
+					},
+					"directions": {
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA7A.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA7B.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA6A.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA6B.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA6C.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA5A.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA5B.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA5C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA4A.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA4B.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA4C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA3A.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA3B.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA3C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA2A.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA2B.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA1A.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA1B.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA1C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA8A.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA8B.png",
+								"res://assets/sprites/german_soldier/fire_standing/GLCFA8C.png"
+							]
+						}
+					}
+				},
+				"fire_prone": {
+					"label": "German Prone Rifle Fire",
+					"loop": false,
+					"fps": 8.0,
+					"metadata": {
+						"source_family": "GPRFA",
+						"category": "soldier/rifle_fire",
+						"faction": "German",
+						"verified": true,
+						"verification": "manually confirmed by user",
+						"visual_shot_frame": 1,
+						"visual_shot_frame_letter": "B",
+						"muzzle_flash_frame": 1.0,
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"sound_effect": "",
+						"notes": "Per-shot oneshot at 8 FPS."
+					},
+					"directions": {
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA7A.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA7B.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA6A.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA6B.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA6C.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA5A.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA5B.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA5C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA4A.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA4B.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA4C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA3A.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA3B.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA3C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA2A.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA2B.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA1A.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA1B.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA1C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA8A.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA8B.png",
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA8C.png"
+							]
+						}
+					}
 				}
 			},
 			"category": "soldiers",
@@ -3304,6 +3458,159 @@
 								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8U.png",
 								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8V.png",
 								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8W.png"
+							]
+						}
+					}
+				},
+				"fire_standing": {
+					"label": "US Standing Rifle Fire",
+					"loop": false,
+					"fps": 8.0,
+					"metadata": {
+						"source_family": "ASFIA",
+						"category": "soldier/rifle_fire",
+						"faction": "American",
+						"verified": true,
+						"verification": "manually confirmed by user",
+						"visual_shot_frame": 1,
+						"visual_shot_frame_letter": "B",
+						"muzzle_flash_frame": 1.0,
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"sound_effect": "",
+						"notes": "Per-shot oneshot at 8 FPS. ASFIA nw is A-B only (no 8C)."
+					},
+					"directions": {
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA7A.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA7B.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA6A.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA6B.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA6C.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA5A.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA5B.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA5C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA4A.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA4B.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA4C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA3A.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA3B.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA3C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA2A.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA2B.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA1A.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA1B.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA1C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA8A.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA8B.png"
+							]
+						}
+					}
+				},
+				"fire_prone": {
+					"label": "US Prone Rifle Fire",
+					"loop": false,
+					"fps": 8.0,
+					"metadata": {
+						"source_family": "APRFA",
+						"category": "soldier/rifle_fire",
+						"faction": "American",
+						"verified": true,
+						"verification": "manually confirmed by user",
+						"visual_shot_frame": 1,
+						"visual_shot_frame_letter": "B",
+						"muzzle_flash_frame": 1.0,
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"sound_effect": "",
+						"notes": "Per-shot oneshot at 8 FPS."
+					},
+					"directions": {
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA7A.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA7B.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA6A.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA6B.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA6C.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA5A.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA5B.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA5C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA4A.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA4B.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA4C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA3A.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA3B.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA3C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA2A.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA2B.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA1A.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA1B.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA1C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA8A.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA8B.png",
+								"res://assets/sprites/us_soldier/fire_prone/APRFA8C.png"
 							]
 						}
 					}

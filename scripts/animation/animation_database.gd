@@ -179,6 +179,8 @@ static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteF
 		"hit_standing": "hit_standing",
 		"hit_prone": "hit_prone",
 		"throw_grenade": "throw_grenade",
+		"fire_standing": "fire_standing",
+		"fire_prone": "fire_prone",
 		"death": "fall",
 		"corpse": "dead",
 		"idle": "idle",

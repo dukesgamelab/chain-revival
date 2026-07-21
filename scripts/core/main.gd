@@ -1411,9 +1411,15 @@ func _finalize_shot_result(
 	shooter: SoldierState,
 	target: SoldierState,
 ) -> Array[String]:
-	if result.fired and target != null:
-		_spawn_shot_tracers(shooter, target, maxi(result.tracer_count, 1))
-		result.messages.append("Tracer created")
+	if result.fired:
+		GameplayPolicies.fire_anim.note_authoritative_shot()
+		if shooter != null:
+			var shooter_view: Soldier = _get_view(shooter.team_id, shooter.soldier_id)
+			if shooter_view != null:
+				shooter_view.play_fire(shooter.position_state, shooter.facing_direction)
+		if target != null:
+			_spawn_shot_tracers(shooter, target, maxi(result.tracer_count, 1))
+			result.messages.append("Tracer created")
 
 	if result.killed and target != null:
 		var threat_step := shooter.grid_position - target.grid_position
