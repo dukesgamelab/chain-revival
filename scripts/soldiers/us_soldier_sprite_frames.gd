@@ -10,6 +10,9 @@ extends RefCounted
 ##   Fire standing:     ASFIA / GLCFA  (A–C; ASFIA NW A–B) → fire_standing_*
 ##   Fire prone:        APRFA / GPRFA  (A–C)  → fire_prone_*
 ##   Idle standing:     ABRLA / GBRLA  (A–U)  → idle_standing_*
+##   Idle prone (Ger):  GPRIS          (A)    → idle_prone_*
+##   Stand→prone (Ger): GSUPA          (A–X)  → transition_standing_to_prone_*
+##   Prone→stand (Ger): GPRNA          (A–E)  → transition_prone_to_standing_*
 ##   Fall/death:        AFALA / GFALA  (A–W)
 ##   Corpse (US):       ADDSS          (A)  — post-fall dead pose
 ##   Corpse (German):   GDFUS          (A)

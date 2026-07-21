@@ -17,6 +17,10 @@ signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step
 signal movement_finished(team_id: int, soldier_id: int)
 ## Fired once when configured release frame is reached (presentation → gameplay hook).
 signal grenade_release_reached(team_id: int, soldier_id: int)
+## Fired when stand↔prone transition anim completes (presentation → gameplay commit).
+signal stance_transition_finished(team_id: int, soldier_id: int, target_position_state: int)
+## Fired when a transition is interrupted; gameplay should drop pending_position_state.
+signal stance_transition_cancelled(team_id: int, soldier_id: int)
 
 var soldier_id: int = 1
 var team_id: int = Team.USA
@@ -53,12 +57,17 @@ var _fire_semantic: String = "fire_standing"
 var _fire_visual_shot_logged: bool = false
 ## At most one queued restart if a new shot arrives mid-sequence.
 var _fire_restart_pending: bool = false
+var _stance_transition_active: bool = false
+var _stance_transition_semantic: String = ""
+var _stance_transition_target: int = PositionState.UP
+var _stance_transition_world_direction: String = "n"
 
 ## When true, log hit-reaction resolution (semantic, family, directions, frames, FPS).
 const DEBUG_HIT_REACTION := true
 const DEBUG_THROW_GRENADE := true
 const DEBUG_FIRE_ANIM := true
 const DEBUG_IDLE_STANDING := true
+const DEBUG_STANCE_TRANSITION := true
 
 
 @onready var _anim: AnimatedSprite2D = $AnimatedSprite2D
@@ -81,12 +90,13 @@ func _ready() -> void:
 
 
 func _blocks_action_override() -> bool:
-	## Priority: death → hit → throw → fire → movement → idle.
+	## Priority: death → hit → throw → fire → stance transition → movement → idle.
 	return (
 		_death_sequence_active
 		or _hit_reaction_active
 		or _throw_grenade_active
 		or _fire_active
+		or _stance_transition_active
 	)
 
 
@@ -139,15 +149,11 @@ func _apply_spotted_visual(is_selected: bool, is_spotted: bool) -> void:
 
 
 func set_selected(is_selected: bool) -> void:
-	if _blocks_action_override():
-		_selection_marker.visible = false
+	## Red diamond is reserved for the run-to destination overlay — never under the soldier.
+	_selection_marker.visible = false
+	if _is_dead or _blocks_action_override():
 		return
-	if _is_dead:
-		_selection_marker.visible = false
-		return
-	_selection_marker.visible = is_selected
-	_selection_marker.polygon = IsometricGrid.diamond_corners(Vector2.ZERO)
-	if not _is_moving and not _blocks_action_override():
+	if not _is_moving:
 		_update_locomotion_visual(_last_applied_facing, false)
 
 
@@ -216,6 +222,7 @@ func stop_movement() -> void:
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	## Presentation-only path animation. Authoritative grid_position updates via
 	## movement_step_reached → ActionResolver.on_movement_step.
+	_cancel_stance_transition_visual(false)
 	if _is_dead or _blocks_action_override() or path.size() <= 1:
 		return
 
@@ -330,15 +337,26 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			_anim.play("walk_%s" % direction)
 		return
 	if not walking and _locomotion_direction == direction and not _locomotion_walking:
-		## Already stationary in this world facing — keep current idle/walk pose
-		## unless standing idle is missing and we still need to start it.
+		## Already stationary in this world facing — keep current idle pose
+		## unless we still need to start the correct idle animation.
 		if (
 			_applied_position_state != PositionState.DOWN
 			and _anim.sprite_frames.has_animation("idle_standing_%s" % _idle_display_direction(direction))
 			and str(_anim.animation).begins_with("idle_standing_")
 		):
 			return
-		if _applied_position_state == PositionState.DOWN:
+		if (
+			_applied_position_state == PositionState.DOWN
+			and (
+				str(_anim.animation).begins_with("idle_prone_")
+				or (
+					not _anim.sprite_frames.has_animation(
+						"idle_prone_%s" % _idle_display_direction(direction)
+					)
+					and str(_anim.animation).begins_with("walk_")
+				)
+			)
+		):
 			return
 
 	_locomotion_direction = direction
@@ -352,15 +370,9 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		_anim.play(walk_name)
 		return
 
-	## Stationary: standing → looping idle_standing; prone → legacy paused walk frame.
+	## Stationary: standing → idle_standing; prone → idle_prone (or legacy paused walk).
 	if _applied_position_state == PositionState.DOWN:
-		var prone_idle := "walk_%s" % direction
-		if not _anim.sprite_frames.has_animation(prone_idle):
-			push_warning("Soldier: missing animation %s" % prone_idle)
-			return
-		_anim.play(prone_idle)
-		_anim.pause()
-		_anim.frame = 0
+		_play_idle_prone(direction)
 		return
 
 	_play_idle_standing(direction)
@@ -375,6 +387,10 @@ func _idle_display_direction(world_direction: String) -> String:
 
 func _idle_source_family() -> String:
 	return "GBRLA" if team_id == Team.GERMANY else "ABRLA"
+
+
+func _prone_idle_source_family() -> String:
+	return "GPRIS" if team_id == Team.GERMANY else ""
 
 
 func _play_idle_standing(world_direction: String) -> void:
@@ -398,7 +414,30 @@ func _play_idle_standing(world_direction: String) -> void:
 	_log_idle_standing(anim_name, "PLAY")
 
 
-## Preserve throw/fire/idle progress across camera rotation; remaps visual direction only.
+func _play_idle_prone(world_direction: String) -> void:
+	var display_dir := _idle_display_direction(world_direction)
+	var anim_name := "idle_prone_%s" % display_dir
+	if _anim.sprite_frames.has_animation(anim_name):
+		var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
+		if frame_count <= 0:
+			push_error("Soldier: idle_prone animation %s has zero frames" % anim_name)
+			return
+		if str(_anim.animation) == anim_name and _anim.is_playing():
+			return
+		_anim.play(anim_name)
+		_log_stance_transition(anim_name, "IDLE_PRONE")
+		return
+	## Legacy fallback (USA / missing DB): paused first walk frame.
+	var prone_idle := "walk_%s" % world_direction
+	if not _anim.sprite_frames.has_animation(prone_idle):
+		push_warning("Soldier: missing animation %s" % prone_idle)
+		return
+	_anim.play(prone_idle)
+	_anim.pause()
+	_anim.frame = 0
+
+
+## Preserve throw/fire/idle/stance progress across camera rotation; remaps visual direction only.
 func refresh_action_visual_for_camera() -> void:
 	if _anim == null or _anim.sprite_frames == null:
 		return
@@ -408,9 +447,15 @@ func refresh_action_visual_for_camera() -> void:
 	if _fire_active:
 		_remap_fire_for_camera()
 		return
+	if _stance_transition_active:
+		_remap_stance_transition_for_camera()
+		return
 	if _blocks_action_override():
 		return
-	if _is_moving or _applied_position_state == PositionState.DOWN:
+	if _is_moving:
+		return
+	if _applied_position_state == PositionState.DOWN:
+		_remap_idle_prone_for_camera()
 		return
 	_remap_idle_standing_for_camera()
 
@@ -431,13 +476,47 @@ func _remap_idle_standing_for_camera() -> void:
 	_log_idle_standing(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
 
 
+func _remap_idle_prone_for_camera() -> void:
+	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	var display_dir := _idle_display_direction(world_dir)
+	var anim_name := "idle_prone_%s" % display_dir
+	if not _anim.sprite_frames.has_animation(anim_name):
+		return
+	if str(_anim.animation) == anim_name:
+		return
+	_anim.play(anim_name)
+
+
+func _remap_stance_transition_for_camera() -> void:
+	var world_dir := (
+		_stance_transition_world_direction
+		if not _stance_transition_world_direction.is_empty()
+		else _locomotion_direction
+	)
+	if world_dir.is_empty():
+		world_dir = "n"
+	var saved_frame := _anim.frame
+	var display_dir := _idle_display_direction(world_dir)
+	var anim_name := "%s_%s" % [_stance_transition_semantic, display_dir]
+	if not _anim.sprite_frames.has_animation(anim_name):
+		push_error("Soldier: missing stance transition on camera rotate: %s" % anim_name)
+		return
+	if str(_anim.animation) == anim_name:
+		return
+	var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
+	_anim.play(anim_name)
+	_anim.frame = mini(saved_frame, max_frame)
+	_log_stance_transition(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
+
+
 ## Survivable flinch. US uses hit_standing / hit_prone; never falls back to idle/walk frames.
 func play_hit_reaction(threat_step: Vector2i, position_state: int = PositionState.UP) -> void:
 	if not _uses_og_frames() or _death_sequence_active or _hit_reaction_active or _is_dead:
 		return
 	if _corpse_direction_locked:
 		return
-	## Priority: death → hit → throw → fire. Hit cancels lower-priority actions.
+	## Priority: death → hit → throw → fire → stance. Hit cancels lower-priority actions.
+	_cancel_stance_transition_visual(false)
 	_cancel_throw_grenade_visual(false)
 	_cancel_fire_visual(false)
 
@@ -462,6 +541,7 @@ func play_death_sequence(
 ) -> void:
 	if not _uses_og_frames() or _death_sequence_active or _corpse_direction_locked:
 		return
+	_cancel_stance_transition_visual(false)
 	_cancel_throw_grenade_visual(false)
 	_cancel_fire_visual(false)
 	_hit_reaction_active = false
@@ -496,7 +576,8 @@ func play_throw_grenade(
 		return
 	if _throw_grenade_active:
 		return
-	## Throw outranks firing.
+	## Throw outranks firing and stance transition.
+	_cancel_stance_transition_visual(false)
 	_cancel_fire_visual(false)
 
 	_throw_grenade_active = true
@@ -550,7 +631,67 @@ func play_fire(
 		_log_fire_anim("queued", "RESTART_QUEUED")
 		return
 
+	_cancel_stance_transition_visual(false)
 	_begin_fire_sequence(position_state, facing_direction)
+
+
+## Stand↔prone transition. Gameplay stance commits when animation_finished fires.
+func play_stance_transition(
+	target_position_state: int,
+	facing_direction: Vector2i = Vector2i.ZERO,
+) -> void:
+	if not _uses_og_frames() or _is_dead or _death_sequence_active or _corpse_direction_locked:
+		return
+	if _hit_reaction_active or _throw_grenade_active or _fire_active:
+		return
+	if _stance_transition_active:
+		return
+	if _is_moving:
+		return
+
+	var from_prone := _applied_position_state == PositionState.DOWN
+	var to_prone := target_position_state == PositionState.DOWN
+	if from_prone == to_prone:
+		return
+
+	_stance_transition_active = true
+	_stance_transition_target = target_position_state
+	_stance_transition_semantic = (
+		"transition_standing_to_prone" if to_prone else "transition_prone_to_standing"
+	)
+	if facing_direction != Vector2i.ZERO:
+		_last_applied_facing = facing_direction
+	_stance_transition_world_direction = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	if _stance_transition_world_direction.is_empty():
+		_stance_transition_world_direction = (
+			_locomotion_direction if not _locomotion_direction.is_empty() else "n"
+		)
+	## Keep current stance scale until the transition finishes.
+	_apply_hit_reaction_scale(PositionState.DOWN if from_prone else PositionState.UP)
+	_selection_marker.visible = false
+
+	var display_dir := _idle_display_direction(_stance_transition_world_direction)
+	var anim_name := "%s_%s" % [_stance_transition_semantic, display_dir]
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+		push_error(
+			"Soldier: missing stance transition %s (team=%d soldier=%d)"
+			% [anim_name, team_id, soldier_id]
+		)
+		_log_stance_transition(anim_name, "MISSING_ANIMATION")
+		_stance_transition_active = false
+		## Still notify gameplay so pending stance can be committed/cleared.
+		stance_transition_finished.emit(team_id, soldier_id, target_position_state)
+		return
+	var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
+	if frame_count <= 0:
+		push_error("Soldier: stance transition %s has zero frames" % anim_name)
+		_log_stance_transition(anim_name, "EMPTY_FRAMES")
+		_stance_transition_active = false
+		stance_transition_finished.emit(team_id, soldier_id, target_position_state)
+		return
+
+	_anim.play(anim_name)
+	_log_stance_transition(anim_name, "PLAY")
 
 
 func _begin_fire_sequence(position_state: int, facing_direction: Vector2i) -> void:
@@ -692,6 +833,51 @@ func _cancel_fire_visual(resume_idle: bool) -> void:
 		_finish_fire_idle()
 
 
+func _cancel_stance_transition_visual(resume_idle: bool) -> void:
+	if not _stance_transition_active:
+		return
+	_stance_transition_active = false
+	_stance_transition_semantic = ""
+	stance_transition_cancelled.emit(team_id, soldier_id)
+	if resume_idle and not _is_dead and not _death_sequence_active:
+		_locomotion_walking = true
+		var idle_dir := (
+			_stance_transition_world_direction
+			if not _stance_transition_world_direction.is_empty()
+			else _locomotion_direction
+		)
+		_play_locomotion(idle_dir if not idle_dir.is_empty() else "n", false)
+
+
+func _finish_stance_transition(anim_name: String) -> void:
+	var target := _stance_transition_target
+	var world_dir := (
+		_stance_transition_world_direction
+		if not _stance_transition_world_direction.is_empty()
+		else _locomotion_direction
+	)
+	if world_dir.is_empty():
+		world_dir = "n"
+	_stance_transition_active = false
+	_log_stance_transition(anim_name, "COMPLETE → commit stance")
+	## Apply destination stance visuals, then notify gameplay to commit position_state.
+	if target == PositionState.DOWN:
+		_applied_position_state = PositionState.DOWN
+		_anim.scale = _prone_sprite_scale()
+		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
+		_prone_marker.visible = true
+	else:
+		_applied_position_state = PositionState.UP
+		_anim.scale = _standing_sprite_scale()
+		_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
+		_prone_marker.visible = false
+	_locomotion_direction = world_dir
+	_locomotion_walking = true
+	_play_locomotion(world_dir, false)
+	_sync_facing_arrow_visibility()
+	stance_transition_finished.emit(team_id, soldier_id, target)
+
+
 ## Developer validation snapshot for rifle fire presentation.
 func dump_fire_validation() -> Dictionary:
 	var stance := PositionState.DOWN if _fire_return_prone else PositionState.UP
@@ -810,6 +996,10 @@ func _on_anim_animation_finished() -> void:
 
 	if _fire_active and not _death_sequence_active:
 		_finish_fire(anim_name)
+		return
+
+	if _stance_transition_active and not _death_sequence_active:
+		_finish_stance_transition(anim_name)
 		return
 
 	if not _death_sequence_active:
@@ -949,6 +1139,12 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return _fire_source_family()
 		"idle_standing":
 			return _idle_source_family()
+		"idle_prone":
+			return _prone_idle_source_family()
+		"transition_standing_to_prone":
+			return "GSUPA" if team_id == Team.GERMANY else "?"
+		"transition_prone_to_standing":
+			return "GPRNA" if team_id == Team.GERMANY else "?"
 		_:
 			return "?"
 
@@ -1095,6 +1291,59 @@ func _log_idle_standing(anim_name: String, status: String) -> void:
 			world_dir.to_upper(),
 			cam_rot,
 			digit,
+			fps,
+			str(loop).to_lower(),
+			frame_count,
+			first_name,
+			last_name,
+			status,
+			anim_name,
+		]
+	)
+
+
+func _log_stance_transition(anim_name: String, status: String) -> void:
+	if not DEBUG_STANCE_TRANSITION:
+		return
+	var cam_rot := IsometricGrid.camera_direction_degrees()
+	var world_dir := (
+		_stance_transition_world_direction
+		if not _stance_transition_world_direction.is_empty()
+		else (_locomotion_direction if not _locomotion_direction.is_empty() else "n")
+	)
+	var display_dir := _idle_display_direction(world_dir)
+	var semantic := _stance_transition_semantic
+	if semantic.is_empty():
+		if str(anim_name).begins_with("idle_prone_"):
+			semantic = "idle_prone"
+		else:
+			var parts := str(anim_name).rsplit("_", true, 1)
+			semantic = parts[0] if parts.size() == 2 else "stance"
+	var family := _source_family_for_semantic(semantic)
+	var family_id := (
+		UsSoldierSpriteFrames.DB_FAMILY_USA
+		if team_id == Team.USA
+		else UsSoldierSpriteFrames.DB_FAMILY_GERMANY
+	)
+	var frame_paths := AnimationDatabase.get_direction_frames(family_id, semantic, display_dir)
+	var fps := 0.0
+	var loop := false
+	var frame_count := 0
+	if _anim.sprite_frames != null and _anim.sprite_frames.has_animation(anim_name):
+		fps = _anim.sprite_frames.get_animation_speed(anim_name)
+		loop = _anim.sprite_frames.get_animation_loop(anim_name)
+		frame_count = _anim.sprite_frames.get_frame_count(anim_name)
+	var first_name := frame_paths[0].get_file() if not frame_paths.is_empty() else "?"
+	var last_name := frame_paths[frame_paths.size() - 1].get_file() if not frame_paths.is_empty() else "?"
+	GameLog.log_system(
+		"%s | %s | %s | world_dir=%s | camera_rotation=%d | resolved_dir=%s | fps=%.0f | loop=%s | frames=%d | %s..%s | status=%s anim=%s"
+		% [
+			semantic,
+			Team.display_name(team_id).to_lower(),
+			family,
+			world_dir.to_upper(),
+			cam_rot,
+			display_dir,
 			fps,
 			str(loop).to_lower(),
 			frame_count,

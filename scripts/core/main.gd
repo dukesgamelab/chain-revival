@@ -774,6 +774,8 @@ func _spawn_all_soldier_views() -> void:
 			view.team_id = soldier_state.team_id
 			view.movement_step_reached.connect(_on_soldier_step_reached)
 			view.movement_finished.connect(_on_soldier_movement_finished)
+			view.stance_transition_finished.connect(_on_soldier_stance_transition_finished)
+			view.stance_transition_cancelled.connect(_on_soldier_stance_transition_cancelled)
 			_depth_sorted.add_child(view)
 			_soldier_views[Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)] = view
 
@@ -1103,6 +1105,15 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		if throw_view != null and thrower != null:
 			throw_view.play_throw_grenade(thrower.position_state, thrower.facing_direction)
 
+	for order in result.stance_transition_orders:
+		var stance_view: Soldier = _get_view(int(order.team_id), int(order.soldier_id))
+		var stance_soldier: SoldierState = _game_state.get_soldier(int(order.team_id), int(order.soldier_id))
+		if stance_view != null and stance_soldier != null:
+			stance_view.play_stance_transition(
+				int(order.target_position_state),
+				stance_soldier.facing_direction,
+			)
+
 	if result.sync_fire_at_ui:
 		_sync_fire_at_ui_from_engagements()
 
@@ -1371,6 +1382,7 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 func _on_position_change_requested(soldier_id: int, position_state: int) -> void:
 	if soldier_id == CommandBar.SQUAD_ID:
 		var last_result: ActionResultClass = null
+		var combined_transitions: Array[Dictionary] = []
 		var fireteam: Fireteam = _session.get_active_fireteam()
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
@@ -1381,6 +1393,9 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 			cmd.soldier_id = soldier_state.soldier_id
 			cmd.position_state = position_state
 			last_result = CommandRouter.submit_command(_game_state, cmd)
+			if last_result != null and last_result.success:
+				for order in last_result.stance_transition_orders:
+					combined_transitions.append(order)
 		if (
 			last_result != null
 			and last_result.success
@@ -1391,8 +1406,10 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 			_command_bar.clear_move_targeting()
 			_move_targeting = false
 			_squad_move_targeting = false
-		_command_bar.sync_squad_position_state(position_state)
+		## Don't force Up/Down UI to the target yet — gameplay stance commits after anims.
 		if last_result != null:
+			## Replay all deferred transitions (each submit only carries one soldier).
+			last_result.stance_transition_orders = combined_transitions
 			_present_action_result(last_result)
 		else:
 			_command_bar.show_status("No soldiers available.")
@@ -1507,6 +1524,26 @@ func _on_soldier_movement_finished(team_id: int, soldier_id: int) -> void:
 	_ensure_active_selection_alive()
 	_refresh_command_bar()
 	_command_bar.show_status("%s Soldier %d move complete." % [Team.display_name(team_id), soldier_id])
+
+
+func _on_soldier_stance_transition_finished(
+	team_id: int,
+	soldier_id: int,
+	target_position_state: int,
+) -> void:
+	var result: ActionResultClass = ActionResolverClass.commit_stance_transition(
+		_game_state,
+		team_id,
+		soldier_id,
+		target_position_state,
+	)
+	_present_action_result(result)
+
+
+func _on_soldier_stance_transition_cancelled(team_id: int, soldier_id: int) -> void:
+	var soldier: SoldierState = _game_state.get_soldier(team_id, soldier_id)
+	if soldier != null:
+		soldier.clear_pending_position()
 
 
 func _log_move_order(clicked_tile: Vector2i, path: Array[Vector2i], state: SoldierState) -> void:

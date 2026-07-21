@@ -27,6 +27,9 @@ var ammo_current: int = 0
 var ammo_max: int = 0
 var is_dead: bool = false
 var position_state: int = PositionStateClass.UP
+## Target stance while a stand↔prone transition anim plays (−1 = none).
+## Authoritative position_state stays at the old value until the anim completes.
+var pending_position_state: int = -1
 var movement_mode: int = MovementModeClass.RUN
 var fire_control_state: int = FireControlStateClass.HOLD_FIRE
 var stress: float = 0.0
@@ -139,11 +142,16 @@ func kill_from_grenade() -> void:
 	mark_killed()
 
 
+func clear_pending_position() -> void:
+	pending_position_state = -1
+
+
 func mark_killed() -> void:
 	## Capture living stance before corpse posture is forced DOWN.
 	stance_at_death = position_state
 	is_dead = true
 	position_state = PositionStateClass.DOWN
+	clear_pending_position()
 	stunned_until_msec = 0
 	stand_on_stun_recovery = false
 	clear_path()
@@ -162,6 +170,7 @@ func apply_stun(duration_sec: float = 4.0) -> void:
 func apply_grenade_stun(duration_sec: float = GrenadePolicyClass.DEFAULT_STUN_DURATION_SEC) -> void:
 	stunned_until_msec = SimulationClock.get_ticks_msec() + int(duration_sec * 1000.0)
 	position_state = PositionStateClass.DOWN
+	clear_pending_position()
 	stand_on_stun_recovery = true
 	clear_path()
 	end_sustained_fire()
@@ -175,6 +184,7 @@ func recover_from_stun_if_expired() -> bool:
 	stand_on_stun_recovery = false
 	if position_state != PositionStateClass.DOWN:
 		return false
+	clear_pending_position()
 	position_state = PositionStateClass.UP
 	return true
 

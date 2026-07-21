@@ -609,11 +609,56 @@ static func execute_position(
 		return ActionResult.fail("Soldier unavailable.")
 	if soldier.is_stunned():
 		return ActionResult.fail("Soldier is stunned.")
+	if soldier.pending_position_state >= 0:
+		return ActionResult.fail("Soldier is already changing stance.")
+	if soldier.position_state == cmd.position_state:
+		return ActionResult.new().set_status(
+			"Soldier %d already %s"
+			% [soldier.soldier_id, PositionStateClass.display_name(cmd.position_state)],
+		)
+
+	## German (and any family with transition anims): defer gameplay stance until anim ends.
+	var family_id := _animation_family_for_soldier(soldier)
+	if _has_stance_transitions(family_id):
+		soldier.pending_position_state = cmd.position_state
+		var deferred := ActionResult.new()
+		deferred.stance_transition_orders.append({
+			"team_id": cmd.team_id,
+			"soldier_id": cmd.soldier_id,
+			"target_position_state": cmd.position_state,
+		})
+		return deferred.set_status(
+			"Soldier %d changing to %s..."
+			% [soldier.soldier_id, PositionStateClass.display_name(cmd.position_state)],
+		)
 
 	soldier.position_state = cmd.position_state
 	return ActionResult.new().set_status(
 		"Soldier %d changed to %s"
 		% [soldier.soldier_id, PositionStateClass.display_name(cmd.position_state)],
+	)
+
+
+## Called when a stance-transition animation finishes (presentation → gameplay commit).
+static func commit_stance_transition(
+	game_state: GameStateClass,
+	team_id: int,
+	soldier_id: int,
+	target_position_state: int,
+) -> ActionResult:
+	var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
+	if soldier == null or soldier.is_dead:
+		return ActionResult.fail("Soldier unavailable.")
+	if soldier.pending_position_state != target_position_state:
+		## Cancelled (e.g. Run forced stand) — do not apply a stale target.
+		return ActionResult.new().set_status(
+			"Soldier %d stance transition cancelled." % soldier_id
+		)
+	soldier.position_state = target_position_state
+	soldier.clear_pending_position()
+	return ActionResult.new().set_status(
+		"Soldier %d changed to %s"
+		% [soldier.soldier_id, PositionStateClass.display_name(target_position_state)],
 	)
 
 
@@ -842,10 +887,25 @@ static func _validate_move(soldier: SoldierState, mode: int) -> String:
 static func _stand_up_for_run(soldier: SoldierState, mode: int) -> String:
 	if soldier == null or mode != MovementModeClass.RUN:
 		return ""
-	if soldier.position_state != PositionStateClass.DOWN:
+	if soldier.position_state != PositionStateClass.DOWN and soldier.pending_position_state < 0:
+		return ""
+	soldier.clear_pending_position()
+	if soldier.position_state == PositionStateClass.UP:
 		return ""
 	soldier.position_state = PositionStateClass.UP
 	return "Soldier %d changed to UP" % soldier.soldier_id
+
+
+static func _animation_family_for_soldier(soldier: SoldierState) -> String:
+	return "german_rifle" if soldier.team_id == Team.GERMANY else "us_rifle"
+
+
+static func _has_stance_transitions(family_id: String) -> bool:
+	AnimationDatabase.ensure_loaded()
+	return (
+		not AnimationDatabase.get_animation(family_id, "transition_standing_to_prone").is_empty()
+		and not AnimationDatabase.get_animation(family_id, "transition_prone_to_standing").is_empty()
+	)
 
 
 static func _start_cell_for_soldier(context: CommandContext, state: SoldierState) -> Vector2i:
