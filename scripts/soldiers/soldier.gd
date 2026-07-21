@@ -15,6 +15,8 @@ const _PRONE_SPRITE_SCALE := Vector2(1.15, 0.42)
 
 signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i)
 signal movement_finished(team_id: int, soldier_id: int)
+## Fired once when configured release frame is reached (presentation → gameplay hook).
+signal grenade_release_reached(team_id: int, soldier_id: int)
 
 var soldier_id: int = 1
 var team_id: int = Team.USA
@@ -40,9 +42,14 @@ var _corpse_direction_locked: bool = false
 var _hit_reaction_active: bool = false
 var _hit_semantic: String = ""
 var _hit_return_prone: bool = false
+var _throw_grenade_active: bool = false
+var _throw_world_direction: String = "n"
+var _throw_release_fired: bool = false
+var _throw_return_prone: bool = false
 
 ## When true, log hit-reaction resolution (semantic, family, directions, frames, FPS).
 const DEBUG_HIT_REACTION := true
+const DEBUG_THROW_GRENADE := true
 
 
 @onready var _anim: AnimatedSprite2D = $AnimatedSprite2D
@@ -61,6 +68,11 @@ func _ready() -> void:
 	_dead_marker.position.y = TileSizeConfig.dead_marker_y()
 	_configure_team_visual()
 	_anim.animation_finished.connect(_on_anim_animation_finished)
+	_anim.frame_changed.connect(_on_anim_frame_changed)
+
+
+func _blocks_action_override() -> bool:
+	return _death_sequence_active or _hit_reaction_active or _throw_grenade_active
 
 
 ## Apply authoritative gameplay state to this sprite (position, facing, selection).
@@ -72,7 +84,7 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 		_configure_team_visual()
 	_is_dead = state.is_dead
 
-	if _death_sequence_active or _hit_reaction_active:
+	if _blocks_action_override():
 		soldier_id = state.soldier_id
 		team_id = state.team_id
 		position = IsometricGrid.grid_to_world(state.grid_position)
@@ -112,7 +124,7 @@ func _apply_spotted_visual(is_selected: bool, is_spotted: bool) -> void:
 
 
 func set_selected(is_selected: bool) -> void:
-	if _death_sequence_active or _hit_reaction_active:
+	if _blocks_action_override():
 		_selection_marker.visible = false
 		return
 	if _is_dead:
@@ -120,7 +132,7 @@ func set_selected(is_selected: bool) -> void:
 		return
 	_selection_marker.visible = is_selected
 	_selection_marker.polygon = IsometricGrid.diamond_corners(Vector2.ZERO)
-	if not _is_moving and not _death_sequence_active and not _hit_reaction_active:
+	if not _is_moving and not _blocks_action_override():
 		_update_locomotion_visual(_last_applied_facing, false)
 
 
@@ -182,14 +194,14 @@ func stop_movement() -> void:
 	_path.clear()
 	_path_index = 0
 	set_process(false)
-	if was_moving and _uses_og_frames() and not _death_sequence_active and not _hit_reaction_active:
+	if was_moving and _uses_og_frames() and not _blocks_action_override():
 		_play_locomotion(_locomotion_direction, false)
 
 
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	## Presentation-only path animation. Authoritative grid_position updates via
 	## movement_step_reached → ActionResolver.on_movement_step.
-	if _is_dead or _death_sequence_active or _hit_reaction_active or path.size() <= 1:
+	if _is_dead or _blocks_action_override() or path.size() <= 1:
 		return
 
 	_speed_multiplier = speed_multiplier
@@ -207,7 +219,7 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 
 func _process(delta: float) -> void:
 	# Interpolates Node2D.position only; does not write SoldierState.grid_position.
-	if not _is_moving or _is_dead or _death_sequence_active or _hit_reaction_active:
+	if not _is_moving or _is_dead or _blocks_action_override():
 		return
 
 	var to_target := _move_target_world - position
@@ -249,7 +261,7 @@ func _advance_path_step() -> void:
 func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:
 	_last_applied_facing = facing
 	_facing_from_cell = from_cell
-	if not _is_moving and not _death_sequence_active and not _hit_reaction_active:
+	if not _is_moving and not _blocks_action_override():
 		_update_locomotion_visual(facing, false)
 	if _facing_arrow != null and _show_facing_arrow():
 		_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(facing, from_cell)
@@ -289,7 +301,7 @@ func _configure_team_visual() -> void:
 
 
 func _update_locomotion_visual(step: Vector2i, walking: bool) -> void:
-	if _anim == null or _death_sequence_active or _hit_reaction_active:
+	if _anim == null or _blocks_action_override():
 		return
 	if _uses_og_frames():
 		_play_locomotion(UsSoldierSpriteFrames.direction_from_step(step), walking)
@@ -325,6 +337,9 @@ func play_hit_reaction(threat_step: Vector2i, position_state: int = PositionStat
 		return
 	if _corpse_direction_locked:
 		return
+	## Priority: death → throw → fire/move/idle. Survivable hit does not interrupt throw.
+	if _throw_grenade_active:
+		return
 
 	_hit_reaction_active = true
 	_hit_return_prone = position_state == PositionState.DOWN
@@ -347,6 +362,7 @@ func play_death_sequence(
 ) -> void:
 	if not _uses_og_frames() or _death_sequence_active or _corpse_direction_locked:
 		return
+	_cancel_throw_grenade_visual(false)
 	_hit_reaction_active = false
 	_death_sequence_active = true
 	_is_dead = true
@@ -365,6 +381,142 @@ func play_death_sequence(
 	if not _play_hit_animation(anim_name, position_state, true):
 		## Missing hit frames must not invent idle; skip straight to fall if available.
 		_play_animation("fall_%s" % _death_direction)
+
+
+## Presentation-only grenade throw (ASTGA / GSPRA). Does not consume inventory or arm fuse.
+## Optional facing_direction overrides the last synced world facing (authoritative SoldierState).
+func play_throw_grenade(
+	position_state: int = PositionState.UP,
+	facing_direction: Vector2i = Vector2i.ZERO,
+) -> void:
+	if not _uses_og_frames() or _is_dead or _death_sequence_active or _corpse_direction_locked:
+		return
+	if _throw_grenade_active:
+		return
+	## Throw outranks survivable hit presentation.
+	if _hit_reaction_active:
+		_hit_reaction_active = false
+
+	_throw_grenade_active = true
+	_throw_release_fired = false
+	_throw_return_prone = position_state == PositionState.DOWN
+	if facing_direction != Vector2i.ZERO:
+		_last_applied_facing = facing_direction
+	_throw_world_direction = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	if _throw_world_direction.is_empty():
+		_throw_world_direction = "n"
+	_selection_marker.visible = false
+	_apply_hit_reaction_scale(position_state)
+	stop_movement()
+
+	var display_dir := _throw_display_direction()
+	var anim_name := "throw_grenade_%s" % display_dir
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+		push_error(
+			"Soldier: missing throw_grenade animation %s (team=%d soldier=%d family=%s)"
+			% [anim_name, team_id, soldier_id, _throw_source_family()]
+		)
+		_log_throw_grenade(anim_name, "MISSING_ANIMATION")
+		_throw_grenade_active = false
+		return
+	var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
+	if frame_count <= 0:
+		push_error("Soldier: throw_grenade animation %s has zero frames" % anim_name)
+		_log_throw_grenade(anim_name, "EMPTY_FRAMES")
+		_throw_grenade_active = false
+		return
+
+	_anim.play(anim_name)
+	_log_throw_grenade(anim_name, "PLAY")
+	## If release is disabled (-1), gameplay already armed the fuse on command accept.
+	if not GameplayPolicies.grenade.is_throw_release_enabled_for_team(team_id):
+		_throw_release_fired = true
+
+
+## Preserve throw progress across camera rotation; remaps visual direction only.
+func refresh_action_visual_for_camera() -> void:
+	if not _throw_grenade_active or _anim == null or _anim.sprite_frames == null:
+		return
+	var saved_frame := _anim.frame
+	var display_dir := _throw_display_direction()
+	var anim_name := "throw_grenade_%s" % display_dir
+	if not _anim.sprite_frames.has_animation(anim_name):
+		push_error("Soldier: missing throw_grenade animation on camera rotate: %s" % anim_name)
+		return
+	## Same resolved direction: keep playing without restart.
+	if str(_anim.animation) == anim_name:
+		return
+	var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
+	## play() resets frame to 0 — restore progress immediately after.
+	_anim.play(anim_name)
+	_anim.frame = mini(saved_frame, max_frame)
+	_log_throw_grenade(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
+
+
+## Developer validation snapshot for active or last throw resolution.
+func dump_throw_grenade_validation() -> Dictionary:
+	var display_dir := _throw_display_direction() if _throw_grenade_active else AnimationDatabase.display_direction(
+		_throw_world_direction if not _throw_world_direction.is_empty() else "n",
+		IsometricGrid.camera_direction_degrees(),
+	)
+	var anim_name := "throw_grenade_%s" % display_dir
+	var family_id := (
+		UsSoldierSpriteFrames.DB_FAMILY_USA
+		if team_id == Team.USA
+		else UsSoldierSpriteFrames.DB_FAMILY_GERMANY
+	)
+	var frame_paths := AnimationDatabase.get_direction_frames(family_id, "throw_grenade", display_dir)
+	var frame_idx := _anim.frame if _anim != null else -1
+	var frame_letter := "?"
+	if frame_idx >= 0 and frame_idx < 26:
+		frame_letter = String.chr(ord("A") + frame_idx)
+	return {
+		"faction": Team.display_name(team_id),
+		"semantic": "throw_grenade",
+		"source_family": _throw_source_family(),
+		"world_facing": _throw_world_direction,
+		"camera_rotation": IsometricGrid.camera_direction_degrees(),
+		"resolved_source_direction": display_dir,
+		"animation": anim_name,
+		"frame_index": frame_idx,
+		"frame_letter": frame_letter,
+		"ordered_frames": frame_paths,
+		"release_callback_fired": _throw_release_fired,
+		"throw_active": _throw_grenade_active,
+		"release_frame": GameplayPolicies.grenade.throw_release_frame_for_team(team_id),
+	}
+
+
+func _throw_display_direction() -> String:
+	return AnimationDatabase.display_direction(
+		_throw_world_direction,
+		IsometricGrid.camera_direction_degrees(),
+	)
+
+
+func _throw_source_family() -> String:
+	return "GSPRA" if team_id == Team.GERMANY else "ASTGA"
+
+
+func _cancel_throw_grenade_visual(resume_idle: bool) -> void:
+	if not _throw_grenade_active:
+		return
+	_throw_grenade_active = false
+	if resume_idle and not _is_dead and not _death_sequence_active:
+		_finish_throw_grenade_idle()
+
+
+func _on_anim_frame_changed() -> void:
+	if not _throw_grenade_active or _throw_release_fired:
+		return
+	if not GameplayPolicies.grenade.is_throw_release_enabled_for_team(team_id):
+		return
+	var release_frame := GameplayPolicies.grenade.throw_release_frame_for_team(team_id)
+	if _anim.frame < release_frame:
+		return
+	_throw_release_fired = true
+	_log_throw_grenade(str(_anim.animation), "RELEASE_CALLBACK frame=%d" % _anim.frame)
+	grenade_release_reached.emit(team_id, soldier_id)
 
 
 func _hit_semantic_for(position_state: int) -> String:
@@ -415,6 +567,10 @@ func _on_anim_animation_finished() -> void:
 
 	var anim_name := str(_anim.animation)
 
+	if _throw_grenade_active and not _death_sequence_active:
+		_finish_throw_grenade(anim_name)
+		return
+
 	if _hit_reaction_active and not _death_sequence_active:
 		_finish_survivable_hit_reaction(anim_name)
 		return
@@ -428,6 +584,29 @@ func _on_anim_animation_finished() -> void:
 	elif anim_name.begins_with("fall_"):
 		_log_hit_completion(anim_name, "→ dead_%s" % _death_direction)
 		_finish_death_sequence()
+
+
+func _finish_throw_grenade(anim_name: String) -> void:
+	_throw_grenade_active = false
+	_log_throw_grenade(anim_name, "COMPLETE → idle")
+	_finish_throw_grenade_idle()
+
+
+func _finish_throw_grenade_idle() -> void:
+	if _throw_return_prone:
+		_applied_position_state = PositionState.DOWN
+		_anim.scale = _prone_sprite_scale()
+		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
+		_prone_marker.visible = true
+	else:
+		_applied_position_state = PositionState.UP
+		_anim.scale = _standing_sprite_scale()
+		_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
+		_prone_marker.visible = false
+	_locomotion_walking = true
+	var idle_dir := _throw_world_direction if not _throw_world_direction.is_empty() else _locomotion_direction
+	_play_locomotion(idle_dir if not idle_dir.is_empty() else "n", false)
+	_sync_facing_arrow_visibility()
 
 
 func _finish_survivable_hit_reaction(anim_name: String) -> void:
@@ -457,6 +636,7 @@ func _is_hit_reaction_anim(anim_name: String) -> bool:
 func _finish_death_sequence() -> void:
 	_death_sequence_active = false
 	_hit_reaction_active = false
+	_throw_grenade_active = false
 	_apply_dead_visual(false)
 
 
@@ -488,8 +668,59 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return "AHTLA"
 		"hit":
 			return "GHTLA" if team_id == Team.GERMANY else "AHTLA"
+		"throw_grenade":
+			return _throw_source_family()
 		_:
 			return "?"
+
+
+func _log_throw_grenade(anim_name: String, status: String) -> void:
+	if not DEBUG_THROW_GRENADE:
+		return
+	var cam_rot := IsometricGrid.camera_direction_degrees()
+	var display_dir := _throw_display_direction()
+	var family_id := (
+		UsSoldierSpriteFrames.DB_FAMILY_USA
+		if team_id == Team.USA
+		else UsSoldierSpriteFrames.DB_FAMILY_GERMANY
+	)
+	var frame_paths := AnimationDatabase.get_direction_frames(
+		family_id,
+		"throw_grenade",
+		display_dir,
+	)
+	var fps := 0.0
+	var frame_idx := -1
+	var frame_letter := "?"
+	if _anim.sprite_frames != null and _anim.sprite_frames.has_animation(anim_name):
+		fps = _anim.sprite_frames.get_animation_speed(anim_name)
+		frame_idx = _anim.frame
+		if frame_idx >= 0 and frame_idx < 26:
+			frame_letter = String.chr(ord("A") + frame_idx)
+	var release_frame := GameplayPolicies.grenade.throw_release_frame_for_team(team_id)
+	GameLog.log_system(
+		"[ThrowGrenade] status=%s faction=%s semantic=throw_grenade family=%s anim=%s world_dir=%s cam_rot=%d resolved_dir=%s frame=%d(%s) fps=%.1f release_frame=%d release_fired=%s frames=%d"
+		% [
+			status,
+			Team.display_name(team_id),
+			_throw_source_family(),
+			anim_name,
+			_throw_world_direction,
+			cam_rot,
+			display_dir,
+			frame_idx,
+			frame_letter,
+			fps,
+			release_frame,
+			_throw_release_fired,
+			frame_paths.size(),
+		]
+	)
+	if not frame_paths.is_empty():
+		GameLog.log_system(
+			"[ThrowGrenade] ordered_frames=%s ... %s"
+			% [frame_paths[0], frame_paths[frame_paths.size() - 1]]
+		)
 
 
 func _ordered_frame_paths_for_log() -> Array[String]:

@@ -903,6 +903,7 @@ func _refresh_view_rotation() -> void:
 	for view in _soldier_views.values():
 		var soldier_view: Soldier = view
 		soldier_view.refresh_movement_visual()
+		soldier_view.refresh_action_visual_for_camera()
 	_refresh_all_views()
 	_command_bar.show_status(
 		"Camera %d° — Q/E or Rotate. Simulation grid unchanged."
@@ -1061,6 +1062,12 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		_refresh_all_views()
 		_refresh_command_bar()
 
+	for order in result.throw_orders:
+		var throw_view: Soldier = _get_view(int(order.team_id), int(order.soldier_id))
+		var thrower: SoldierState = _game_state.get_soldier(int(order.team_id), int(order.soldier_id))
+		if throw_view != null and thrower != null:
+			throw_view.play_throw_grenade(thrower.position_state, thrower.facing_direction)
+
 	if result.sync_fire_at_ui:
 		_sync_fire_at_ui_from_engagements()
 
@@ -1216,11 +1223,21 @@ func _apply_squad_grenade_command(target_cell: Vector2i) -> void:
 		last_result = result
 		if result.success:
 			thrown += 1
+			## Play each thrower anim even when only the last ActionResult is presented.
+			for order in result.throw_orders:
+				var throw_view: Soldier = _get_view(int(order.team_id), int(order.soldier_id))
+				if throw_view != null:
+					throw_view.play_throw_grenade(
+						soldier_state.position_state,
+						soldier_state.facing_direction,
+					)
 	if thrown > 0:
 		_grenade_mode = false
 		_command_bar.clear_grenade_mode()
 		_los_visualizer.hide_preview()
 		if last_result != null:
+			## Avoid replaying throw anims already started above.
+			last_result.throw_orders.clear()
 			_present_action_result(last_result)
 		_command_bar.show_status("Fireteam grenade — %d thrown." % thrown)
 	elif last_result != null:

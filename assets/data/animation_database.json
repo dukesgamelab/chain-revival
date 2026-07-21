@@ -975,41 +975,243 @@
 					}
 				},
 				"throw_grenade": {
+					"label": "German Grenade Throw",
+					"loop": false,
+					"fps": 8.0,
+					"metadata": {
+						"source_family": "GSPRA",
+						"category": "soldier/grenade_throw",
+						"faction": "German",
+						"verified": true,
+						"verification": "manually confirmed by user",
+						"release_frame": -1,
+						"release_frame_enabled": false
+					},
 					"directions": {
-						"e": {
-							"frames": []
-						},
 						"n": {
-							"frames": []
+							"frames": [
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7A.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7B.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7C.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7D.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7E.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7F.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7G.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7H.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7I.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7J.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7K.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7L.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7M.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7N.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7O.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7P.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7Q.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7R.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7S.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7T.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7U.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7V.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7W.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA7X.png"
+							]
 						},
 						"ne": {
-							"frames": []
+							"frames": [
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6A.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6B.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6C.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6D.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6E.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6F.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6G.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6H.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6I.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6J.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6K.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6L.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6M.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6N.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6O.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6P.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6Q.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6R.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6S.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6T.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6U.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6V.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6W.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA6X.png"
+							]
 						},
-						"nw": {
-							"frames": []
-						},
-						"s": {
-							"frames": []
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5A.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5B.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5C.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5D.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5E.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5F.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5G.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5H.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5I.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5J.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5K.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5L.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5M.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5N.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5O.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5P.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5Q.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5R.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5S.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5T.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5U.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5V.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5W.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA5X.png"
+							]
 						},
 						"se": {
-							"frames": []
+							"frames": [
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4A.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4B.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4C.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4D.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4E.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4F.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4G.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4H.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4I.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4J.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4K.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4L.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4M.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4N.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4O.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4P.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4Q.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4R.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4S.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4T.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4U.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4V.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4W.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA4X.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3A.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3B.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3C.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3D.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3E.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3F.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3G.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3H.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3I.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3J.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3K.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3L.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3M.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3N.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3O.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3P.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3Q.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3R.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3S.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3T.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3U.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3V.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3W.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA3X.png"
+							]
 						},
 						"sw": {
-							"frames": []
+							"frames": [
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2A.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2B.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2C.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2D.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2E.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2F.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2G.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2H.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2I.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2J.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2K.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2L.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2M.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2N.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2O.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2P.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2Q.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2R.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2S.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2T.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2U.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2V.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2W.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA2X.png"
+							]
 						},
 						"w": {
-							"frames": []
+							"frames": [
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1A.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1B.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1C.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1D.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1E.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1F.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1G.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1H.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1I.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1J.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1K.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1L.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1M.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1N.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1O.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1P.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1Q.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1R.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1S.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1T.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1U.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1V.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1W.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA1X.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8A.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8B.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8C.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8D.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8E.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8F.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8G.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8H.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8I.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8J.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8K.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8L.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8M.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8N.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8O.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8P.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8Q.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8R.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8S.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8T.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8U.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8V.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8W.png",
+								"res://assets/sprites/german_soldier/grenade_throw/GSPRA8X.png"
+							]
 						}
-					},
-					"fps": 12.0,
-					"label": "Throw Grenade",
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
-						"sound_effect": ""
 					}
 				},
 				"walk": {
@@ -2330,41 +2532,243 @@
 					}
 				},
 				"throw_grenade": {
+					"label": "US Grenade Throw",
+					"loop": false,
+					"fps": 8.0,
+					"metadata": {
+						"source_family": "ASTGA",
+						"category": "soldier/grenade_throw",
+						"faction": "American",
+						"verified": true,
+						"verification": "manually confirmed by user",
+						"release_frame": -1,
+						"release_frame_enabled": false
+					},
 					"directions": {
-						"e": {
-							"frames": []
-						},
 						"n": {
-							"frames": []
+							"frames": [
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7A.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7B.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7C.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7D.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7E.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7F.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7G.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7H.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7I.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7J.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7K.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7L.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7M.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7N.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7O.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7P.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7Q.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7R.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7S.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7T.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7U.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7V.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7W.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA7X.png"
+							]
 						},
 						"ne": {
-							"frames": []
+							"frames": [
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6A.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6B.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6C.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6D.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6E.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6F.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6G.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6H.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6I.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6J.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6K.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6L.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6M.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6N.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6O.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6P.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6Q.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6R.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6S.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6T.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6U.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6V.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6W.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA6X.png"
+							]
 						},
-						"nw": {
-							"frames": []
-						},
-						"s": {
-							"frames": []
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5A.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5B.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5C.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5D.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5E.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5F.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5G.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5H.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5I.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5J.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5K.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5L.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5M.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5N.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5O.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5P.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5Q.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5R.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5S.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5T.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5U.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5V.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5W.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA5X.png"
+							]
 						},
 						"se": {
-							"frames": []
+							"frames": [
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4A.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4B.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4C.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4D.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4E.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4F.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4G.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4H.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4I.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4J.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4K.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4L.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4M.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4N.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4O.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4P.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4Q.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4R.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4S.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4T.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4U.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4V.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4W.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA4X.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3A.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3B.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3C.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3D.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3E.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3F.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3G.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3H.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3I.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3J.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3K.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3L.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3M.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3N.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3O.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3P.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3Q.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3R.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3S.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3T.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3U.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3V.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3W.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA3X.png"
+							]
 						},
 						"sw": {
-							"frames": []
+							"frames": [
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2A.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2B.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2C.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2D.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2E.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2F.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2G.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2H.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2I.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2J.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2K.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2L.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2M.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2N.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2O.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2P.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2Q.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2R.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2S.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2T.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2U.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2V.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2W.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA2X.png"
+							]
 						},
 						"w": {
-							"frames": []
+							"frames": [
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1A.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1B.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1C.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1D.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1E.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1F.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1G.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1H.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1I.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1J.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1K.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1L.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1M.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1N.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1O.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1P.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1Q.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1R.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1S.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1T.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1U.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1V.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1W.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA1X.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8A.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8B.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8C.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8D.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8E.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8F.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8G.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8H.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8I.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8J.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8K.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8L.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8M.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8N.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8O.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8P.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8Q.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8R.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8S.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8T.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8U.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8V.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8W.png",
+								"res://assets/sprites/us_soldier/grenade_throw/ASTGA8X.png"
+							]
 						}
-					},
-					"fps": 12.0,
-					"label": "Throw Grenade",
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
-						"sound_effect": ""
 					}
 				},
 				"walk": {

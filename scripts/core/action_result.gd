@@ -27,6 +27,9 @@ var combat_shots: Array = []
 ## Grenade explosions resolved this frame: CombatGrenadeResult entries.
 var grenade_explosions: Array = []
 
+## Presentation throw anims: {team_id, soldier_id, world_facing_dir optional}
+var throw_orders: Array[Dictionary] = []
+
 
 static func fail(message: String) -> ActionResult:
 	var result := ActionResult.new()

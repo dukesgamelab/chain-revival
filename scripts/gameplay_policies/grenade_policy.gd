@@ -9,6 +9,11 @@ const DEFAULT_BLAST_RADIUS := 3
 const DEFAULT_KILL_RADIUS := 1
 const DEFAULT_KILL_CHANCE := 0.25
 const DEFAULT_STUN_DURATION_SEC := 8.0
+## 0-based frame index into A–X throw sequence; -1 disables anim-driven release.
+## Gameplay fuse still arms on command accept until a release frame is visually verified.
+const DEFAULT_THROW_RELEASE_FRAME_USA := -1
+const DEFAULT_THROW_RELEASE_FRAME_GERMANY := -1
+const DEFAULT_THROW_ANIM_FPS := 8.0
 
 var starting_count: int = DEFAULT_STARTING_COUNT
 var throw_range: int = DEFAULT_THROW_RANGE
@@ -17,6 +22,9 @@ var blast_radius: int = DEFAULT_BLAST_RADIUS
 var kill_radius: int = DEFAULT_KILL_RADIUS
 var kill_chance: float = DEFAULT_KILL_CHANCE
 var stun_duration_sec: float = DEFAULT_STUN_DURATION_SEC
+var throw_release_frame_usa: int = DEFAULT_THROW_RELEASE_FRAME_USA
+var throw_release_frame_germany: int = DEFAULT_THROW_RELEASE_FRAME_GERMANY
+var throw_anim_fps: float = DEFAULT_THROW_ANIM_FPS
 
 
 func reset_to_defaults() -> void:
@@ -27,3 +35,17 @@ func reset_to_defaults() -> void:
 	kill_radius = DEFAULT_KILL_RADIUS
 	kill_chance = DEFAULT_KILL_CHANCE
 	stun_duration_sec = DEFAULT_STUN_DURATION_SEC
+	throw_release_frame_usa = DEFAULT_THROW_RELEASE_FRAME_USA
+	throw_release_frame_germany = DEFAULT_THROW_RELEASE_FRAME_GERMANY
+	throw_anim_fps = DEFAULT_THROW_ANIM_FPS
+
+
+## Anim-driven release frame for a faction, or -1 if disabled (presentation-only throw).
+func throw_release_frame_for_team(team_id: int) -> int:
+	if team_id == Team.GERMANY:
+		return throw_release_frame_germany
+	return throw_release_frame_usa
+
+
+func is_throw_release_enabled_for_team(team_id: int) -> bool:
+	return throw_release_frame_for_team(team_id) >= 0

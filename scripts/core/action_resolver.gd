@@ -688,6 +688,10 @@ static func execute_grenade(
 	)
 	game_state.objects.register_grenade_from_soldier(soldier)
 
+	result.throw_orders.append({
+		"team_id": soldier.team_id,
+		"soldier_id": soldier.soldier_id,
+	})
 	result.sync_fire_at_ui = true
 	result.refresh_views = true
 	_log_action("grenade thrown soldier %d:%d -> %s" % [cmd.team_id, cmd.soldier_id, cmd.target_cell])

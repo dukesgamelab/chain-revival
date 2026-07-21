@@ -6,6 +6,7 @@ extends RefCounted
 ##   Hit standing (US): AHTFA          (A–S)  → hit_standing_*
 ##   Hit prone (US):    AHTLA          (A–W)  → hit_prone_*
 ##   Hit (German):      GHTLA          (A–W)  → hit_*
+##   Throw grenade:     ASTGA / GSPRA  (A–X)  → throw_grenade_*
 ##   Fall/death:        AFALA / GFALA  (A–W)
 ##   Corpse (US):       ADDSS          (A)  — post-fall dead pose
 ##   Corpse (German):   GDFUS          (A)

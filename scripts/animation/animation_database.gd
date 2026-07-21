@@ -178,6 +178,7 @@ static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteF
 		"hit": "hit",
 		"hit_standing": "hit_standing",
 		"hit_prone": "hit_prone",
+		"throw_grenade": "throw_grenade",
 		"death": "fall",
 		"corpse": "dead",
 		"idle": "idle",
@@ -207,10 +208,19 @@ static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteF
 				if path.is_empty():
 					continue
 				if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
+					push_error(
+						"AnimationDatabase: missing frame path %s (%s/%s/%s) — not substituted"
+						% [path, family_id, anim_id, direction]
+					)
 					continue
 				var tex: Texture2D = load(path) as Texture2D
 				if tex != null:
 					sf.add_frame(anim_name, tex, 1.0)
+				else:
+					push_error(
+						"AnimationDatabase: failed to load texture %s (%s/%s/%s)"
+						% [path, family_id, anim_id, direction]
+					)
 	return sf
 
 
@@ -241,10 +251,19 @@ static func build_sprite_frames(family_id: String) -> SpriteFrames:
 				if path.is_empty():
 					continue
 				if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
+					push_error(
+						"AnimationDatabase: missing frame path %s (%s/%s/%s) — not substituted"
+						% [path, family_id, anim_id, direction]
+					)
 					continue
 				var tex: Texture2D = load(path) as Texture2D
 				if tex != null:
 					sf.add_frame(anim_name, tex, 1.0)
+				else:
+					push_error(
+						"AnimationDatabase: failed to load texture %s (%s/%s/%s)"
+						% [path, family_id, anim_id, direction]
+					)
 	return sf
 
 
