@@ -19,34 +19,35 @@ const EnemyVisibilityResultClass := preload("res://scripts/combat/enemy_visibili
 const FireAtPreviewResultClass := preload("res://scripts/combat/fire_at_preview_result.gd")
 const StressLabelsClass := preload("res://scripts/combat/stress_labels.gd")
 const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
+const HitChancePolicyClass := preload("res://scripts/gameplay_policies/hit_chance_policy.gd")
+const GrenadePolicyClass := preload("res://scripts/gameplay_policies/grenade_policy.gd")
+const SuppressionPolicyClass := preload("res://scripts/gameplay_policies/suppression_policy.gd")
 
-const CLEAR_BASE_HIT_CHANCE := 0.78
-const CLEAR_DISTANCE_PENALTY := 0.025
-const MIN_HIT_CHANCE := 0.10
-const AUTO_FIRE_SCAN_INTERVAL := 0.5
-## Fallback first-shot aim time when weapon data is missing.
-const FIRE_PREP_DELAY_SEC := 1.0
-## Repeat fire cadence: last_shot_msec + weapon.fire_interval_sec (per weapon in WeaponRegistry).
-const STRESS_RECOVERY_PER_TICK := 0.15
-const STRESS_RECOVERY_PRONE_PER_TICK := 0.25
-const SHOOTER_PRONE_ACCURACY_MULT := 1.15
-const TARGET_PRONE_HIT_MULT := 0.55
-const MODERATE_COVER_SUPPRESSION_MULT := 0.65
-const PRONE_SUPPRESSION_MULT := 0.75
-const STRESS_PINNED_THRESHOLD := 45.0
-const STRESS_PANIC_THRESHOLD := 70.0
-const AUTO_TARGET_ENGAGED_BONUS := 10.0
-const GRENADE_THROW_RANGE := 7
-const GRENADE_FUSE_MSEC := 1800
-const GRENADE_BLAST_RADIUS := 3
-const GRENADE_KILL_RADIUS := 1
-const GRENADE_KILL_CHANCE := 0.25
-const GRENADE_STUN_DURATION_SEC := 8.0
-const RECENTLY_SEEN_SEC := 2.0
-const RECENTLY_FIRED_SPOT_SEC := 2.0
-const LAST_KNOWN_NEAR_TILES := 2
-## Spotting reaches beyond max weapon range (eyes/binoculars vs effective fire distance).
-const SPOTTING_RANGE_BONUS := 10
+## Numeric aliases kept for existing call sites; live values live in GameplayPolicies.
+const CLEAR_BASE_HIT_CHANCE := HitChancePolicyClass.DEFAULT_CLEAR_BASE_HIT_CHANCE
+const CLEAR_DISTANCE_PENALTY := HitChancePolicyClass.DEFAULT_CLEAR_DISTANCE_PENALTY
+const MIN_HIT_CHANCE := HitChancePolicyClass.DEFAULT_MIN_HIT_CHANCE
+const AUTO_FIRE_SCAN_INTERVAL := HitChancePolicyClass.DEFAULT_AUTO_FIRE_SCAN_INTERVAL
+const FIRE_PREP_DELAY_SEC := HitChancePolicyClass.DEFAULT_FIRE_PREP_DELAY_SEC
+const STRESS_RECOVERY_PER_TICK := SuppressionPolicyClass.DEFAULT_RECOVERY_PER_TICK
+const STRESS_RECOVERY_PRONE_PER_TICK := SuppressionPolicyClass.DEFAULT_RECOVERY_PRONE_PER_TICK
+const SHOOTER_PRONE_ACCURACY_MULT := HitChancePolicyClass.DEFAULT_SHOOTER_PRONE_ACCURACY_MULT
+const TARGET_PRONE_HIT_MULT := HitChancePolicyClass.DEFAULT_TARGET_PRONE_HIT_MULT
+const MODERATE_COVER_SUPPRESSION_MULT := SuppressionPolicyClass.DEFAULT_MODERATE_COVER_SUPPRESSION_MULT
+const PRONE_SUPPRESSION_MULT := SuppressionPolicyClass.DEFAULT_PRONE_SUPPRESSION_MULT
+const STRESS_PINNED_THRESHOLD := SuppressionPolicyClass.DEFAULT_PINNED_THRESHOLD
+const STRESS_PANIC_THRESHOLD := SuppressionPolicyClass.DEFAULT_PANIC_THRESHOLD
+const AUTO_TARGET_ENGAGED_BONUS := HitChancePolicyClass.DEFAULT_AUTO_TARGET_ENGAGED_BONUS
+const GRENADE_THROW_RANGE := GrenadePolicyClass.DEFAULT_THROW_RANGE
+const GRENADE_FUSE_MSEC := GrenadePolicyClass.DEFAULT_FUSE_MSEC
+const GRENADE_BLAST_RADIUS := GrenadePolicyClass.DEFAULT_BLAST_RADIUS
+const GRENADE_KILL_RADIUS := GrenadePolicyClass.DEFAULT_KILL_RADIUS
+const GRENADE_KILL_CHANCE := GrenadePolicyClass.DEFAULT_KILL_CHANCE
+const GRENADE_STUN_DURATION_SEC := GrenadePolicyClass.DEFAULT_STUN_DURATION_SEC
+const RECENTLY_SEEN_SEC := HitChancePolicyClass.DEFAULT_RECENTLY_SEEN_SEC
+const RECENTLY_FIRED_SPOT_SEC := HitChancePolicyClass.DEFAULT_RECENTLY_FIRED_SPOT_SEC
+const LAST_KNOWN_NEAR_TILES := HitChancePolicyClass.DEFAULT_LAST_KNOWN_NEAR_TILES
+const SPOTTING_RANGE_BONUS := HitChancePolicyClass.DEFAULT_SPOTTING_RANGE_BONUS
 
 ## stress = suppression/combat pressure; affects accuracy, movement, and fire cadence.
 ## spotting controls target eligibility; shot LOS controls whether bullets can fire.
@@ -304,7 +305,7 @@ static func resolve_shot(
 	var ammo_cost := weapon.ammo_cost(shooter.ammo_current)
 	# Authoritative ammo/death mutations (invoked only via ActionResolver → process_combat_tick).
 	shooter.ammo_current -= ammo_cost
-	var now_msec := Time.get_ticks_msec()
+	var now_msec := SimulationClock.get_ticks_msec()
 	shooter.last_shot_msec = now_msec
 	shooter.last_fired_msec = now_msec
 	result.fired = true
@@ -344,7 +345,7 @@ static func resolve_shot(
 		)
 
 	# V1: one hit roll per burst; future version can roll once per bullet in rounds_per_attack.
-	if randf() <= chance:
+	if DeterministicRNG.randf() <= chance:
 		result.hit = true
 		result.messages.append("%s hit" % weapon.weapon_name)
 		target.mark_killed()
@@ -452,7 +453,7 @@ static func get_cover_visibility_modifier(
 	los: LOSSystemClass.LossResult = null,
 ) -> float:
 	if los != null and los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		return MODERATE_COVER_SUPPRESSION_MULT
+		return GameplayPolicies.suppression.moderate_cover_suppression_mult
 	return 1.0
 
 
@@ -474,8 +475,8 @@ static func is_enemy_recently_seen(
 	var seen_msec := observer.get_last_seen_enemy_msec(enemy_team_id, enemy_soldier_id)
 	if seen_msec <= 0:
 		return false
-	var elapsed_sec := (Time.get_ticks_msec() - seen_msec) / 1000.0
-	return elapsed_sec <= RECENTLY_SEEN_SEC
+	var elapsed_sec := (SimulationClock.get_ticks_msec() - seen_msec) / 1000.0
+	return elapsed_sec <= GameplayPolicies.hit.recently_seen_sec
 
 
 static func is_priority_target_trackable(
@@ -508,8 +509,8 @@ static func can_assign_manual_priority_target(
 		target.grid_position,
 	)
 	return (
-		_manhattan_distance(last_pos, click_cell) <= LAST_KNOWN_NEAR_TILES
-		or _manhattan_distance(target.grid_position, click_cell) <= LAST_KNOWN_NEAR_TILES
+		_manhattan_distance(last_pos, click_cell) <= GameplayPolicies.hit.last_known_near_tiles
+		or _manhattan_distance(target.grid_position, click_cell) <= GameplayPolicies.hit.last_known_near_tiles
 	)
 
 
@@ -722,7 +723,7 @@ static func _log_enemy_visibility(
 static func _target_recently_fired(target: SoldierStateClass) -> bool:
 	if target.last_fired_msec <= 0:
 		return false
-	return (Time.get_ticks_msec() - target.last_fired_msec) / 1000.0 <= RECENTLY_FIRED_SPOT_SEC
+	return (SimulationClock.get_ticks_msec() - target.last_fired_msec) / 1000.0 <= GameplayPolicies.hit.recently_fired_spot_sec
 
 
 static func find_closest_visible_enemy(
@@ -818,7 +819,7 @@ static func score_auto_target(
 		shooter.engaged_target_team_id == target.team_id
 		and shooter.engaged_target_soldier_id == target.soldier_id
 	):
-		score += AUTO_TARGET_ENGAGED_BONUS
+		score += GameplayPolicies.hit.auto_target_engaged_bonus
 
 	return score
 
@@ -1060,10 +1061,10 @@ static func apply_suppression_from_shot(
 	var gain := _suppression_stress_gain(weapon)
 	var cover_mult := 1.0
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		cover_mult = MODERATE_COVER_SUPPRESSION_MULT
+		cover_mult = GameplayPolicies.suppression.moderate_cover_suppression_mult
 	var stance_mult := 1.0
 	if target.position_state == PositionStateClass.DOWN:
-		stance_mult = PRONE_SUPPRESSION_MULT
+		stance_mult = GameplayPolicies.suppression.prone_suppression_mult
 	gain *= cover_mult * stance_mult
 	target.stress = clampf(target.stress + gain, 0.0, 100.0)
 	target.received_suppression_this_tick = true
@@ -1088,68 +1089,39 @@ static func recover_stress_tick(
 			if soldier.received_suppression_this_tick:
 				continue
 			var rate := (
-				STRESS_RECOVERY_PRONE_PER_TICK
+				GameplayPolicies.suppression.recovery_prone_per_tick
 				if soldier.position_state == PositionStateClass.DOWN
-				else STRESS_RECOVERY_PER_TICK
+				else GameplayPolicies.suppression.recovery_per_tick
 			)
 			soldier.stress = maxf(0.0, soldier.stress - rate)
 
 
 static func _suppression_stress_gain(weapon: WeaponDataClass) -> float:
+	var policy := GameplayPolicies.suppression
 	match weapon.weapon_id:
 		WeaponRegistryClass.ID_MG42:
-			return 2.0
+			return policy.suppression_mg42
 		WeaponRegistryClass.ID_BAR:
-			return 1.2
+			return policy.suppression_bar
 		_:
 			match weapon.weapon_type:
 				WeaponTypeClass.SMG:
-					return 0.8
+					return policy.suppression_smg
 				_:
-					return 0.4
+					return policy.suppression_default
 
 
 ## Stress represents suppression/combat pressure and reduces firing effectiveness.
 static func get_stress_accuracy_modifier(stress: float) -> float:
-	match _stress_band(stress):
-		1:
-			return 0.85
-		2:
-			return 0.65
-		3:
-			return 0.4
-		4:
-			return 0.2
-		_:
-			return 1.0
+	return GameplayPolicies.suppression.accuracy_modifier(stress)
 
 
 static func get_stress_movement_modifier(stress: float) -> float:
-	match _stress_band(stress):
-		1:
-			return 0.9
-		2:
-			return 0.75
-		3:
-			return 0.5
-		4:
-			return 0.35
-		_:
-			return 1.0
+	return GameplayPolicies.suppression.movement_modifier(stress)
 
 
 static func get_stress_fire_delay_modifier(stress: float) -> float:
-	match _stress_band(stress):
-		1:
-			return 1.1
-		2:
-			return 1.25
-		3:
-			return 1.5
-		4:
-			return 2.0
-		_:
-			return 1.0
+	return GameplayPolicies.suppression.fire_delay_modifier(stress)
 
 
 static func get_stress_state_label(stress: float) -> String:
@@ -1157,23 +1129,15 @@ static func get_stress_state_label(stress: float) -> String:
 
 
 static func is_stress_pinned(stress: float) -> bool:
-	return stress >= STRESS_PINNED_THRESHOLD
+	return stress >= GameplayPolicies.suppression.pinned_threshold
 
 
 static func is_stress_panicked(stress: float) -> bool:
-	return stress >= STRESS_PANIC_THRESHOLD
+	return stress >= GameplayPolicies.suppression.panic_threshold
 
 
 static func _stress_band(stress: float) -> int:
-	if stress < 10.0:
-		return 0
-	if stress < 25.0:
-		return 1
-	if stress < 45.0:
-		return 2
-	if stress < 70.0:
-		return 3
-	return 4
+	return GameplayPolicies.suppression.stress_band(stress)
 
 
 static func _final_hit_chance(
@@ -1192,10 +1156,10 @@ static func _final_hit_chance(
 		chance = CoverSystemClass.apply_moderate_cover(base_chance)
 	chance *= get_stress_accuracy_modifier(shooter.stress)
 	if shooter.position_state == PositionStateClass.DOWN:
-		chance *= SHOOTER_PRONE_ACCURACY_MULT
+		chance *= GameplayPolicies.hit.shooter_prone_accuracy_mult
 	if target.position_state == PositionStateClass.DOWN:
-		chance *= TARGET_PRONE_HIT_MULT
-	return clampf(chance, MIN_HIT_CHANCE, 1.0)
+		chance *= GameplayPolicies.hit.target_prone_hit_mult
+	return clampf(chance, GameplayPolicies.hit.min_hit_chance, 1.0)
 
 
 static func is_in_weapon_range(
@@ -1388,16 +1352,16 @@ static func try_auto_engagement(
 static func begin_fire_prep(shooter: SoldierStateClass) -> void:
 	## aim_delay_sec = first-shot acquisition; multiplied by stress fire-delay modifier.
 	var weapon := shooter.get_weapon_data()
-	var delay_sec := FIRE_PREP_DELAY_SEC
+	var delay_sec := GameplayPolicies.hit.fire_prep_delay_sec
 	if weapon != null and weapon.aim_delay_sec > 0.0:
 		delay_sec = weapon.aim_delay_sec
 	delay_sec *= get_stress_fire_delay_modifier(shooter.stress)
-	shooter.fire_ready_after_msec = Time.get_ticks_msec() + int(delay_sec * 1000.0)
+	shooter.fire_ready_after_msec = SimulationClock.get_ticks_msec() + int(delay_sec * 1000.0)
 
 
 static func get_aim_delay_sec(shooter: SoldierStateClass) -> float:
 	var weapon := shooter.get_weapon_data()
-	var delay_sec := FIRE_PREP_DELAY_SEC
+	var delay_sec := GameplayPolicies.hit.fire_prep_delay_sec
 	if weapon != null and weapon.aim_delay_sec > 0.0:
 		delay_sec = weapon.aim_delay_sec
 	return delay_sec * get_stress_fire_delay_modifier(shooter.stress)
@@ -1412,14 +1376,14 @@ static func get_fire_cooldown_remaining(
 	if shooter == null or shooter.last_shot_msec <= 0:
 		return 0.0
 	var interval_sec := weapon.fire_interval_sec * get_stress_fire_delay_modifier(shooter.stress)
-	var elapsed_sec := (Time.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
+	var elapsed_sec := (SimulationClock.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
 	return maxf(0.0, interval_sec - elapsed_sec)
 
 
 static func _is_fire_prep_complete(shooter: SoldierStateClass) -> bool:
 	if shooter.fire_ready_after_msec <= 0:
 		return false
-	return Time.get_ticks_msec() >= shooter.fire_ready_after_msec
+	return SimulationClock.get_ticks_msec() >= shooter.fire_ready_after_msec
 
 
 static func _get_engaged_target(
@@ -1441,10 +1405,14 @@ static func hit_chance(
 	weapon: WeaponDataClass,
 ) -> float:
 	var dist := _manhattan_distance(from_cell, to_cell)
-	var chance := maxf(MIN_HIT_CHANCE, CLEAR_BASE_HIT_CHANCE - float(dist) * CLEAR_DISTANCE_PENALTY)
+	var hit_policy := GameplayPolicies.hit
+	var chance := maxf(
+		hit_policy.min_hit_chance,
+		hit_policy.clear_base_hit_chance - float(dist) * hit_policy.clear_distance_penalty,
+	)
 	if weapon != null:
 		chance += weapon.effective_hit_modifier(dist)
-	return clampf(chance, MIN_HIT_CHANCE, 1.0)
+	return clampf(chance, hit_policy.min_hit_chance, 1.0)
 
 
 static func _can_fire_yet(
@@ -1459,7 +1427,7 @@ static func _can_fire_yet(
 	if shooter.last_shot_msec <= 0:
 		return true
 	var interval_sec := weapon.fire_interval_sec * get_stress_fire_delay_modifier(shooter.stress)
-	var elapsed_sec := (Time.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
+	var elapsed_sec := (SimulationClock.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
 	return elapsed_sec >= interval_sec
 
 
@@ -1474,7 +1442,7 @@ static func _effective_weapon_range(weapon: WeaponDataClass) -> int:
 
 
 static func _effective_spotting_range(weapon: WeaponDataClass) -> int:
-	return _effective_weapon_range(weapon) + SPOTTING_RANGE_BONUS
+	return _effective_weapon_range(weapon) + GameplayPolicies.hit.spotting_range_bonus
 
 
 static func _is_target_in_cone(
@@ -1658,7 +1626,7 @@ static func resolve_grenade(
 	result.thrower_team_id = thrower.team_id
 	result.thrower_id = thrower.soldier_id
 	result.explosion_cell = explosion_cell
-	result.blast_radius = GRENADE_BLAST_RADIUS
+	result.blast_radius = GameplayPolicies.grenade.blast_radius
 
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
@@ -1667,11 +1635,11 @@ static func resolve_grenade(
 				continue
 
 			var distance := _chebyshev_distance(soldier.grid_position, explosion_cell)
-			if distance > GRENADE_BLAST_RADIUS:
+			if distance > GameplayPolicies.grenade.blast_radius:
 				continue
 
-			if distance <= GRENADE_KILL_RADIUS:
-				if randf() <= GRENADE_KILL_CHANCE:
+			if distance <= GameplayPolicies.grenade.kill_radius:
+				if DeterministicRNG.randf() <= GameplayPolicies.grenade.kill_chance:
 					soldier.mark_killed()
 					result.killed.append({
 						"team_id": soldier.team_id,
@@ -1710,7 +1678,7 @@ static func grenade_throw_distance(from_cell: Vector2i, to_cell: Vector2i) -> in
 
 
 static func _apply_grenade_stun(soldier: SoldierStateClass) -> void:
-	soldier.apply_grenade_stun(GRENADE_STUN_DURATION_SEC)
+	soldier.apply_grenade_stun(GameplayPolicies.grenade.stun_duration_sec)
 
 
 static func _chebyshev_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:

@@ -18,12 +18,4 @@ static func state_label(stress: float) -> String:
 
 
 static func _stress_band(stress: float) -> int:
-	if stress < 10.0:
-		return 0
-	if stress < 25.0:
-		return 1
-	if stress < 45.0:
-		return 2
-	if stress < 70.0:
-		return 3
-	return 4
+	return GameplayPolicies.suppression.stress_band(stress)

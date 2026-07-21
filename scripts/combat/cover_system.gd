@@ -7,13 +7,15 @@ extends RefCounted
 ## is adjacent to it (using it as cover / peeking over it).
 
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
+const HitChancePolicyClass := preload("res://scripts/gameplay_policies/hit_chance_policy.gd")
 
 enum CoverType { NONE, MODERATE, COMPLETE }
 
 enum WallSkipReason { NONE, SHOOTER_PEEK, TARGET_COVER }
 
 ## Moderate cover halves final hit chance (e.g. 60% -> 30%).
-const MODERATE_HIT_MULTIPLIER := 0.5
+const MODERATE_HIT_MULTIPLIER := HitChancePolicyClass.DEFAULT_MODERATE_COVER_HIT_MULT
+
 
 const ADJACENT_OFFSETS: Array[Vector2i] = [
 	Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
@@ -399,7 +401,7 @@ static func wall_skip_reason_name(reason: int) -> String:
 
 
 static func apply_moderate_cover(chance: float) -> float:
-	return chance * MODERATE_HIT_MULTIPLIER
+	return chance * GameplayPolicies.hit.moderate_cover_hit_mult
 
 
 static func line_cells_between(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:

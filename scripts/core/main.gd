@@ -66,6 +66,7 @@ var _simple_ai: SimpleAIControllerClass
 
 
 func _ready() -> void:
+	_bootstrap_simulation()
 	_log_network_mode()
 	LOSSystemClass.apply_debug_settings()
 	RenderingServer.set_default_clear_color(Color(0.22, 0.38, 0.18, 1.0))
@@ -82,6 +83,13 @@ func _ready() -> void:
 	_refresh_all_views()
 	_show_startup_status()
 	_start_simple_ai()
+
+
+## Seeded RNG + sim clock for reproducible gameplay timing (not wall-clock).
+func _bootstrap_simulation() -> void:
+	SimulationClock.reset()
+	DeterministicRNG.reseed(DeterministicRNG.DEFAULT_SEED)
+	GameplayPolicies.reset_all_to_defaults()
 
 
 func _start_simple_ai() -> void:
@@ -155,6 +163,7 @@ func _log_fireteam_loadouts() -> void:
 
 
 func _process(delta: float) -> void:
+	SimulationClock.advance_sec(delta)
 	if not _map_edit_mode:
 		_update_los_preview()
 		_update_command_bar_hit_columns()
@@ -163,7 +172,7 @@ func _process(delta: float) -> void:
 			_refresh_all_views()
 
 		_auto_fire_timer += delta
-		if _auto_fire_timer < CombatSystem.AUTO_FIRE_SCAN_INTERVAL:
+		if _auto_fire_timer < GameplayPolicies.hit.auto_fire_scan_interval:
 			_clear_spotting_cell_overrides()
 			return
 		_auto_fire_timer = 0.0
@@ -1519,7 +1528,7 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 
 
 func _begin_fire_at_engagement() -> void:
-	_auto_fire_timer = CombatSystem.AUTO_FIRE_SCAN_INTERVAL
+	_auto_fire_timer = GameplayPolicies.hit.auto_fire_scan_interval
 	_sync_fire_at_ui_from_engagements()
 
 

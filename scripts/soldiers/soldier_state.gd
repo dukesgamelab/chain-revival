@@ -12,6 +12,7 @@ const WeaponDataClass := preload("res://scripts/combat/weapon_data.gd")
 const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
 const FireteamLoadoutClass := preload("res://scripts/soldiers/fireteam_loadout.gd")
 const StressLabelsClass := preload("res://scripts/combat/stress_labels.gd")
+const GrenadePolicyClass := preload("res://scripts/gameplay_policies/grenade_policy.gd")
 
 var soldier_id: int = 1
 var team_id: int = Team.USA
@@ -44,7 +45,7 @@ var sustained_fire: bool = false
 ## Last known enemy positions keyed by CombatSystem.enemy_tracking_key().
 var last_seen_enemy_positions: Dictionary = {}
 var last_seen_enemy_msec: Dictionary = {}
-var grenade_count: int = 5
+var grenade_count: int = GrenadePolicyClass.DEFAULT_STARTING_COUNT
 var stunned_until_msec: int = 0
 var pending_grenade_target: Vector2i = Vector2i(-999, -999)
 var grenade_explode_at_msec: int = 0
@@ -61,7 +62,7 @@ func record_last_seen_enemy(enemy: SoldierState) -> void:
 		return
 	var key := enemy_tracking_key(enemy.team_id, enemy.soldier_id)
 	last_seen_enemy_positions[key] = enemy.grid_position
-	last_seen_enemy_msec[key] = Time.get_ticks_msec()
+	last_seen_enemy_msec[key] = SimulationClock.get_ticks_msec()
 
 
 func get_last_seen_enemy_position(enemy_team_id: int, enemy_soldier_id: int) -> Vector2i:
@@ -114,7 +115,7 @@ func is_alive() -> bool:
 
 
 func is_stunned() -> bool:
-	return Time.get_ticks_msec() < stunned_until_msec
+	return SimulationClock.get_ticks_msec() < stunned_until_msec
 
 
 func has_pending_grenade() -> bool:
@@ -142,14 +143,14 @@ func mark_killed() -> void:
 
 
 func apply_stun(duration_sec: float = 4.0) -> void:
-	stunned_until_msec = Time.get_ticks_msec() + int(duration_sec * 1000.0)
+	stunned_until_msec = SimulationClock.get_ticks_msec() + int(duration_sec * 1000.0)
 	clear_path()
 	end_sustained_fire()
 	reset_fire_prep()
 
 
 func apply_grenade_stun(duration_sec: float = 4.0) -> void:
-	stunned_until_msec = Time.get_ticks_msec() + int(duration_sec * 1000.0)
+	stunned_until_msec = SimulationClock.get_ticks_msec() + int(duration_sec * 1000.0)
 	position_state = PositionStateClass.DOWN
 	stand_on_stun_recovery = true
 	clear_path()
@@ -177,9 +178,9 @@ func activity_status_label() -> String:
 		return "Throwing"
 	if is_moving:
 		return MovementModeClass.status_name(movement_mode)
-	if fire_ready_after_msec > Time.get_ticks_msec():
+	if fire_ready_after_msec > SimulationClock.get_ticks_msec():
 		return "Aiming"
-	if stress >= 10.0:
+	if stress >= GameplayPolicies.suppression.band_nervous:
 		return StressLabelsClass.state_label(stress)
 	if position_state == PositionStateClass.DOWN:
 		return "Prone"

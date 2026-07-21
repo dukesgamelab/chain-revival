@@ -3,6 +3,7 @@ extends RefCounted
 ## How a soldier moves when given a move order.
 
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
+const MovementPolicyClass := preload("res://scripts/gameplay_policies/movement_policy.gd")
 
 enum Mode { RUN, WALK, CRAWL }
 
@@ -10,9 +11,9 @@ const RUN := Mode.RUN
 const WALK := Mode.WALK
 const CRAWL := Mode.CRAWL
 
-const SPEED_RUN := 2.0  ## TEST: 4x normal (0.5); revert before release
-const SPEED_WALK := 0.6
-const SPEED_CRAWL := 0.3
+const SPEED_RUN := MovementPolicyClass.DEFAULT_SPEED_RUN ## TEST: 4x normal (0.5); revert before release
+const SPEED_WALK := MovementPolicyClass.DEFAULT_SPEED_WALK
+const SPEED_CRAWL := MovementPolicyClass.DEFAULT_SPEED_CRAWL
 
 
 static func display_name(mode: int) -> String:
@@ -37,13 +38,7 @@ static func status_name(mode: int) -> String:
 
 
 static func speed_multiplier(mode: int) -> float:
-	match mode:
-		Mode.WALK:
-			return SPEED_WALK
-		Mode.CRAWL:
-			return SPEED_CRAWL
-		_:
-			return SPEED_RUN
+	return GameplayPolicies.movement.speed_multiplier(mode)
 
 
 ## RUN auto-stands prone soldiers. DOWN soldiers may otherwise only crawl.

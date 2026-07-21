@@ -23,6 +23,9 @@ GameModeManager="*res://scripts/core/game_mode_manager.gd"
 PlayerSides="*res://scripts/network/player_side_manager.gd"
 CommandRouter="*res://scripts/core/command_router.gd"
 NetworkClient="*res://scripts/network/network_client.gd"
+GameplayPolicies="*res://scripts/gameplay_policies/gameplay_policies.gd"
+DeterministicRNG="*res://scripts/core/deterministic_rng.gd"
+SimulationClock="*res://scripts/core/simulation_clock.gd"
 
 [debug]
 

@@ -192,7 +192,7 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 	CombatSystem.clear_suppression_tick_flags(game_state)
 	CombatSystem.update_spotting(game_state)
 
-	var now_msec := Time.get_ticks_msec()
+	var now_msec := SimulationClock.get_ticks_msec()
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
 			var thrower: SoldierState = state
@@ -236,7 +236,7 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 				result.combat_shots.append(shot)
 				result.refresh_views = true
 
-	CombatSystem.recover_stress_tick(game_state, CombatSystem.AUTO_FIRE_SCAN_INTERVAL)
+	CombatSystem.recover_stress_tick(game_state, GameplayPolicies.hit.auto_fire_scan_interval)
 
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
@@ -655,7 +655,7 @@ static func execute_grenade(
 		soldier.grid_position,
 		cmd.target_cell,
 	)
-	if throw_distance > CombatSystem.GRENADE_THROW_RANGE:
+	if throw_distance > GameplayPolicies.grenade.throw_range:
 		return ActionResult.fail("Target is out of grenade range.")
 
 	var result := ActionResult.new()
@@ -670,7 +670,9 @@ static func execute_grenade(
 	soldier.end_sustained_fire()
 	soldier.reset_fire_prep()
 	soldier.pending_grenade_target = cmd.target_cell
-	soldier.grenade_explode_at_msec = Time.get_ticks_msec() + CombatSystem.GRENADE_FUSE_MSEC
+	soldier.grenade_explode_at_msec = (
+		SimulationClock.get_ticks_msec() + GameplayPolicies.grenade.fuse_msec
+	)
 
 	result.sync_fire_at_ui = true
 	result.refresh_views = true
