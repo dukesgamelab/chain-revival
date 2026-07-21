@@ -33,4 +33,4 @@ static func soldier_color(team_id: int, is_selected: bool) -> Color:
 
 
 static func soldier_key(team_id: int, soldier_id: int) -> String:
-	return "%d_%d" % [team_id, soldier_id]
+	return ObjectId.team_soldier_key(team_id, soldier_id)

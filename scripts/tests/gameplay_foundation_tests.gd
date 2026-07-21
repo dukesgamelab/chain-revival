@@ -34,6 +34,10 @@ func _ready() -> void:
 	_test_firing_sequence_reproducibility()
 	_test_grenade_sequence_reproducibility()
 	_test_policy_defaults_unchanged()
+	_test_object_id_and_registry()
+	_test_map_object_registry()
+	_test_grenade_object_registry()
+	_test_team_soldier_key_consistent()
 
 	print("")
 	print("Gameplay foundation tests: %d passed, %d failed" % [_passed, _failed])
@@ -474,3 +478,91 @@ func _test_policy_defaults_unchanged() -> void:
 	_assert("Grenade policy kill chance unchanged", is_equal_approx(GameplayPolicies.grenade.kill_chance, 0.25))
 	_assert("Suppression pinned threshold unchanged", is_equal_approx(GameplayPolicies.suppression.pinned_threshold, 45.0))
 	_assert("Movement run speed unchanged", is_equal_approx(GameplayPolicies.movement.speed_run, 2.0))
+
+
+func _test_object_id_and_registry() -> void:
+	_bootstrap()
+	var game_state := _make_game_state()
+	var soldier := game_state.get_soldier(Team.USA, 1)
+	var expected_id := ObjectId.soldier(Team.USA, 1)
+	_assert(
+		"Soldier object_id is stable",
+		soldier.object_id == expected_id and expected_id == "soldier:1:1",
+		"object_id=%s expected=%s" % [soldier.object_id, expected_id],
+	)
+	var via_registry := game_state.objects.get_soldier(expected_id)
+	var via_game_state := game_state.get_soldier_by_id(expected_id)
+	_assert(
+		"Soldier resolves via GameState.objects",
+		via_registry == soldier and via_game_state == soldier,
+		"registry=%s game_state=%s" % [via_registry != null, via_game_state != null],
+	)
+
+
+func _test_map_object_registry() -> void:
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var cell := Vector2i(12, 14)
+	map_data.set_object(cell, MapObjectRegistryClass.TYPE_TREE)
+	game_state.objects.register_map_object(cell, MapObjectRegistryClass.TYPE_TREE)
+	var oid := ObjectId.map_object(cell)
+	var entry := game_state.objects.get_map_object(oid)
+	var at_cell := game_state.objects.get_map_object_at(cell)
+	_assert(
+		"Map object registers at cell",
+		game_state.objects.has(oid)
+		and entry.get("type_id", "") == MapObjectRegistryClass.TYPE_TREE
+		and at_cell.get("cell", Vector2i(-1, -1)) == cell,
+		"oid=%s entry=%s" % [oid, str(entry)],
+	)
+
+
+func _test_grenade_object_registry() -> void:
+	_bootstrap()
+	var game_state := _make_game_state()
+	var thrower := game_state.get_soldier(Team.USA, 1)
+	thrower.grid_position = Vector2i(20, 30)
+	thrower.clear_path()
+	var target_cell := Vector2i(22, 30)
+	var grenade_id := ObjectId.grenade(Team.USA, 1)
+
+	var cmd := GrenadeCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = 1
+	cmd.target_cell = target_cell
+	var result := ActionResolverClass.execute_grenade(
+		game_state,
+		cmd,
+		CommandContextClass.new(),
+	)
+	_assert("Grenade registry registers on throw", result.success, result.status_message)
+	var pending := game_state.objects.get_grenade(grenade_id)
+	_assert(
+		"Grenade object present while fuse armed",
+		pending != null
+		and pending.target_cell == target_cell
+		and game_state.objects.kind_of(grenade_id) == ObjectRegistry.KIND_GRENADE,
+		"pending=%s" % [pending != null],
+	)
+
+	SimulationClock.advance_msec(GameplayPolicies.grenade.fuse_msec + 1)
+	ActionResolverClass.process_combat_tick(game_state)
+	_assert(
+		"Grenade object clears on detonation",
+		game_state.objects.get_grenade(grenade_id) == null
+		and not game_state.objects.has(grenade_id),
+		"still_registered=%s" % game_state.objects.has(grenade_id),
+	)
+
+
+func _test_team_soldier_key_consistent() -> void:
+	_assert(
+		"team_soldier_key matches Team.soldier_key",
+		ObjectId.team_soldier_key(Team.USA, 2) == Team.soldier_key(Team.USA, 2)
+		and ObjectId.team_soldier_key(Team.USA, 2) == "1:2"
+		and SoldierState.enemy_tracking_key(Team.GERMANY, 3) == "2:3",
+		"keys diverge",
+	)

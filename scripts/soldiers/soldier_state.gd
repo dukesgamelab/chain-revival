@@ -52,9 +52,14 @@ var grenade_explode_at_msec: int = 0
 ## When true, soldier stands automatically once grenade stun expires.
 var stand_on_stun_recovery: bool = false
 
+## Stable object ID derived from team/slot (not stored separately).
+var object_id: String:
+	get:
+		return ObjectId.soldier(team_id, soldier_id)
+
 
 static func enemy_tracking_key(enemy_team_id: int, enemy_soldier_id: int) -> String:
-	return "%d:%d" % [enemy_team_id, enemy_soldier_id]
+	return ObjectId.team_soldier_key(enemy_team_id, enemy_soldier_id)
 
 
 func record_last_seen_enemy(enemy: SoldierState) -> void:

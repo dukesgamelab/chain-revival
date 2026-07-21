@@ -72,6 +72,13 @@ static func toggle_map_block(game_state: GameStateClass, cell: Vector2i) -> Acti
 		return ActionResult.fail("That tile is outside the map.")
 
 	var is_now_blocked: bool = game_state.map_data.toggle_blocked(cell)
+	if is_now_blocked:
+		game_state.objects.register_map_object(
+			cell,
+			game_state.map_data.get_object_type(cell),
+		)
+	else:
+		game_state.objects.unregister_map_object(cell)
 	var result := ActionResult.new()
 	result.refresh_map_data = true
 	result.refresh_views = false
@@ -96,6 +103,7 @@ static func apply_map_edit(
 
 	if erase or palette == MapEditorClass.Palette.ERASE:
 		game_state.map_data.clear_object(cell)
+		game_state.objects.unregister_map_object(cell)
 		_log_action("map edit erase %s" % cell)
 		return result.set_status("Erased tile %s." % cell)
 
@@ -104,6 +112,7 @@ static func apply_map_edit(
 		return ActionResult.fail("Unknown map edit palette.")
 
 	game_state.map_data.set_object(cell, type_id)
+	game_state.objects.register_map_object(cell, type_id)
 	_log_action("map edit place %s=%s" % [cell, type_id])
 	return result.set_status("Placed %s at %s." % [type_id, cell])
 
@@ -112,6 +121,7 @@ static func apply_map_edit(
 static func reload_map_from_file(game_state: GameStateClass) -> ActionResult:
 	var map_data: MapData = MapDataClass.load_from_file()
 	game_state.map_data = map_data
+	game_state.rebuild_object_registry()
 	_log_action("reload map from file")
 	var result := ActionResult.new()
 	result.refresh_map_data = true
@@ -126,6 +136,7 @@ static func load_saved_session(
 ) -> ActionResult:
 	if not GameSaveClass.load_game(game_state.session, file_path):
 		return ActionResult.fail("Load failed.")
+	game_state.rebuild_object_registry()
 	_log_action("load saved session")
 	var result := ActionResult.new()
 	result.refresh_views = true
@@ -202,6 +213,7 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 				continue
 
 			var explosion_cell := thrower.pending_grenade_target
+			game_state.objects.unregister_grenade(ObjectId.grenade(thrower.team_id, thrower.soldier_id))
 			thrower.clear_pending_grenade()
 			var grenade_result: CombatGrenadeResultClass = CombatSystem.resolve_grenade(
 				game_state,
@@ -243,6 +255,7 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 			var soldier: SoldierState = state
 			soldier.recover_from_stun_if_expired()
 
+	game_state.objects.sync_grenades_from(game_state)
 	result.refresh_views = true
 
 	if not result.combat_shots.is_empty() or not result.grenade_explosions.is_empty():
@@ -673,6 +686,7 @@ static func execute_grenade(
 	soldier.grenade_explode_at_msec = (
 		SimulationClock.get_ticks_msec() + GameplayPolicies.grenade.fuse_msec
 	)
+	game_state.objects.register_grenade_from_soldier(soldier)
 
 	result.sync_fire_at_ui = true
 	result.refresh_views = true
@@ -746,7 +760,7 @@ static func _assign_move_path(
 		return false
 
 	var start_cell := _start_cell_for_soldier(context, state)
-	var snap_key := _soldier_key(state.team_id, state.soldier_id)
+	var snap_key := ObjectId.team_soldier_key(state.team_id, state.soldier_id)
 	if context.soldier_snap_cells.has(snap_key) and state.is_moving:
 		start_cell = context.soldier_snap_cells[snap_key]
 		state.grid_position = start_cell
@@ -831,7 +845,7 @@ static func _stand_up_for_run(soldier: SoldierState, mode: int) -> String:
 
 
 static func _start_cell_for_soldier(context: CommandContext, state: SoldierState) -> Vector2i:
-	var key := _soldier_key(state.team_id, state.soldier_id)
+	var key := ObjectId.team_soldier_key(state.team_id, state.soldier_id)
 	if context != null and context.soldier_snap_cells.has(key):
 		return context.soldier_snap_cells[key]
 	return state.grid_position
@@ -842,7 +856,7 @@ static func _halt_soldier_for_combat(
 	state: SoldierState,
 	result: ActionResult,
 ) -> bool:
-	var key := _soldier_key(state.team_id, state.soldier_id)
+	var key := ObjectId.team_soldier_key(state.team_id, state.soldier_id)
 	if context == null or not context.soldier_snap_cells.has(key):
 		if not state.is_moving:
 			return false
@@ -897,10 +911,6 @@ static func _resolve_shooter_ids(
 
 static func _tracer_world_for_soldier(state: SoldierState) -> Vector2:
 	return IsometricGrid.soldier_aim_point(state.grid_position)
-
-
-static func _soldier_key(team_id: int, soldier_id: int) -> String:
-	return "%d:%d" % [team_id, soldier_id]
 
 
 static func _append_grenade_movement_halts(

@@ -30,15 +30,6 @@ func submit_command(
 	)
 
 
-## Alias for submit_command — same routing behavior.
-func submit_action(
-	game_state: GameStateClass,
-	command: RefCounted,
-	context: CommandContextClass = null,
-) -> ActionResultClass:
-	return submit_command(game_state, command, context)
-
-
 func arm_movement_mode(
 	game_state: GameStateClass,
 	team_id: int,

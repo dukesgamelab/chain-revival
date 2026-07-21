@@ -4,6 +4,8 @@ extends Node2D
 ## Architecture:
 ##   Input/UI → CommandRouter → ActionResolver → GameState (truth) → Soldier visuals
 ##
+## Ownership: GameState + ObjectRegistry hold authoritative data. This scene owns
+## Soldier node views in _soldier_views only — never store node refs in the registry.
 ## main.gd must not mutate SoldierState or MapData directly. Use CommandRouter for commands.
 
 const SoldierScene := preload("res://scenes/soldier.tscn")
@@ -738,7 +740,7 @@ func _spawn_all_soldier_views() -> void:
 			view.movement_step_reached.connect(_on_soldier_step_reached)
 			view.movement_finished.connect(_on_soldier_movement_finished)
 			_depth_sorted.add_child(view)
-			_soldier_views[_view_key(soldier_state.team_id, soldier_state.soldier_id)] = view
+			_soldier_views[Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)] = view
 
 
 func _refresh_all_views() -> void:
@@ -942,12 +944,8 @@ func _ensure_active_selection_alive() -> void:
 		_command_bar.sync_selected_soldier(fireteam.selected_soldier_id)
 
 
-func _view_key(team_id: int, soldier_id: int) -> String:
-	return Team.soldier_key(team_id, soldier_id)
-
-
 func _get_view(team_id: int, soldier_id: int) -> Soldier:
-	return _soldier_views.get(_view_key(team_id, soldier_id)) as Soldier
+	return _soldier_views.get(Team.soldier_key(team_id, soldier_id)) as Soldier
 
 
 func _get_fireteam(team_id: int) -> Fireteam:
@@ -988,7 +986,7 @@ func _build_spotting_cell_overrides() -> Dictionary:
 			if soldier_state.is_dead:
 				continue
 			if _is_soldier_moving(soldier_state):
-				overrides[_soldier_snap_key(soldier_state.team_id, soldier_state.soldier_id)] = (
+				overrides[Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)] = (
 					_snap_cell_for_soldier(soldier_state)
 				)
 	return overrides
@@ -1112,10 +1110,6 @@ func _trigger_grenade_death_animations(explosions: Array) -> void:
 				view.play_death_sequence(threat_step)
 
 
-func _soldier_snap_key(team_id: int, soldier_id: int) -> String:
-	return "%d:%d" % [team_id, soldier_id]
-
-
 func _snap_cell_for_soldier(state: SoldierState) -> Vector2i:
 	var view: Soldier = _get_view(state.team_id, state.soldier_id)
 	if view != null and view.is_moving():
@@ -1142,7 +1136,7 @@ func _add_snap_cell_if_animating(ctx: CommandContextClass, state: SoldierState) 
 	var view: Soldier = _get_view(state.team_id, state.soldier_id)
 	if not state.is_moving and (view == null or not view.is_moving()):
 		return
-	ctx.soldier_snap_cells[_soldier_snap_key(state.team_id, state.soldier_id)] = (
+	ctx.soldier_snap_cells[Team.soldier_key(state.team_id, state.soldier_id)] = (
 		_snap_cell_for_soldier(state)
 	)
 
@@ -1153,7 +1147,7 @@ func _make_fire_context(shooters: Array[SoldierState]) -> CommandContextClass:
 		ctx.shooter_ids.append(shooter.soldier_id)
 		var view: Soldier = _get_view(shooter.team_id, shooter.soldier_id)
 		if shooter.is_moving or (view != null and view.is_moving()):
-			ctx.soldier_snap_cells[_soldier_snap_key(shooter.team_id, shooter.soldier_id)] = (
+			ctx.soldier_snap_cells[Team.soldier_key(shooter.team_id, shooter.soldier_id)] = (
 				_snap_cell_for_soldier(shooter)
 			)
 	return ctx

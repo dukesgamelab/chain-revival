@@ -74,7 +74,7 @@ static func clear_spotting_cell_overrides() -> void:
 static func spotting_cell_for(soldier: SoldierStateClass) -> Vector2i:
 	if soldier == null:
 		return Vector2i.ZERO
-	var key := "%d:%d" % [soldier.team_id, soldier.soldier_id]
+	var key := ObjectId.team_soldier_key(soldier.team_id, soldier.soldier_id)
 	var override_cell: Variant = _spotting_cell_overrides.get(key)
 	if override_cell is Vector2i:
 		return override_cell
