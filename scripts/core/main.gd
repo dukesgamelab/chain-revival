@@ -1107,7 +1107,7 @@ func _trigger_grenade_death_animations(explosions: Array) -> void:
 			AudioManager.play_death(team_id)
 			var view: Soldier = _get_view(team_id, soldier_id)
 			if view != null:
-				view.play_death_sequence(threat_step)
+				view.play_death_sequence(threat_step, victim.stance_at_death)
 
 
 func _snap_cell_for_soldier(state: SoldierState) -> Vector2i:
@@ -1402,7 +1402,13 @@ func _finalize_shot_result(
 		var threat_step := shooter.grid_position - target.grid_position
 		var target_view: Soldier = _get_view(target.team_id, target.soldier_id)
 		if target_view != null:
-			target_view.play_death_sequence(threat_step)
+			## Use stance_at_death — mark_killed already forced position_state DOWN.
+			target_view.play_death_sequence(threat_step, target.stance_at_death)
+	elif result.hit and target != null and not result.killed:
+		var threat_step := shooter.grid_position - target.grid_position
+		var target_view: Soldier = _get_view(target.team_id, target.soldier_id)
+		if target_view != null:
+			target_view.play_hit_reaction(threat_step, target.position_state)
 
 	var lines: Array[String] = []
 	for line in result.messages:

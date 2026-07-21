@@ -2,10 +2,13 @@ class_name UsSoldierSpriteFrames
 extends RefCounted
 ## Proven OG soldier sprite families (US + German mirrors).
 ##
-##   Walk:        ASMOA / GSMOA  (A–H)
-##   Hit:         AHTLA / GHTLA  (A–W)
-##   Fall/death:  AFALA / GFALA  (A–W)
-##   Corpse:      ADFUS / GDFUS  (A)
+##   Walk:              ASMOA / GSMOA  (A–H)
+##   Hit standing (US): AHTFA          (A–S)  → hit_standing_*
+##   Hit prone (US):    AHTLA          (A–W)  → hit_prone_*
+##   Hit (German):      GHTLA          (A–W)  → hit_*
+##   Fall/death:        AFALA / GFALA  (A–W)
+##   Corpse (US):       ADDSS          (A)  — post-fall dead pose
+##   Corpse (German):   GDFUS          (A)
 ##
 ## Direction digits (soldier BMP convention — NOT ASAX tile digits):
 ## 1=W, 2=SW, 3=S, 4=SE, 5=E, 6=NE, 7=N, 8=NW.
@@ -24,7 +27,7 @@ const DEAD_SPRITES_DIR_GER := "res://assets/sprites/german_soldier/dead_fallen"
 const WALK_PREFIX_USA := "ASMOA"
 const HIT_PREFIX_USA := "AHTLA"
 const FALL_PREFIX_USA := "AFALA"
-const DEAD_PREFIX_USA := "ADFUS"
+const DEAD_PREFIX_USA := "ADDSS"
 
 const WALK_PREFIX_GER := "GSMOA"
 const HIT_PREFIX_GER := "GHTLA"

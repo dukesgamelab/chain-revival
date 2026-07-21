@@ -51,6 +51,9 @@ var pending_grenade_target: Vector2i = Vector2i(-999, -999)
 var grenade_explode_at_msec: int = 0
 ## When true, soldier stands automatically once grenade stun expires.
 var stand_on_stun_recovery: bool = false
+## Stance at the moment of death (before mark_killed forces DOWN for corpse posture).
+## Presentation uses this for hit_standing vs hit_prone selection.
+var stance_at_death: int = PositionStateClass.UP
 
 ## Stable object ID derived from team/slot (not stored separately).
 var object_id: String:
@@ -137,6 +140,8 @@ func kill_from_grenade() -> void:
 
 
 func mark_killed() -> void:
+	## Capture living stance before corpse posture is forced DOWN.
+	stance_at_death = position_state
 	is_dead = true
 	position_state = PositionStateClass.DOWN
 	stunned_until_msec = 0

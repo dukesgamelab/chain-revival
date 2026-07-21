@@ -166,7 +166,7 @@ static func resolve_anim_meta(family_id: String, anim_id: String) -> Dictionary:
 	}
 
 
-## Soldier runtime expects walk_/hit_/fall_/dead_ prefixes.
+## Soldier runtime expects walk_/hit_/hit_standing_/hit_prone_/fall_/dead_ prefixes.
 static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteFrames:
 	ensure_loaded()
 	var sf := SpriteFrames.new()
@@ -176,6 +176,8 @@ static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteF
 	var alias := {
 		"walk": "walk",
 		"hit": "hit",
+		"hit_standing": "hit_standing",
+		"hit_prone": "hit_prone",
 		"death": "fall",
 		"corpse": "dead",
 		"idle": "idle",
