@@ -1,16 +1,17 @@
 class_name ConeOfFire
 extends RefCounted
 ## Forward cone used for target acquisition and aim preview (wider and longer than a single grid line).
+## Numeric tuning lives in GameplayPolicies.vision.
 
-## Full width in tiles at maximum cone range.
-const WIDTH_AT_MAX_RANGE := 30
+const VisionPolicyClass := preload("res://scripts/gameplay_policies/vision_policy.gd")
 
-## Extra tiles beyond weapon range for cone reach and preview.
-const RANGE_BONUS := 8
+## Frozen aliases of defaults for call sites that still reference ConeOfFire consts.
+const WIDTH_AT_MAX_RANGE := VisionPolicyClass.DEFAULT_CONE_WIDTH_AT_MAX_RANGE
+const RANGE_BONUS := VisionPolicyClass.DEFAULT_CONE_RANGE_BONUS
 
 
 static func effective_range(weapon_range: int) -> int:
-	return weapon_range + RANGE_BONUS
+	return GameplayPolicies.vision.effective_cone_range(weapon_range)
 
 
 static func is_cell_in_cone(
@@ -23,7 +24,8 @@ static func is_cell_in_cone(
 	if forward <= 0 or forward > max_range:
 		return false
 	var lateral := _lateral_tiles(from_cell, facing, target_cell)
-	var half_width := (float(forward) / float(max_range)) * (WIDTH_AT_MAX_RANGE * 0.5)
+	var width := float(GameplayPolicies.vision.cone_width_at_max_range)
+	var half_width := (float(forward) / float(max_range)) * (width * 0.5)
 	return float(lateral) <= half_width + 0.001
 
 
@@ -53,7 +55,7 @@ static func is_facing_toward_target(
 static func cone_outline_world(from_cell: Vector2i, facing: Vector2i, max_range: int) -> PackedVector2Array:
 	var normalized := FacingDirection.normalize(facing)
 	var lateral := Vector2i(-normalized.y, normalized.x)
-	var half_width := WIDTH_AT_MAX_RANGE >> 1
+	var half_width := GameplayPolicies.vision.cone_width_at_max_range >> 1
 	var far_center := from_cell + normalized * max_range
 	var far_left := far_center + lateral * half_width
 	var far_right := far_center - lateral * half_width
@@ -78,7 +80,7 @@ static func cone_outline_world_toward(
 	var max_reach := _world_reach(from_cell, aim_world, from_world, max_range_tiles)
 	var to_aim := aim_world - from_world
 	var reach_dist := max_reach
-	if to_aim.length_squared() >= 4.0:
+	if to_aim.length_squared() >= GameplayPolicies.vision.aim_dir_min_length_sq:
 		reach_dist = minf(to_aim.length(), max_reach)
 
 	var far_center := from_world + aim_dir * reach_dist
@@ -107,17 +109,17 @@ static func is_world_point_in_aim_cone(
 	var to_point := point_world - from_world
 	var max_reach := _world_reach(from_cell, aim_world, from_world, max_range_tiles)
 	var forward := to_point.dot(aim_dir)
-	if forward <= 0.0 or forward > max_reach + 8.0:
+	if forward <= 0.0 or forward > max_reach + GameplayPolicies.vision.world_aim_forward_slack:
 		return false
 	var lateral := absf(to_point.dot(Vector2(-aim_dir.y, aim_dir.x)))
 	var half_width_at_max := _world_half_width(from_cell, aim_world, max_range_tiles)
 	var width_at_forward := half_width_at_max * (forward / max_reach)
-	return lateral <= width_at_forward + 4.0
+	return lateral <= width_at_forward + GameplayPolicies.vision.world_aim_lateral_slack
 
 
 static func _aim_direction(from_world: Vector2, aim_world: Vector2, from_cell: Vector2i) -> Vector2:
 	var to_aim := aim_world - from_world
-	if to_aim.length_squared() >= 4.0:
+	if to_aim.length_squared() >= GameplayPolicies.vision.aim_dir_min_length_sq:
 		return to_aim.normalized()
 	var aim_cell := IsometricGrid.world_to_cell_at_point(aim_world)
 	var facing := FacingDirection.toward_cell(from_cell, aim_cell)
@@ -143,7 +145,7 @@ static func _world_half_width(from_cell: Vector2i, aim_world: Vector2, max_range
 	var aim_cell := IsometricGrid.world_to_cell_at_point(aim_world)
 	var facing := FacingDirection.toward_cell(from_cell, aim_cell)
 	var lateral := Vector2i(-facing.y, facing.x)
-	var half_tiles := WIDTH_AT_MAX_RANGE >> 1
+	var half_tiles := GameplayPolicies.vision.cone_width_at_max_range >> 1
 	var far_center := IsometricGrid.grid_to_world(from_cell + facing * max_range_tiles)
 	var far_left := IsometricGrid.grid_to_world(
 		from_cell + facing * max_range_tiles + lateral * half_tiles,

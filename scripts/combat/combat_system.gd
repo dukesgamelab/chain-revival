@@ -422,16 +422,17 @@ static func get_visibility_score(
 	var weapon := observer.get_weapon_data()
 	var max_range := _effective_weapon_range(weapon) if weapon != null else ConeOfFireClass.RANGE_BONUS
 	var dist := _manhattan_distance(observer_cell, target_cell)
-	var score := 100.0 - float(dist) * 4.0
+	var hit_p := GameplayPolicies.hit
+	var score := hit_p.vis_score_base - float(dist) * hit_p.vis_score_dist_penalty
 
 	if target.is_moving:
 		if target.movement_mode == MovementModeClass.RUN:
-			score += 15.0
+			score += hit_p.vis_score_run_bonus
 		elif target.movement_mode == MovementModeClass.WALK:
-			score += 10.0
+			score += hit_p.vis_score_walk_bonus
 
 	if _target_recently_fired(target):
-		score += 25.0
+		score += hit_p.vis_score_recently_fired_bonus
 
 	var los := LOSSystemClass.evaluate_spotting(
 		observer_cell,
@@ -440,7 +441,7 @@ static func get_visibility_score(
 		game_state,
 	)
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		score -= 20.0
+		score -= hit_p.vis_score_moderate_cover_penalty
 
 	score *= get_cover_visibility_modifier(observer, target, game_state, los)
 	return score
@@ -453,7 +454,7 @@ static func get_cover_visibility_modifier(
 	los: LOSSystemClass.LossResult = null,
 ) -> float:
 	if los != null and los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		return GameplayPolicies.suppression.moderate_cover_suppression_mult
+		return GameplayPolicies.cover.moderate_visibility_mult
 	return 1.0
 
 
@@ -461,7 +462,7 @@ static func get_target_visibility_modifier(target: SoldierStateClass) -> float:
 	if target == null:
 		return 1.0
 	if target.position_state == PositionStateClass.DOWN:
-		return 0.75
+		return GameplayPolicies.vision.prone_visibility_mult
 	return 1.0
 
 
@@ -790,30 +791,31 @@ static func score_auto_target(
 		return -1.0
 
 	var dist := _manhattan_distance(shooter.grid_position, target.grid_position)
-	var score := 100.0 - float(dist) * 4.0
+	var hit_p := GameplayPolicies.hit
+	var score := hit_p.auto_score_base - float(dist) * hit_p.auto_score_dist_penalty
 
 	if los.cover_type == CoverSystemClass.CoverType.NONE:
-		score += 25.0
+		score += hit_p.auto_score_clear_bonus
 	elif los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		score -= 10.0
+		score -= hit_p.auto_score_moderate_penalty
 	else:
-		score -= 25.0
+		score -= hit_p.auto_score_complete_penalty
 
 	if target.is_moving:
-		score += 10.0
+		score += hit_p.auto_score_moving_bonus
 
 	if target.position_state == PositionStateClass.DOWN:
-		score -= 20.0
+		score -= hit_p.auto_score_prone_penalty
 
 	var aim_dir := FacingDirection.toward_cell(shooter.grid_position, target.grid_position)
 	if aim_dir == shooter.facing_direction:
-		score += 15.0
+		score += hit_p.auto_score_facing_bonus
 
 	var target_weapon := target.get_weapon_data()
 	if target_weapon != null:
 		match target_weapon.weapon_type:
 			WeaponTypeClass.SMG, WeaponTypeClass.LMG:
-				score += 20.0
+				score += hit_p.auto_score_smg_lmg_bonus
 
 	if (
 		shooter.engaged_target_team_id == target.team_id
@@ -1066,7 +1068,7 @@ static func apply_suppression_from_shot(
 	if target.position_state == PositionStateClass.DOWN:
 		stance_mult = GameplayPolicies.suppression.prone_suppression_mult
 	gain *= cover_mult * stance_mult
-	target.stress = clampf(target.stress + gain, 0.0, 100.0)
+	target.stress = clampf(target.stress + gain, 0.0, GameplayPolicies.suppression.max_stress)
 	target.received_suppression_this_tick = true
 
 
@@ -1437,7 +1439,7 @@ static func _manhattan_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:
 
 static func _effective_weapon_range(weapon: WeaponDataClass) -> int:
 	if weapon == null:
-		return ConeOfFireClass.RANGE_BONUS
+		return GameplayPolicies.vision.cone_range_bonus
 	return ConeOfFireClass.effective_range(weapon.range_tiles)
 
 

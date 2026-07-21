@@ -7,14 +7,14 @@ extends RefCounted
 ## is adjacent to it (using it as cover / peeking over it).
 
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
-const HitChancePolicyClass := preload("res://scripts/gameplay_policies/hit_chance_policy.gd")
+const CoverPolicyClass := preload("res://scripts/gameplay_policies/cover_policy.gd")
 
 enum CoverType { NONE, MODERATE, COMPLETE }
 
 enum WallSkipReason { NONE, SHOOTER_PEEK, TARGET_COVER }
 
-## Moderate cover halves final hit chance (e.g. 60% -> 30%).
-const MODERATE_HIT_MULTIPLIER := HitChancePolicyClass.DEFAULT_MODERATE_COVER_HIT_MULT
+## Frozen alias of CoverPolicy default for existing call sites.
+const MODERATE_HIT_MULTIPLIER := CoverPolicyClass.DEFAULT_MODERATE_HIT_MULT
 
 
 const ADJACENT_OFFSETS: Array[Vector2i] = [
@@ -401,7 +401,7 @@ static func wall_skip_reason_name(reason: int) -> String:
 
 
 static func apply_moderate_cover(chance: float) -> float:
-	return chance * GameplayPolicies.hit.moderate_cover_hit_mult
+	return GameplayPolicies.cover.apply_hit_modifier(chance, true)
 
 
 static func line_cells_between(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
@@ -471,9 +471,7 @@ static func _is_complete_cover_wall(object_def: MapObjectDef) -> bool:
 
 
 static func _is_adjacent(from_cell: Vector2i, to_cell: Vector2i) -> bool:
-	if from_cell == to_cell:
-		return false
-	return maxi(absi(from_cell.x - to_cell.x), absi(from_cell.y - to_cell.y)) <= 1
+	return GameplayPolicies.los.is_adjacent(from_cell, to_cell)
 
 
 static func _manhattan_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:

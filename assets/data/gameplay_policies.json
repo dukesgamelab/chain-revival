@@ -1,0 +1,158 @@
+{
+	"comment": "Gameplay tuning overrides. Loaded by GameplayPolicies on startup. Omit a key to keep the script default. Do not rebalance casually — these values match shipped CombatSystem behavior.",
+	"hit": {
+		"clear_base_hit_chance": 0.78,
+		"clear_distance_penalty": 0.025,
+		"min_hit_chance": 0.1,
+		"shooter_prone_accuracy_mult": 1.15,
+		"target_prone_hit_mult": 0.55,
+		"moderate_cover_hit_mult": 0.5,
+		"auto_target_engaged_bonus": 10.0,
+		"auto_fire_scan_interval": 0.5,
+		"fire_prep_delay_sec": 1.0,
+		"recently_seen_sec": 2.0,
+		"recently_fired_spot_sec": 2.0,
+		"last_known_near_tiles": 2,
+		"spotting_range_bonus": 10,
+		"vis_score_base": 100.0,
+		"vis_score_dist_penalty": 4.0,
+		"vis_score_run_bonus": 15.0,
+		"vis_score_walk_bonus": 10.0,
+		"vis_score_recently_fired_bonus": 25.0,
+		"vis_score_moderate_cover_penalty": 20.0,
+		"auto_score_base": 100.0,
+		"auto_score_dist_penalty": 4.0,
+		"auto_score_clear_bonus": 25.0,
+		"auto_score_moderate_penalty": 10.0,
+		"auto_score_complete_penalty": 25.0,
+		"auto_score_moving_bonus": 10.0,
+		"auto_score_prone_penalty": 20.0,
+		"auto_score_facing_bonus": 15.0,
+		"auto_score_smg_lmg_bonus": 20.0
+	},
+	"grenade": {
+		"starting_count": 5,
+		"throw_range": 7,
+		"fuse_msec": 1800,
+		"blast_radius": 3,
+		"kill_radius": 1,
+		"kill_chance": 0.25,
+		"stun_duration_sec": 8.0
+	},
+	"suppression": {
+		"recovery_per_tick": 0.15,
+		"recovery_prone_per_tick": 0.25,
+		"moderate_cover_suppression_mult": 0.65,
+		"prone_suppression_mult": 0.75,
+		"pinned_threshold": 45.0,
+		"panic_threshold": 70.0,
+		"band_nervous": 10.0,
+		"band_suppressed": 25.0,
+		"band_pinned": 45.0,
+		"band_panicked": 70.0,
+		"accuracy_by_band": [1.0, 0.85, 0.65, 0.4, 0.2],
+		"movement_by_band": [1.0, 0.9, 0.75, 0.5, 0.35],
+		"fire_delay_by_band": [1.0, 1.1, 1.25, 1.5, 2.0],
+		"suppression_mg42": 2.0,
+		"suppression_bar": 1.2,
+		"suppression_smg": 0.8,
+		"suppression_default": 0.4,
+		"max_stress": 100.0
+	},
+	"movement": {
+		"speed_run": 2.0,
+		"speed_walk": 0.6,
+		"speed_crawl": 0.3
+	},
+	"cover": {
+		"moderate_hit_mult": 0.5,
+		"moderate_visibility_mult": 0.65
+	},
+	"vision": {
+		"cone_width_at_max_range": 30,
+		"cone_range_bonus": 8,
+		"world_aim_forward_slack": 8.0,
+		"world_aim_lateral_slack": 4.0,
+		"aim_dir_min_length_sq": 4.0,
+		"prone_visibility_mult": 0.75
+	},
+	"los": {
+		"peek_adjacency_chebyshev": 1
+	},
+	"weapons": {
+		"definitions": {
+			"m1_garand": {
+				"weapon_name": "M1 Garand",
+				"weapon_type": 0,
+				"range_tiles": 18,
+				"hit_modifier": 0.1,
+				"rounds_per_attack": 1,
+				"ammo_capacity": 80,
+				"close_range_bonus": 0.0,
+				"close_range_tiles": 0,
+				"fire_interval_sec": 1.2,
+				"aim_delay_sec": 1.1
+			},
+			"bar": {
+				"weapon_name": "BAR",
+				"weapon_type": 2,
+				"range_tiles": 20,
+				"hit_modifier": 0.05,
+				"rounds_per_attack": 4,
+				"ammo_capacity": 120,
+				"close_range_bonus": 0.0,
+				"close_range_tiles": 0,
+				"fire_interval_sec": 1.1,
+				"aim_delay_sec": 0.9
+			},
+			"thompson": {
+				"weapon_name": "Thompson",
+				"weapon_type": 1,
+				"range_tiles": 8,
+				"hit_modifier": 0.0,
+				"rounds_per_attack": 3,
+				"ammo_capacity": 100,
+				"close_range_bonus": 0.15,
+				"close_range_tiles": 4,
+				"fire_interval_sec": 0.8,
+				"aim_delay_sec": 0.7
+			},
+			"kar98k": {
+				"weapon_name": "Kar98k",
+				"weapon_type": 0,
+				"range_tiles": 20,
+				"hit_modifier": 0.14,
+				"rounds_per_attack": 1,
+				"ammo_capacity": 60,
+				"close_range_bonus": 0.0,
+				"close_range_tiles": 0,
+				"fire_interval_sec": 2.0,
+				"aim_delay_sec": 1.3
+			},
+			"mg42": {
+				"weapon_name": "MG42",
+				"weapon_type": 2,
+				"range_tiles": 22,
+				"hit_modifier": 0.04,
+				"rounds_per_attack": 6,
+				"ammo_capacity": 150,
+				"close_range_bonus": 0.0,
+				"close_range_tiles": 0,
+				"fire_interval_sec": 0.6,
+				"aim_delay_sec": 1.0
+			},
+			"mp40": {
+				"weapon_name": "MP40",
+				"weapon_type": 1,
+				"range_tiles": 8,
+				"hit_modifier": 0.0,
+				"rounds_per_attack": 3,
+				"ammo_capacity": 100,
+				"close_range_bonus": 0.12,
+				"close_range_tiles": 4,
+				"fire_interval_sec": 0.9,
+				"aim_delay_sec": 0.7
+			}
+		}
+	}
+}

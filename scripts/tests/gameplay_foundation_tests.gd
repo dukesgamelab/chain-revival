@@ -478,6 +478,25 @@ func _test_policy_defaults_unchanged() -> void:
 	_assert("Grenade policy kill chance unchanged", is_equal_approx(GameplayPolicies.grenade.kill_chance, 0.25))
 	_assert("Suppression pinned threshold unchanged", is_equal_approx(GameplayPolicies.suppression.pinned_threshold, 45.0))
 	_assert("Movement run speed unchanged", is_equal_approx(GameplayPolicies.movement.speed_run, 2.0))
+	_assert("Vision cone range bonus unchanged", GameplayPolicies.vision.cone_range_bonus == 8)
+	_assert("Cover moderate hit mult unchanged", is_equal_approx(GameplayPolicies.cover.moderate_hit_mult, 0.5))
+	_assert("LOS peek adjacency unchanged", GameplayPolicies.los.peek_adjacency_chebyshev == 1)
+	var garand := GameplayPolicies.weapons.create_weapon("m1_garand")
+	_assert(
+		"Weapon policy M1 Garand cooldown unchanged",
+		garand != null and is_equal_approx(garand.fire_interval_sec, 1.2),
+		"interval=%s" % [garand.fire_interval_sec if garand else "null"],
+	)
+	_assert(
+		"Weapon policy M1 Garand range unchanged",
+		garand != null and garand.range_tiles == 18,
+		"range=%s" % [garand.range_tiles if garand else "null"],
+	)
+	GameplayPolicies.reload_from_config()
+	_assert(
+		"Config reload preserves M1 Garand interval",
+		is_equal_approx(GameplayPolicies.weapons.fire_interval_sec("m1_garand"), 1.2),
+	)
 
 
 func _test_object_id_and_registry() -> void:

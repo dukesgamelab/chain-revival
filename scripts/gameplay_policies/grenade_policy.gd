@@ -49,3 +49,26 @@ func throw_release_frame_for_team(team_id: int) -> int:
 
 func is_throw_release_enabled_for_team(team_id: int) -> bool:
 	return throw_release_frame_for_team(team_id) >= 0
+
+
+func apply_config(section: Dictionary) -> void:
+	if section.has("starting_count"):
+		starting_count = int(section.starting_count)
+	if section.has("throw_range"):
+		throw_range = int(section.throw_range)
+	if section.has("fuse_msec"):
+		fuse_msec = int(section.fuse_msec)
+	if section.has("blast_radius"):
+		blast_radius = int(section.blast_radius)
+	if section.has("kill_radius"):
+		kill_radius = int(section.kill_radius)
+	if section.has("kill_chance"):
+		kill_chance = float(section.kill_chance)
+	if section.has("stun_duration_sec"):
+		stun_duration_sec = float(section.stun_duration_sec)
+	if section.has("throw_release_frame_usa"):
+		throw_release_frame_usa = int(section.throw_release_frame_usa)
+	if section.has("throw_release_frame_germany"):
+		throw_release_frame_germany = int(section.throw_release_frame_germany)
+	if section.has("throw_anim_fps"):
+		throw_anim_fps = float(section.throw_anim_fps)

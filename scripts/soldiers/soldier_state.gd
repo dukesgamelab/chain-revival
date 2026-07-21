@@ -159,7 +159,7 @@ func apply_stun(duration_sec: float = 4.0) -> void:
 	reset_fire_prep()
 
 
-func apply_grenade_stun(duration_sec: float = 4.0) -> void:
+func apply_grenade_stun(duration_sec: float = GrenadePolicyClass.DEFAULT_STUN_DURATION_SEC) -> void:
 	stunned_until_msec = SimulationClock.get_ticks_msec() + int(duration_sec * 1000.0)
 	position_state = PositionStateClass.DOWN
 	stand_on_stun_recovery = true
@@ -304,6 +304,6 @@ static func from_dict(data: Dictionary) -> SoldierState:
 	state.movement_mode = int(data.get("movement_mode", MovementModeClass.RUN))
 	state.fire_control_state = int(data.get("fire_control_state", FireControlStateClass.HOLD_FIRE))
 	state.stress = float(data.get("stress", 0.0))
-	state.grenade_count = int(data.get("grenade_count", 5))
+	state.grenade_count = int(data.get("grenade_count", GrenadePolicyClass.DEFAULT_STARTING_COUNT))
 	state.stunned_until_msec = int(data.get("stunned_until_msec", 0))
 	return state

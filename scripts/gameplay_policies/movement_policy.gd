@@ -26,3 +26,12 @@ func speed_multiplier(mode: int) -> float:
 			return speed_crawl
 		_:
 			return speed_run
+
+
+func apply_config(section: Dictionary) -> void:
+	if section.has("speed_run"):
+		speed_run = float(section.speed_run)
+	if section.has("speed_walk"):
+		speed_walk = float(section.speed_walk)
+	if section.has("speed_crawl"):
+		speed_crawl = float(section.speed_crawl)
