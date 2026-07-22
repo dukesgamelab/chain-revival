@@ -175,9 +175,10 @@ func _process(delta: float) -> void:
 
 	if not _map_edit_mode:
 		_update_los_preview()
-		_update_command_bar_hit_columns()
-		if _any_soldier_moving():
-			_refresh_all_views()
+		## Hit % columns: only while aiming Fire At (mouse-driven). Fire At Will
+		## refreshes on the combat-scan cadence in _present_action_result.
+		if _fire_at_mode:
+			_update_command_bar_hit_columns()
 
 
 ## Advance SimulationClock in fixed ticks; run movement every tick and combat on policy cadence.
@@ -231,7 +232,11 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 		var state: SoldierState = _game_state.get_soldier(team_id, soldier_id)
 		var view: Soldier = _get_view(team_id, soldier_id)
 		if view != null and state != null:
-			view.sync_movement_chase_from_state(state)
+			var is_selected: bool = (
+				team_id == _session.active_team_id
+				and soldier_id == _session.get_active_fireteam().selected_soldier_id
+			)
+			_sync_soldier_view(team_id, soldier_id, is_selected)
 		_log_move_complete(soldier_id, state, view)
 		if team_id == _session.active_team_id and not _any_active_team_soldier_moving():
 			_iso_map.clear_path()
@@ -828,6 +833,30 @@ func _refresh_all_views() -> void:
 	_refresh_command_bar()
 
 
+## Cheap fog-of-war update: only enemy modulate/selection, no full anim/facing resync.
+func _refresh_enemy_spotting_visuals() -> void:
+	var active_team: int = _session.active_team_id
+	var active_fireteam: Fireteam = _session.get_active_fireteam()
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if soldier_state.team_id == active_team or not soldier_state.is_alive():
+				continue
+			var view: Soldier = _get_view(soldier_state.team_id, soldier_state.soldier_id)
+			if view == null:
+				continue
+			var is_selected: bool = (
+				soldier_state.team_id == active_team
+				and soldier_state.soldier_id == active_fireteam.selected_soldier_id
+			)
+			var is_spotted := CombatSystem.is_enemy_visible_to_team(
+				_game_state,
+				active_team,
+				soldier_state,
+			)
+			view.apply_spotting_only(is_selected, is_spotted)
+
+
 func _refresh_selection_marks() -> void:
 	var active_team: int = _session.active_team_id
 	var active_fireteam: Fireteam = _session.get_active_fireteam()
@@ -1117,6 +1146,11 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		_ensure_active_selection_alive()
 		_refresh_all_views()
 		_refresh_command_bar()
+	elif combat_tick:
+		## Spotting + stress UI at combat-scan cadence without full sync_from_state.
+		_refresh_enemy_spotting_visuals()
+		_refresh_command_bar()
+		_update_command_bar_hit_columns()
 
 	for order in result.throw_orders:
 		var throw_view: Soldier = _get_view(int(order.team_id), int(order.soldier_id))

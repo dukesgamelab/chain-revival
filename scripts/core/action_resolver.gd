@@ -208,7 +208,9 @@ static func process_movement_tick(game_state: GameStateClass) -> ActionResult:
 				continue
 			_advance_soldier_movement(game_state, soldier, tick_msec, result)
 	if not result.movement_steps.is_empty() or not result.movement_completions.is_empty():
-		result.refresh_views = true
+		## Movers are synced in Main._present_movement_tick_result; avoid a full roster
+		## refresh every step (that was a major gameplay hitch).
+		result.refresh_views = false
 	return result
 
 
@@ -316,7 +318,8 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 			soldier.recover_from_stun_if_expired()
 
 	game_state.objects.sync_grenades_from(game_state)
-	result.refresh_views = true
+	## Do not force a full view refresh every combat scan — shots/explosions already
+	## set refresh_views. Spotting/stress UI updates via the combat_tick path in Main.
 
 	if not result.combat_shots.is_empty() or not result.grenade_explosions.is_empty():
 		result.sync_fire_at_ui = true

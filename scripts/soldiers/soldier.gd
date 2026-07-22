@@ -68,13 +68,13 @@ var _stance_transition_target: int = PositionState.UP
 var _stance_transition_world_direction: String = "n"
 
 ## When true, log hit-reaction resolution (semantic, family, directions, frames, FPS).
-const DEBUG_HIT_REACTION := true
-const DEBUG_THROW_GRENADE := true
-const DEBUG_FIRE_ANIM := true
-const DEBUG_IDLE_STANDING := true
-const DEBUG_STANCE_TRANSITION := true
-const DEBUG_FACING := true
-const DEBUG_DEAD_STATIC := true
+const DEBUG_HIT_REACTION := false
+const DEBUG_THROW_GRENADE := false
+const DEBUG_FIRE_ANIM := false
+const DEBUG_IDLE_STANDING := false
+const DEBUG_STANCE_TRANSITION := false
+const DEBUG_FACING := false
+const DEBUG_DEAD_STATIC := false
 
 
 @onready var _anim: AnimatedSprite2D = $AnimatedSprite2D
@@ -159,6 +159,11 @@ func _apply_spotted_visual(is_selected: bool, is_spotted: bool) -> void:
 			_anim.modulate = Color.WHITE
 	else:
 		_anim.modulate = Color(0.55, 0.55, 0.58, 0.45)
+
+
+## Fog-of-war only — used by Main on combat scans to avoid full sync_from_state.
+func apply_spotting_only(is_selected: bool, is_spotted: bool) -> void:
+	_apply_spotted_visual(is_selected, is_spotted)
 
 
 func set_selected(is_selected: bool) -> void:
