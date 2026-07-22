@@ -105,14 +105,14 @@ static func type_id_for_family(family: String) -> String:
 	var fam := family.to_upper()
 	if fam.is_empty():
 		return "coc_prop"
-	if fam == "SWAL" or fam.begins_with("WH") or fam == "SCRS":
+	if fam == "SWAL" or fam.begins_with("WH") or fam == "SCRS" or fam == "WFLOS3A":
 		## WH* / SCRS = small stone wall segments (not windows).
 		return "coc_swal"
-	if fam.ends_with("WIN") or fam == "SWIN" or fam == "WWIN":
+	if fam.ends_with("WIN") or fam == "SWIN" or fam == "WWIN" or fam.begins_with("WWINS") or fam == "SWINS27A":
 		return "coc_window"
 	if fam in ["WWAR", "WWAQ", "SWAR", "SWAQ", "WWAI"]:
 		return "coc_door_wood"
-	if fam == "SWAI" or fam.ends_with("COR") or fam.ends_with("ICR"):
+	if fam == "SWAI" or fam.ends_with("COR") or fam.ends_with("ICR") or fam in ["SCORS5A", "SWAIS3A", "SWAIS1A", "SICRS7A", "WICRS7A", "WWAIS3A", "USWKA8T", "WCORS3A"]:
 		return "coc_wall_corner"
 	if fam.begins_with("TR"):
 		return "coc_tree"
@@ -122,7 +122,7 @@ static func type_id_for_family(family: String) -> String:
 		return "coc_wwal"
 	if fam == "SWAL":
 		return "coc_swal"
-	if fam in ["LIHW", "IWWL", "RIHW"]:
+	if fam in ["LIHW", "IWWL", "RIHW"] or fam in ["IWDRS7A", "IWWLS1C", "IWCLS3A", "IWALS7A", "IWCRS3A", "IWCRS1A", "IWCRS5A", "IWDR", "IWCL", "IWAL", "IWCR"]:
 		return "coc_wall"
 	if CocRenderRules.is_floor_family(fam):
 		return "coc_floor"

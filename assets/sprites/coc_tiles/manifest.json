@@ -4008,6 +4008,2238 @@
    ],
    "source_file": "WH00 (user import)",
    "source_format": "user_import"
+  },
+  {
+   "family": "WWINS17A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS17A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS17A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS17A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS17A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS17A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS17A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS17A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS17A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS17A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS17A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS17A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS3A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS3A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS3A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS3A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS3A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS3A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS3A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS3A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS5A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS5A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS5A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS5A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS5A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS5A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS5A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS5A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS27A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS27A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS27A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS27A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS27A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS27A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS27A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS27A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS27A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWINS27A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWINS27A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWINS27A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SCORS5A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SCORS5A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SCORS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SCORS5A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SCORS5A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SCORS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SCORS5A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SCORS5A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SCORS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SCORS5A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SCORS5A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SCORS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWAIS3A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAIS3A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWAIS3A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAIS3A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWAIS3A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAIS3A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWAIS3A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAIS3A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWAIS1A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAIS1A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWAIS1A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAIS1A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWAIS1A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAIS1A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWAIS1A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWAIS1A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWAIS1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SICRS7A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SICRS7A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SICRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SICRS7A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SICRS7A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SICRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SICRS7A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SICRS7A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SICRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SICRS7A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SICRS7A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SICRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWINS27A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWINS27A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWINS27A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWINS27A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWINS27A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWINS27A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWINS27A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWINS27A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWINS27A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "SWINS27A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SWINS27A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SWINS27A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WICRS7A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WICRS7A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WICRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WICRS7A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WICRS7A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WICRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WICRS7A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WICRS7A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WICRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WICRS7A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WICRS7A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WICRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWAIS3A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWAIS3A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWAIS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWAIS3A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWAIS3A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWAIS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWAIS3A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWAIS3A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWAIS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WWAIS3A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WWAIS3A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WWAIS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "USWKA8T",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/USWKA8T_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "USWKA8T.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "USWKA8T",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/USWKA8T_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "USWKA8T.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "USWKA8T",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/USWKA8T_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "USWKA8T.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "USWKA8T",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/USWKA8T_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "USWKA8T.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WCORS3A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WCORS3A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WCORS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WCORS3A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WCORS3A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WCORS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WCORS3A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WCORS3A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WCORS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WCORS3A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WCORS3A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WCORS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWDRS7A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWDRS7A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWDRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWDRS7A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWDRS7A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWDRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWDRS7A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWDRS7A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWDRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWDRS7A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWDRS7A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWDRS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWWLS1C",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWWLS1C_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWWLS1C.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWWLS1C",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWWLS1C_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWWLS1C.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWWLS1C",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWWLS1C_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWWLS1C.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWWLS1C",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWWLS1C_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWWLS1C.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCLS3A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCLS3A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCLS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCLS3A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCLS3A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCLS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCLS3A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCLS3A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCLS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCLS3A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCLS3A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCLS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWALS7A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWALS7A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWALS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWALS7A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWALS7A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWALS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWALS7A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWALS7A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWALS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWALS7A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWALS7A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWALS7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS3A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS3A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS3A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS3A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS3A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS3A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS3A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS3A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS1A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS1A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS1A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS1A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS1A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS1A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS1A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS1A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS5A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS5A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS5A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS5A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS5A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS5A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "IWCRS5A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCRS5A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCRS5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S3A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S3A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S3A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S3A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S3A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S3A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S3A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S3A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S5A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S5A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S5A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S5A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S5A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S5A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S5A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S5A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S5A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S5A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S5A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S5A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S5A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S5A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S5A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S5A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WFLOS3A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WFLOS3A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WFLOS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WFLOS3A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WFLOS3A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WFLOS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WFLOS3A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WFLOS3A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WFLOS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WFLOS3A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WFLOS3A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WFLOS3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S3A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S3A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S3A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S3A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S3A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S3A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S3A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S3A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S5A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S5A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S5A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S5A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S5A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S5A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S5A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S5A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S1A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S1A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S1A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S1A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S1A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S1A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S1A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S1A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S1A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S1A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S1A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S1A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S1A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S1A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH02S1A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH02S1A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH02S1A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S3A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S3A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S3A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S3A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S3A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S3A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH11S3A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH11S3A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH11S3A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S7A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S7A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S7A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S7A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S7A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S7A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH01S7A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH01S7A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH01S7A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH09S5A",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH09S5A_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH09S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH09S5A",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH09S5A_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH09S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH09S5A",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH09S5A_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH09S5A.PNG",
+   "source_format": "upload"
+  },
+  {
+   "family": "WH09S5A",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH09S5A_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH09S5A.PNG",
+   "source_format": "upload"
   }
  ],
  "under_image_rule": "Map tiles may carry an Image1 property naming a floor sprite to draw beneath the wall at that cell (original engine mechanism; e.g. LIHW->WFLO, WWAR/WWAQ/SWAQ/SWAR->SFL5). Draw Image1 first, then the wall. For wall cells without Image1 that neighbour interior floors, the half-diamond adjacency underlay applies (renderer rule)."

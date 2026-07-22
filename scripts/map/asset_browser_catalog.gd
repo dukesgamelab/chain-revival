@@ -14,11 +14,17 @@ const DEFAULT_CATEGORY_ORDER: PackedStringArray = [
 	"Floors",
 	"Interior Walls",
 	"Interior Wood Walls",
+	"New Wood Interior Walls",
 	"Stone House",
+	"New Stone House",
+	"New Stone House Corners",
 	"Exterior Wood Walls",
+	"New Wood House Corners",
 	"Walls",
+	"New Small Stone Walls",
 	"Corners",
 	"Windows",
+	"New Wood Windows",
 	"Doors",
 	"Trees",
 	"Bushes",
@@ -196,14 +202,29 @@ static func categorize_family(family: String) -> String:
 	## Interior wood partition kit (Farm Fight houses).
 	if fam in ["IWWL", "IWCR", "IWCL", "IWDR", "IWAL"]:
 		return "Interior Wood Walls"
+	if fam in ["IWDRS7A", "IWWLS1C", "IWCLS3A", "IWALS7A", "IWCRS3A", "IWCRS1A", "IWCRS5A"]:
+		return "New Wood Interior Walls"
 	## Stone-house kit (Farm Fight / Fortress stone buildings).
 	if fam in ["SWAL", "SWAI", "SICR", "SWAQ", "SWAR", "SI04"]:
 		return "Stone House"
+	if fam == "SWINS27A":
+		return "New Stone House"
+	if fam in ["SCORS5A", "SWAIS3A", "SWAIS1A", "SICRS7A"]:
+		return "New Stone House Corners"
 	## Exterior wood building kit.
 	if fam in ["WWAL", "WWAI", "WCOR", "WICR", "WWAQ", "WWAR", "WWIN", "WI04"]:
 		return "Exterior Wood Walls"
+	if fam in ["WICRS7A", "WWAIS3A", "USWKA8T", "WCORS3A"]:
+		return "New Wood House Corners"
 	if fam in ["SWIN"]:
 		return "Windows"
+	if fam in ["WWINS17A", "WWINS3A", "WWINS5A", "WWINS27A"] or fam.begins_with("WWINS"):
+		return "New Wood Windows"
+	if fam in [
+		"WH01S3A", "WH11S5A", "WH01S5A", "WFLOS3A", "WH02S3A", "WH02S5A",
+		"WH11S1A", "WH02S1A", "WH11S3A", "WH01S7A", "WH09S5A",
+	]:
+		return "New Small Stone Walls"
 	if fam.begins_with("WH") or fam == "SCRS":
 		return "Walls"
 	if fam in ["SDOR", "WDOR"]:

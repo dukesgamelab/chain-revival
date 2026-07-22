@@ -6,11 +6,17 @@
 		"Floors",
 		"Interior Walls",
 		"Interior Wood Walls",
+		"New Wood Interior Walls",
 		"Stone House",
+		"New Stone House",
+		"New Stone House Corners",
 		"Exterior Wood Walls",
+		"New Wood House Corners",
 		"Walls",
+		"New Small Stone Walls",
 		"Corners",
 		"Windows",
+		"New Wood Windows",
 		"Doors",
 		"Trees",
 		"Bushes",
@@ -131,6 +137,12 @@
 			"kind": "family",
 			"label": "Stone Floor",
 			"sort": 20.0
+		},
+		"SI04": {
+			"category": "Stone House",
+			"kind": "family",
+			"label": "Stone Wall Detail (SI04)",
+			"sort": 60.0
 		},
 		"SICR": {
 			"category": "Stone House",
@@ -264,6 +276,12 @@
 			"label": "Wood Hedge / Wall 11",
 			"sort": 94.0
 		},
+		"WI04": {
+			"category": "Exterior Wood Walls",
+			"kind": "family",
+			"label": "Exterior Wood Detail (WI04)",
+			"sort": 80.0
+		},
 		"WICR": {
 			"category": "Exterior Wood Walls",
 			"kind": "family",
@@ -273,7 +291,7 @@
 		"WWAI": {
 			"category": "Exterior Wood Walls",
 			"kind": "family",
-			"label": "Exterior Wood Corner (new)",
+			"label": "Exterior Wood Wall Big",
 			"sort": 20.0
 		},
 		"WWAL": {
@@ -300,17 +318,191 @@
 			"label": "Exterior Wood Window",
 			"sort": 70.0
 		},
-		"SI04": {
-			"category": "Stone House",
+		"WWINS17A": {
+			"category": "New Wood Windows",
 			"kind": "family",
-			"label": "Stone Wall Detail (SI04)",
+			"label": "WWINS17A",
+			"sort": 10.0
+		},
+		"WWINS27A": {
+			"category": "New Wood Windows",
+			"kind": "family",
+			"label": "WWINS27A",
+			"sort": 40.0
+		},
+		"WWINS3A": {
+			"category": "New Wood Windows",
+			"kind": "family",
+			"label": "WWINS3A",
+			"sort": 20.0
+		},
+		"WWINS5A": {
+			"category": "New Wood Windows",
+			"kind": "family",
+			"label": "WWINS5A",
+			"sort": 30.0
+		},
+		"SCORS5A": {
+			"category": "New Stone House Corners",
+			"kind": "family",
+			"label": "SCORS5A",
+			"sort": 10.0
+		},
+		"SWAIS3A": {
+			"category": "New Stone House Corners",
+			"kind": "family",
+			"label": "SWAIS3A",
+			"sort": 20.0
+		},
+		"SWAIS1A": {
+			"category": "New Stone House Corners",
+			"kind": "family",
+			"label": "SWAIS1A",
+			"sort": 30.0
+		},
+		"SICRS7A": {
+			"category": "New Stone House Corners",
+			"kind": "family",
+			"label": "SICRS7A",
+			"sort": 40.0
+		},
+		"SWINS27A": {
+			"category": "New Stone House",
+			"kind": "family",
+			"label": "Stone House Window 2",
+			"sort": 10.0
+		},
+		"WICRS7A": {
+			"category": "New Wood House Corners",
+			"kind": "family",
+			"label": "WICRS7A",
+			"sort": 10.0
+		},
+		"WWAIS3A": {
+			"category": "New Wood House Corners",
+			"kind": "family",
+			"label": "WWAIS3A",
+			"sort": 20.0
+		},
+		"USWKA8T": {
+			"category": "New Wood House Corners",
+			"kind": "family",
+			"label": "USWKA8T",
+			"sort": 30.0
+		},
+		"WCORS3A": {
+			"category": "New Wood House Corners",
+			"kind": "family",
+			"label": "WCORS3A",
+			"sort": 40.0
+		},
+		"IWDRS7A": {
+			"category": "New Wood Interior Walls",
+			"kind": "family",
+			"label": "IWDRS7A",
+			"sort": 10.0
+		},
+		"IWWLS1C": {
+			"category": "New Wood Interior Walls",
+			"kind": "family",
+			"label": "IWWLS1C",
+			"sort": 20.0
+		},
+		"IWCLS3A": {
+			"category": "New Wood Interior Walls",
+			"kind": "family",
+			"label": "IWCLS3A",
+			"sort": 30.0
+		},
+		"IWALS7A": {
+			"category": "New Wood Interior Walls",
+			"kind": "family",
+			"label": "IWALS7A",
+			"sort": 40.0
+		},
+		"IWCRS3A": {
+			"category": "New Wood Interior Walls",
+			"kind": "family",
+			"label": "IWCRS3A",
+			"sort": 50.0
+		},
+		"IWCRS1A": {
+			"category": "New Wood Interior Walls",
+			"kind": "family",
+			"label": "IWCRS1A",
 			"sort": 60.0
 		},
-		"WI04": {
-			"category": "Exterior Wood Walls",
+		"IWCRS5A": {
+			"category": "New Wood Interior Walls",
 			"kind": "family",
-			"label": "Exterior Wood Detail (WI04)",
+			"label": "IWCRS5A",
+			"sort": 70.0
+		},
+		"WH01S3A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WH01S3A",
+			"sort": 10.0
+		},
+		"WH11S5A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WH11S5A",
+			"sort": 20.0
+		},
+		"WH01S5A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WH01S5A",
+			"sort": 30.0
+		},
+		"WFLOS3A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WFLOS3A",
+			"sort": 40.0
+		},
+		"WH02S3A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WH02S3A",
+			"sort": 50.0
+		},
+		"WH02S5A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WH02S5A",
+			"sort": 60.0
+		},
+		"WH11S1A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WH11S1A",
+			"sort": 70.0
+		},
+		"WH02S1A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WH02S1A",
 			"sort": 80.0
+		},
+		"WH11S3A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WH11S3A",
+			"sort": 90.0
+		},
+		"WH01S7A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WH01S7A",
+			"sort": 100.0
+		},
+		"WH09S5A": {
+			"category": "New Small Stone Walls",
+			"kind": "family",
+			"label": "WH09S5A",
+			"sort": 110.0
 		}
 	}
 }
