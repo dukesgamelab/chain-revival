@@ -166,6 +166,57 @@ static func resolve_anim_meta(family_id: String, anim_id: String) -> Dictionary:
 	}
 
 
+## Faction pools for authoritative dead_static corpse-family selection.
+const USA_DEAD_STATIC_VARIANTS: PackedStringArray = ["ADDSS", "ADOAS", "ADFUS", "ADLYS"]
+const GERMANY_DEAD_STATIC_VARIANTS: PackedStringArray = ["GDLYS", "GDFUS"]
+
+
+static func dead_static_variants_for_team(team_id: int) -> PackedStringArray:
+	ensure_loaded()
+	var family_id := "german_rifle" if team_id == 2 else "us_rifle"
+	var fam := get_family(family_id)
+	var meta: Variant = fam.get("metadata", {})
+	if meta is Dictionary:
+		var raw: Variant = meta.get("dead_static_variants", [])
+		if raw is Array and not raw.is_empty():
+			var out := PackedStringArray()
+			for v in raw:
+				var code := str(v).strip_edges().to_upper()
+				if not code.is_empty():
+					out.append(code)
+			if not out.is_empty():
+				return out
+	if team_id == 2:
+		return GERMANY_DEAD_STATIC_VARIANTS.duplicate()
+	return USA_DEAD_STATIC_VARIANTS.duplicate()
+
+
+static func dead_static_anim_id(family_code: String) -> String:
+	return "dead_static_%s" % family_code.strip_edges().to_upper()
+
+
+static func source_direction_digit(direction: String) -> int:
+	match direction.to_lower():
+		"w":
+			return 1
+		"sw":
+			return 2
+		"s":
+			return 3
+		"se":
+			return 4
+		"e":
+			return 5
+		"ne":
+			return 6
+		"n":
+			return 7
+		"nw":
+			return 8
+		_:
+			return 7
+
+
 ## Soldier runtime expects walk_/hit_/hit_standing_/hit_prone_/fall_/dead_ prefixes.
 static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteFrames:
 	ensure_loaded()
@@ -190,8 +241,14 @@ static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteF
 		"idle": "idle",
 	}
 	var anims: Dictionary = fam.get("animations", {})
-	for anim_id in anims.keys():
-		var runtime_prefix := str(alias.get(str(anim_id), anim_id))
+	for anim_id_v in anims.keys():
+		var anim_id := str(anim_id_v)
+		var runtime_prefix := str(alias.get(anim_id, anim_id))
+		## dead_static_ADFUS → dead_ADFUS_* (static corpse variant families).
+		if anim_id.begins_with("dead_static_"):
+			var code := anim_id.substr("dead_static_".length()).strip_edges().to_upper()
+			if not code.is_empty():
+				runtime_prefix = "dead_%s" % code
 		var anim: Dictionary = anims[anim_id]
 		var loop := bool(anim.get("loop", true))
 		var fps := float(anim.get("fps", 12.0))

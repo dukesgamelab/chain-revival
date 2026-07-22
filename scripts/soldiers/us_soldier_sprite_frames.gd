@@ -14,8 +14,8 @@ extends RefCounted
 ##   Stand→prone (Ger): GSUPA          (A–X)  → transition_standing_to_prone_*
 ##   Prone→stand (Ger): GPRNA          (A–E)  → transition_prone_to_standing_*
 ##   Fall/death:        AFALA / GFALA  (A–W)
-##   Corpse (US):       ADDSS          (A)  — post-fall dead pose
-##   Corpse (German):   GDFUS          (A)
+##   Corpse (US):       ADDSS / ADOAS / ADFUS / ADLYS  (A) → dead_<family>_*
+##   Corpse (German):   GDLYS / GDFUS                   (A) → dead_<family>_*
 ##
 ## Direction digits (soldier BMP convention — NOT ASAX tile digits):
 ## 1=W, 2=SW, 3=S, 4=SE, 5=E, 6=NE, 7=N, 8=NW.

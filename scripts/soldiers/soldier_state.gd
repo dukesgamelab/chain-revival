@@ -66,6 +66,8 @@ var stand_on_stun_recovery: bool = false
 ## Stance at the moment of death (before mark_killed forces DOWN for corpse posture).
 ## Presentation uses this for hit_standing vs hit_prone selection.
 var stance_at_death: int = PositionStateClass.UP
+## Authoritative static corpse family code (e.g. "ADFUS", "GDLYS"). Chosen once at death.
+var death_sprite_family: String = ""
 
 ## Stable object ID derived from team/slot (not stored separately).
 var object_id: String:
@@ -167,6 +169,40 @@ func mark_killed() -> void:
 	end_sustained_fire()
 	reset_fire_prep()
 	clear_pending_grenade()
+	_select_death_sprite_family_once()
+
+
+## Pick a faction corpse family exactly once via GameRandom (authoritative).
+func _select_death_sprite_family_once() -> void:
+	if not death_sprite_family.is_empty():
+		return
+	var pool := AnimationDatabase.dead_static_variants_for_team(team_id)
+	if pool.is_empty():
+		push_error("SoldierState: empty dead_static pool for team %d" % team_id)
+		return
+	var index := GameRandom.randi_range(0, pool.size() - 1)
+	death_sprite_family = str(pool[index])
+	GameLog.log_system(
+		"dead_static | %s | soldier_id=%d | family=%s | selected=authoritative"
+		% [Team.display_name(team_id).to_lower(), soldier_id, death_sprite_family]
+	)
+
+
+## Ensure dead soldiers always have a valid family (legacy saves / missing field).
+func ensure_death_sprite_family() -> void:
+	if not is_dead:
+		return
+	var pool := AnimationDatabase.dead_static_variants_for_team(team_id)
+	if pool.is_empty():
+		return
+	var code := death_sprite_family.strip_edges().to_upper()
+	if not code.is_empty() and code in pool:
+		death_sprite_family = code
+		return
+	## Deterministic fallback — does not consume GameRandom stream.
+	var seed_value := GameRandom.get_seed()
+	var mixed := absi(soldier_id * 7919 + team_id * 104729 + seed_value * 31)
+	death_sprite_family = str(pool[mixed % pool.size()])
 
 
 func apply_stun(duration_sec: float = 4.0) -> void:
@@ -314,6 +350,7 @@ func to_dict() -> Dictionary:
 		"stress": stress,
 		"grenade_count": grenade_count,
 		"stunned_until_msec": stunned_until_msec,
+		"death_sprite_family": death_sprite_family,
 	}
 
 
@@ -340,4 +377,6 @@ static func from_dict(data: Dictionary) -> SoldierState:
 	state.stress = float(data.get("stress", 0.0))
 	state.grenade_count = int(data.get("grenade_count", GrenadePolicyClass.DEFAULT_STARTING_COUNT))
 	state.stunned_until_msec = int(data.get("stunned_until_msec", 0))
+	state.death_sprite_family = str(data.get("death_sprite_family", "")).strip_edges().to_upper()
+	state.ensure_death_sprite_family()
 	return state

@@ -332,24 +332,14 @@
 			"animations": {
 				"corpse": {
 					"directions": {
-						"e": {
+						"w": {
 							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS5A.png"
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS1A.png"
 							]
 						},
-						"n": {
+						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS6A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS8A.png"
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS2A.png"
 							]
 						},
 						"s": {
@@ -362,26 +352,38 @@
 								"res://assets/sprites/german_soldier/dead_fallen/GDFUS4A.png"
 							]
 						},
-						"sw": {
+						"e": {
 							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS2A.png"
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS5A.png"
 							]
 						},
-						"w": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS1A.png"
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS6A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS7A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS8A.png"
 							]
 						}
 					},
 					"fps": 1.0,
-					"label": "Corpse",
-					"loop": true,
+					"label": "German Dead (legacy corpse alias)",
+					"loop": false,
 					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "",
-						"sound_effect": ""
+						"semantic_state": "dead_static",
+						"faction": "German",
+						"source_family": "GDFUS",
+						"static": true,
+						"verified": true,
+						"priority": "dead",
+						"note": "Legacy alias; prefer dead_static_<family> variants"
 					}
 				},
 				"crawl": {
@@ -2093,13 +2095,129 @@
 						"notes": "",
 						"sound_effect": ""
 					}
+				},
+				"dead_static_GDLYS": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS1A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS2A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS4A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS5A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS6A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS7A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS8A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "German Dead Static GDLYS",
+					"loop": false,
+					"metadata": {
+						"semantic_state": "dead_static",
+						"faction": "German",
+						"source_family": "GDLYS",
+						"static": true,
+						"verified": true,
+						"priority": "dead"
+					}
+				},
+				"dead_static_GDFUS": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS1A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS2A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS4A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS5A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS6A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS7A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS8A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "German Dead Static GDFUS",
+					"loop": false,
+					"metadata": {
+						"semantic_state": "dead_static",
+						"faction": "German",
+						"source_family": "GDFUS",
+						"static": true,
+						"verified": true,
+						"priority": "dead"
+					}
 				}
 			},
 			"category": "soldiers",
 			"faction": "germany",
 			"id": "german_rifle",
 			"label": "German Rifle Soldier",
-			"weapon": "rifle"
+			"weapon": "rifle",
+			"metadata": {
+				"dead_static_variants": [
+					"GDLYS",
+					"GDFUS"
+				]
+			}
 		},
 		"german_smg": {
 			"animations": {
@@ -2655,24 +2773,14 @@
 			"animations": {
 				"corpse": {
 					"directions": {
-						"e": {
+						"w": {
 							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS5A.png"
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS1A.png"
 							]
 						},
-						"n": {
+						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS6A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS8A.png"
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS2A.png"
 							]
 						},
 						"s": {
@@ -2685,27 +2793,38 @@
 								"res://assets/sprites/us_soldier/dead_fallen/ADDSS4A.png"
 							]
 						},
-						"sw": {
+						"e": {
 							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS2A.png"
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS5A.png"
 							]
 						},
-						"w": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS1A.png"
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS6A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS7A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS8A.png"
 							]
 						}
 					},
 					"fps": 1.0,
-					"label": "US Dead",
-					"loop": true,
+					"label": "US Dead (legacy corpse alias)",
+					"loop": false,
 					"metadata": {
-						"category": "us_soldier/dead",
+						"semantic_state": "dead_static",
 						"faction": "American",
-						"note": "Browser may label as prone_crawl; gameplay uses as post-fall dead pose",
 						"source_family": "ADDSS",
-						"verification": "manually confirmed by user (ADDSS = US dead corpse)",
-						"verified": true
+						"static": true,
+						"verified": true,
+						"priority": "dead",
+						"note": "Legacy alias; prefer dead_static_<family> variants"
 					}
 				},
 				"crawl": {
@@ -4448,13 +4567,241 @@
 						"notes": "",
 						"sound_effect": ""
 					}
+				},
+				"dead_static_ADDSS": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS1A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS2A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS4A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS5A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS6A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS7A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS8A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "US Dead Static ADDSS",
+					"loop": false,
+					"metadata": {
+						"semantic_state": "dead_static",
+						"faction": "American",
+						"source_family": "ADDSS",
+						"static": true,
+						"verified": true,
+						"priority": "dead"
+					}
+				},
+				"dead_static_ADOAS": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS1A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS2A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS4A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS5A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS6A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS7A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS8A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "US Dead Static ADOAS",
+					"loop": false,
+					"metadata": {
+						"semantic_state": "dead_static",
+						"faction": "American",
+						"source_family": "ADOAS",
+						"static": true,
+						"verified": true,
+						"priority": "dead"
+					}
+				},
+				"dead_static_ADFUS": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS1A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS2A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS4A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS5A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS6A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS7A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS8A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "US Dead Static ADFUS",
+					"loop": false,
+					"metadata": {
+						"semantic_state": "dead_static",
+						"faction": "American",
+						"source_family": "ADFUS",
+						"static": true,
+						"verified": true,
+						"priority": "dead"
+					}
+				},
+				"dead_static_ADLYS": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS1A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS2A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS4A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS5A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS6A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS7A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS8A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "US Dead Static ADLYS",
+					"loop": false,
+					"metadata": {
+						"semantic_state": "dead_static",
+						"faction": "American",
+						"source_family": "ADLYS",
+						"static": true,
+						"verified": true,
+						"priority": "dead"
+					}
 				}
 			},
 			"category": "soldiers",
 			"faction": "usa",
 			"id": "us_rifle",
 			"label": "US Rifle Soldier",
-			"weapon": "rifle"
+			"weapon": "rifle",
+			"metadata": {
+				"dead_static_variants": [
+					"ADDSS",
+					"ADOAS",
+					"ADFUS",
+					"ADLYS"
+				]
+			}
 		},
 		"us_smg": {
 			"animations": {

@@ -42,7 +42,12 @@ var _locomotion_walking: bool = false
 var _configured_team_id: int = -1
 var _death_sequence_active: bool = false
 var _death_direction: String = "n"
+## World-facing anim letter for the static corpse (authoritative facing at death).
+var _corpse_world_direction: String = "n"
+## Selected dead_static family code from SoldierState (e.g. ADFUS). Stable across camera/sync.
+var _death_sprite_family: String = ""
 var _corpse_direction_locked: bool = false
+var _dead_static_logged: bool = false
 var _hit_reaction_active: bool = false
 var _hit_semantic: String = ""
 var _hit_return_prone: bool = false
@@ -69,6 +74,7 @@ const DEBUG_FIRE_ANIM := true
 const DEBUG_IDLE_STANDING := true
 const DEBUG_STANCE_TRANSITION := true
 const DEBUG_FACING := true
+const DEBUG_DEAD_STATIC := true
 
 
 @onready var _anim: AnimatedSprite2D = $AnimatedSprite2D
@@ -109,6 +115,9 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 	if previous_team != team_id or _anim.sprite_frames == null:
 		_configure_team_visual()
 	_is_dead = state.is_dead
+	if state.is_dead:
+		state.ensure_death_sprite_family()
+		_death_sprite_family = state.death_sprite_family
 
 	if _blocks_action_override():
 		soldier_id = state.soldier_id
@@ -121,7 +130,8 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 		position = IsometricGrid.grid_to_world(state.grid_position)
 		_facing_from_cell = state.grid_position
 		_apply_facing(state.facing_direction, _facing_from_cell)
-		_show_dead_static(_corpse_direction_for_state(state))
+		_corpse_world_direction = UsSoldierSpriteFrames.direction_from_step(state.facing_direction)
+		_show_dead_static(_corpse_world_direction)
 		return
 
 	_dead_marker.visible = false
@@ -169,8 +179,11 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 	_anim.scale = _prone_sprite_scale()
 	_anim.position = Vector2.ZERO
 	_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
-	_show_dead_static(_death_direction)
-	_anim.modulate = Color(0.38, 0.38, 0.38, 0.85)
+	## Prefer authoritative world facing for the static corpse; fall used threat dir.
+	if _corpse_world_direction.is_empty():
+		_corpse_world_direction = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	_show_dead_static(_corpse_world_direction)
+	_anim.modulate = Color.WHITE
 
 
 func _apply_position_visual(state: SoldierState) -> void:
@@ -494,6 +507,9 @@ func _play_idle_prone(world_direction: String) -> void:
 func refresh_action_visual_for_camera() -> void:
 	if _anim == null or _anim.sprite_frames == null:
 		return
+	if _is_dead and not _death_sequence_active:
+		_remap_dead_for_camera()
+		return
 	if _throw_grenade_active:
 		_remap_throw_for_camera()
 		return
@@ -591,6 +607,7 @@ func play_hit_reaction(threat_step: Vector2i, position_state: int = PositionStat
 func play_death_sequence(
 	threat_step: Vector2i,
 	position_state: int = PositionState.UP,
+	death_sprite_family: String = "",
 ) -> void:
 	if not _uses_og_frames() or _death_sequence_active or _corpse_direction_locked:
 		return
@@ -600,7 +617,14 @@ func play_death_sequence(
 	_hit_reaction_active = false
 	_death_sequence_active = true
 	_is_dead = true
+	_dead_static_logged = false
+	if not death_sprite_family.is_empty():
+		_death_sprite_family = death_sprite_family.strip_edges().to_upper()
+	## Fall/hit use threat-away direction; static corpse uses authoritative world facing.
 	_death_direction = UsSoldierSpriteFrames.direction_from_threat(threat_step)
+	_corpse_world_direction = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	if _corpse_world_direction.is_empty():
+		_corpse_world_direction = "n"
 	_corpse_direction_locked = true
 	_hit_semantic = _hit_semantic_for(position_state)
 	_hit_return_prone = position_state == PositionState.DOWN
@@ -1159,16 +1183,96 @@ func _finish_death_sequence() -> void:
 
 
 func _show_dead_static(direction: String) -> void:
-	_death_direction = direction
-	_play_animation("dead_%s" % direction)
+	var world_dir := direction if not direction.is_empty() else "n"
+	_corpse_world_direction = world_dir
+	var display_dir := AnimationDatabase.display_direction(
+		world_dir,
+		IsometricGrid.camera_direction_degrees(),
+	)
+	var family := _death_sprite_family.strip_edges().to_upper()
+	var anim_name := ""
+	if not family.is_empty():
+		anim_name = "dead_%s_%s" % [family, display_dir]
+		if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+			var digit := AnimationDatabase.source_direction_digit(display_dir)
+			var expected := "res://assets/sprites/%s/dead_fallen/%s%dA.png" % [
+				"us_soldier" if team_id == Team.USA else "german_soldier",
+				family,
+				digit,
+			]
+			push_error(
+				"Soldier: missing dead_static animation %s (faction=%s family=%s dir=%s path=%s)"
+				% [anim_name, Team.display_name(team_id), family, display_dir, expected]
+			)
+			anim_name = "dead_%s" % display_dir
+	else:
+		anim_name = "dead_%s" % display_dir
+	_play_animation(anim_name)
 	_anim.pause()
 	_anim.frame = 0
+	_log_dead_static_once(world_dir, display_dir, anim_name)
+
+
+func _remap_dead_for_camera() -> void:
+	if not _is_dead:
+		return
+	var world_dir := _corpse_world_direction
+	if world_dir.is_empty():
+		world_dir = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	_show_dead_static(world_dir)
 
 
 func _corpse_direction_for_state(state: SoldierState) -> String:
-	if _corpse_direction_locked:
-		return _death_direction
+	if not _corpse_world_direction.is_empty():
+		return _corpse_world_direction
 	return UsSoldierSpriteFrames.direction_from_step(state.facing_direction)
+
+
+func _log_dead_static_once(world_dir: String, display_dir: String, anim_name: String) -> void:
+	if not DEBUG_DEAD_STATIC or _dead_static_logged:
+		return
+	_dead_static_logged = true
+	var family := _death_sprite_family if not _death_sprite_family.is_empty() else "?"
+	var source_dir := AnimationDatabase.source_direction_digit(display_dir)
+	var frame_stem := "%s%dA" % [family, source_dir] if family != "?" else anim_name
+	GameLog.log_system(
+		"dead_static | %s | soldier_id=%d | family=%s | world_dir=%s | camera_rotation=%d | source_dir=%d | frame=%s"
+		% [
+			Team.display_name(team_id).to_lower(),
+			soldier_id,
+			family,
+			world_dir.to_upper(),
+			IsometricGrid.camera_direction_degrees(),
+			source_dir,
+			frame_stem,
+		]
+	)
+
+
+## Debug snapshot for corpse variant + camera remap validation.
+func dump_dead_static_validation() -> Dictionary:
+	var world_dir := _corpse_world_direction
+	if world_dir.is_empty():
+		world_dir = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	var cam := IsometricGrid.camera_direction_degrees()
+	var display_dir := AnimationDatabase.display_direction(world_dir, cam)
+	return {
+		"soldier_id": soldier_id,
+		"team_id": team_id,
+		"is_dead": _is_dead,
+		"death_sprite_family": _death_sprite_family,
+		"world_facing": _last_applied_facing,
+		"world_dir": world_dir,
+		"camera_rotation": cam,
+		"display_dir": display_dir,
+		"source_dir": AnimationDatabase.source_direction_digit(display_dir),
+		"active_animation": str(_anim.animation) if _anim != null else "",
+	}
+
+
+## Debug helper: jump past hit/fall straight to the selected static corpse.
+func debug_force_dead_static() -> void:
+	_finish_death_sequence()
 
 
 func _play_animation(anim_name: String) -> void:

@@ -1179,7 +1179,7 @@ func _trigger_grenade_death_animations(explosions: Array) -> void:
 			AudioManager.play_death(team_id)
 			var view: Soldier = _get_view(team_id, soldier_id)
 			if view != null:
-				view.play_death_sequence(threat_step, victim.stance_at_death)
+				view.play_death_sequence(threat_step, victim.stance_at_death, victim.death_sprite_family)
 
 
 func _snap_cell_for_soldier(state: SoldierState) -> Vector2i:
@@ -1477,7 +1477,7 @@ func _finalize_shot_result(
 		var target_view: Soldier = _get_view(target.team_id, target.soldier_id)
 		if target_view != null:
 			## Use stance_at_death — mark_killed already forced position_state DOWN.
-			target_view.play_death_sequence(threat_step, target.stance_at_death)
+			target_view.play_death_sequence(threat_step, target.stance_at_death, target.death_sprite_family)
 	elif result.hit and target != null and not result.killed:
 		var threat_step := shooter.grid_position - target.grid_position
 		var target_view: Soldier = _get_view(target.team_id, target.soldier_id)
@@ -1783,3 +1783,62 @@ func _get_camera_focus_cell() -> Vector2i:
 	for cell in spawns:
 		sum += cell
 	return Vector2i(floori(float(sum.x) / spawns.size()), floori(float(sum.y) / spawns.size()))
+
+
+## Temporary debug: kill several soldiers per faction, rotate camera, confirm corpse stability.
+func debug_validate_dead_static_corpses(per_faction: int = 3) -> Array:
+	var report: Array = []
+	if _game_state == null:
+		return [{"error": "no game state"}]
+	var killed: Array[SoldierState] = []
+	for team_id in [Team.USA, Team.GERMANY]:
+		var count := 0
+		for fireteam in _session.all_fireteams():
+			for state_v in fireteam.soldiers:
+				var state: SoldierState = state_v
+				if state.team_id != team_id or state.is_dead:
+					continue
+				state.mark_killed()
+				var view: Soldier = _get_view(state.team_id, state.soldier_id)
+				if view != null:
+					view.play_death_sequence(Vector2i(0, 1), state.stance_at_death, state.death_sprite_family)
+					## Skip straight to static corpse for validation (do not wait for fall).
+					view.debug_force_dead_static()
+				killed.append(state)
+				count += 1
+				if count >= per_faction:
+					break
+			if count >= per_faction:
+				break
+	_refresh_all_views()
+	var families_seen := {}
+	for state in killed:
+		families_seen[state.death_sprite_family] = true
+		var view2: Soldier = _get_view(state.team_id, state.soldier_id)
+		var snap: Dictionary = view2.dump_dead_static_validation() if view2 != null else {}
+		report.append({
+			"phase": "initial",
+			"soldier_id": state.soldier_id,
+			"team_id": state.team_id,
+			"family": state.death_sprite_family,
+			"view": snap,
+		})
+	## Rotate through all four camera views; family + world facing must stay stable.
+	for _i in 4:
+		IsometricGrid.rotate_view_right()
+		_refresh_view_rotation()
+		for state in killed:
+			var view3: Soldier = _get_view(state.team_id, state.soldier_id)
+			var snap2: Dictionary = view3.dump_dead_static_validation() if view3 != null else {}
+			report.append({
+				"phase": "camera_%d" % IsometricGrid.camera_direction_degrees(),
+				"soldier_id": state.soldier_id,
+				"family": state.death_sprite_family,
+				"family_unchanged": snap2.get("death_sprite_family", "") == state.death_sprite_family,
+				"view": snap2,
+			})
+	GameLog.log_system(
+		"dead_static debug | killed=%d unique_families=%d entries=%d"
+		% [killed.size(), families_seen.size(), report.size()]
+	)
+	return report
