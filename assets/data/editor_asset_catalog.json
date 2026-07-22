@@ -1,10 +1,13 @@
 {
-	"_comment": "Editable Chain Revival Editor asset browser labels and categories. Family codes stay fixed (WWAL, TR01, \u2026). Edit 'label' / 'category' / 'sort' here, or rename in the editor tree (F2 / double-click) \u2014 changes are saved back to this file. Sprite PNGs still come from assets/sprites/coc_tiles/manifest.json.",
+	"_comment": "Editable Chain Revival Editor asset browser labels and categories. Family codes stay fixed (WWAL, TR01, …). Edit 'label' / 'category' / 'sort' here, or rename in the editor tree (F2 / double-click) — changes are saved back to this file. Sprite PNGs still come from assets/sprites/coc_tiles/manifest.json.",
 	"category_order": [
 		"On This Map",
 		"Terrain",
 		"Floors",
 		"Interior Walls",
+		"Interior Wood Walls",
+		"Stone House",
+		"Exterior Wood Walls",
 		"Walls",
 		"Corners",
 		"Windows",
@@ -58,31 +61,31 @@
 			"sort": 0.0
 		},
 		"IWAL": {
-			"category": "Interior Walls",
+			"category": "Interior Wood Walls",
 			"kind": "family",
-			"label": "Interior Wall Junction",
+			"label": "Interior Wood Junction",
 			"sort": 50.0
 		},
 		"IWCL": {
-			"category": "Interior Walls",
+			"category": "Interior Wood Walls",
 			"kind": "family",
-			"label": "Interior Wall T Junction",
+			"label": "Interior Wood T Junction",
 			"sort": 30.0
 		},
 		"IWCR": {
-			"category": "Interior Walls",
+			"category": "Interior Wood Walls",
 			"kind": "family",
-			"label": "Interior Wall Corner",
+			"label": "Interior Wood Corner",
 			"sort": 20.0
 		},
 		"IWDR": {
-			"category": "Interior Walls",
+			"category": "Interior Wood Walls",
 			"kind": "family",
-			"label": "Interior Wall Cross",
+			"label": "Interior Wood Cross",
 			"sort": 40.0
 		},
 		"IWWL": {
-			"category": "Interior Walls",
+			"category": "Interior Wood Walls",
 			"kind": "family",
 			"label": "Interior Wood Wall",
 			"sort": 10.0
@@ -97,24 +100,24 @@
 			"category": "Interior Walls",
 			"kind": "family",
 			"label": "Low Interior Wall",
-			"sort": 60.0
+			"sort": 50.0
 		},
 		"RIHW": {
-			"category": "Corners",
+			"category": "Interior Walls",
 			"kind": "family",
-			"label": "Small Stone Corner (new)",
+			"label": "Low Interior Wall R",
 			"sort": 55.0
 		},
 		"SCOR": {
 			"category": "Corners",
 			"kind": "family",
-			"label": "Stone Corner (new)",
+			"label": "Stone Corner",
 			"sort": 30.0
 		},
 		"SCRS": {
 			"category": "Walls",
 			"kind": "family",
-			"label": "Small Stone Wall (new)",
+			"label": "Small Stone Wall",
 			"sort": 26.0
 		},
 		"SFL5": {
@@ -130,10 +133,10 @@
 			"sort": 20.0
 		},
 		"SICR": {
-			"category": "Corners",
+			"category": "Stone House",
 			"kind": "family",
 			"label": "Stone Inner Corner",
-			"sort": 50.0
+			"sort": 30.0
 		},
 		"SPAWN_GER": {
 			"category": "Spawn Points",
@@ -148,28 +151,28 @@
 			"sort": 10.0
 		},
 		"SWAI": {
-			"category": "Corners",
+			"category": "Stone House",
 			"kind": "family",
-			"label": "Stone Exterior Corner (new)",
-			"sort": 35.0
-		},
-		"SWAL": {
-			"category": "Walls",
-			"kind": "family",
-			"label": "Stone Wall Small (new)",
+			"label": "Stone Exterior Corner",
 			"sort": 20.0
 		},
-		"SWAQ": {
-			"category": "Doors",
+		"SWAL": {
+			"category": "Stone House",
 			"kind": "family",
-			"label": "Stone Wall - Small - NW -  Left",
+			"label": "Stone Wall",
+			"sort": 10.0
+		},
+		"SWAQ": {
+			"category": "Stone House",
+			"kind": "family",
+			"label": "Stone Door / Opening L",
 			"sort": 40.0
 		},
 		"SWAR": {
-			"category": "Doors",
+			"category": "Stone House",
 			"kind": "family",
-			"label": "Stone Door - NW",
-			"sort": 30.0
+			"label": "Stone Door / Opening R",
+			"sort": 50.0
 		},
 		"SWIN": {
 			"category": "Windows",
@@ -214,10 +217,10 @@
 			"sort": 10.0
 		},
 		"WCOR": {
-			"category": "Corners",
+			"category": "Exterior Wood Walls",
 			"kind": "family",
-			"label": "Bunker Window",
-			"sort": 20.0
+			"label": "Exterior Wood Corner",
+			"sort": 30.0
 		},
 		"WFL5": {
 			"category": "Floors",
@@ -229,73 +232,85 @@
 			"category": "Floors",
 			"kind": "family",
 			"label": "Wood Floor",
-			"sort": 40.0
+			"sort": 30.0
 		},
 		"WH00": {
 			"category": "Walls",
 			"kind": "family",
-			"label": "Small Stone Wall 00 (new)",
-			"sort": 21.0
+			"label": "Wood Hedge / Wall 00",
+			"sort": 90.0
 		},
 		"WH01": {
 			"category": "Walls",
 			"kind": "family",
-			"label": "NEW CORRECT Small Stone Wall 01",
-			"sort": 15.0
+			"label": "Wood Hedge / Wall 01",
+			"sort": 91.0
 		},
 		"WH02": {
 			"category": "Walls",
 			"kind": "family",
-			"label": "Small Stone Wall 02 (new)",
-			"sort": 23.0
+			"label": "Wood Hedge / Wall 02",
+			"sort": 92.0
 		},
 		"WH09": {
 			"category": "Walls",
 			"kind": "family",
-			"label": "Small Stone Wall 09 (new)",
-			"sort": 24.0
+			"label": "Wood Hedge / Wall 09",
+			"sort": 93.0
 		},
 		"WH11": {
 			"category": "Walls",
 			"kind": "family",
-			"label": "Small Stone Wall 11 (new)",
-			"sort": 25.0
+			"label": "Wood Hedge / Wall 11",
+			"sort": 94.0
 		},
 		"WICR": {
-			"category": "Corners",
+			"category": "Exterior Wood Walls",
 			"kind": "family",
-			"label": "Wood Wall - Corner - SE",
+			"label": "Exterior Wood Inner Corner",
 			"sort": 40.0
 		},
 		"WWAI": {
-			"category": "Doors",
+			"category": "Exterior Wood Walls",
 			"kind": "family",
-			"label": "Wood Wall Corner - NW",
-			"sort": 50.0
+			"label": "Exterior Wood Corner (new)",
+			"sort": 20.0
 		},
 		"WWAL": {
-			"category": "Walls",
+			"category": "Exterior Wood Walls",
 			"kind": "family",
-			"label": "Wood Wall - SE",
+			"label": "Exterior Wood Wall",
 			"sort": 10.0
 		},
 		"WWAQ": {
-			"category": "Doors",
+			"category": "Exterior Wood Walls",
 			"kind": "family",
-			"label": "Wood Door Left",
-			"sort": 20.0
+			"label": "Exterior Wood Door / Opening L",
+			"sort": 50.0
 		},
 		"WWAR": {
-			"category": "Doors",
+			"category": "Exterior Wood Walls",
 			"kind": "family",
-			"label": "Wood Wall - SE Small",
-			"sort": 10.0
+			"label": "Exterior Wood Door / Opening R",
+			"sort": 60.0
 		},
 		"WWIN": {
-			"category": "Windows",
+			"category": "Exterior Wood Walls",
 			"kind": "family",
-			"label": "Wood Window - SE",
-			"sort": 20.0
+			"label": "Exterior Wood Window",
+			"sort": 70.0
+		},
+		"SI04": {
+			"category": "Stone House",
+			"kind": "family",
+			"label": "Stone Wall Detail (SI04)",
+			"sort": 60.0
+		},
+		"WI04": {
+			"category": "Exterior Wood Walls",
+			"kind": "family",
+			"label": "Exterior Wood Detail (WI04)",
+			"sort": 80.0
 		}
 	}
 }

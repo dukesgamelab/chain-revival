@@ -82,33 +82,46 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if handle_pointer_input(event):
+		get_viewport().set_input_as_handled()
+
+
+## Shared by gameplay (unhandled) and the map editor (SubViewport gui_input).
+## Returns true when the event was consumed for pan/zoom.
+func handle_pointer_input(event: InputEvent) -> bool:
 	if event is InputEventMouseButton:
-		_handle_mouse_button(event as InputEventMouseButton)
-	elif event is InputEventMouseMotion and _dragging:
+		return _handle_mouse_button(event as InputEventMouseButton)
+	if event is InputEventMouseMotion and _dragging:
 		_handle_drag(event as InputEventMouseMotion)
+		return true
+	return false
 
 
-func _handle_mouse_button(event: InputEventMouseButton) -> void:
+func _handle_mouse_button(event: InputEventMouseButton) -> bool:
 	if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
 		_apply_zoom(zoom_step)
-		get_viewport().set_input_as_handled()
-	elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+		return true
+	if event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
 		_apply_zoom(-zoom_step)
-		get_viewport().set_input_as_handled()
-	elif event.pressed and (event.button_index == MOUSE_BUTTON_MIDDLE or event.button_index == MOUSE_BUTTON_RIGHT):
+		return true
+	if event.pressed and (event.button_index == MOUSE_BUTTON_MIDDLE or event.button_index == MOUSE_BUTTON_RIGHT):
 		_dragging = true
 		_drag_button = event.button_index
-		get_viewport().set_input_as_handled()
-	elif not event.pressed and event.button_index == _drag_button:
+		return true
+	if not event.pressed and event.button_index == _drag_button:
 		_dragging = false
 		_drag_button = MOUSE_BUTTON_NONE
-		get_viewport().set_input_as_handled()
+		return true
+	return false
 
 
 func _handle_drag(event: InputEventMouseMotion) -> void:
 	position -= event.relative / zoom
 	_clamp_position()
-	get_viewport().set_input_as_handled()
+
+
+func is_pointer_dragging() -> bool:
+	return _dragging
 
 
 func _apply_zoom(delta_zoom: float) -> void:

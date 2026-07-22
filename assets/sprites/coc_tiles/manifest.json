@@ -3468,6 +3468,546 @@
    ],
    "source_file": "RIHWS7A.PNG (stand-in)",
    "source_format": "user_import"
+  },
+  {
+   "family": "SI04",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SI04_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SI04S3A.png (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SI04",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SI04_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SI04S3A.png (user import; n/s/w provisional copies of e)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SI04",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SI04_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SI04S3A.png (user import; n/s/w provisional copies of e)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SI04",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SI04_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SI04S3A.png (user import; n/s/w provisional copies of e)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WI04",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WI04_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WI04S3A.png (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WI04",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WI04_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WI04S3A.png (user import; n/s/w provisional copies of e)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WI04",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WI04_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WI04S3A.png (user import; n/s/w provisional copies of e)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WI04",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WI04_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WI04S3A.png (user import; n/s/w provisional copies of e)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SFLO",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SFLO_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SFLO (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SFLO",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SFLO_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SFLO (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SFLO",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SFLO_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SFLO (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWAL",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWAL_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWAL (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWAL",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWAL_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWAL (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWAL",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWAL_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWAL (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "LIHW",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/LIHW_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "LIHW (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWDR",
+   "class": "static",
+   "letter": "e",
+   "facet_angle": 0,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWDR_e.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWDR (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWDR",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWDR_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWDR (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWDR",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWDR_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWDR (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWCL",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCL_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCL (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWCL",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCL_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCL (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "IWCL",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/IWCL_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "IWCL (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WFLO",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WFLO_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WFLO (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WFLO",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WFLO_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WFLO (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WFLO",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WFLO_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WFLO (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SCRS",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SCRS_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SCRS (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SCRS",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SCRS_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SCRS (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "SCRS",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/SCRS_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "SCRS (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WH00",
+   "class": "static",
+   "letter": "s",
+   "facet_angle": 90,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH00_s.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH00 (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WH00",
+   "class": "static",
+   "letter": "w",
+   "facet_angle": 180,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH00_w.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH00 (user import)",
+   "source_format": "user_import"
+  },
+  {
+   "family": "WH00",
+   "class": "static",
+   "letter": "n",
+   "facet_angle": 270,
+   "anim_frame": 0,
+   "path": "sprites/coc_tiles/WH00_n.png",
+   "hotspot": [
+    -50,
+    -73
+   ],
+   "size": [
+    100,
+    100
+   ],
+   "source_file": "WH00 (user import)",
+   "source_format": "user_import"
   }
  ],
  "under_image_rule": "Map tiles may carry an Image1 property naming a floor sprite to draw beneath the wall at that cell (original engine mechanism; e.g. LIHW->WFLO, WWAR/WWAQ/SWAQ/SWAR->SFL5). Draw Image1 first, then the wall. For wall cells without Image1 that neighbour interior floors, the half-diamond adjacency underlay applies (renderer rule)."

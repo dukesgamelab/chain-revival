@@ -2026,9 +2026,12 @@
    "anim_frames": 1
   },
   "IWCL:static": {
-   "facets": 1,
+   "facets": 4,
    "letters": [
-    "e"
+    "e",
+    "n",
+    "s",
+    "w"
    ],
    "anim_frames": 1
   },
@@ -2043,8 +2046,11 @@
    "anim_frames": 1
   },
   "IWDR:static": {
-   "facets": 1,
+   "facets": 4,
    "letters": [
+    "e",
+    "n",
+    "s",
     "w"
    ],
    "anim_frames": 1
@@ -2144,8 +2150,9 @@
    "anim_frames": 1
   },
   "LIHW:static": {
-   "facets": "IRREGULAR ['n', 's', 'w']",
+   "facets": 4,
    "letters": [
+    "e",
     "n",
     "s",
     "w"
@@ -2228,9 +2235,12 @@
    "anim_frames": 1
   },
   "SFLO:static": {
-   "facets": 1,
+   "facets": 4,
    "letters": [
-    "e"
+    "e",
+    "n",
+    "s",
+    "w"
    ],
    "anim_frames": 1
   },
@@ -2432,16 +2442,22 @@
    "anim_frames": 1
   },
   "WFLO:static": {
-   "facets": 1,
+   "facets": 4,
    "letters": [
-    "e"
+    "e",
+    "n",
+    "s",
+    "w"
    ],
    "anim_frames": 1
   },
   "WH00:static": {
-   "facets": 1,
+   "facets": 4,
    "letters": [
-    "e"
+    "e",
+    "n",
+    "s",
+    "w"
    ],
    "anim_frames": 1
   },
@@ -2536,8 +2552,11 @@
    "anim_frames": 1
   },
   "IWAL:static": {
-   "facets": 1,
+   "facets": 4,
    "letters": [
+    "e",
+    "n",
+    "s",
     "w"
    ],
    "anim_frames": 1
@@ -2553,9 +2572,32 @@
    "anim_frames": 1
   },
   "SCRS:static": {
-   "facets": 1,
+   "facets": 4,
    "letters": [
-    "e"
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "SI04:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
+   ],
+   "anim_frames": 1
+  },
+  "WI04:static": {
+   "facets": 4,
+   "letters": [
+    "e",
+    "n",
+    "s",
+    "w"
    ],
    "anim_frames": 1
   }

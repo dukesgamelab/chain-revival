@@ -5,7 +5,16 @@ extends RefCounted
 const DEFAULT_FILE := "res://maps/test_map.json"
 ## Single switch for the development startup map.
 const USE_ORIGINAL_MAP_FOR_DEV := true
-const DEV_MAP_FILE := "res://maps/TheFortress.json"
+## Default original map launched in offline/dev (Farm Fight).
+const DEV_MAP_FILE := "res://maps/ff_farm.json"
+## Kept loadable via registry / --the-fortress (do not remove).
+const FORTRESS_MAP_FILE := "res://maps/TheFortress.json"
+## Stable map ids → res:// paths for game + editor.
+const AVAILABLE_MAPS := {
+	"ff_farm": DEV_MAP_FILE,
+	"the_fortress": FORTRESS_MAP_FILE,
+	"test_map": DEFAULT_FILE,
+}
 const DEFAULT_WIDTH := 60
 const DEFAULT_HEIGHT := 60
 const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
@@ -592,18 +601,47 @@ static func save_to_file(map_data: MapData, file_path: String = DEFAULT_FILE) ->
 	return true
 
 
+## Resolve a registered map id (or common alias) to a res:// path.
+static func path_for_map(id: String) -> String:
+	var key := id.strip_edges().to_lower()
+	if key.is_empty():
+		return DEV_MAP_FILE
+	if AVAILABLE_MAPS.has(key):
+		return str(AVAILABLE_MAPS[key])
+	match key:
+		"farm", "farm_fight", "farmfight", "ff", "fffarm":
+			return str(AVAILABLE_MAPS["ff_farm"])
+		"fortress", "thefortress", "the-fortress":
+			return str(AVAILABLE_MAPS["the_fortress"])
+		"test", "testmap":
+			return str(AVAILABLE_MAPS["test_map"])
+		_:
+			push_warning("MapData.path_for_map: unknown map id '%s', using default" % id)
+			return DEV_MAP_FILE
+
+
 static func resolve_startup_map_path(file_path: String = "") -> String:
 	if not file_path.is_empty():
 		return file_path
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--map="):
-			return arg.substr("--map=".length())
+			var map_arg := arg.substr("--map=".length()).strip_edges()
+			## Accept registry ids or explicit res:// paths.
+			if map_arg.begins_with("res://") or map_arg.ends_with(".json"):
+				return map_arg
+			return path_for_map(map_arg)
 		if arg == "--the-fortress" or arg == "--fortress":
-			return DEV_MAP_FILE
+			return path_for_map("the_fortress")
+		if arg == "--ff-farm" or arg == "--farm-fight":
+			return path_for_map("ff_farm")
 		if arg == "--test-map":
-			return DEFAULT_FILE
+			return path_for_map("test_map")
 	if USE_ORIGINAL_MAP_FOR_DEV and FileAccess.file_exists(DEV_MAP_FILE):
 		return DEV_MAP_FILE
+	## Graceful fallbacks if the default original map is missing.
+	var fortress_path := path_for_map("the_fortress")
+	if FileAccess.file_exists(fortress_path):
+		return fortress_path
 	return DEFAULT_FILE
 
 

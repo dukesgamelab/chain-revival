@@ -13,6 +13,9 @@ const DEFAULT_CATEGORY_ORDER: PackedStringArray = [
 	"Terrain",
 	"Floors",
 	"Interior Walls",
+	"Interior Wood Walls",
+	"Stone House",
+	"Exterior Wood Walls",
 	"Walls",
 	"Corners",
 	"Windows",
@@ -190,17 +193,26 @@ static func categorize_family(family: String) -> String:
 		return "Terrain"
 	if CocRenderRules.is_floor_family(fam):
 		return "Floors"
-	if fam.ends_with("WIN") or fam in ["SWIN", "WWIN"]:
+	## Interior wood partition kit (Farm Fight houses).
+	if fam in ["IWWL", "IWCR", "IWCL", "IWDR", "IWAL"]:
+		return "Interior Wood Walls"
+	## Stone-house kit (Farm Fight / Fortress stone buildings).
+	if fam in ["SWAL", "SWAI", "SICR", "SWAQ", "SWAR", "SI04"]:
+		return "Stone House"
+	## Exterior wood building kit.
+	if fam in ["WWAL", "WWAI", "WCOR", "WICR", "WWAQ", "WWAR", "WWIN", "WI04"]:
+		return "Exterior Wood Walls"
+	if fam in ["SWIN"]:
 		return "Windows"
 	if fam.begins_with("WH") or fam == "SCRS":
 		return "Walls"
-	if fam in ["WWAR", "WWAQ", "SWAR", "SWAQ", "WWAI", "SDOR", "WDOR"]:
+	if fam in ["SDOR", "WDOR"]:
 		return "Doors"
-	if fam in ["IWWL", "IWCR", "IWCL", "IWDR", "IWAL", "LIHW", "RIHW"]:
+	if fam in ["LIHW", "RIHW"]:
 		return "Interior Walls"
-	if fam == "SWAI" or fam.ends_with("COR") or fam.ends_with("ICR"):
+	if fam == "SCOR" or fam.ends_with("COR") or fam.ends_with("ICR"):
 		return "Corners"
-	if CocRenderRules.is_wallish_family(fam) or fam in ["WWAL", "SWAL"]:
+	if CocRenderRules.is_wallish_family(fam) or fam in ["WWAL"]:
 		return "Walls"
 	if fam.begins_with("TR"):
 		return "Trees"

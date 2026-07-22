@@ -11,12 +11,20 @@ static func load_path(path: String) -> MapData:
 	return map_data
 
 
-static func load_fortress() -> MapData:
+static func load_default() -> MapData:
 	return load_path(MapData.DEV_MAP_FILE)
 
 
+static func load_fortress() -> MapData:
+	return load_path(MapData.path_for_map("the_fortress"))
+
+
+static func load_ff_farm() -> MapData:
+	return load_path(MapData.path_for_map("ff_farm"))
+
+
 static func load_test_map() -> MapData:
-	return load_path(MapData.DEFAULT_FILE)
+	return load_path(MapData.path_for_map("test_map"))
 
 
 static func create_blank(width: int = 60, height: int = 60, map_name: String = "untitled") -> MapData:

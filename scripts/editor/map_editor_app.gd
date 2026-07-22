@@ -1,5 +1,5 @@
 extends Control
-## Chain Revival Editor — edits the same Fortress JSON the game loads.
+## Chain Revival Editor — edits the same map JSON the game loads (ff_farm default).
 ## Uses MapWorldView (shared renderer). No duplicate facet/hotspot/projection code.
 
 enum Tool {
@@ -46,7 +46,7 @@ const MAP_WORLD_SCENE := preload("res://scenes/map/map_world.tscn")
 
 var _world: MapWorldView
 var _map_data: MapData
-var _map_path: String = MapData.DEV_MAP_FILE
+var _map_path: String = MapData.path_for_map("ff_farm")
 var _history := EditorHistory.new()
 var _tool: int = Tool.PLACE
 var _brush: Dictionary = {} ## AssetBrowser item
@@ -116,6 +116,11 @@ func _on_asset_tree_gui_input(event: InputEvent) -> void:
 
 
 func _on_viewport_gui_input(event: InputEvent) -> void:
+	## Pan/zoom first (same MapCamera path as the game). Editor SubViewport eats
+	## events via accept_event, so Camera2D._unhandled_input never sees them.
+	if _camera != null and _camera.handle_pointer_input(event):
+		_viewport_host.accept_event()
+		return
 	## Mouse paint/select against the shared MapWorldView (keys stay on unhandled_input).
 	if event is InputEventMouseMotion or event is InputEventMouseButton:
 		_handle_mouse_editor_input(event)
@@ -392,11 +397,7 @@ func _handle_mouse_editor_input(event: InputEvent) -> void:
 			else:
 				_painting = false
 				_rect_anchor = Vector2i(-1, -1)
-		elif mb.button_index == MOUSE_BUTTON_RIGHT and mb.pressed:
-			_push_history()
-			_map_data.erase_all_at(_cell_at_mouse(), _tool == Tool.ERASE)
-			_refresh_world()
-
+		## Right-click drag pans the view (MapCamera); use Erase tool + LMB to delete.
 
 func _rotate_view(left: bool) -> void:
 	var focus := IsometricGrid.world_to_logical_point(_camera.position)
@@ -959,6 +960,7 @@ func _on_grid_toggled(on: bool) -> void:
 
 func _on_open_pressed() -> void:
 	_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	_file_dialog.current_dir = "res://maps"
 	_file_dialog.current_path = _map_path
 	_file_dialog.popup_centered_ratio(0.6)
 
@@ -969,15 +971,31 @@ func _on_save_pressed() -> void:
 
 func _on_save_as_pressed() -> void:
 	_file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	_file_dialog.current_dir = "res://maps"
 	_file_dialog.current_path = _map_path
 	_file_dialog.popup_centered_ratio(0.6)
 
 
 func _on_file_selected(path: String) -> void:
+	## Normalize known registry maps to their canonical res:// paths.
+	var resolved := _resolve_registered_map_path(path)
 	if _file_dialog.file_mode == FileDialog.FILE_MODE_OPEN_FILE:
-		_load_map(path)
+		_load_map(resolved)
 	else:
-		_save_map(path)
+		_save_map(resolved)
+
+
+func _resolve_registered_map_path(path: String) -> String:
+	var file_name := path.get_file().to_lower()
+	match file_name:
+		"ff_farm.json":
+			return MapData.path_for_map("ff_farm")
+		"thefortress.json":
+			return MapData.path_for_map("the_fortress")
+		"test_map.json":
+			return MapData.path_for_map("test_map")
+		_:
+			return path
 
 
 func _on_play_pressed() -> void:
