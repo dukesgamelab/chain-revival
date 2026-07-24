@@ -3,17 +3,26 @@ extends RefCounted
 ## Single source of truth for authoritative gameplay data.
 ##
 ## Owns the session (soldiers, teams), map (blockers, cover objects, walkability),
-## and ObjectRegistry (stable ID → object index). All gameplay mutations go through
-## CommandRouter → ActionResolver — never write soldier or map fields from UI,
-## Soldier views, or scene scripts.
+## ObjectRegistry (stable ID → object index), and CommandHierarchy (player chain of command).
+## All gameplay mutations go through CommandRouter → ActionResolver — never write soldier
+## or map fields from UI, Soldier views, or scene scripts.
 ##
 ## Authoritative soldier fields (via SoldierState): grid_position, facing_direction,
 ## is_dead, position_state, movement_mode, fire_control_state, ammo, engagement,
 ## grenades, stun timers, stress, and weapon assignment.
 ## Soldier scene nodes are presentation-only and are never stored in the registry.
+
+const CommandHierarchyClass := preload("res://scripts/core/command_hierarchy.gd")
+
+enum MatchPhase { DEPLOYMENT, RUNNING }
+
 var session: GameSession
 var map_data: MapData
 var objects: ObjectRegistry
+var command_hierarchy: CommandHierarchyClass
+var match_phase: int = MatchPhase.DEPLOYMENT
+## Local/offline controlling player for UI + shared visibility (human USA by default).
+var local_player_id: int = 1
 
 
 func _init(game_session: GameSession, map: MapData) -> void:
@@ -21,6 +30,10 @@ func _init(game_session: GameSession, map: MapData) -> void:
 	map_data = map
 	objects = ObjectRegistry.new()
 	objects.rebuild_from(self)
+	command_hierarchy = CommandHierarchyClass.new()
+	command_hierarchy.bootstrap_default_match()
+	local_player_id = 1
+	match_phase = MatchPhase.DEPLOYMENT
 
 
 func rebuild_object_registry() -> void:
@@ -62,3 +75,33 @@ func find_soldier_at_cell(cell: Vector2i) -> SoldierState:
 
 func enemy_team_id(team_id: int) -> int:
 	return Team.GERMANY if team_id == Team.USA else Team.USA
+
+
+## --- Command hierarchy accessors (IDs only) ---
+
+func get_commander(player_id: int) -> int:
+	return command_hierarchy.get_commander(player_id)
+
+
+func get_subordinates(player_id: int) -> Array[int]:
+	return command_hierarchy.get_subordinates(player_id)
+
+
+func commanders_with_openings() -> Array[int]:
+	return command_hierarchy.commanders_with_openings()
+
+
+func players_without_commanders() -> Array[int]:
+	return command_hierarchy.players_without_commanders()
+
+
+func all_command_links() -> Array[Dictionary]:
+	return command_hierarchy.all_links()
+
+
+func begin_running_phase() -> void:
+	match_phase = MatchPhase.RUNNING
+
+
+func is_deployment_phase() -> bool:
+	return match_phase == MatchPhase.DEPLOYMENT

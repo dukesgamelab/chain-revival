@@ -1,7 +1,7 @@
 class_name EnemyVisibilityResult
 extends RefCounted
 
-enum Source { NONE, DIRECT, CLUSTER }
+enum Source { NONE, DIRECT, CLUSTER, SUBORDINATE }
 
 var visible: bool = false
 var source: int = Source.NONE

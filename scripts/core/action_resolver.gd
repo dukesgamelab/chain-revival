@@ -14,6 +14,10 @@ const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
 const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
 const FireControlCommandClass := preload("res://scripts/commands/fire_control_command.gd")
 const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd")
+const AssignCommanderCommandClass := preload("res://scripts/commands/assign_commander_command.gd")
+const BreakCommandLinkCommandClass := preload("res://scripts/commands/break_command_link_command.gd")
+const SetMissionCommanderCommandClass := preload("res://scripts/commands/set_mission_commander_command.gd")
+const CommandHierarchyClass := preload("res://scripts/core/command_hierarchy.gd")
 const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 const MapDataClass := preload("res://scripts/map/map_data.gd")
@@ -44,6 +48,15 @@ static func execute(
 		return execute_fire_control(game_state, command as FireControlCommandClass)
 	if command is GrenadeCommandClass:
 		return execute_grenade(game_state, command as GrenadeCommandClass, context)
+	if command is AssignCommanderCommandClass:
+		return execute_assign_commander(game_state, command as AssignCommanderCommandClass)
+	if command is BreakCommandLinkCommandClass:
+		return execute_break_command_link(game_state, command as BreakCommandLinkCommandClass)
+	if command is SetMissionCommanderCommandClass:
+		return execute_set_mission_commander(
+			game_state,
+			command as SetMissionCommanderCommandClass,
+		)
 	return ActionResult.fail("Unknown command type.")
 
 
@@ -1079,5 +1092,87 @@ static func _command_type_name(command: RefCounted) -> String:
 		return "FireControlCommand"
 	if command is GrenadeCommandClass:
 		return "GrenadeCommand"
+	if command is AssignCommanderCommandClass:
+		return "AssignCommanderCommand"
+	if command is BreakCommandLinkCommandClass:
+		return "BreakCommandLinkCommand"
+	if command is SetMissionCommanderCommandClass:
+		return "SetMissionCommanderCommand"
 	return command.get_class() if command != null else "null"
+
+
+## --- Commander / subordinate hierarchy ---
+
+static func execute_assign_commander(
+	game_state: GameStateClass,
+	cmd: AssignCommanderCommandClass,
+) -> ActionResult:
+	if cmd == null or game_state == null or game_state.command_hierarchy == null:
+		return ActionResult.fail("Choose a commander first")
+	var hierarchy := game_state.command_hierarchy
+	var commander_id := int(cmd.commander_id)
+	var subordinate_id := int(cmd.subordinate_id)
+	if commander_id <= 0 or not hierarchy.has_player(commander_id):
+		return ActionResult.fail("Choose a commander first")
+	if subordinate_id <= 0 or not hierarchy.has_player(subordinate_id):
+		return ActionResult.fail("Choose a subordinate first")
+	if commander_id == subordinate_id:
+		return ActionResult.fail("Subordinate cannot be the commander")
+	var existing_cmd := hierarchy.get_commander(subordinate_id)
+	if existing_cmd != CommandHierarchyClass.NO_COMMANDER and existing_cmd != commander_id:
+		return ActionResult.fail("Already commanded by another player")
+	if subordinate_id in hierarchy.get_subordinates(commander_id):
+		return ActionResult.fail("Already in subordinate list")
+	if not hierarchy.has_opening(commander_id):
+		return ActionResult.fail("This commander is full")
+	if hierarchy.would_create_cycle(commander_id, subordinate_id):
+		return ActionResult.fail("Commander can't be subordinate of subordinate")
+	if hierarchy.get_rank(subordinate_id) >= hierarchy.get_rank(commander_id):
+		return ActionResult.fail("Rank order broken")
+
+	hierarchy.assign_link(commander_id, subordinate_id)
+	CombatSystem.notify_command_hierarchy_changed(game_state)
+	var result := ActionResult.new()
+	result.refresh_views = true
+	return result.set_status(
+		"%s commanded by %s"
+		% [hierarchy.list_label(subordinate_id), hierarchy.list_label(commander_id)]
+	)
+
+
+static func execute_break_command_link(
+	game_state: GameStateClass,
+	cmd: BreakCommandLinkCommandClass,
+) -> ActionResult:
+	if cmd == null or game_state == null or game_state.command_hierarchy == null:
+		return ActionResult.fail("Choose a subordinate first")
+	var hierarchy := game_state.command_hierarchy
+	var subordinate_id := int(cmd.subordinate_id)
+	if subordinate_id <= 0 or not hierarchy.has_player(subordinate_id):
+		return ActionResult.fail("Choose a subordinate first")
+	if hierarchy.get_commander(subordinate_id) == CommandHierarchyClass.NO_COMMANDER:
+		return ActionResult.fail("Choose a subordinate first")
+	hierarchy.break_link(subordinate_id)
+	CombatSystem.notify_command_hierarchy_changed(game_state)
+	var result := ActionResult.new()
+	result.refresh_views = true
+	return result.set_status("Broke command link for %s" % hierarchy.list_label(subordinate_id))
+
+
+static func execute_set_mission_commander(
+	game_state: GameStateClass,
+	cmd: SetMissionCommanderCommandClass,
+) -> ActionResult:
+	if cmd == null or game_state == null or game_state.command_hierarchy == null:
+		return ActionResult.fail("Choose a commander first")
+	var hierarchy := game_state.command_hierarchy
+	var player_id := int(cmd.player_id)
+	if player_id <= 0 or not hierarchy.has_player(player_id):
+		return ActionResult.fail("Choose a commander first")
+	hierarchy.set_mission_commander(player_id)
+	var result := ActionResult.new()
+	result.refresh_views = false
+	return result.set_status(
+		"%s is now the Mission Commander" % hierarchy.list_label(player_id)
+	)
 

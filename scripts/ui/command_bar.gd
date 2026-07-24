@@ -20,6 +20,7 @@ signal rotate_view_left_requested
 signal rotate_view_right_requested
 signal map_edit_mode_changed(is_active: bool)
 signal map_edit_palette_changed(palette: int)
+signal set_commanders_requested
 
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 
@@ -76,6 +77,7 @@ func _ready() -> void:
 	%MapLoadButton.pressed.connect(func() -> void: map_load_requested.emit())
 	%RotateLeftButton.pressed.connect(func() -> void: rotate_view_left_requested.emit())
 	%RotateRightButton.pressed.connect(func() -> void: rotate_view_right_requested.emit())
+	%SetCommandersButton.pressed.connect(func() -> void: set_commanders_requested.emit())
 	%MapEditButton.toggled.connect(_on_map_edit_toggled)
 	%TreeButton.pressed.connect(func() -> void: _select_map_edit_palette(MapEditorClass.Palette.TREE))
 	%HaybailButton.pressed.connect(func() -> void: _select_map_edit_palette(MapEditorClass.Palette.HAYBAIL))

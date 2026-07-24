@@ -16,6 +16,9 @@ const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
 const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
 const FireControlCommandClass := preload("res://scripts/commands/fire_control_command.gd")
 const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd")
+const AssignCommanderCommandClass := preload("res://scripts/commands/assign_commander_command.gd")
+const BreakCommandLinkCommandClass := preload("res://scripts/commands/break_command_link_command.gd")
+const SetMissionCommanderCommandClass := preload("res://scripts/commands/set_mission_commander_command.gd")
 
 
 func submit_command(
@@ -115,6 +118,12 @@ func _command_label(command: RefCounted) -> String:
 		return "FireControlCommand"
 	if command is GrenadeCommandClass:
 		return "GrenadeCommand"
+	if command is AssignCommanderCommandClass:
+		return "AssignCommanderCommand"
+	if command is BreakCommandLinkCommandClass:
+		return "BreakCommandLinkCommand"
+	if command is SetMissionCommanderCommandClass:
+		return "SetMissionCommanderCommand"
 	if command != null:
 		return command.get_class()
 	return "null"

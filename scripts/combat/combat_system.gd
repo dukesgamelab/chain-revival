@@ -62,6 +62,21 @@ static var _visibility_log_keys: Dictionary = {}
 ## Presentation layer: world-derived grid cells for soldiers mid-move (key "team_id:soldier_id").
 static var _spotting_cell_overrides: Dictionary = {}
 
+## --- Command-chain fog of war (visibility, NOT LOS) ---
+## NOT PROVEN that sharing is upward-only + fully transitive. Flip this one switch if playtest
+## shows otherwise — do not scatter direction logic elsewhere.
+const COMMAND_VIS_UPWARD_ONLY := true
+const COMMAND_VIS_DEPTH_GUARD := 32
+## Bumped on assign/break so effective_visibility recomputes immediately (change-driven).
+static var _command_link_revision: int = 0
+static var _player_vis_cache_sig: String = ""
+## player_id -> { enemy_key -> EnemyVisibilityResult }
+static var _player_vis_cache: Dictionary = {}
+## SubordOldVis mirror: player_id -> { enemy_key -> true }
+static var _player_vis_prev_sets: Dictionary = {}
+## Players whose effective set changed on the last recompute (VisListChangdTrigger analog).
+static var _player_vis_changed_ids: Array[int] = []
+
 
 static func set_spotting_cell_overrides(overrides: Dictionary) -> void:
 	_spotting_cell_overrides = overrides
@@ -570,6 +585,224 @@ static func get_enemy_visibility_for_team(
 	return empty
 
 
+## Player-scoped fog of war: own spotting ∪ subordinates' effective_visibility (recursive).
+## Separate from LOS — never affects shot blocking. Change-driven via world sig + link revision.
+static func get_enemy_visibility_for_player(
+	game_state: GameStateClass,
+	player_id: int,
+	enemy: SoldierStateClass,
+) -> EnemyVisibilityResult:
+	var empty := EnemyVisibilityResult.new()
+	if game_state == null or game_state.command_hierarchy == null:
+		return empty
+	if enemy == null or enemy.is_dead:
+		return empty
+	var hierarchy := game_state.command_hierarchy
+	if not hierarchy.has_player(player_id):
+		return empty
+	if enemy.team_id == hierarchy.get_team_id(player_id):
+		empty.visible = true
+		empty.source = EnemyVisibilityResultClass.Source.DIRECT
+		return empty
+
+	var map := effective_visibility(game_state, player_id)
+	var enemy_key := SoldierStateClass.enemy_tracking_key(enemy.team_id, enemy.soldier_id)
+	if map.has(enemy_key):
+		return map[enemy_key]
+	return empty
+
+
+static func is_enemy_visible_to_player(
+	game_state: GameStateClass,
+	player_id: int,
+	enemy: SoldierStateClass,
+) -> bool:
+	return get_enemy_visibility_for_player(game_state, player_id, enemy).visible
+
+
+## Cached set of visible enemies for a player (enemy_key -> EnemyVisibilityResult).
+## Unions own_visibility with each direct subordinate's effective_visibility when
+## COMMAND_VIS_UPWARD_ONLY (commander sees down the chain; subordinate does not see up).
+static func effective_visibility(game_state: GameStateClass, player_id: int) -> Dictionary:
+	_ensure_player_visibility_cache(game_state)
+	if _player_vis_cache.has(player_id):
+		return _player_vis_cache[player_id]
+	return {}
+
+
+## Enemy tracking keys currently visible to this player (fog filter for clients).
+static func effective_visibility_keys(game_state: GameStateClass, player_id: int) -> Array[String]:
+	var out: Array[String] = []
+	var map := effective_visibility(game_state, player_id)
+	for key in map.keys():
+		out.append(str(key))
+	out.sort()
+	return out
+
+
+## Players whose SubordVisList changed on the last recompute (empty if unchanged).
+static func players_with_visibility_changes() -> Array[int]:
+	return _player_vis_changed_ids.duplicate()
+
+
+## Call when a command link is created/broken (SubordVisTrigger). Forces immediate shrink/grow.
+static func notify_command_hierarchy_changed(game_state: GameStateClass = null) -> void:
+	_command_link_revision += 1
+	_player_vis_cache_sig = ""
+	_player_vis_cache.clear()
+	if game_state != null:
+		_ensure_player_visibility_cache(game_state)
+
+
+static func clear_player_visibility_cache() -> void:
+	_player_vis_cache_sig = ""
+	_player_vis_cache.clear()
+	_player_vis_prev_sets.clear()
+	_player_vis_changed_ids.clear()
+
+
+static func _ensure_player_visibility_cache(game_state: GameStateClass) -> void:
+	if game_state == null or game_state.command_hierarchy == null:
+		return
+	var sig := (
+		_build_visibility_cache_signature(game_state)
+		+ "|cmdrev=%d" % _command_link_revision
+	)
+	if sig == _player_vis_cache_sig and not _player_vis_cache.is_empty():
+		return
+
+	var hierarchy := game_state.command_hierarchy
+	var new_cache: Dictionary = {}
+	var changed: Array[int] = []
+	## Compute leaves-first via memo inside recursive builder with per-player visited guards.
+	var memo: Dictionary = {}
+	for pid in hierarchy.all_player_ids():
+		var visited: Dictionary = {}
+		new_cache[pid] = _build_effective_visibility(game_state, pid, visited, memo, 0)
+		var new_keys := _visibility_key_set(new_cache[pid])
+		var old_keys: Dictionary = _player_vis_prev_sets.get(pid, {})
+		if not _visibility_key_sets_equal(old_keys, new_keys):
+			changed.append(pid)
+		_player_vis_prev_sets[pid] = new_keys
+
+	_player_vis_cache = new_cache
+	_player_vis_cache_sig = sig
+	_player_vis_changed_ids = changed
+
+
+static func _build_effective_visibility(
+	game_state: GameStateClass,
+	player_id: int,
+	visited: Dictionary,
+	memo: Dictionary,
+	depth: int,
+) -> Dictionary:
+	if memo.has(player_id):
+		return memo[player_id]
+	if depth >= COMMAND_VIS_DEPTH_GUARD or visited.has(player_id):
+		return {}
+	visited[player_id] = true
+
+	var result := _own_visibility_map(game_state, player_id)
+	var hierarchy := game_state.command_hierarchy
+	if COMMAND_VIS_UPWARD_ONLY:
+		## Share along the chain upward to commanders: union each direct subordinate recursively.
+		for sub_id in hierarchy.get_subordinates(player_id):
+			var sub_map := _build_effective_visibility(
+				game_state,
+				sub_id,
+				visited,
+				memo,
+				depth + 1,
+			)
+			_merge_visibility_maps(result, sub_map, true)
+	else:
+		## Alternate (unproven): also pull from commander. Kept as a single-branch switch.
+		var cmd_id := hierarchy.get_commander(player_id)
+		if cmd_id > 0:
+			var cmd_own := _own_visibility_map(game_state, cmd_id)
+			_merge_visibility_maps(result, cmd_own, true)
+
+	memo[player_id] = result
+	visited.erase(player_id)
+	return result
+
+
+## Spotting from this player's own soldiers only (no command-chain share).
+static func _own_visibility_map(game_state: GameStateClass, player_id: int) -> Dictionary:
+	var out: Dictionary = {}
+	var hierarchy := game_state.command_hierarchy
+	if not hierarchy.has_player(player_id):
+		return out
+	var team_id := hierarchy.get_team_id(player_id)
+	var enemy_team_id := game_state.enemy_team_id(team_id)
+	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
+	for soldier_id in hierarchy.get_soldier_ids(player_id):
+		var observer := game_state.get_soldier(team_id, soldier_id)
+		if observer == null or observer.is_dead:
+			continue
+		for enemy_state in enemy_fireteam.soldiers:
+			var enemy: SoldierStateClass = enemy_state
+			if enemy.is_dead:
+				continue
+			if not can_spot_enemy(observer, enemy, game_state):
+				continue
+			var score := get_visibility_score(observer, enemy, game_state)
+			var key := SoldierStateClass.enemy_tracking_key(enemy.team_id, enemy.soldier_id)
+			var existing: EnemyVisibilityResult = out.get(key)
+			if existing != null and existing.visibility_score >= score:
+				continue
+			var result := EnemyVisibilityResult.new()
+			result.visible = true
+			result.source = EnemyVisibilityResultClass.Source.DIRECT
+			result.visibility_score = score
+			result.spotter_team_id = observer.team_id
+			result.spotter_soldier_id = observer.soldier_id
+			out[key] = result
+	return out
+
+
+static func _merge_visibility_maps(
+	dest: Dictionary,
+	src: Dictionary,
+	mark_subordinate: bool,
+) -> void:
+	for key in src.keys():
+		var incoming: EnemyVisibilityResult = src[key]
+		if incoming == null or not incoming.visible:
+			continue
+		var existing: EnemyVisibilityResult = dest.get(key)
+		if existing != null and existing.visibility_score >= incoming.visibility_score:
+			continue
+		var copy := EnemyVisibilityResult.new()
+		copy.visible = true
+		copy.source = (
+			EnemyVisibilityResultClass.Source.SUBORDINATE
+			if mark_subordinate
+			else incoming.source
+		)
+		copy.visibility_score = incoming.visibility_score
+		copy.spotter_team_id = incoming.spotter_team_id
+		copy.spotter_soldier_id = incoming.spotter_soldier_id
+		dest[key] = copy
+
+
+static func _visibility_key_set(vis_map: Dictionary) -> Dictionary:
+	var keys: Dictionary = {}
+	for key in vis_map.keys():
+		keys[str(key)] = true
+	return keys
+
+
+static func _visibility_key_sets_equal(a: Dictionary, b: Dictionary) -> bool:
+	if a.size() != b.size():
+		return false
+	for key in a.keys():
+		if not b.has(key):
+			return false
+	return true
+
+
 static func _get_team_visibility_cache(
 	game_state: GameStateClass,
 	observer_team_id: int,
@@ -676,6 +909,8 @@ static func _visibility_source_name(source: int) -> String:
 			return "direct"
 		EnemyVisibilityResultClass.Source.CLUSTER:
 			return "cluster"
+		EnemyVisibilityResultClass.Source.SUBORDINATE:
+			return "subordinate"
 		_:
 			return "hidden"
 

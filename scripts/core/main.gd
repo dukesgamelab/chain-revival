@@ -26,6 +26,7 @@ const ActionResultClass := preload("res://scripts/core/action_result.gd")
 const CommandContextClass := preload("res://scripts/core/command_context.gd")
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 const SimpleAIControllerClass := preload("res://scripts/ai/simple_ai_controller.gd")
+const CommandDialogScene := preload("res://scenes/ui/command_dialog.tscn")
 
 @onready var _world: MapWorldView = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -42,6 +43,7 @@ const SimpleAIControllerClass := preload("res://scripts/ai/simple_ai_controller.
 @onready var _camera: MapCamera = $Camera2D
 @onready var _command_bar: CommandBar = $UI/CommandBar
 var _return_to_editor_on_exit: bool = false
+var _command_dialog: CommandDialog = null
 
 var _map_data = MapDataClass.create_default()
 var _session: GameSession = GameSessionClass.new([], [])
@@ -88,6 +90,8 @@ func _ready() -> void:
 	_refresh_all_views()
 	_show_startup_status()
 	_start_simple_ai()
+	_ensure_command_dialog()
+	call_deferred("_open_command_dialog_for_deployment")
 
 
 ## Seeded RNG + sim clock for reproducible gameplay timing (not wall-clock).
@@ -569,6 +573,44 @@ func _connect_command_bar() -> void:
 	_command_bar.rotate_view_right_requested.connect(_on_rotate_view_right_requested)
 	_command_bar.map_edit_mode_changed.connect(_on_map_edit_mode_changed)
 	_command_bar.map_edit_palette_changed.connect(_on_map_edit_palette_changed)
+	_command_bar.set_commanders_requested.connect(_on_set_commanders_requested)
+
+
+func _ensure_command_dialog() -> void:
+	if _command_dialog != null:
+		return
+	_command_dialog = CommandDialogScene.instantiate() as CommandDialog
+	$UI.add_child(_command_dialog)
+	_command_dialog.briefing_requested.connect(_on_command_briefing_requested)
+	_command_dialog.dialog_closed.connect(_on_command_dialog_closed)
+
+
+func _open_command_dialog_for_deployment() -> void:
+	if _game_state == null or not _game_state.is_deployment_phase():
+		return
+	_open_command_dialog()
+
+
+func _on_set_commanders_requested() -> void:
+	_open_command_dialog()
+
+
+func _open_command_dialog() -> void:
+	_ensure_command_dialog()
+	if _command_dialog == null or _game_state == null:
+		return
+	_command_dialog.bind_game_state(_game_state)
+	_command_dialog.popup_centered()
+
+
+func _on_command_briefing_requested() -> void:
+	_command_bar.show_status("View Briefing: set commanders, then hold your objectives.")
+
+
+func _on_command_dialog_closed() -> void:
+	if _game_state != null and _game_state.is_deployment_phase():
+		_game_state.begin_running_phase()
+	_command_bar.show_status("Deployment complete. Chain of command ready.")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -861,6 +903,7 @@ func _refresh_all_views() -> void:
 func _refresh_enemy_spotting_visuals() -> void:
 	var active_team: int = _session.active_team_id
 	var active_fireteam: Fireteam = _session.get_active_fireteam()
+	var viewer_player_id := _fog_viewer_player_id()
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
@@ -873,11 +916,7 @@ func _refresh_enemy_spotting_visuals() -> void:
 				soldier_state.team_id == active_team
 				and soldier_state.soldier_id == active_fireteam.selected_soldier_id
 			)
-			var is_spotted := CombatSystem.is_enemy_visible_to_team(
-				_game_state,
-				active_team,
-				soldier_state,
-			)
+			var is_spotted := _is_enemy_spotted_for_viewer(viewer_player_id, active_team, soldier_state)
 			view.apply_spotting_only(is_selected, is_spotted)
 
 
@@ -906,12 +945,38 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		return
 	var is_spotted := true
 	if soldier_state.team_id != _session.active_team_id and soldier_state.is_alive():
-		is_spotted = CombatSystem.is_enemy_visible_to_team(
-			_game_state,
+		is_spotted = _is_enemy_spotted_for_viewer(
+			_fog_viewer_player_id(),
 			_session.active_team_id,
 			soldier_state,
 		)
 	view.sync_from_state(soldier_state, is_selected, is_spotted)
+
+
+## Fog viewer: local player when on the active team; else first hierarchy player on that team.
+func _fog_viewer_player_id() -> int:
+	if _game_state == null or _game_state.command_hierarchy == null:
+		return -1
+	var hierarchy = _game_state.command_hierarchy
+	var team_id := _session.active_team_id
+	var local_id := _game_state.local_player_id
+	if hierarchy.has_player(local_id) and hierarchy.get_team_id(local_id) == team_id:
+		return local_id
+	for pid in hierarchy.all_player_ids():
+		if hierarchy.get_team_id(pid) == team_id:
+			return pid
+	return -1
+
+
+## Command-chain fog filter for the active viewer; falls back to flat team visibility.
+func _is_enemy_spotted_for_viewer(
+	viewer_player_id: int,
+	active_team: int,
+	enemy: SoldierState,
+) -> bool:
+	if viewer_player_id > 0:
+		return CombatSystem.is_enemy_visible_to_player(_game_state, viewer_player_id, enemy)
+	return CombatSystem.is_enemy_visible_to_team(_game_state, active_team, enemy)
 
 
 func _refresh_armed_movement_views(soldier_id: int) -> void:

@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://commanddialog01"]
+
+[ext_resource type="Script" path="res://scripts/ui/command_dialog.gd" id="1_cmd"]
+
+[node name="CommandDialog" type="AcceptDialog"]
+title = "Command"
+size = Vector2i(640, 420)
+visible = false
+ok_button_text = "Close"
+script = ExtResource("1_cmd")
