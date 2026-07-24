@@ -815,12 +815,11 @@ static func default_germany_spawn_points() -> Array[Vector2i]:
 
 
 static func _default_spawn_line(anchor: Vector2i) -> Array[Vector2i]:
-	return [
-		anchor,
-		anchor + Vector2i(0, 1),
-		anchor + Vector2i(0, 2),
-		anchor + Vector2i(0, 3),
-	]
+	## Eight cells (2×4) so 2v2 can place two full fireteams per side.
+	var out: Array[Vector2i] = []
+	for i in 8:
+		out.append(anchor + Vector2i(i % 2, i / 2))
+	return out
 
 
 static func create_default() -> MapData:

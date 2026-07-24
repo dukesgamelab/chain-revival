@@ -167,9 +167,21 @@ func add_to_pool(player_id: int, item_id: String, count: int = 1, kind: int = -1
 
 
 ## How many of weapon_id are already held by soldiers on this fireteam.
-static func squad_weapon_count(game_state, team_id: int, weapon_id: String) -> int:
+## Prefer an owned fireteam when owner_player_id is set (2v2 per-FT limits).
+static func squad_weapon_count(
+	game_state,
+	team_id: int,
+	weapon_id: String,
+	owner_player_id: int = -1,
+) -> int:
 	var n := 0
-	var fireteam = game_state.session.get_fireteam(team_id)
+	var fireteam = null
+	if owner_player_id > 0 and game_state.session != null:
+		fireteam = game_state.session.get_fireteam_for_player(owner_player_id)
+	if fireteam == null:
+		fireteam = game_state.session.get_fireteam(team_id)
+	if fireteam == null:
+		return 0
 	for state in fireteam.soldiers:
 		if str(state.weapon_id) == weapon_id:
 			n += 1
@@ -177,11 +189,16 @@ static func squad_weapon_count(game_state, team_id: int, weapon_id: String) -> i
 
 
 ## True if assigning one more of weapon_id would exceed INIT_LimitPerSquad.
-static func would_exceed_squad_limit(game_state, team_id: int, weapon_id: String) -> bool:
+static func would_exceed_squad_limit(
+	game_state,
+	team_id: int,
+	weapon_id: String,
+	owner_player_id: int = -1,
+) -> bool:
 	var limit := WeaponPolicyClass.squad_limit(weapon_id)
 	if limit < 0:
 		return false
-	return squad_weapon_count(game_state, team_id, weapon_id) >= limit
+	return squad_weapon_count(game_state, team_id, weapon_id, owner_player_id) >= limit
 
 
 ## Faction default rifle for return-to-pool / AI fill.
@@ -215,7 +232,7 @@ func auto_distribute_to_soldiers(game_state, player_id: int, soldier_ids: Array[
 		if str(soldier.weapon_id) != default_rifle:
 			continue
 		var item_id := specials[si]
-		if would_exceed_squad_limit(game_state, team_id, item_id):
+		if would_exceed_squad_limit(game_state, team_id, item_id, player_id):
 			si += 1
 			continue
 		if not take_from_pool(player_id, item_id):

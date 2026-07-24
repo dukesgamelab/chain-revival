@@ -84,22 +84,24 @@ func _test_sp_2v2_slots_and_ownership() -> void:
 
 	var session := GameSessionClass.from_match_config(
 		cfg,
-		_spawns(4, Vector2i(10, 10)),
-		_spawns(4, Vector2i(40, 40)),
+		_spawns(8, Vector2i(10, 10)),
+		_spawns(8, Vector2i(40, 40)),
 	)
 	_assert("2v2 owned_fireteams == 4", session.owned_fireteams.size() == 4)
-	_assert("2v2 blue has 4 soldiers", session.blue_team.soldiers.size() == 4)
-	_assert("2v2 red has 4 soldiers", session.red_team.soldiers.size() == 4)
+	_assert("2v2 blue has 8 soldiers", session.blue_team.soldiers.size() == 8)
+	_assert("2v2 red has 8 soldiers", session.red_team.soldiers.size() == 8)
 	var human_ft := session.get_fireteam_for_player(cfg.local_player_id)
-	_assert("2v2 human FT has 2 soldiers", human_ft != null and human_ft.soldiers.size() == 2)
+	_assert("2v2 human FT has 4 soldiers", human_ft != null and human_ft.soldiers.size() == 4)
 	_assert(
 		"2v2 local owns soldier 1",
 		session.can_local_control_soldier(Team.USA, 1),
 	)
 	_assert(
-		"2v2 local does not own ally AI soldier 3",
-		not session.can_local_control_soldier(Team.USA, 3),
+		"2v2 local does not own ally AI soldier 5",
+		not session.can_local_control_soldier(Team.USA, 5),
 	)
+	var ally_ft := session.get_fireteam_for_player(2)
+	_assert("2v2 ally AI FT has 4 soldiers", ally_ft != null and ally_ft.soldiers.size() == 4)
 	for ft in session.owned_fireteams:
 		_assert(
 			"2v2 FT has owner_player_id",

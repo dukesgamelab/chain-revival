@@ -61,7 +61,7 @@ func _make_game_state() -> GameStateClass:
 		blue = MapDataClass.default_usa_spawn_points()
 	if red.is_empty():
 		red = MapDataClass.default_germany_spawn_points()
-	## 2v2: local human owns soldiers 1–2; allied AI fireteam owns 3–4.
+	## 2v2: local human owns soldiers 1–4; allied AI fireteam owns 5–8.
 	var cfg = MatchConfigClass.new(
 		MatchConfigClass.GameModeKind.SINGLE_PLAYER,
 		MatchConfigClass.MatchType.TWO_V_TWO,
@@ -228,7 +228,7 @@ func _test_solo_hides_subordinates() -> void:
 	var gs := _make_game_state()
 	## No links by default — local player has zero subordinates (solo UI path).
 	_assert("solo has no subordinates", gs.get_subordinates(1).is_empty())
-	_assert("local player still has own soldiers", gs.command_hierarchy.get_soldier_ids(1).size() == 2)
+	_assert("local player still has own soldiers", gs.command_hierarchy.get_soldier_ids(1).size() == 4)
 
 
 func _test_assign_to_subordinate_player_and_ai_distribute() -> void:
@@ -259,13 +259,13 @@ func _test_assign_to_subordinate_player_and_ai_distribute() -> void:
 		"took from commander cache",
 		gs.weapon_cache.pool_count(1, WeaponPolicyClass.ID_THOMPSON) == before_you - 1,
 	)
-	## AI auto-distribute should put Thompson on a default-rifle soldier (3 or 4).
-	var s3: SoldierState = gs.get_soldier(Team.USA, 3)
-	var s4: SoldierState = gs.get_soldier(Team.USA, 4)
-	var got_thompson := (
-		s3.weapon_id == WeaponPolicyClass.ID_THOMPSON
-		or s4.weapon_id == WeaponPolicyClass.ID_THOMPSON
-	)
+	## AI auto-distribute should put Thompson on a default-rifle soldier (5–8).
+	var got_thompson := false
+	for sid in [5, 6, 7, 8]:
+		var s: SoldierState = gs.get_soldier(Team.USA, sid)
+		if s != null and s.weapon_id == WeaponPolicyClass.ID_THOMPSON:
+			got_thompson = true
+			break
 	_assert("AI auto-distributed thompson to rifle-holder", got_thompson)
 	_assert(
 		"FTD cache emptied by distribute",

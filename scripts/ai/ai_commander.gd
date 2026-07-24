@@ -16,13 +16,15 @@ const CommandContextClass := preload("res://scripts/core/command_context.gd")
 const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
 
 ## TUNED — replan cadence (msec). Not recovered.
-const DEFAULT_REPLAN_INTERVAL_MSEC := 800
+const DEFAULT_REPLAN_INTERVAL_MSEC := 1500
 ## TUNED — max Move/Face/Fire/Grenade submits per think tick.
-const MAX_COMMANDS_PER_TICK := 3
+const MAX_COMMANDS_PER_TICK := 2
 ## TUNED — consider objective reached within this Manhattan distance.
 const OBJECTIVE_ARRIVE_DIST := 2
 ## TUNED — grenade only if clustered enemies within this Chebyshev range of impact.
 const GRENADE_CLUSTER_CHEBYSHEV := 2
+## TUNED — while fighting, only press forward if this far from the objective.
+const FIGHT_ADVANCE_MIN_DIST := 6
 
 ## Extension hooks (unused now — future suppression/morale/difficulty/personality).
 var aggression: float = 1.0
@@ -213,13 +215,13 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 					state_id = AiCommanderStateClass.OBJECTIVE_COMPLETE
 					request_replan("objective_complete")
 		AiCommanderStateClass.CONTACT:
-			## Engage immediately; face remaining budget (same priority as FIGHT).
 			state_id = AiCommanderStateClass.FIGHT
+			## Orient FT first when needed; fire still same think tick.
+			_face_threat(game_state, submit_command, visible)
 			_try_fire(game_state, submit_command, visible)
 			_try_grenade(game_state, submit_command, visible)
-			_face_threat(game_state, submit_command, visible)
 		AiCommanderStateClass.FIGHT:
-			## Fire first so command budget is not spent only on re-facing.
+			## Fire first in sustained contact so budget isn't only re-facing.
 			_try_fire(game_state, submit_command, visible)
 			_try_grenade(game_state, submit_command, visible)
 			_face_threat(game_state, submit_command, visible)
@@ -234,8 +236,11 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 				AiOrderClass.ID_NONE,
 				"",
 			]:
-				## Aggressive plans keep pressing while fighting.
-				if get_active_plan(game_state) != AiPlanClass.ID_DEFEND:
+				## Occasional press — only if still far and the fireteam is idle.
+				if (
+					get_active_plan(game_state) != AiPlanClass.ID_DEFEND
+					and _formation_objective_distance(game_state) >= FIGHT_ADVANCE_MIN_DIST
+				):
 					_move_toward_objective(game_state, find_path, submit_command)
 		AiCommanderStateClass.OBJECTIVE_COMPLETE:
 			state_id = AiCommanderStateClass.PLAN
@@ -276,7 +281,15 @@ func _formation_center(game_state) -> Vector2i:
 	return Vector2i(sx / soldiers.size(), sy / soldiers.size())
 
 
+func _formation_objective_distance(game_state) -> int:
+	if current_objective == null or not current_objective.is_valid():
+		return 0
+	var center := _formation_center(game_state)
+	return absi(center.x - current_objective.cell.x) + absi(center.y - current_objective.cell.y)
+
+
 func _living_soldiers(game_state) -> Array:
+	## Owned fireteam only — never other players' soldiers on the same side.
 	var out: Array = []
 	var ids: Array = game_state.command_hierarchy.get_soldier_ids(player_id)
 	var team_id: int = game_state.command_hierarchy.get_team_id(player_id)
@@ -287,12 +300,24 @@ func _living_soldiers(game_state) -> Array:
 	return out
 
 
+func _fireteam_is_moving(game_state) -> bool:
+	for soldier in _living_soldiers(game_state):
+		if soldier.is_moving:
+			return true
+	return false
+
+
+func _lead_soldier(game_state):
+	var soldiers := _living_soldiers(game_state)
+	if soldiers.is_empty():
+		return null
+	return soldiers[0]
+
+
 func _objective_reached(game_state) -> bool:
 	if current_objective == null or not current_objective.is_valid():
 		return false
-	var center := _formation_center(game_state)
-	var d := absi(center.x - current_objective.cell.x) + absi(center.y - current_objective.cell.y)
-	return d <= OBJECTIVE_ARRIVE_DIST
+	return _formation_objective_distance(game_state) <= OBJECTIVE_ARRIVE_DIST
 
 
 func _move_toward_objective(game_state, find_path: Callable, submit_command: Callable) -> void:
@@ -300,99 +325,104 @@ func _move_toward_objective(game_state, find_path: Callable, submit_command: Cal
 		return
 	if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
 		return
-	var soldiers := _living_soldiers(game_state)
-	if soldiers.is_empty():
+	## One fireteam order — wait until the whole FT finishes before re-pathing.
+	if _fireteam_is_moving(game_state):
 		return
-	## Spread slightly so squads don't stack on one cell.
-	var i := 0
-	for soldier in soldiers:
-		if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
-			break
-		if soldier.is_moving:
-			continue
-		var target := current_objective.cell + Vector2i((i % 3) - 1, ((i / 3) % 3) - 1)
-		i += 1
-		if not game_state.map_data.is_walkable(target):
-			target = current_objective.cell
-		var cmd := MoveCommandClass.new()
-		cmd.team_id = soldier.team_id
-		cmd.soldier_id = soldier.soldier_id
-		cmd.target_cell = target
-		cmd.scope = MoveCommandClass.Scope.SINGLE
-		cmd.movement_mode = MovementModeClass.RUN
-		var ctx := _make_context(find_path)
-		var result = submit_command.call(cmd, ctx)
-		if result != null and result.success:
-			_commands_this_tick += 1
-			_debug_last_action = "move %d→%s" % [soldier.soldier_id, target]
+	var lead = _lead_soldier(game_state)
+	if lead == null:
+		return
+	var target := current_objective.cell
+	if not game_state.map_data.is_walkable(target):
+		return
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = lead.team_id
+	cmd.soldier_id = lead.soldier_id
+	cmd.target_cell = target
+	## SQUAD + acting_player_id → ActionResolver moves only this player's owned FT.
+	cmd.scope = MoveCommandClass.Scope.SQUAD
+	cmd.movement_mode = MovementModeClass.RUN
+	var ctx := _make_context(find_path)
+	var result = submit_command.call(cmd, ctx)
+	if result != null and result.success:
+		_commands_this_tick += 1
+		_debug_last_action = "move FT→%s" % target
 
 
 func _face_threat(game_state, submit_command: Callable, visible: Array) -> void:
 	if visible.is_empty() or _commands_this_tick >= MAX_COMMANDS_PER_TICK:
 		return
 	var threat = visible[0]
+	var lead = _lead_soldier(game_state)
+	if lead == null:
+		return
+	## Skip if the whole owned FT already faces the threat.
+	var needs_face := false
 	for soldier in _living_soldiers(game_state):
-		if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+		if not CombatSystem.is_facing_target(soldier, threat):
+			needs_face = true
 			break
-		## Skip if already facing the threat cell closely enough.
-		if CombatSystem.is_facing_target(soldier, threat):
-			continue
-		var cmd := FaceCommandClass.new()
-		cmd.team_id = soldier.team_id
-		cmd.soldier_id = soldier.soldier_id
-		cmd.target_cell = threat.grid_position
-		cmd.scope = FaceCommandClass.Scope.SINGLE
-		var result = submit_command.call(cmd, _make_context(Callable()))
-		if result != null and result.success:
-			_commands_this_tick += 1
-			_debug_last_action = "face %d→%s" % [soldier.soldier_id, threat.grid_position]
+	if not needs_face:
+		return
+	var cmd := FaceCommandClass.new()
+	cmd.team_id = lead.team_id
+	cmd.soldier_id = lead.soldier_id
+	cmd.target_cell = threat.grid_position
+	cmd.scope = FaceCommandClass.Scope.SQUAD
+	var result = submit_command.call(cmd, _make_context(Callable()))
+	if result != null and result.success:
+		_commands_this_tick += 1
+		_debug_last_action = "face FT→%s" % threat.grid_position
 
 
 func _order_face(game_state, submit_command: Callable) -> void:
 	if human_order_cell.x <= -900:
 		return
-	for soldier in _living_soldiers(game_state):
-		if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
-			break
-		var cmd := FaceCommandClass.new()
-		cmd.team_id = soldier.team_id
-		cmd.soldier_id = soldier.soldier_id
-		cmd.target_cell = human_order_cell
-		cmd.scope = FaceCommandClass.Scope.SINGLE
-		var result = submit_command.call(cmd, _make_context(Callable()))
-		if result != null and result.success:
-			_commands_this_tick += 1
+	if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+		return
+	var lead = _lead_soldier(game_state)
+	if lead == null:
+		return
+	var cmd := FaceCommandClass.new()
+	cmd.team_id = lead.team_id
+	cmd.soldier_id = lead.soldier_id
+	cmd.target_cell = human_order_cell
+	cmd.scope = FaceCommandClass.Scope.SQUAD
+	var result = submit_command.call(cmd, _make_context(Callable()))
+	if result != null and result.success:
+		_commands_this_tick += 1
 
 
 func _try_fire(game_state, submit_command: Callable, visible: Array) -> void:
 	if visible.is_empty() or _commands_this_tick >= MAX_COMMANDS_PER_TICK:
 		return
 	var threat = visible[0]
-	## Only fire at enemies we can see (already filtered by shared LOS).
+	var lead = _lead_soldier(game_state)
+	if lead == null:
+		return
+	## Owned fireteam shooters only (idle + ammo).
+	var shooters: Array[int] = []
 	for soldier in _living_soldiers(game_state):
-		if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
-			break
 		if soldier.ammo_current <= 0:
 			continue
 		if soldier.is_moving:
 			continue
-		var cmd := FireCommandClass.new()
-		cmd.team_id = soldier.team_id
-		cmd.soldier_id = soldier.soldier_id
-		cmd.target_team_id = threat.team_id
-		cmd.target_soldier_id = threat.soldier_id
-		cmd.scope = FireCommandClass.Scope.SINGLE
-		cmd.aim_world = IsometricGrid.soldier_aim_point(threat.grid_position)
-		var ctx := _make_context(Callable())
-		ctx.shooter_ids = [soldier.soldier_id]
-		var result = submit_command.call(cmd, ctx)
-		if result != null and result.success:
-			_commands_this_tick += 1
-			_debug_last_action = "fire %d→%d:%d" % [
-				soldier.soldier_id, threat.team_id, threat.soldier_id,
-			]
-			current_target_key = "%d:%d" % [threat.team_id, threat.soldier_id]
-			break
+		shooters.append(soldier.soldier_id)
+	if shooters.is_empty():
+		return
+	var cmd := FireCommandClass.new()
+	cmd.team_id = lead.team_id
+	cmd.soldier_id = shooters[0]
+	cmd.target_team_id = threat.team_id
+	cmd.target_soldier_id = threat.soldier_id
+	cmd.scope = FireCommandClass.Scope.SQUAD
+	cmd.aim_world = IsometricGrid.soldier_aim_point(threat.grid_position)
+	var ctx := _make_context(Callable())
+	ctx.shooter_ids = shooters
+	var result = submit_command.call(cmd, ctx)
+	if result != null and result.success:
+		_commands_this_tick += 1
+		_debug_last_action = "fire FT→%d:%d" % [threat.team_id, threat.soldier_id]
+		current_target_key = "%d:%d" % [threat.team_id, threat.soldier_id]
 
 
 func _try_grenade(game_state, submit_command: Callable, visible: Array) -> void:
@@ -410,8 +440,6 @@ func _try_grenade(game_state, submit_command: Callable, visible: Array) -> void:
 	if cluster < 2 and aggression < 1.5:
 		return
 	for soldier in _living_soldiers(game_state):
-		if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
-			break
 		if soldier.grenade_count <= 0:
 			continue
 		if soldier.has_pending_grenade():
@@ -424,7 +452,7 @@ func _try_grenade(game_state, submit_command: Callable, visible: Array) -> void:
 		if result != null and result.success:
 			_commands_this_tick += 1
 			_debug_last_action = "grenade %d→%s" % [soldier.soldier_id, impact]
-			break
+		break
 
 
 func _make_context(find_path: Callable) -> CommandContextClass:

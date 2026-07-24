@@ -183,6 +183,12 @@ func _test_submits_move_face_fire_grenade() -> void:
 			saw_move = true
 			break
 	_assert("AI submits MoveCommand", saw_move)
+	var saw_squad_move := false
+	for cmd in _submitted:
+		if cmd is MoveCommandClass and cmd.scope == MoveCommandClass.Scope.SQUAD:
+			saw_squad_move = true
+			break
+	_assert("AI MoveCommand is fireteam-scoped (SQUAD)", saw_squad_move)
 
 	## Phase B: close contact — Face / Fire via shared LOS.
 	var usa := gs.get_soldier(Team.USA, 1)

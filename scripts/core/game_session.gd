@@ -66,18 +66,19 @@ func setup_from_match_config(
 	var next_ft_id := 1
 
 	if config.match_type == MatchConfigClass.MatchType.TWO_V_TWO:
-		## Two fireteams per side × 2 soldiers (soldier ids 1–2 and 3–4).
+		## Four full fireteams (2 USA + 2 GER), 4 soldiers each = 16 total.
+		## Soldier ids are unique per team: slot 0 → 1–4, slot 1 → 5–8.
 		for slot in config.slots:
 			var team_id := int(slot.get("team_id", Team.USA))
 			var slot_index := int(slot.get("slot_index", 0))
 			var player_id := int(slot.get("player_id", next_ft_id))
 			var soldier_ids: Array[int] = []
-			if slot_index == 0:
-				soldier_ids.assign([1, 2])
-			else:
-				soldier_ids.assign([3, 4])
+			var id_base := 1 + slot_index * Fireteam.SOLDIER_COUNT
+			for i in Fireteam.SOLDIER_COUNT:
+				soldier_ids.append(id_base + i)
 			var spawns := blue_spawns if team_id == Team.USA else red_spawns
-			var slice := _spawn_slice(spawns, slot_index, 2)
+			spawns = _expand_spawns(spawns, (slot_index + 1) * Fireteam.SOLDIER_COUNT)
+			var slice := _spawn_slice(spawns, slot_index, Fireteam.SOLDIER_COUNT)
 			var ft := Fireteam.create_owned(next_ft_id, player_id, team_id, soldier_ids, slice)
 			owned_fireteams.append(ft)
 			if team_id == Team.USA:
@@ -93,6 +94,7 @@ func setup_from_match_config(
 			var soldier_ids: Array[int] = []
 			soldier_ids.assign([1, 2, 3, 4])
 			var spawns := blue_spawns if team_id == Team.USA else red_spawns
+			spawns = _expand_spawns(spawns, Fireteam.SOLDIER_COUNT)
 			var ft := Fireteam.create_owned(next_ft_id, player_id, team_id, soldier_ids, spawns)
 			owned_fireteams.append(ft)
 			if team_id == Team.USA:
@@ -126,6 +128,32 @@ static func _spawn_slice(
 		else:
 			out.append(Vector2i(10 + i, 10))
 	return out
+
+
+## Pad spawn list so 2v2 full fireteams (8 per side) still get distinct cells.
+static func _expand_spawns(spawns: Array[Vector2i], needed: int) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for cell in spawns:
+		out.append(cell)
+	var guard := 0
+	while out.size() < needed and guard < needed * 4:
+		guard += 1
+		var base := Vector2i(10, 10)
+		if not out.is_empty():
+			base = out[out.size() - 1]
+		var candidate := base + Vector2i((out.size() % 4) - 1, out.size() / 4)
+		if candidate in out:
+			candidate = base + Vector2i(1 + (out.size() % 3), out.size() % 2)
+		out.append(candidate)
+	return out
+
+
+## Fireteam the local human controls (owned FT). Falls back to side aggregate.
+func get_local_control_fireteam() -> Fireteam:
+	var owned := get_fireteam_for_player(local_player_id)
+	if owned != null:
+		return owned
+	return get_fireteam(active_team_id)
 
 
 func create_game_state(map_data: MapData) -> GameState:

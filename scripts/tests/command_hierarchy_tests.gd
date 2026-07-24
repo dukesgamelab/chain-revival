@@ -233,12 +233,20 @@ func _test_validation_messages() -> void:
 
 func _test_shared_subordinate_visibility() -> void:
 	var game_state: GameStateClass = _make_game_state()
-	## Player 1 owns USA 1–2; player 2 owns USA 3–4. Face player-2 soldier at enemy; hide player-1.
+	## Player 1 owns USA 1–4; player 2 owns USA 5–8. Face ally FT soldier at enemy; hide player-1 FT.
 	var cmd_soldier := game_state.get_soldier(Team.USA, 1)
-	var sub_soldier := game_state.get_soldier(Team.USA, 3)
+	var sub_soldier := game_state.get_soldier(Team.USA, 5)
 	var enemy := game_state.get_soldier(Team.GERMANY, 1)
 	cmd_soldier.grid_position = Vector2i(10, 10)
 	cmd_soldier.facing_direction = FacingDirectionClass.NORTH ## look away from enemy
+	## Park rest of human FT away facing north.
+	for sid in [2, 3, 4]:
+		var s = game_state.get_soldier(Team.USA, sid)
+		if s == null:
+			continue
+		s.grid_position = Vector2i(8 + sid, 8)
+		s.facing_direction = FacingDirectionClass.NORTH
+		s.clear_path()
 	sub_soldier.grid_position = Vector2i(20, 30)
 	enemy.grid_position = Vector2i(24, 30)
 	sub_soldier.facing_direction = FacingDirectionClass.toward_cell(
@@ -248,6 +256,7 @@ func _test_shared_subordinate_visibility() -> void:
 	cmd_soldier.clear_path()
 	sub_soldier.clear_path()
 	enemy.clear_path()
+	CombatSystemClass.clear_player_visibility_cache()
 
 	_assert(
 		"Commander alone cannot spot distant reverse-facing enemy",
@@ -266,7 +275,7 @@ func _test_shared_subordinate_visibility() -> void:
 	var vis = CombatSystemClass.get_enemy_visibility_for_player(game_state, 1, enemy)
 	_assert(
 		"Commander sees enemies spotted by subordinates",
-		vis.visible and vis.spotter_soldier_id in [3, 4],
+		vis.visible and vis.spotter_soldier_id in [5, 6, 7, 8],
 		"visible=%s source=%s spotter=%d"
 		% [vis.visible, vis.source, vis.spotter_soldier_id],
 	)
@@ -282,11 +291,9 @@ func _test_command_vis_no_reverse_share() -> void:
 	var game_state: GameStateClass = _make_game_state()
 	var hierarchy: CommandHierarchyClass = game_state.command_hierarchy
 	hierarchy.set_soldier_ids(1, [1] as Array[int])
-	hierarchy.set_soldier_ids(2, [3] as Array[int])
+	hierarchy.set_soldier_ids(2, [5] as Array[int])
 	var cmd_soldier := game_state.get_soldier(Team.USA, 1) ## player 1
-	var sub_soldier := game_state.get_soldier(Team.USA, 3) ## player 2
-	var idle := game_state.get_soldier(Team.USA, 2)
-	var idle2 := game_state.get_soldier(Team.USA, 4)
+	var sub_soldier := game_state.get_soldier(Team.USA, 5) ## player 2
 	var enemy := game_state.get_soldier(Team.GERMANY, 1)
 	cmd_soldier.grid_position = Vector2i(20, 30)
 	enemy.grid_position = Vector2i(24, 30)
@@ -297,14 +304,15 @@ func _test_command_vis_no_reverse_share() -> void:
 	sub_soldier.grid_position = Vector2i(10, 10)
 	sub_soldier.facing_direction = FacingDirectionClass.NORTH
 	## Park unused USA soldiers far away facing away.
-	idle.grid_position = Vector2i(2, 2)
-	idle.facing_direction = FacingDirectionClass.NORTH
-	idle2.grid_position = Vector2i(3, 2)
-	idle2.facing_direction = FacingDirectionClass.NORTH
+	for sid in [2, 3, 4, 6, 7, 8]:
+		var idle = game_state.get_soldier(Team.USA, sid)
+		if idle == null:
+			continue
+		idle.grid_position = Vector2i(2 + (sid % 4), 2)
+		idle.facing_direction = FacingDirectionClass.NORTH
+		idle.clear_path()
 	cmd_soldier.clear_path()
 	sub_soldier.clear_path()
-	idle.clear_path()
-	idle2.clear_path()
 	enemy.clear_path()
 	CombatSystemClass.clear_player_visibility_cache()
 
@@ -330,13 +338,13 @@ func _test_command_vis_no_reverse_share() -> void:
 func _test_command_vis_transitive_and_break() -> void:
 	var game_state: GameStateClass = _make_game_state()
 	var hierarchy: CommandHierarchyClass = game_state.command_hierarchy
-	## Chain YOU (rank 3) → MID (rank 2) → FTD (rank 1). Leaf FTD owns USA soldier 3.
+	## Chain YOU (rank 3) → MID (rank 2) → FTD (rank 1). Leaf FTD owns USA soldier 5.
 	hierarchy.set_soldier_ids(1, [1, 2] as Array[int])
-	hierarchy.set_soldier_ids(2, [3] as Array[int])
-	var mid_id := hierarchy.register_player("MID", 2, Team.USA, true, [4] as Array[int])
+	hierarchy.set_soldier_ids(2, [5] as Array[int])
+	var mid_id := hierarchy.register_player("MID", 2, Team.USA, true, [6] as Array[int])
 
-	var leaf_soldier := game_state.get_soldier(Team.USA, 3)
-	var mid_soldier := game_state.get_soldier(Team.USA, 4)
+	var leaf_soldier := game_state.get_soldier(Team.USA, 5)
+	var mid_soldier := game_state.get_soldier(Team.USA, 6)
 	var cmd_soldier := game_state.get_soldier(Team.USA, 1)
 	var enemy := game_state.get_soldier(Team.GERMANY, 1)
 	leaf_soldier.grid_position = Vector2i(20, 30)
@@ -349,10 +357,18 @@ func _test_command_vis_transitive_and_break() -> void:
 	mid_soldier.facing_direction = FacingDirectionClass.NORTH
 	cmd_soldier.grid_position = Vector2i(6, 6)
 	cmd_soldier.facing_direction = FacingDirectionClass.NORTH
+	for sid in [2, 3, 4, 7, 8]:
+		var parked = game_state.get_soldier(Team.USA, sid)
+		if parked == null:
+			continue
+		parked.grid_position = Vector2i(3 + sid, 3)
+		parked.facing_direction = FacingDirectionClass.NORTH
+		parked.clear_path()
 	leaf_soldier.clear_path()
 	mid_soldier.clear_path()
 	cmd_soldier.clear_path()
 	enemy.clear_path()
+	CombatSystemClass.clear_player_visibility_cache()
 
 	var link_mid := AssignCommanderCommandClass.new()
 	link_mid.commander_id = mid_id

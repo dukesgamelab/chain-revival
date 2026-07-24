@@ -42,19 +42,25 @@ func refresh() -> void:
 	## USA only links USA; Germany only links Germany.
 	var local_team := hierarchy.get_team_id(_game_state.local_player_id)
 
-	_commanders_list.clear()
-	for pid in hierarchy.commanders_with_openings():
-		if hierarchy.get_team_id(pid) != local_team:
-			continue
-		_commanders_list.add_item(hierarchy.list_label(pid))
-		_commanders_list.set_item_metadata(_commanders_list.item_count - 1, pid)
-
+	## Left: AI fireteams without a commander (to be assigned under a human).
 	_unassigned_list.clear()
 	for pid in hierarchy.players_without_commanders():
 		if hierarchy.get_team_id(pid) != local_team:
 			continue
+		if not hierarchy.is_ai_player(pid):
+			continue
 		_unassigned_list.add_item(hierarchy.list_label(pid))
 		_unassigned_list.set_item_metadata(_unassigned_list.item_count - 1, pid)
+
+	## Right: human commanders with openings only — AI is never a commander candidate.
+	_commanders_list.clear()
+	for pid in hierarchy.commanders_with_openings():
+		if hierarchy.get_team_id(pid) != local_team:
+			continue
+		if hierarchy.is_ai_player(pid):
+			continue
+		_commanders_list.add_item(hierarchy.list_label(pid))
+		_commanders_list.set_item_metadata(_commanders_list.item_count - 1, pid)
 
 	_links_list.clear()
 	for link in hierarchy.all_links():
@@ -84,8 +90,8 @@ func _build_layout() -> void:
 	top.add_theme_constant_override("separation", 8)
 	root.add_child(top)
 
-	var left := _make_list_column("Commanders with Openings\n(Players / AI Fireteams)")
-	_commanders_list = left["list"]
+	var left := _make_list_column("Without Commanders\n(AI Fireteams)")
+	_unassigned_list = left["list"]
 	top.add_child(left["root"])
 
 	var mid := VBoxContainer.new()
@@ -97,8 +103,8 @@ func _build_layout() -> void:
 	mid.add_child(_link_button)
 	top.add_child(mid)
 
-	var right := _make_list_column("Without Commanders\n(Players / AI Fireteams)")
-	_unassigned_list = right["list"]
+	var right := _make_list_column("Commanders with Openings\n(Players)")
+	_commanders_list = right["list"]
 	top.add_child(right["root"])
 
 	var bottom_header := Label.new()
@@ -168,19 +174,15 @@ func _selected_meta(list: ItemList) -> int:
 func _on_link_pressed() -> void:
 	if _game_state == null:
 		return
-	var commander_id := _selected_meta(_commanders_list)
+	## Left = AI subordinate, right = human commander ("Commanded by ▶▶▶").
 	var subordinate_id := _selected_meta(_unassigned_list)
-	## If ranks are reversed, swap so higher rank commands lower.
+	var commander_id := _selected_meta(_commanders_list)
 	var hierarchy := _game_state.command_hierarchy
-	if (
-		commander_id > 0
-		and subordinate_id > 0
-		and hierarchy != null
-		and hierarchy.get_rank(subordinate_id) > hierarchy.get_rank(commander_id)
-	):
-		var tmp := commander_id
-		commander_id = subordinate_id
-		subordinate_id = tmp
+	if hierarchy != null:
+		if commander_id > 0 and hierarchy.is_ai_player(commander_id):
+			_status_label.text = "Only human players can command AI fireteams."
+			_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
+			return
 	var cmd := AssignCommanderCommandClass.new()
 	cmd.commander_id = commander_id
 	cmd.subordinate_id = subordinate_id
@@ -203,8 +205,8 @@ func _on_break_pressed() -> void:
 func _on_briefing_pressed() -> void:
 	briefing_requested.emit()
 	_status_label.text = (
-		"Briefing: select a higher-rank commander and a lower-rank teammate, then Commanded by. "
-		+ "USA only commands USA; Germany only commands Germany. Visibility flows upward."
+		"Briefing: select an AI fireteam on the left and a human commander on the right, then Commanded by. "
+		+ "Only humans command AI. USA only commands USA; Germany only commands Germany. Visibility flows upward."
 	)
 
 

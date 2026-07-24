@@ -13,7 +13,8 @@ const AiCommanderStateClass := preload("res://scripts/ai/ai_commander_state.gd")
 const CommandContextClass := preload("res://scripts/core/command_context.gd")
 
 ## TUNED — think every N simulation ticks (movement still runs every tick).
-const THINK_EVERY_N_TICKS := 4
+## 8 @ 20 Hz ≈ 2.5 Hz — keeps pathfinding/LOS cache pressure low.
+const THINK_EVERY_N_TICKS := 8
 
 var _commanders: Dictionary = {} ## player_id -> AiCommander
 var _coordinator: AiTeamCoordinatorClass = AiTeamCoordinatorClass.new()

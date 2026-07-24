@@ -115,10 +115,10 @@ func register_player(
 ## AI players occupy slots so hierarchy works offline â€” not gated on multiplayer.
 func bootstrap_default_match() -> void:
 	clear()
-	register_player("YOU", 3, Team.USA, false, [1, 2] as Array[int])
-	register_player("FTD", 1, Team.USA, true, [3, 4] as Array[int])
-	register_player("HANS", 3, Team.GERMANY, true, [1, 2] as Array[int])
-	register_player("FRITZ", 1, Team.GERMANY, true, [3, 4] as Array[int])
+	register_player("YOU", 3, Team.USA, false, [1, 2, 3, 4] as Array[int])
+	register_player("FTD", 1, Team.USA, true, [5, 6, 7, 8] as Array[int])
+	register_player("HANS", 3, Team.GERMANY, true, [1, 2, 3, 4] as Array[int])
+	register_player("FRITZ", 1, Team.GERMANY, true, [5, 6, 7, 8] as Array[int])
 	## First USA human is Mission Commander by default.
 	set_mission_commander(1)
 	## Offline defaults: friendly AI Attack Center; enemy AI Random (resolved at match start).

@@ -1423,7 +1423,15 @@ static func _assign_weapon_to_soldier(
 		return ActionResult.fail("Choose a target for weapon assignment")
 
 	var is_equip := cache.is_equipment(item_id)
-	if not is_equip and WeaponCacheClass.would_exceed_squad_limit(game_state, team_id, item_id):
+	var owner_for_limit := from_player_id
+	if game_state.session != null:
+		for ft in game_state.session.owned_fireteams:
+			if ft.team_id == team_id and ft.owns_soldier(soldier_id):
+				owner_for_limit = ft.owner_player_id
+				break
+	if not is_equip and WeaponCacheClass.would_exceed_squad_limit(
+		game_state, team_id, item_id, owner_for_limit
+	):
 		## Already holding this weapon: swap is a no-op on count, allow re-equip from cache.
 		if str(soldier.weapon_id) != item_id:
 			return ActionResult.fail("Weapon limit for this squad reached")

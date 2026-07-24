@@ -167,7 +167,7 @@ func _apply_multiplayer_side_lock() -> void:
 		return
 	_session.set_active_team(PlayerSides.assigned_team_id)
 	_command_bar.set_active_team(PlayerSides.assigned_team_id)
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	_repair_fireteam_selection(fireteam)
 	_command_bar.sync_selected_soldier(fireteam.selected_soldier_id)
 	GameLog.log_system(
@@ -280,7 +280,7 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 		if view != null and state != null:
 			var is_selected: bool = (
 				team_id == _session.active_team_id
-				and soldier_id == _session.get_active_fireteam().selected_soldier_id
+				and soldier_id == _control_fireteam().selected_soldier_id
 			)
 			_sync_soldier_view(team_id, soldier_id, is_selected)
 		_log_move_complete(soldier_id, state, view)
@@ -308,7 +308,7 @@ func _input(event: InputEvent) -> void:
 
 func _get_manual_fire_at_shooters() -> Array[SoldierState]:
 	var shooters: Array[SoldierState] = []
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	if _squad_fire_at_mode:
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
@@ -333,7 +333,7 @@ func _clear_manual_fire_at_targets() -> void:
 
 
 func _active_fireteam_has_engaged_soldier() -> bool:
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	for state in fireteam.soldiers:
 		var soldier_state: SoldierState = state
 		if not _is_soldier_in_fire_at_scope(soldier_state):
@@ -463,7 +463,7 @@ func _update_grenade_preview() -> void:
 	_los_visualizer.show_grenade_throw_preview(from_world, target_world, in_range)
 
 	if _grenade_soldier_id == CommandBar.SQUAD_ID:
-		var fireteam: Fireteam = _session.get_active_fireteam()
+		var fireteam: Fireteam = _control_fireteam()
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
 			if (
@@ -558,14 +558,14 @@ func _update_squad_los_preview(
 
 
 func _sync_fire_at_shooter_views() -> void:
-	var active_fireteam: Fireteam = _session.get_active_fireteam()
+	var active_fireteam: Fireteam = _control_fireteam()
 	for shooter_state in _get_manual_fire_at_shooters():
 		var is_selected: bool = shooter_state.soldier_id == active_fireteam.selected_soldier_id
 		_sync_soldier_view(shooter_state.team_id, shooter_state.soldier_id, is_selected)
 
 
 func _get_fire_at_preview_shooter() -> SoldierState:
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	if _squad_fire_at_mode:
 		var selected: SoldierState = fireteam.get_selected()
 		if selected != null and selected.is_alive():
@@ -917,7 +917,7 @@ func _switch_active_team(team_id: int) -> void:
 	_map_edit_mode = false
 	_command_bar.clear_map_edit_mode()
 	_command_bar.set_active_team(team_id)
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	_repair_fireteam_selection(fireteam)
 	_command_bar.sync_selected_soldier(fireteam.selected_soldier_id)
 	_refresh_all_views()
@@ -1013,7 +1013,7 @@ func _spawn_all_soldier_views() -> void:
 func _refresh_all_views() -> void:
 	_apply_spotting_cell_overrides()
 	var active_team: int = _session.active_team_id
-	var active_fireteam: Fireteam = _session.get_active_fireteam()
+	var active_fireteam: Fireteam = _control_fireteam()
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
@@ -1031,7 +1031,7 @@ func _refresh_all_views() -> void:
 ## Cheap fog-of-war update: only enemy modulate/selection, no full anim/facing resync.
 func _refresh_enemy_spotting_visuals() -> void:
 	var active_team: int = _session.active_team_id
-	var active_fireteam: Fireteam = _session.get_active_fireteam()
+	var active_fireteam: Fireteam = _control_fireteam()
 	var viewer_player_id := _fog_viewer_player_id()
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
@@ -1051,7 +1051,7 @@ func _refresh_enemy_spotting_visuals() -> void:
 
 func _refresh_selection_marks() -> void:
 	var active_team: int = _session.active_team_id
-	var active_fireteam: Fireteam = _session.get_active_fireteam()
+	var active_fireteam: Fireteam = _control_fireteam()
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
@@ -1109,7 +1109,7 @@ func _is_enemy_spotted_for_viewer(
 
 
 func _refresh_armed_movement_views(soldier_id: int) -> void:
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	var active_team: int = _session.active_team_id
 	if soldier_id == CommandBar.SQUAD_ID:
 		for state in fireteam.soldiers:
@@ -1126,7 +1126,7 @@ func _refresh_armed_movement_views(soldier_id: int) -> void:
 
 
 func _refresh_command_bar() -> void:
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	for i in range(fireteam.soldiers.size()):
 		var soldier_state: SoldierState = fireteam.soldiers[i]
 		var hit_pct := _hit_pct_for_command_row(soldier_state)
@@ -1141,7 +1141,7 @@ func _refresh_command_bar() -> void:
 
 ## Combat-scan path: ammo/stress/status only — skip expensive hit% LOS unless needed.
 func _refresh_command_bar_light() -> void:
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	var need_hit := _should_update_hit_columns()
 	for i in range(fireteam.soldiers.size()):
 		var soldier_state: SoldierState = fireteam.soldiers[i]
@@ -1157,7 +1157,7 @@ func _refresh_command_bar_light() -> void:
 func _update_command_bar_hit_columns() -> void:
 	if not _should_update_hit_columns():
 		return
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	var hit_pcts: Array = []
 	for state in fireteam.soldiers:
 		var soldier_state: SoldierState = state
@@ -1168,7 +1168,7 @@ func _update_command_bar_hit_columns() -> void:
 func _should_update_hit_columns() -> bool:
 	if _fire_at_mode:
 		return true
-	for state in _session.get_active_fireteam().soldiers:
+	for state in _control_fireteam().soldiers:
 		var soldier_state: SoldierState = state
 		if soldier_state.is_alive() and soldier_state.fire_control_state == FireControlStateClass.FIRE_AT_WILL:
 			return true
@@ -1247,7 +1247,7 @@ func _refresh_view_rotation() -> void:
 
 
 func _center_camera_on_active_fireteam() -> void:
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	var sum := Vector2i.ZERO
 	var count := 0
 	for state in fireteam.soldiers:
@@ -1288,7 +1288,7 @@ func _repair_fireteam_selection(fireteam: Fireteam) -> bool:
 
 
 func _ensure_active_selection_alive() -> void:
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	if _repair_fireteam_selection(fireteam):
 		_command_bar.sync_selected_soldier(fireteam.selected_soldier_id)
 
@@ -1302,7 +1302,7 @@ func _get_fireteam(team_id: int) -> Fireteam:
 
 
 func _any_active_team_soldier_moving() -> bool:
-	for state in _session.get_active_fireteam().soldiers:
+	for state in _control_fireteam().soldiers:
 		var soldier_state: SoldierState = state
 		if _is_soldier_moving(soldier_state):
 			return true
@@ -1343,7 +1343,7 @@ func _on_soldier_selected(soldier_id: int) -> void:
 	if not _session.can_local_control_soldier(_session.active_team_id, soldier_id):
 		_command_bar.show_status("That soldier is not under your control.")
 		return
-	_session.get_active_fireteam().select_soldier(soldier_id)
+	_control_fireteam().select_soldier(soldier_id)
 	_refresh_all_views()
 
 
@@ -1483,6 +1483,8 @@ func _make_move_context(cmd: MoveCommand) -> CommandContextClass:
 		if _iso_map.map_data != _game_state.map_data:
 			_iso_map.apply_map_data(_game_state.map_data)
 	ctx.find_path = _iso_map.find_path
+	if _session != null:
+		ctx.acting_player_id = _session.local_player_id
 	return ctx
 
 
@@ -1495,13 +1497,24 @@ func _make_fire_context(shooters: Array[SoldierState]) -> CommandContextClass:
 	var ctx := CommandContextClass.new()
 	for shooter in shooters:
 		ctx.shooter_ids.append(shooter.soldier_id)
+	if _session != null:
+		ctx.acting_player_id = _session.local_player_id
 	return ctx
 
 
 func _make_grenade_context(soldier_state: SoldierState) -> CommandContextClass:
 	var ctx := CommandContextClass.new()
 	ctx.shooter_ids.append(soldier_state.soldier_id)
+	if _session != null:
+		ctx.acting_player_id = _session.local_player_id
 	return ctx
+
+
+## Local human's owned fireteam (4 soldiers). Not the side aggregate in 2v2.
+func _control_fireteam() -> Fireteam:
+	if _session == null:
+		return null
+	return _session.get_local_control_fireteam()
 
 
 func _apply_grenade_command(target_cell: Vector2i) -> void:
@@ -1541,7 +1554,7 @@ func _apply_grenade_command(target_cell: Vector2i) -> void:
 func _apply_squad_grenade_command(target_cell: Vector2i) -> void:
 	var thrown := 0
 	var last_result: ActionResultClass = null
-	var fireteam: Fireteam = _session.get_active_fireteam()
+	var fireteam: Fireteam = _control_fireteam()
 	for state in fireteam.soldiers:
 		var soldier_state: SoldierState = state
 		if (
@@ -1592,7 +1605,7 @@ func _apply_squad_grenade_command(target_cell: Vector2i) -> void:
 
 func _grenade_preview_shooter() -> SoldierState:
 	if _grenade_soldier_id == CommandBar.SQUAD_ID:
-		var fireteam: Fireteam = _session.get_active_fireteam()
+		var fireteam: Fireteam = _control_fireteam()
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
 			if (
@@ -1653,7 +1666,7 @@ func _apply_position_command(cmd: PositionCommand) -> void:
 func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int) -> void:
 	if soldier_id == CommandBar.SQUAD_ID:
 		var last_result: ActionResultClass = null
-		var fireteam: Fireteam = _session.get_active_fireteam()
+		var fireteam: Fireteam = _control_fireteam()
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
 			if soldier_state == null or soldier_state.is_dead:
@@ -1686,7 +1699,7 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 	if soldier_id == CommandBar.SQUAD_ID:
 		var last_result: ActionResultClass = null
 		var combined_transitions: Array[Dictionary] = []
-		var fireteam: Fireteam = _session.get_active_fireteam()
+		var fireteam: Fireteam = _control_fireteam()
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
 			if soldier_state == null or soldier_state.is_dead or soldier_state.is_stunned():
@@ -1904,7 +1917,7 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 	_move_targeting = is_active
 	_squad_move_targeting = is_active and soldier_id == CommandBar.SQUAD_ID
 	_active_movement_mode = movement_mode
-	_move_soldier_id = soldier_id if soldier_id > 0 else _session.get_active_fireteam().selected_soldier_id
+	_move_soldier_id = soldier_id if soldier_id > 0 else _control_fireteam().selected_soldier_id
 	if is_active:
 		_map_edit_mode = false
 		_command_bar.clear_map_edit_mode()
@@ -1914,7 +1927,7 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 		_face_mode = false
 		_grenade_mode = false
 		if soldier_id > 0:
-			_session.get_active_fireteam().select_soldier(soldier_id)
+			_control_fireteam().select_soldier(soldier_id)
 		var arm_message := _arm_movement_mode(soldier_id, movement_mode)
 		_refresh_selection_marks()
 		_refresh_armed_movement_views(soldier_id)
@@ -1940,7 +1953,7 @@ func _on_fire_at_mode_changed(is_active: bool, soldier_id: int) -> void:
 		_face_mode = false
 		_grenade_mode = false
 		if soldier_id > 0:
-			_session.get_active_fireteam().select_soldier(soldier_id)
+			_control_fireteam().select_soldier(soldier_id)
 			_refresh_all_views()
 	else:
 		_los_visualizer.hide_preview()
@@ -1960,7 +1973,7 @@ func _on_grenade_mode_changed(is_active: bool, soldier_id: int) -> void:
 		_face_mode = false
 		_los_visualizer.hide_preview()
 		if soldier_id > 0:
-			_session.get_active_fireteam().select_soldier(soldier_id)
+			_control_fireteam().select_soldier(soldier_id)
 			_refresh_all_views()
 
 
@@ -1976,7 +1989,7 @@ func _on_face_mode_changed(is_active: bool, soldier_id: int) -> void:
 		_squad_fire_at_mode = false
 		_grenade_mode = false
 		if soldier_id > 0:
-			_session.get_active_fireteam().select_soldier(soldier_id)
+			_control_fireteam().select_soldier(soldier_id)
 			_refresh_all_views()
 
 
@@ -2026,7 +2039,7 @@ func _sync_views_after_load() -> void:
 			view.stop_movement()
 			var is_selected: bool = (
 				soldier_state.team_id == _session.active_team_id
-				and soldier_state.soldier_id == _session.get_active_fireteam().selected_soldier_id
+				and soldier_state.soldier_id == _control_fireteam().selected_soldier_id
 			)
 			view.sync_from_state(soldier_state, is_selected)
 
@@ -2036,7 +2049,7 @@ func _sync_views_after_load() -> void:
 	_command_bar.clear_face_mode()
 	_command_bar.set_active_team(_session.active_team_id)
 	_refresh_all_views()
-	_command_bar.sync_selected_soldier(_session.get_active_fireteam().selected_soldier_id)
+	_command_bar.sync_selected_soldier(_control_fireteam().selected_soldier_id)
 
 
 func _get_world_mouse_local() -> Vector2:
