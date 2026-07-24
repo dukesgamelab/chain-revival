@@ -81,6 +81,15 @@ var _fire_at_preview_accum_sec: float = 0.0
 var _fire_at_hit_accum_sec: float = 0.0
 var _last_fire_at_preview_cell: Vector2i = Vector2i(-999999, -999999)
 const _FIRE_AT_PREVIEW_INTERVAL_SEC := 0.08
+## Fog lookup rebuilt once per need (move/combat), not per soldier per sync.
+var _fog_spotted_cache: Dictionary = {} ## Team.soldier_key -> bool
+var _fog_cache_valid: bool = false
+## Dev counters — verify movers sync without full-roster refresh.
+var _debug_sync_calls_this_tick: int = 0
+var _debug_full_refresh_calls: int = 0
+var _debug_perf_accum_sec: float = 0.0
+const _DEBUG_PERF_INTERVAL_SEC := 1.0
+var _ai_hud_refresh_counter: int = 0
 
 
 func _ready() -> void:
@@ -200,11 +209,14 @@ func _process(delta: float) -> void:
 				_fire_at_hit_accum_sec = 0.0
 				_update_command_bar_hit_columns()
 
-
 func _update_los_preview_throttled(delta: float) -> void:
 	if not _fire_at_mode and not _grenade_mode:
 		_los_visualizer.hide_preview()
 		_last_fire_at_preview_cell = Vector2i(-999999, -999999)
+		return
+	## Skip work when there is no valid shooter selection.
+	if _fire_at_mode and _get_manual_fire_at_shooters().is_empty():
+		_los_visualizer.hide_preview()
 		return
 	_fire_at_preview_accum_sec += delta
 	var aim_world := _get_world_mouse_local()
@@ -261,18 +273,29 @@ func _step_simulation_tick() -> void:
 	_combat_scan_accum_msec -= scan_msec
 	var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
 	_present_action_result(tick_result, true)
-	_refresh_ai_plan_hud()
+	## Debug HUD — every 4th combat scan (~2s) is enough while AI is active.
+	_ai_hud_refresh_counter += 1
+	if _ai_hud_refresh_counter >= 4:
+		_ai_hud_refresh_counter = 0
+		_refresh_ai_plan_hud()
 
 
 func _present_movement_tick_result(result: ActionResultClass) -> void:
 	if result == null:
 		return
+	_debug_sync_calls_this_tick = 0
+	## Per-tick movement: chase position only. Do NOT invalidate fog every step —
+	## that forced player-visibility rebuilds while many AI units marched (late-game hitch).
 	for step in result.movement_steps:
 		var step_view: Soldier = _get_view(int(step.team_id), int(step.soldier_id))
 		var step_state: SoldierState = _game_state.get_soldier(int(step.team_id), int(step.soldier_id))
 		if step_view != null and step_state != null:
 			step_view.sync_movement_chase_from_state(step_state)
+			_debug_sync_calls_this_tick += 1
+
+	var had_completion := false
 	for done in result.movement_completions:
+		had_completion = true
 		var team_id := int(done.team_id)
 		var soldier_id := int(done.soldier_id)
 		var state: SoldierState = _game_state.get_soldier(team_id, soldier_id)
@@ -282,17 +305,49 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 				team_id == _session.active_team_id
 				and soldier_id == _control_fireteam().selected_soldier_id
 			)
+			## Only the soldier that finished — never the whole roster.
 			_sync_soldier_view(team_id, soldier_id, is_selected)
+			_debug_sync_calls_this_tick += 1
 		_log_move_complete(soldier_id, state, view)
 		if team_id == _session.active_team_id and not _any_active_team_soldier_moving():
 			_iso_map.clear_path()
 		_ensure_active_selection_alive()
-		_refresh_command_bar()
 		_command_bar.show_status(
 			"%s Soldier %d move complete." % [Team.display_name(team_id), soldier_id]
 		)
+
+	if had_completion:
+		## Fog at completion cadence (combat scan also refreshes) — not every step.
+		_invalidate_fog_cache()
+		_refresh_enemy_spotting_visuals()
+		_refresh_command_bar()
+
+	## Movement ticks must never full-roster refresh (refresh_views is false from resolver).
 	if result.refresh_views:
-		_refresh_all_views()
+		_refresh_enemy_spotting_visuals()
+
+
+func _log_presentation_perf_if_moving() -> void:
+	if _game_state == null or _session == null:
+		return
+	var movers := 0
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			if state != null and state.is_moving:
+				movers += 1
+	if movers <= 0:
+		return
+	var fps := Performance.get_monitor(Performance.TIME_FPS)
+	var process_msec := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	GameLog.log_system(
+		"present_perf movers=%d last_tick_syncs=%d full_refresh_total=%d fps=%.0f process_ms=%.2f" % [
+			movers,
+			_debug_sync_calls_this_tick,
+			_debug_full_refresh_calls,
+			fps,
+			process_msec,
+		]
+	)
 
 
 func _combat_scan_interval_msec() -> int:
@@ -702,6 +757,8 @@ func _on_command_dialog_closed() -> void:
 		_command_bar.set_deployment_phase(false)
 		_command_bar.append_chat_system("ATTENTION: Scenario Running")
 	_command_bar.show_status("Deployment complete. Chain of command ready.")
+	_invalidate_fog_cache()
+	_refresh_enemy_spotting_visuals()
 	_refresh_ai_plan_hud()
 
 
@@ -906,6 +963,7 @@ func _switch_active_team(team_id: int) -> void:
 			return
 	if team_id == _session.active_team_id:
 		return
+	_invalidate_fog_cache()
 	_session.set_active_team(team_id)
 	_move_targeting = false
 	_squad_move_targeting = false
@@ -996,6 +1054,9 @@ func _toggle_debug_targeting_overlays() -> void:
 
 
 func _spawn_all_soldier_views() -> void:
+	var movers_root: Node2D = _depth_sorted
+	if _depth_sorted != null and _depth_sorted.has_method("get_movers_root"):
+		movers_root = _depth_sorted.get_movers_root()
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
@@ -1006,14 +1067,17 @@ func _spawn_all_soldier_views() -> void:
 			view.movement_finished.connect(_on_soldier_movement_finished)
 			view.stance_transition_finished.connect(_on_soldier_stance_transition_finished)
 			view.stance_transition_cancelled.connect(_on_soldier_stance_transition_cancelled)
-			_depth_sorted.add_child(view)
+			movers_root.add_child(view)
 			_soldier_views[Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)] = view
 
 
 func _refresh_all_views() -> void:
+	_debug_full_refresh_calls += 1
+	_invalidate_fog_cache()
 	_apply_spotting_cell_overrides()
 	var active_team: int = _session.active_team_id
 	var active_fireteam: Fireteam = _control_fireteam()
+	_rebuild_fog_cache_if_needed()
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
@@ -1030,9 +1094,9 @@ func _refresh_all_views() -> void:
 
 ## Cheap fog-of-war update: only enemy modulate/selection, no full anim/facing resync.
 func _refresh_enemy_spotting_visuals() -> void:
+	_rebuild_fog_cache_if_needed()
 	var active_team: int = _session.active_team_id
 	var active_fireteam: Fireteam = _control_fireteam()
-	var viewer_player_id := _fog_viewer_player_id()
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
@@ -1045,7 +1109,7 @@ func _refresh_enemy_spotting_visuals() -> void:
 				soldier_state.team_id == active_team
 				and soldier_state.soldier_id == active_fireteam.selected_soldier_id
 			)
-			var is_spotted := _is_enemy_spotted_for_viewer(viewer_player_id, active_team, soldier_state)
+			var is_spotted := _cached_enemy_spotted(soldier_state)
 			view.apply_spotting_only(is_selected, is_spotted)
 
 
@@ -1074,12 +1138,46 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		return
 	var is_spotted := true
 	if soldier_state.team_id != _session.active_team_id and soldier_state.is_alive():
-		is_spotted = _is_enemy_spotted_for_viewer(
-			_fog_viewer_player_id(),
-			_session.active_team_id,
-			soldier_state,
-		)
+		is_spotted = _cached_enemy_spotted(soldier_state)
 	view.sync_from_state(soldier_state, is_selected, is_spotted)
+
+
+func _invalidate_fog_cache() -> void:
+	_fog_cache_valid = false
+	_fog_spotted_cache.clear()
+
+
+func _rebuild_fog_cache_if_needed() -> void:
+	if _fog_cache_valid:
+		return
+	_fog_spotted_cache.clear()
+	if _session == null or _game_state == null:
+		_fog_cache_valid = true
+		return
+	var viewer_player_id := _fog_viewer_player_id()
+	var active_team: int = _session.active_team_id
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if soldier_state.team_id == active_team or not soldier_state.is_alive():
+				continue
+			var key := Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)
+			_fog_spotted_cache[key] = _is_enemy_spotted_for_viewer(
+				viewer_player_id,
+				active_team,
+				soldier_state,
+			)
+	_fog_cache_valid = true
+
+
+func _cached_enemy_spotted(enemy: SoldierState) -> bool:
+	if enemy == null:
+		return false
+	if _session != null and enemy.team_id == _session.active_team_id:
+		return true
+	_rebuild_fog_cache_if_needed()
+	var key := Team.soldier_key(enemy.team_id, enemy.soldier_id)
+	return bool(_fog_spotted_cache.get(key, false))
 
 
 ## Fog viewer: local player when on the active team; else first hierarchy player on that team.
@@ -1397,14 +1495,32 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		_spawn_grenade_explosions(result.grenade_explosions)
 		_trigger_grenade_death_animations(result.grenade_explosions)
 
-	if result.refresh_views:
+	if not result.move_orders.is_empty():
+		## Move orders: sync only affected soldiers (chase), not the whole roster.
+		_invalidate_fog_cache()
+		for order in result.move_orders:
+			var tid := int(order.get("team_id", -1))
+			var sid := int(order.get("soldier_id", -1))
+			var state: SoldierState = _game_state.get_soldier(tid, sid)
+			var view: Soldier = _get_view(tid, sid)
+			if view != null and state != null:
+				view.sync_movement_chase_from_state(state)
+		_refresh_enemy_spotting_visuals()
+		_refresh_command_bar_light()
+	elif result.refresh_views:
 		_ensure_active_selection_alive()
 		_refresh_all_views()
 		_refresh_command_bar()
 	elif combat_tick:
 		## Spotting + light UI at combat-scan cadence without full sync_from_state
 		## or duplicate hit% LOS work (_refresh_command_bar already fills hit%).
-		_refresh_enemy_spotting_visuals()
+		## Skip fog visuals when the viewer's visible-enemy set did not change.
+		CombatSystem.ensure_visibility_readable(_game_state)
+		var viewer_pid := _fog_viewer_player_id()
+		var vis_changed: Array[int] = CombatSystem.players_with_visibility_changes()
+		if vis_changed.has(viewer_pid):
+			_invalidate_fog_cache()
+			_refresh_enemy_spotting_visuals()
 		_refresh_command_bar_light()
 
 	for order in result.throw_orders:

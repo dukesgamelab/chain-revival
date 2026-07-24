@@ -8,6 +8,7 @@ const AiOrderClass := preload("res://scripts/ai/ai_order.gd")
 const AiCommanderStateClass := preload("res://scripts/ai/ai_commander_state.gd")
 const AiObjectiveClass := preload("res://scripts/ai/ai_objective.gd")
 const AiSectorObjectivesClass := preload("res://scripts/ai/ai_sector_objectives.gd")
+const AiBattlefieldSnapshotClass := preload("res://scripts/ai/ai_battlefield_snapshot.gd")
 const MoveCommandClass := preload("res://scripts/commands/move_command.gd")
 const FaceCommandClass := preload("res://scripts/commands/face_command.gd")
 const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
@@ -15,16 +16,21 @@ const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd"
 const CommandContextClass := preload("res://scripts/core/command_context.gd")
 const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
 
+## TEMP DIAGNOSTIC (lag isolation): every AI only marches to the enemy spawn anchor.
+## No plans / contact / cover / fire / grenades. Set false to restore full AI.
+## Tests force this off in _ready so commander behavior suites still run.
+static var DIAGNOSTIC_SIMPLE_RUSH: bool = true
+
 ## TUNED — replan cadence (msec). Not recovered.
-const DEFAULT_REPLAN_INTERVAL_MSEC := 1500
+const DEFAULT_REPLAN_INTERVAL_MSEC := 2000
 ## TUNED — max Move/Face/Fire/Grenade submits per think tick.
 const MAX_COMMANDS_PER_TICK := 2
 ## TUNED — consider objective reached within this Manhattan distance.
 const OBJECTIVE_ARRIVE_DIST := 2
 ## TUNED — grenade only if clustered enemies within this Chebyshev range of impact.
 const GRENADE_CLUSTER_CHEBYSHEV := 2
-## TUNED — while fighting, only press forward if this far from the objective.
-const FIGHT_ADVANCE_MIN_DIST := 6
+## TUNED — max distance to sprint to cover on contact.
+const COVER_SEEK_MAX_DIST := 10
 
 ## Extension hooks (unused now — future suppression/morale/difficulty/personality).
 var aggression: float = 1.0
@@ -43,6 +49,10 @@ var last_replan_msec: int = -999999
 var needs_replan: bool = true
 var _commands_this_tick: int = 0
 var _debug_last_action: String = ""
+## After first cover bound on a contact, stay put until contact lost.
+var _took_cover_this_contact: bool = false
+## Shared snapshot for this think (set by framework; tests may leave null).
+var _snapshot: AiBattlefieldSnapshotClass = null
 
 
 func _init(p_player_id: int = -1) -> void:
@@ -113,14 +123,18 @@ func debug_snapshot(game_state) -> Dictionary:
 
 
 ## One think step. submit_command: Callable(command, context) -> ActionResult
+## snapshot: shared battlefield read from the framework (preferred). If null, builds a
+## one-commander snapshot for tests — still no forced LOS rebuild.
 func tick(
 	game_state,
 	find_path: Callable,
 	submit_command: Callable,
 	claimed_objectives: Array[Vector2i],
 	now_msec: int,
+	snapshot: AiBattlefieldSnapshotClass = null,
 ) -> Vector2i:
 	_commands_this_tick = 0
+	_snapshot = snapshot
 	if game_state == null or player_id <= 0:
 		return Vector2i(-999, -999)
 	if not game_state.command_hierarchy.is_ai_player(player_id):
@@ -128,7 +142,14 @@ func tick(
 	if game_state.is_deployment_phase():
 		return Vector2i(-999, -999)
 
-	var visible := _visible_enemies(game_state)
+	## TEMP: ignore plans/orders/combat — just walk to enemy deployment.
+	if DIAGNOSTIC_SIMPLE_RUSH:
+		return _tick_simple_rush(game_state, find_path, submit_command)
+
+	if _snapshot == null:
+		_snapshot = AiBattlefieldSnapshotClass.build(game_state, [player_id])
+
+	var visible: Array = _snapshot.visible_for(player_id)
 	_update_current_target(visible)
 	_sync_human_order_from_hierarchy(game_state)
 
@@ -139,6 +160,25 @@ func tick(
 
 	_run_state(game_state, find_path, submit_command, visible)
 
+	if current_objective != null and current_objective.is_valid():
+		return current_objective.cell
+	return Vector2i(-999, -999)
+
+
+## DIAGNOSTIC only: march to enemy spawn. No fire/cover/replan/visibility.
+func _tick_simple_rush(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+) -> Vector2i:
+	if _snapshot == null:
+		_snapshot = AiBattlefieldSnapshotClass.build(game_state, [player_id], true)
+	current_objective = AiSectorObjectivesClass.enemy_deployment_objective(game_state, player_id)
+	state_id = AiCommanderStateClass.ADVANCE
+	current_target_key = ""
+	human_order_id = AiOrderClass.ID_NONE
+	if not _fireteam_is_moving(game_state):
+		_move_toward_objective(game_state, find_path, submit_command)
 	if current_objective != null and current_objective.is_valid():
 		return current_objective.cell
 	return Vector2i(-999, -999)
@@ -173,7 +213,6 @@ func _replan(game_state, claimed: Array[Vector2i], visible: Array) -> void:
 		AiOrderClass.ID_FACE_DIRECTION:
 			return
 		AiOrderClass.ID_ATTACK:
-			## Fall through to plan objectives but prefer aggression.
 			pass
 
 	var plan := get_active_plan(game_state)
@@ -192,6 +231,7 @@ func _replan(game_state, claimed: Array[Vector2i], visible: Array) -> void:
 			AiCommanderStateClass.PLAN, AiCommanderStateClass.MOVE, \
 			AiCommanderStateClass.ADVANCE, AiCommanderStateClass.OBJECTIVE_COMPLETE:
 				state_id = AiCommanderStateClass.CONTACT
+				_took_cover_this_contact = false
 	elif state_id == AiCommanderStateClass.OBJECTIVE_COMPLETE or state_id == AiCommanderStateClass.PLAN:
 		state_id = AiCommanderStateClass.MOVE
 
@@ -209,56 +249,61 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 		AiCommanderStateClass.MOVE, AiCommanderStateClass.ADVANCE:
 			if not visible.is_empty():
 				state_id = AiCommanderStateClass.CONTACT
-			else:
+				_took_cover_this_contact = false
+				_engage_contact(game_state, find_path, submit_command, visible)
+			elif not _fireteam_is_moving(game_state):
 				_move_toward_objective(game_state, find_path, submit_command)
 				if _objective_reached(game_state):
 					state_id = AiCommanderStateClass.OBJECTIVE_COMPLETE
 					request_replan("objective_complete")
 		AiCommanderStateClass.CONTACT:
+			_engage_contact(game_state, find_path, submit_command, visible)
 			state_id = AiCommanderStateClass.FIGHT
-			## Orient FT first when needed; fire still same think tick.
-			_face_threat(game_state, submit_command, visible)
-			_try_fire(game_state, submit_command, visible)
-			_try_grenade(game_state, submit_command, visible)
 		AiCommanderStateClass.FIGHT:
-			## Fire first in sustained contact so budget isn't only re-facing.
-			_try_fire(game_state, submit_command, visible)
-			_try_grenade(game_state, submit_command, visible)
-			_face_threat(game_state, submit_command, visible)
 			if visible.is_empty():
+				_took_cover_this_contact = false
 				if AiOrderClass.normalize_id(human_order_id) == AiOrderClass.ID_HOLD:
 					state_id = AiCommanderStateClass.FIGHT
 				else:
 					state_id = AiCommanderStateClass.ADVANCE
 					request_replan("contact_lost")
-			elif AiOrderClass.normalize_id(human_order_id) in [
-				AiOrderClass.ID_ATTACK,
-				AiOrderClass.ID_NONE,
-				"",
-			]:
-				## Occasional press — only if still far and the fireteam is idle.
-				if (
-					get_active_plan(game_state) != AiPlanClass.ID_DEFEND
-					and _formation_objective_distance(game_state) >= FIGHT_ADVANCE_MIN_DIST
-				):
-					_move_toward_objective(game_state, find_path, submit_command)
+			else:
+				## Stand and fight — do not push the objective while enemies are visible.
+				_engage_contact(game_state, find_path, submit_command, visible)
 		AiCommanderStateClass.OBJECTIVE_COMPLETE:
 			state_id = AiCommanderStateClass.PLAN
 		_:
 			state_id = AiCommanderStateClass.PLAN
 
 
-func _visible_enemies(game_state) -> Array:
-	var out: Array = []
-	var keys: Array = game_state.get_visible_enemies(player_id)
-	for key in keys:
-		var parts := str(key).split(":")
-		if parts.size() < 2:
-			continue
-		var enemy = game_state.get_soldier(int(parts[0]), int(parts[1]))
-		if enemy != null and not enemy.is_dead:
-			out.append(enemy)
-	return out
+## Halt (via Fire), take cover once, face, and fire. Safe to call while moving.
+func _engage_contact(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+	visible: Array,
+) -> void:
+	if visible.is_empty():
+		return
+	var threat = visible[0]
+	var center := _formation_center(game_state)
+	var threat_dist := (
+		absi(center.x - threat.grid_position.x) + absi(center.y - threat.grid_position.y)
+	)
+	## Outside close range: bound to cover once, then fire on a later think.
+	if (
+		not _took_cover_this_contact
+		and not _fireteam_is_moving(game_state)
+		and threat_dist >= 4
+	):
+		if _try_take_cover(game_state, find_path, submit_command, visible):
+			_took_cover_this_contact = true
+			return
+		_took_cover_this_contact = true
+	## Face then fire (FireCommand also halts movers). Grenade last — command budget is 2.
+	_face_threat(game_state, submit_command, visible)
+	_try_fire(game_state, submit_command, visible)
+	_try_grenade(game_state, submit_command, visible)
 
 
 func _update_current_target(visible: Array) -> void:
@@ -289,7 +334,9 @@ func _formation_objective_distance(game_state) -> int:
 
 
 func _living_soldiers(game_state) -> Array:
-	## Owned fireteam only — never other players' soldiers on the same side.
+	## Prefer shared snapshot — avoid re-walking hierarchy per helper call.
+	if _snapshot != null:
+		return _snapshot.living_for(player_id)
 	var out: Array = []
 	var ids: Array = game_state.command_hierarchy.get_soldier_ids(player_id)
 	var team_id: int = game_state.command_hierarchy.get_team_id(player_id)
@@ -301,6 +348,8 @@ func _living_soldiers(game_state) -> Array:
 
 
 func _fireteam_is_moving(game_state) -> bool:
+	if _snapshot != null:
+		return _snapshot.is_moving(player_id)
 	for soldier in _living_soldiers(game_state):
 		if soldier.is_moving:
 			return true
@@ -325,7 +374,6 @@ func _move_toward_objective(game_state, find_path: Callable, submit_command: Cal
 		return
 	if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
 		return
-	## One fireteam order — wait until the whole FT finishes before re-pathing.
 	if _fireteam_is_moving(game_state):
 		return
 	var lead = _lead_soldier(game_state)
@@ -338,7 +386,6 @@ func _move_toward_objective(game_state, find_path: Callable, submit_command: Cal
 	cmd.team_id = lead.team_id
 	cmd.soldier_id = lead.soldier_id
 	cmd.target_cell = target
-	## SQUAD + acting_player_id → ActionResolver moves only this player's owned FT.
 	cmd.scope = MoveCommandClass.Scope.SQUAD
 	cmd.movement_mode = MovementModeClass.RUN
 	var ctx := _make_context(find_path)
@@ -348,6 +395,45 @@ func _move_toward_objective(game_state, find_path: Callable, submit_command: Cal
 		_debug_last_action = "move FT→%s" % target
 
 
+func _try_take_cover(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+	visible: Array,
+) -> bool:
+	if visible.is_empty() or _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+		return false
+	if _fireteam_is_moving(game_state):
+		return false
+	var threat = visible[0]
+	var center := _formation_center(game_state)
+	var cover := AiSectorObjectivesClass.nearest_cover_within(
+		game_state,
+		center,
+		threat.grid_position,
+		COVER_SEEK_MAX_DIST,
+	)
+	if cover.x <= -900:
+		return false
+	if absi(cover.x - center.x) + absi(cover.y - center.y) <= 1:
+		return false
+	var lead = _lead_soldier(game_state)
+	if lead == null:
+		return false
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = lead.team_id
+	cmd.soldier_id = lead.soldier_id
+	cmd.target_cell = cover
+	cmd.scope = MoveCommandClass.Scope.SQUAD
+	cmd.movement_mode = MovementModeClass.RUN
+	var result = submit_command.call(cmd, _make_context(find_path))
+	if result != null and result.success:
+		_commands_this_tick += 1
+		_debug_last_action = "cover→%s" % cover
+		return true
+	return false
+
+
 func _face_threat(game_state, submit_command: Callable, visible: Array) -> void:
 	if visible.is_empty() or _commands_this_tick >= MAX_COMMANDS_PER_TICK:
 		return
@@ -355,7 +441,6 @@ func _face_threat(game_state, submit_command: Callable, visible: Array) -> void:
 	var lead = _lead_soldier(game_state)
 	if lead == null:
 		return
-	## Skip if the whole owned FT already faces the threat.
 	var needs_face := false
 	for soldier in _living_soldiers(game_state):
 		if not CombatSystem.is_facing_target(soldier, threat):
@@ -399,12 +484,14 @@ func _try_fire(game_state, submit_command: Callable, visible: Array) -> void:
 	var lead = _lead_soldier(game_state)
 	if lead == null:
 		return
-	## Owned fireteam shooters only (idle + ammo).
+	## Already engaged on this threat — combat tick sustains fire.
+	if _fireteam_already_engaging(game_state, threat):
+		current_target_key = "%d:%d" % [threat.team_id, threat.soldier_id]
+		return
+	## Include movers — FireCommand halts them so the FT stops to shoot.
 	var shooters: Array[int] = []
 	for soldier in _living_soldiers(game_state):
 		if soldier.ammo_current <= 0:
-			continue
-		if soldier.is_moving:
 			continue
 		shooters.append(soldier.soldier_id)
 	if shooters.is_empty():
@@ -425,10 +512,27 @@ func _try_fire(game_state, submit_command: Callable, visible: Array) -> void:
 		current_target_key = "%d:%d" % [threat.team_id, threat.soldier_id]
 
 
+func _fireteam_already_engaging(game_state, threat) -> bool:
+	if threat == null:
+		return false
+	var engaged := 0
+	var ready := 0
+	for soldier in _living_soldiers(game_state):
+		if soldier.ammo_current <= 0:
+			continue
+		ready += 1
+		if (
+			soldier.is_sustained_fire()
+			and soldier.engaged_target_team_id == threat.team_id
+			and soldier.engaged_target_soldier_id == threat.soldier_id
+		):
+			engaged += 1
+	return ready > 0 and engaged >= ready
+
+
 func _try_grenade(game_state, submit_command: Callable, visible: Array) -> void:
 	if visible.is_empty() or _commands_this_tick >= MAX_COMMANDS_PER_TICK:
 		return
-	## Require a small cluster — avoid wasting grenades.
 	var impact: Vector2i = visible[0].grid_position
 	var cluster := 0
 	for enemy in visible:
@@ -443,6 +547,8 @@ func _try_grenade(game_state, submit_command: Callable, visible: Array) -> void:
 		if soldier.grenade_count <= 0:
 			continue
 		if soldier.has_pending_grenade():
+			continue
+		if soldier.is_moving:
 			continue
 		var cmd := GrenadeCommandClass.new()
 		cmd.team_id = soldier.team_id

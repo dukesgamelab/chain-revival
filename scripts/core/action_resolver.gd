@@ -217,7 +217,11 @@ static func on_movement_step(
 	tile: Vector2i,
 	step_delta: Vector2i,
 ) -> void:
+	var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
+	var from_cell := soldier.grid_position if soldier != null else tile
 	game_state.session.get_fireteam(team_id).on_soldier_reached_tile(soldier_id, tile, step_delta)
+	if soldier != null:
+		game_state.notify_soldier_cell_changed(soldier, from_cell, tile)
 
 
 ## Authoritative movement finished — clears path flags on SoldierState.
@@ -371,6 +375,20 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 	return result
 
 
+## Resolve the fireteam a command should iterate. AI / MP use acting_player_id so we
+## hit the owned FT (4) instead of the side aggregate (8 in 2v2).
+static func _order_fireteam(
+	game_state: GameStateClass,
+	team_id: int,
+	context: CommandContext,
+) -> Fireteam:
+	if context != null and int(context.acting_player_id) > 0:
+		var owned: Fireteam = game_state.session.get_fireteam_for_player(int(context.acting_player_id))
+		if owned != null and owned.team_id == team_id:
+			return owned
+	return game_state.session.get_fireteam(team_id)
+
+
 static func execute_move(
 	game_state: GameStateClass,
 	cmd: MoveCommandClass,
@@ -384,13 +402,18 @@ static func execute_move(
 			return ActionResult.fail("That tile is blocked.")
 		return ActionResult.fail("That tile is outside the map.")
 
-	var fireteam := game_state.session.get_fireteam(cmd.team_id)
+	var fireteam := _order_fireteam(game_state, cmd.team_id, context)
 	var result := ActionResult.new()
 
 	if cmd.scope == MoveCommandClass.Scope.SQUAD:
 		var ordered_count := 0
 		var notices: Array[String] = []
 		var squad_mode_label := MovementModeClass.display_name(cmd.movement_mode).to_lower()
+		## Formation slots so the FT does not stack on one cell. Lead A* then translate
+		## when the offset path stays walkable; otherwise pathfind that member's slot.
+		var lead_path: Array[Vector2i] = []
+		var lead_start := Vector2i(-999, -999)
+		var member_index := 0
 		for state in fireteam.soldiers:
 			var squad_soldier: SoldierState = state
 			if not _can_order_soldier(game_state, cmd.team_id, squad_soldier.soldier_id, context):
@@ -400,10 +423,47 @@ static func execute_move(
 				if not squad_move_result.message.is_empty():
 					notices.append(squad_move_result.message)
 				continue
-			if _assign_move_path(
-				game_state, context, fireteam, squad_soldier,
-				cmd, result, squad_move_result.mode, squad_move_result.message,
-			):
+			var member_target := _squad_formation_cell(
+				game_state.map_data, cmd.target_cell, member_index
+			)
+			member_index += 1
+			var assigned := false
+			if not lead_path.is_empty() and lead_start.x > -900:
+				assigned = _assign_translated_squad_path(
+					game_state,
+					context,
+					fireteam,
+					squad_soldier,
+					cmd,
+					result,
+					squad_move_result.mode,
+					lead_path,
+					lead_start,
+					member_target,
+				)
+			if not assigned:
+				assigned = _assign_move_path(
+					game_state,
+					context,
+					fireteam,
+					squad_soldier,
+					cmd,
+					result,
+					squad_move_result.mode,
+					squad_move_result.message,
+					member_target,
+				)
+				if assigned and lead_path.is_empty() and not result.move_orders.is_empty():
+					var last: Dictionary = result.move_orders[result.move_orders.size() - 1]
+					if int(last.get("soldier_id", -1)) == squad_soldier.soldier_id:
+						var raw_path: Variant = last.get("path", [])
+						lead_path.clear()
+						if raw_path is Array:
+							for cell in raw_path:
+								lead_path.append(Vector2i(cell))
+						if not lead_path.is_empty():
+							lead_start = lead_path[0]
+			if assigned:
 				ordered_count += 1
 				if not squad_move_result.message.is_empty():
 					notices.append(squad_move_result.message)
@@ -417,6 +477,8 @@ static func execute_move(
 		]
 		if not notices.is_empty():
 			squad_status += "\n" + "\n".join(notices)
+		## Presentation: only movers need chase sync — not a full roster refresh.
+		result.refresh_views = false
 		return result.set_status(squad_status)
 
 	if not _can_order_soldier(game_state, cmd.team_id, cmd.soldier_id, context):
@@ -448,6 +510,8 @@ static func execute_move(
 		"cells": soldier_state.current_path,
 		"target": cmd.target_cell,
 	}
+	## Presentation: only this mover needs chase sync — not a full roster refresh.
+	result.refresh_views = false
 	var status := "%s Soldier %d %s to %s — click another tile to redirect." % [
 		Team.display_name(cmd.team_id), cmd.soldier_id, mode_label, cmd.target_cell,
 	]
@@ -485,7 +549,7 @@ static func _execute_face_squad(
 	cmd: FaceCommandClass,
 	context: CommandContext = null,
 ) -> ActionResult:
-	var fireteam := game_state.session.get_fireteam(cmd.team_id)
+	var fireteam := _order_fireteam(game_state, cmd.team_id, context)
 	var faced := 0
 	var result := ActionResult.new()
 	for state in fireteam.soldiers:
@@ -626,7 +690,7 @@ static func execute_fire(
 	if context == null or cmd.aim_world == Vector2.ZERO:
 		return ActionResult.fail("Fire command requires aim_world.")
 
-	var fireteam := game_state.session.get_fireteam(cmd.team_id)
+	var fireteam := _order_fireteam(game_state, cmd.team_id, context)
 	var shooter_ids := _resolve_shooter_ids(fireteam, cmd, context)
 	if shooter_ids.is_empty():
 		return ActionResult.fail("No available soldiers to fire.")
@@ -935,6 +999,27 @@ static func arm_movement_mode_for_soldier(
 	return "\n".join(lines)
 
 
+static func _squad_formation_cell(map_data: MapData, base: Vector2i, index: int) -> Vector2i:
+	## Compact diamond around the click/objective so the FT does not stack.
+	var offsets: Array[Vector2i] = [
+		Vector2i(0, 0),
+		Vector2i(1, 0),
+		Vector2i(0, 1),
+		Vector2i(1, 1),
+		Vector2i(-1, 0),
+		Vector2i(0, -1),
+		Vector2i(-1, 1),
+		Vector2i(1, -1),
+	]
+	var offset: Vector2i = offsets[index % offsets.size()]
+	var cell := base + offset
+	if map_data != null and map_data.is_walkable(cell):
+		return cell
+	if map_data != null and map_data.is_walkable(base):
+		return base
+	return cell
+
+
 static func _assign_move_path(
 	game_state: GameStateClass,
 	context: CommandContext,
@@ -944,6 +1029,7 @@ static func _assign_move_path(
 	result: ActionResult,
 	resolved_mode: int = -1,
 	_notice: String = "",
+	target_override: Vector2i = Vector2i(-999, -999),
 ) -> bool:
 	if state.is_dead:
 		return false
@@ -968,12 +1054,13 @@ static func _assign_move_path(
 		state.clear_path()
 		start_cell = state.grid_position
 
-	if cmd.target_cell == start_cell:
+	var target_cell := cmd.target_cell if target_override.x <= -900 else target_override
+	if target_cell == start_cell:
 		return false
-	if not game_state.map_data.is_walkable(cmd.target_cell):
+	if not game_state.map_data.is_walkable(target_cell):
 		return false
 
-	var path: Array[Vector2i] = context.find_path.call(start_cell, cmd.target_cell)
+	var path: Array[Vector2i] = context.find_path.call(start_cell, target_cell)
 	if path.is_empty():
 		return false
 	## Reject any path that still contains blocked climb/NoPass cells.
@@ -981,6 +1068,69 @@ static func _assign_move_path(
 		if game_state.map_data.is_blocked(path[i]):
 			return false
 
+	state.movement_mode = mode
+	var speed_mult := (
+		MovementModeClass.speed_multiplier(mode)
+		* CombatSystem.get_stress_movement_modifier(state.stress)
+	)
+	fireteam.order_path(state.soldier_id, path, speed_mult)
+	result.move_orders.append({
+		"team_id": state.team_id,
+		"soldier_id": state.soldier_id,
+		"path": path,
+		"speed_mult": speed_mult,
+	})
+	return true
+
+
+## Reuse lead A* by translating the path by (follower_start - lead_start). Falls back if blocked.
+static func _assign_translated_squad_path(
+	game_state: GameStateClass,
+	context: CommandContext,
+	fireteam: Fireteam,
+	state: SoldierState,
+	cmd: MoveCommandClass,
+	result: ActionResult,
+	resolved_mode: int,
+	lead_path: Array[Vector2i],
+	lead_start: Vector2i,
+	member_target: Vector2i = Vector2i(-999, -999),
+) -> bool:
+	if state.is_dead or lead_path.is_empty():
+		return false
+	var mode := resolved_mode if resolved_mode >= 0 else cmd.movement_mode
+	if CombatSystem.is_stress_panicked(state.stress) or state.is_stunned():
+		return false
+	if not _validate_move(state, mode).is_empty():
+		return false
+	var start_cell := _start_cell_for_soldier(context, state)
+	if state.is_moving:
+		result.movement_halts.append({
+			"team_id": state.team_id,
+			"soldier_id": state.soldier_id,
+			"snap_cell": state.grid_position,
+		})
+		state.clear_path()
+		start_cell = state.grid_position
+	if start_cell == lead_start:
+		return false
+	var delta := start_cell - lead_start
+	var path: Array[Vector2i] = []
+	for cell in lead_path:
+		var step: Vector2i = cell + delta
+		if step != start_cell and not game_state.map_data.is_walkable(step):
+			return false
+		if step != start_cell and game_state.map_data.is_blocked(step):
+			return false
+		path.append(step)
+	if path.is_empty() or path[0] != start_cell:
+		return false
+	if path[path.size() - 1] == start_cell:
+		return false
+	## Snap the end onto this member's formation slot when translation drifts.
+	if member_target.x > -900 and path[path.size() - 1] != member_target:
+		if game_state.map_data.is_walkable(member_target):
+			path[path.size() - 1] = member_target
 	state.movement_mode = mode
 	var speed_mult := (
 		MovementModeClass.speed_multiplier(mode)

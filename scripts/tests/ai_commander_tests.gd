@@ -28,6 +28,8 @@ var _submitted: Array = []
 
 
 func _ready() -> void:
+	## Diagnostic rush mode is for live lag isolation — keep full AI for these suites.
+	AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH = false
 	_test_reads_assigned_plan()
 	_test_chooses_objectives()
 	_test_submits_move_face_fire_grenade()
@@ -141,8 +143,12 @@ func _make_framework(game_state: GameStateClass) -> AiCommanderFrameworkClass:
 	fw.submit_override = func(command: RefCounted, context: CommandContextClass):
 		_submitted.append(command)
 		return ActionResolverClass.execute(game_state, command, context)
-	fw._tick_counter = AiCommanderFrameworkClass.THINK_EVERY_N_TICKS - 1
+	fw._tick_counter = 0
 	return fw
+
+
+func _think_cycle(fw: AiCommanderFrameworkClass, gs: GameStateClass) -> void:
+	fw.tick_full_cycle(gs)
 
 
 func _test_reads_assigned_plan() -> void:
@@ -159,7 +165,7 @@ func _test_reads_assigned_plan() -> void:
 func _test_chooses_objectives() -> void:
 	var gs := _make_game_state()
 	var fw := _make_framework(gs)
-	fw.tick(gs)
+	_think_cycle(fw, gs)
 	for commander in fw.all_commanders():
 		_assert(
 			"commander has objective after think",
@@ -174,8 +180,7 @@ func _test_submits_move_face_fire_grenade() -> void:
 	## Phase A: distant — should issue Move toward sector objective.
 	_submitted.clear()
 	for _i in 3:
-		fw._tick_counter = AiCommanderFrameworkClass.THINK_EVERY_N_TICKS - 1
-		fw.tick(gs)
+		_think_cycle(fw, gs)
 		SimulationClock.advance_msec(900)
 	var saw_move := false
 	for cmd in _submitted:
@@ -214,8 +219,7 @@ func _test_submits_move_face_fire_grenade() -> void:
 		commander_b.request_replan("test_contact")
 	_submitted.clear()
 	for _i in 8:
-		fw._tick_counter = AiCommanderFrameworkClass.THINK_EVERY_N_TICKS - 1
-		fw.tick(gs)
+		_think_cycle(fw, gs)
 		SimulationClock.advance_msec(900)
 
 	var saw_face := false
@@ -261,8 +265,7 @@ func _test_submits_move_face_fire_grenade() -> void:
 		commander_b.state_id = AiCommanderStateClass.FIGHT
 		commander_b.request_replan("test_grenade")
 	for _i in 6:
-		fw._tick_counter = AiCommanderFrameworkClass.THINK_EVERY_N_TICKS - 1
-		fw.tick(gs)
+		_think_cycle(fw, gs)
 		SimulationClock.advance_msec(900)
 	for cmd in _submitted:
 		if cmd is GrenadeCommandClass:
@@ -274,7 +277,7 @@ func _test_submits_move_face_fire_grenade() -> void:
 func _test_never_direct_game_state_mutation_path() -> void:
 	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
 	var fw := _make_framework(gs)
-	fw.tick(gs)
+	_think_cycle(fw, gs)
 	_assert("framework submit_override is the mutation gateway", fw.submit_override.is_valid())
 	_assert("AI mutations go through command submit list", true)
 
@@ -282,7 +285,7 @@ func _test_never_direct_game_state_mutation_path() -> void:
 func _test_human_order_interrupts_and_resume() -> void:
 	var gs := _make_game_state(MatchConfigClass.MatchType.TWO_V_TWO)
 	var fw := _make_framework(gs)
-	fw.tick(gs)
+	_think_cycle(fw, gs)
 	var ally_ai := 2
 	var cmd := IssueAiOrderCommandClass.new()
 	cmd.from_player_id = 1
@@ -310,7 +313,7 @@ func _test_multiple_ai_spread_objectives() -> void:
 	gs.command_hierarchy.set_selected_ai_plan(4, AiPlanClass.ID_ATTACK_RIGHT)
 	gs.command_hierarchy.set_active_ai_plan(4, AiPlanClass.ID_ATTACK_RIGHT)
 	var fw := _make_framework(gs)
-	fw.tick(gs)
+	_think_cycle(fw, gs)
 	var cells: Array[Vector2i] = []
 	for commander in fw.all_commanders():
 		if commander.current_objective != null and commander.current_objective.is_valid():
@@ -339,8 +342,7 @@ func _test_never_fires_at_unseen() -> void:
 	CombatSystem.update_spotting(gs)
 	_submitted.clear()
 	for _i in 4:
-		fw._tick_counter = AiCommanderFrameworkClass.THINK_EVERY_N_TICKS - 1
-		fw.tick(gs)
+		_think_cycle(fw, gs)
 	for cmd in _submitted:
 		if cmd is FireCommandClass:
 			_assert("AI never fires at unseen enemies", false, "unexpected FireCommand")

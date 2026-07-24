@@ -51,6 +51,9 @@ var blocked_tiles: Array[Vector2i] = []
 
 var _object_lookup: Dictionary = {}
 var _object_meta: Dictionary = {}
+## Cached walkable stand tiles adjacent to cover objects (AI / cover queries).
+var _cover_stand_cache: Array[Vector2i] = []
+var _cover_stand_cache_dirty: bool = true
 
 
 func _init() -> void:
@@ -329,6 +332,30 @@ func get_object_cells() -> Array[Vector2i]:
 	return cells
 
 
+## Walkable tiles next to cover-providing objects. Rebuilt when map objects change.
+func get_cover_stand_cells() -> Array[Vector2i]:
+	if not _cover_stand_cache_dirty:
+		return _cover_stand_cache
+	_cover_stand_cache.clear()
+	var seen: Dictionary = {}
+	for cell in _object_lookup.keys():
+		var def := get_object_def(cell)
+		if def == null or not def.provides_cover:
+			continue
+		for offset in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var stand: Vector2i = cell + offset
+			if not is_walkable(stand) or seen.has(stand):
+				continue
+			seen[stand] = true
+			_cover_stand_cache.append(stand)
+	_cover_stand_cache_dirty = false
+	return _cover_stand_cache
+
+
+func _mark_cover_cache_dirty() -> void:
+	_cover_stand_cache_dirty = true
+
+
 func is_blocked(cell: Vector2i) -> bool:
 	## Movement authority is terrain class (+ height fallback) — not blocks_movement alone.
 	## CLIMB is a low obstacle: impassable for normal pathfinding (same as NO_PASS).
@@ -354,6 +381,8 @@ func is_walkable(cell: Vector2i) -> bool:
 
 
 func set_object(cell: Vector2i, type_id: String) -> void:
+	_mark_cover_cache_dirty()
+
 	if not is_in_bounds(cell):
 		return
 	if type_id.is_empty():
@@ -390,6 +419,7 @@ func clear_object(cell: Vector2i) -> void:
 	_object_lookup.erase(cell)
 	_object_meta.erase(cell)
 	_remove_visual_at(cell, "object")
+	_mark_cover_cache_dirty()
 	_rebuild_blocked_tiles_list()
 
 

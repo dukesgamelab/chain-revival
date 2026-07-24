@@ -11,6 +11,7 @@ const GameStateClass := preload("res://scripts/core/game_state.gd")
 const ActionResolverClass := preload("res://scripts/core/action_resolver.gd")
 const CommandContextClass := preload("res://scripts/core/command_context.gd")
 const AiCommanderFrameworkClass := preload("res://scripts/ai/ai_commander_framework.gd")
+const AiCommanderClass := preload("res://scripts/ai/ai_commander.gd")
 const PlayerSlotOwnershipClass := preload("res://scripts/core/player_slot_ownership.gd")
 const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 const MoveCommandClass := preload("res://scripts/commands/move_command.gd")
@@ -21,6 +22,7 @@ var _passed: int = 0
 
 
 func _ready() -> void:
+	AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH = false
 	_test_same_match_setup_sp_and_mp()
 	_test_ai_occupies_unused_slots()
 	_test_human_join_replaces_ai()

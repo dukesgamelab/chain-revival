@@ -67,6 +67,17 @@ static func hold_objective_at(cell: Vector2i) -> AiObjectiveClass:
 	return AiObjectiveClass.make("hold", "Hold", cell, "hold", 15)
 
 
+## Enemy spawn-anchor cell (walkable). Used by DIAGNOSTIC_SIMPLE_RUSH.
+static func enemy_deployment_objective(game_state, player_id: int) -> AiObjectiveClass:
+	if game_state == null or game_state.map_data == null or game_state.command_hierarchy == null:
+		return AiObjectiveClass.make("enemy_deploy", "Enemy Deployment", Vector2i(-999, -999), "sector", 1)
+	var team_id: int = game_state.command_hierarchy.get_team_id(player_id)
+	var enemy_team: int = Team.GERMANY if team_id == Team.USA else Team.USA
+	var enemy_anchor := _team_anchor(game_state, enemy_team)
+	var cell := _clamp_walkable(game_state.map_data, enemy_anchor)
+	return AiObjectiveClass.make("enemy_deploy", "Enemy Deployment", cell, "sector", 1)
+
+
 static func _pick(
 	id: String,
 	label: String,
@@ -173,23 +184,39 @@ static func _nearest_cover_cell(
 	_face_toward: Vector2i,
 	claimed: Array[Vector2i],
 ) -> Vector2i:
+	## Radius-limited — full-map object scans were a 2v2 hitch on every DEFEND replan.
+	return nearest_cover_within(game_state, near_cell, _face_toward, 24, claimed)
+
+
+## Cover stand-tile within max_dist of near_cell. Returns (-999,-999) if none.
+static func nearest_cover_within(
+	game_state,
+	near_cell: Vector2i,
+	face_toward: Vector2i,
+	max_dist: int,
+	claimed: Array[Vector2i] = [],
+) -> Vector2i:
 	var map_data = game_state.map_data
-	var best := near_cell
+	var best := Vector2i(-999, -999)
 	var best_score := 999999
-	for cell in map_data.get_object_cells():
-		var def = map_data.get_object_def(cell)
-		if def == null or not def.provides_cover:
+	## Cached stand tiles — avoids scanning every map object on each AI contact.
+	for stand in map_data.get_cover_stand_cells():
+		var dist: int = absi(stand.x - near_cell.x) + absi(stand.y - near_cell.y)
+		if dist > max_dist:
 			continue
-		## Prefer adjacent walkable tile to stand behind cover.
-		for offset in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-			var stand: Vector2i = cell + offset
-			if not map_data.is_walkable(stand):
-				continue
-			var score := absi(stand.x - near_cell.x) + absi(stand.y - near_cell.y)
-			score += _claim_penalty(stand, claimed)
-			if score < best_score:
-				best_score = score
-				best = stand
+		var score := dist
+		score += _claim_penalty(stand, claimed)
+		if face_toward.x > -900:
+			## Prefer stands closer to the threat axis (simple heuristic).
+			var threat_dist := (
+				absi(face_toward.x - stand.x) + absi(face_toward.y - stand.y)
+			)
+			score += threat_dist / 4
+		if score < best_score:
+			best_score = score
+			best = stand
+	if best.x <= -900:
+		return best
 	return _clamp_walkable(map_data, best)
 
 

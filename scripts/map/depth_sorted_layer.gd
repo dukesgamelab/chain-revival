@@ -1,7 +1,10 @@
 class_name DepthSortedLayer
 extends Node2D
-## Y-sorted presentation layer for map object sprites and soldier views.
+## Presentation layer: static map objects (built once) + soldiers as Y-sorted siblings.
 ## Original CoC objects always resolve facets via CocSpriteResolver (shared with editor).
+##
+## Walls/trees are never rebuilt or re-sorted during movement. Godot's C++ y-sort on this
+## node orders statics and movers together by world Y — no GDScript sort_custom per tick.
 
 const META_MAP_OBJECT := &"map_object_sprite"
 
@@ -15,6 +18,13 @@ var _placeholder_count: int = 0
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	## Engine Y-sort: static map objects + soldiers must be direct children.
+	y_sort_enabled = true
+
+
+## Parent for soldier views — same node so y-sort interleaves with map objects.
+func get_movers_root() -> Node2D:
+	return self
 
 
 func apply_map_data(data: MapData) -> void:
@@ -29,6 +39,7 @@ func refresh_view_rotation() -> void:
 
 func _rebuild_map_object_sprites() -> void:
 	## Free immediately — queue_free leaves stale camera facets visible until idle frame.
+	## Only clears map objects; soldier children are left alone.
 	_clear_map_object_sprites()
 
 	if map_data == null:
@@ -74,6 +85,7 @@ func _clear_map_object_sprites() -> void:
 func _rebuild_original_sprites() -> void:
 	var scale := OriginalMapProjection.map_scale()
 	var placements: Array = map_data.visual_placements.duplicate()
+	## One-time draw order at map apply / camera rotate — never during movement.
 	placements.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		var a_cell := Vector2i(int(a.get("x", 0)), int(a.get("y", 0)))
 		var b_cell := Vector2i(int(b.get("x", 0)), int(b.get("y", 0)))

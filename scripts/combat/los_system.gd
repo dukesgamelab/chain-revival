@@ -54,11 +54,19 @@ static func evaluate(
 		_log_evaluation(from_cell, to_cell, map_data, result, game_state)
 		return result
 
-	var wall_usage := CoverSystem.evaluate_wall_cover_usage(from_cell, to_cell, map_data)
+	## Rebuild occupancy only when soldier positions changed since last map build.
+	if game_state != null:
+		game_state.ensure_cell_occupancy()
+
+	## One Bresenham walk shared by wall-cover + blocker scan (was 2–3 full walks).
+	var line := CoverSystem.line_cells_between(from_cell, to_cell)
+	var wall_usage := CoverSystem.evaluate_wall_cover_usage(from_cell, to_cell, map_data, line)
 	result.shooter_using_wall_cover = wall_usage.shooter_using_wall_cover
 	result.target_using_wall_cover = wall_usage.target_using_wall_cover
 
-	var block := CoverSystem.find_blocking_tile(from_cell, to_cell, map_data, game_state)
+	var block := CoverSystem.find_blocking_tile(
+		from_cell, to_cell, map_data, game_state, true, line,
+	)
 	if block.blocked:
 		result.status = Status.BLOCKED
 		result.blocking_cell = block.blocking_cell
@@ -84,23 +92,29 @@ static func evaluate(
 
 
 ## Spotting visibility: map blockers only — living/dead soldiers never block.
+## Wall-cover peek flags are unused by spotting scores — skipped for performance.
+## Prefer passing known prone flags (`resolve_prone=false`) on the hot observers×enemies path.
 static func evaluate_spotting(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
 	map_data: MapData,
 	game_state: GameState = null,
+	observer_prone: bool = false,
+	target_prone: bool = false,
+	resolve_prone: bool = true,
 ) -> LossResult:
 	var result := LossResult.new()
 	if map_data == null or not map_data.is_in_bounds(from_cell) or not map_data.is_in_bounds(to_cell):
 		result.status = Status.BLOCKED
 		return result
 
-	var wall_usage := CoverSystem.evaluate_wall_cover_usage(from_cell, to_cell, map_data)
-	result.shooter_using_wall_cover = wall_usage.shooter_using_wall_cover
-	result.target_using_wall_cover = wall_usage.target_using_wall_cover
+	if resolve_prone and game_state != null:
+		game_state.ensure_cell_occupancy()
+		observer_prone = CoverSystem._cell_occupant_prone(from_cell, game_state)
+		target_prone = CoverSystem._cell_occupant_prone(to_cell, game_state)
 
 	var block := CoverSystem.find_spotting_blocking_tile(
-		from_cell, to_cell, map_data, game_state,
+		from_cell, to_cell, map_data, null, [], observer_prone, target_prone,
 	)
 	if block.blocked:
 		result.status = Status.BLOCKED
@@ -122,6 +136,21 @@ static func evaluate_spotting(
 		result.status = Status.CLEAR
 
 	return result
+
+
+## True when the spotting ray is blocked (no cover evaluation).
+static func is_spotting_line_blocked(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	map_data: MapData,
+	observer_prone: bool = false,
+	target_prone: bool = false,
+) -> bool:
+	if map_data == null or not map_data.is_in_bounds(from_cell) or not map_data.is_in_bounds(to_cell):
+		return true
+	return CoverSystem.find_spotting_blocking_tile(
+		from_cell, to_cell, map_data, null, [], observer_prone, target_prone,
+	).blocked
 
 
 static func is_spotting_blocked(

@@ -56,7 +56,8 @@ const SPOTTING_RANGE_BONUS := HitChancePolicyClass.DEFAULT_SPOTTING_RANGE_BONUS
 
 static var _last_preview_debug_key: String = ""
 
-static var _team_visibility_cache_key: String = ""
+## Int world hash — rebuilt only when stale + throttle allows (not every move step).
+static var _team_visibility_cache_key: int = -1
 static var _visibility_cache_by_team: Dictionary = {}
 static var _visibility_log_keys: Dictionary = {}
 ## Per-observer direct spots built with the team map (key "team:soldier" -> { enemy_key -> Result }).
@@ -64,6 +65,11 @@ static var _visibility_log_keys: Dictionary = {}
 static var _observer_spot_maps: Dictionary = {}
 ## Presentation layer: world-derived grid cells for soldiers mid-move (key "team_id:soldier_id").
 static var _spotting_cell_overrides: Dictionary = {}
+## Cap O(observers×enemies) LOS rebuilds while many AI soldiers move every sim tick.
+static var _last_team_vis_rebuild_msec: int = -999999
+static var _force_team_vis_rebuild: bool = false
+## Match combat-scan cadence so spotting stays correct without per-step rebuilds.
+const TEAM_VIS_REBUILD_MIN_MSEC := 500
 
 ## --- Command-chain fog of war (visibility, NOT LOS) ---
 ## NOT PROVEN that sharing is upward-only + fully transitive. Flip this one switch if playtest
@@ -72,7 +78,8 @@ const COMMAND_VIS_UPWARD_ONLY := true
 const COMMAND_VIS_DEPTH_GUARD := 32
 ## Bumped on assign/break so effective_visibility recomputes immediately (change-driven).
 static var _command_link_revision: int = 0
-static var _player_vis_cache_sig: String = ""
+static var _player_vis_cache_sig: int = -1
+static var _player_vis_cmd_rev: int = -1
 ## player_id -> { enemy_key -> EnemyVisibilityResult }
 static var _player_vis_cache: Dictionary = {}
 ## SubordOldVis mirror: player_id -> { enemy_key -> true }
@@ -420,15 +427,6 @@ static func _spot_score_once(
 	):
 		return -1.0
 
-	var los := LOSSystemClass.evaluate_spotting(
-		observer_cell,
-		target_cell,
-		game_state.map_data,
-		game_state,
-	)
-	if los.status == LOSSystemClass.Status.BLOCKED:
-		return -1.0
-
 	var hit_p := GameplayPolicies.hit
 	var score := hit_p.vis_score_base - float(dist) * hit_p.vis_score_dist_penalty
 	if target.is_moving:
@@ -438,10 +436,42 @@ static func _spot_score_once(
 			score += hit_p.vis_score_walk_bonus
 	if _target_recently_fired(target):
 		score += hit_p.vis_score_recently_fired_bonus
+	## Cover only hurts score — if already negative, skip the ray entirely.
+	if score < 0.0:
+		return -1.0
+
+	var observer_prone := observer.position_state == PositionStateClass.DOWN
+	var target_prone := target.position_state == PositionStateClass.DOWN
+	## Cover can flip visible→hidden only when score < moderate penalty (then × mult).
+	## Above that cutoff, block-only LOS is enough for visible/not + ranking.
+	var cover_cutoff := hit_p.vis_score_moderate_cover_penalty
+	if score >= cover_cutoff:
+		if LOSSystemClass.is_spotting_line_blocked(
+			observer_cell,
+			target_cell,
+			game_state.map_data,
+			observer_prone,
+			target_prone,
+		):
+			return -1.0
+		return score
+
+	var los := LOSSystemClass.evaluate_spotting(
+		observer_cell,
+		target_cell,
+		game_state.map_data,
+		null,
+		observer_prone,
+		target_prone,
+		false,
+	)
+	if los.status == LOSSystemClass.Status.BLOCKED:
+		return -1.0
+
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
 		score -= hit_p.vis_score_moderate_cover_penalty
 	score *= get_cover_visibility_modifier(observer, target, game_state, los)
-	return score
+	return score if score >= 0.0 else -1.0
 
 
 static func _passes_spotting_checks(
@@ -500,7 +530,16 @@ static func is_priority_target_trackable(
 ) -> bool:
 	if not _is_valid_priority_enemy(observer, target):
 		return false
-	if can_spot_enemy(observer, target, game_state):
+	## Prefer the combat-scan observer spot map — avoid a second full LOS ray per shooter.
+	var observer_key := ObjectId.team_soldier_key(observer.team_id, observer.soldier_id)
+	if _observer_spot_maps.has(observer_key):
+		var spots: Dictionary = _observer_spot_maps[observer_key]
+		var enemy_key := SoldierStateClass.enemy_tracking_key(target.team_id, target.soldier_id)
+		var vis: Variant = spots.get(enemy_key)
+		if vis is EnemyVisibilityResult and (vis as EnemyVisibilityResult).visible:
+			return true
+	elif can_spot_enemy(observer, target, game_state):
+		## Cache cold (before first combat scan) — fall back to a live LOS check.
 		return true
 	return is_enemy_recently_seen(observer, target.team_id, target.soldier_id)
 
@@ -528,7 +567,20 @@ static func can_assign_manual_priority_target(
 	)
 
 
+## Read existing visibility caches for AI decisions. Never forces a LOS rebuild —
+## combat scan (`update_spotting`) is the only authoritative refresh. Forcing rebuilds
+## from every AI think was the main 2v2 hitch that got worse as units kept moving.
+static func ensure_visibility_readable(game_state: GameStateClass) -> void:
+	if game_state == null:
+		return
+	_get_team_visibility_cache(game_state, Team.USA)
+	_get_team_visibility_cache(game_state, Team.GERMANY)
+	_ensure_player_visibility_cache(game_state)
+
+
 static func update_spotting(game_state: GameStateClass) -> void:
+	## Combat scan owns authoritative spotting — force a fresh LOS pass here.
+	_force_team_vis_rebuild = true
 	## One pass per team from the shared visibility cache (no per-observer re-query loop).
 	for fireteam in game_state.session.all_fireteams():
 		var team_id: int = fireteam.team_id
@@ -640,31 +692,39 @@ static func players_with_visibility_changes() -> Array[int]:
 ## Call when a command link is created/broken (SubordVisTrigger). Forces immediate shrink/grow.
 static func notify_command_hierarchy_changed(game_state: GameStateClass = null) -> void:
 	_command_link_revision += 1
-	_player_vis_cache_sig = ""
+	_player_vis_cache_sig = -1
+	_player_vis_cmd_rev = -1
 	_player_vis_cache.clear()
 	if game_state != null:
 		_ensure_player_visibility_cache(game_state)
 
 
 static func clear_player_visibility_cache() -> void:
-	_player_vis_cache_sig = ""
+	_player_vis_cache_sig = -1
+	_player_vis_cmd_rev = -1
 	_player_vis_cache.clear()
 	_player_vis_prev_sets.clear()
 	_player_vis_changed_ids.clear()
 	## Observer maps are tied to team cache lifetime; clear with player cache for safety.
 	_observer_spot_maps.clear()
-	_team_visibility_cache_key = ""
+	_team_visibility_cache_key = -1
 	_visibility_cache_by_team.clear()
+	_last_team_vis_rebuild_msec = -999999
+	_force_team_vis_rebuild = false
 
 
 static func _ensure_player_visibility_cache(game_state: GameStateClass) -> void:
 	if game_state == null or game_state.command_hierarchy == null:
 		return
-	var sig := (
-		_build_visibility_cache_signature(game_state)
-		+ "|cmdrev=%d" % _command_link_revision
-	)
-	if sig == _player_vis_cache_sig and not _player_vis_cache.is_empty():
+	## Ensure team maps exist first (may reuse throttled stale LOS between combat scans).
+	_get_team_visibility_cache(game_state, Team.USA)
+	_get_team_visibility_cache(game_state, Team.GERMANY)
+	var world_sig := _team_visibility_cache_key
+	if (
+		world_sig == _player_vis_cache_sig
+		and _command_link_revision == _player_vis_cmd_rev
+		and not _player_vis_cache.is_empty()
+	):
 		return
 
 	var hierarchy := game_state.command_hierarchy
@@ -682,7 +742,8 @@ static func _ensure_player_visibility_cache(game_state: GameStateClass) -> void:
 		_player_vis_prev_sets[pid] = new_keys
 
 	_player_vis_cache = new_cache
-	_player_vis_cache_sig = sig
+	_player_vis_cache_sig = world_sig
+	_player_vis_cmd_rev = _command_link_revision
 	_player_vis_changed_ids = changed
 
 
@@ -790,11 +851,24 @@ static func _get_team_visibility_cache(
 ) -> Dictionary:
 	var signature := _build_visibility_cache_signature(game_state)
 	## Only clear when the world signature changes — never wipe the other team mid-scan.
+	## While many soldiers move, signature flips every tick; throttle LOS rebuilds and keep
+	## slightly stale maps until combat scan forces a fresh pass.
 	if signature != _team_visibility_cache_key:
-		_team_visibility_cache_key = signature
-		_visibility_cache_by_team.clear()
-		_visibility_log_keys.clear()
-		_observer_spot_maps.clear()
+		var now_msec := SimulationClock.get_ticks_msec()
+		var allow_rebuild := (
+			_force_team_vis_rebuild
+			or _visibility_cache_by_team.is_empty()
+			or (now_msec - _last_team_vis_rebuild_msec) >= TEAM_VIS_REBUILD_MIN_MSEC
+		)
+		if allow_rebuild:
+			_team_visibility_cache_key = signature
+			_visibility_cache_by_team.clear()
+			_visibility_log_keys.clear()
+			_observer_spot_maps.clear()
+			_last_team_vis_rebuild_msec = now_msec
+			_force_team_vis_rebuild = false
+			## Player fog must rebuild against the new observer maps.
+			_player_vis_cache_sig = -1
 	if not _visibility_cache_by_team.has(observer_team_id):
 		_visibility_cache_by_team[observer_team_id] = _build_team_visibility_map(
 			game_state,
@@ -883,24 +957,31 @@ static func _best_team_visibility_score(
 	return best_score
 
 
-static func _build_visibility_cache_signature(game_state: GameStateClass) -> String:
-	var parts: PackedStringArray = []
+## Cheap int hash of soldier cells/facing/alive — no string allocs on the hot path.
+static func _build_visibility_cache_signature(game_state: GameStateClass) -> int:
+	var h := 17
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier: SoldierStateClass = state
-			parts.append(
-				"%d:%d@%s:%s:%d"
-				% [
-					soldier.team_id,
-					soldier.soldier_id,
-					spotting_cell_for(soldier),
-					soldier.facing_direction,
-					int(soldier.is_dead),
-				]
-			)
+			var cell := spotting_cell_for(soldier)
+			h = _mix_hash(h, soldier.team_id)
+			h = _mix_hash(h, soldier.soldier_id)
+			h = _mix_hash(h, cell.x)
+			h = _mix_hash(h, cell.y)
+			h = _mix_hash(h, soldier.facing_direction.x)
+			h = _mix_hash(h, soldier.facing_direction.y)
+			h = _mix_hash(h, int(soldier.is_dead))
 	for key in _spotting_cell_overrides.keys():
-		parts.append("snap:%s=%s" % [key, _spotting_cell_overrides[key]])
-	return "|".join(parts)
+		var snap: Vector2i = _spotting_cell_overrides[key]
+		h = _mix_hash(h, hash(str(key)))
+		h = _mix_hash(h, snap.x)
+		h = _mix_hash(h, snap.y)
+	return h
+
+
+static func _mix_hash(h: int, value: int) -> int:
+	## Keep in signed 31-bit range for stable Dictionary keys across platforms.
+	return int((h * 31 + value) & 0x7fffffff)
 
 
 static func _visibility_source_name(source: int) -> String:
@@ -986,15 +1067,21 @@ static func find_best_auto_target(
 	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
 	var best: SoldierStateClass = null
 	var best_score := -INF
+	## Prefer already-spotted enemies from the team cache — avoids O(enemies) fresh
+	## spotting LOS before the shot LOS in score_auto_target (critical in 2v2 8v8).
+	var team_cache := _get_team_visibility_cache(game_state, shooter.team_id)
 
 	for state in enemy_fireteam.soldiers:
 		var enemy: SoldierStateClass = state
 		if enemy.is_dead:
 			continue
-		if not can_spot_enemy(shooter, enemy, game_state):
+		var enemy_key := SoldierStateClass.enemy_tracking_key(enemy.team_id, enemy.soldier_id)
+		var vis: EnemyVisibilityResult = team_cache.get(enemy_key)
+		if vis == null or not vis.visible:
 			continue
 		if not _is_target_in_cone(shooter, enemy.grid_position, max_range):
 			continue
+		## score_auto_target does the single shot-LOS pass (no prior can_spot_enemy).
 		var score := score_auto_target(shooter, enemy, game_state)
 		if score < 0.0:
 			continue
@@ -1440,6 +1527,17 @@ static func try_engaged_fire(
 	if not shooter.is_sustained_fire():
 		return empty
 
+	## Cheap weapon/cooldown rejects before target trackability (which may raycast).
+	if shooter.ammo_current <= 0:
+		return empty
+	var weapon := shooter.get_weapon_data()
+	if weapon == null:
+		return empty
+	if not _is_fire_prep_complete(shooter):
+		return empty
+	if not _can_fire_yet(shooter, weapon):
+		return empty
+
 	var target := _resolve_engaged_target(game_state, shooter)
 	if target == null:
 		return empty
@@ -1449,31 +1547,11 @@ static func try_engaged_fire(
 		fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
 		return empty
 
-	if shooter.ammo_current <= 0:
-		return empty
-
-	var weapon := shooter.get_weapon_data()
-	if weapon == null:
-		return empty
-
-	if not _is_fire_prep_complete(shooter):
-		return empty
-
-	if not _can_fire_yet(shooter, weapon):
-		return empty
-
 	var max_range := _effective_weapon_range(weapon)
 	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
 		return empty
 
-	if LOSSystemClass.is_shot_blocked(
-		shooter.grid_position,
-		target.grid_position,
-		game_state.map_data,
-		game_state,
-	):
-		return empty
-
+	## resolve_shot evaluates LOS once — do not pre-check with is_shot_blocked (was 2× rays).
 	return resolve_shot(game_state, shooter, target, true)
 
 

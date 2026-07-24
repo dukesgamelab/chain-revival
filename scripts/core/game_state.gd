@@ -26,6 +26,9 @@ var weapon_cache: WeaponCacheClass
 var match_phase: int = MatchPhase.DEPLOYMENT
 ## Local/offline controlling player for UI + shared visibility (human USA by default).
 var local_player_id: int = 1
+## O(1) cell → SoldierState for LOS. Updated on moves; rebuilt when positions change.
+var _cell_occupancy: Dictionary = {}
+var _occupancy_generation: int = -1
 
 
 func _init(game_session: GameSession, map: MapData) -> void:
@@ -41,6 +44,7 @@ func _init(game_session: GameSession, map: MapData) -> void:
 	match_phase = MatchPhase.DEPLOYMENT
 	weapon_cache = WeaponCacheClass.new()
 	_bootstrap_weapon_caches()
+	rebuild_cell_occupancy()
 
 
 func _bootstrap_weapon_caches() -> void:
@@ -68,26 +72,59 @@ func get_soldier_by_id(object_id: String) -> SoldierState:
 	return objects.get_soldier(object_id)
 
 
-## First living soldier standing on this tile (any team).
-func find_living_soldier_at_cell(cell: Vector2i) -> SoldierState:
+## Rebuild occupancy from current soldier positions (combat scan / load / tests).
+func rebuild_cell_occupancy() -> void:
+	_cell_occupancy.clear()
+	if session == null:
+		_occupancy_generation = SoldierState.position_generation
+		return
 	for fireteam in session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
-			if soldier_state.is_dead:
+			if soldier_state == null:
 				continue
-			if soldier_state.grid_position == cell:
-				return soldier_state
+			_cell_occupancy[soldier_state.grid_position] = soldier_state
+	_occupancy_generation = SoldierState.position_generation
+
+
+## Cheap guard used by LOS — rebuilds only after teleports / load / missed notifies.
+func ensure_cell_occupancy() -> void:
+	if _occupancy_generation == SoldierState.position_generation:
+		return
+	rebuild_cell_occupancy()
+
+
+## Incremental update after an authoritative grid move.
+func notify_soldier_cell_changed(
+	soldier: SoldierState,
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+) -> void:
+	if soldier == null:
+		return
+	## If positions were teleported without notify, rebuild instead of patching a stale map.
+	if _occupancy_generation != SoldierState.position_generation - 1:
+		rebuild_cell_occupancy()
+		return
+	if _cell_occupancy.get(from_cell) == soldier:
+		_cell_occupancy.erase(from_cell)
+	_cell_occupancy[to_cell] = soldier
+	_occupancy_generation = SoldierState.position_generation
+
+
+## First living soldier standing on this tile (any team). O(1) via occupancy map.
+func find_living_soldier_at_cell(cell: Vector2i) -> SoldierState:
+	ensure_cell_occupancy()
+	var soldier_state: SoldierState = _cell_occupancy.get(cell)
+	if soldier_state != null and not soldier_state.is_dead:
+		return soldier_state
 	return null
 
 
-## Any soldier on this tile, including dead or prone.
+## Any soldier on this tile, including dead or prone. O(1) via occupancy map.
 func find_soldier_at_cell(cell: Vector2i) -> SoldierState:
-	for fireteam in session.all_fireteams():
-		for state in fireteam.soldiers:
-			var soldier_state: SoldierState = state
-			if soldier_state.grid_position == cell:
-				return soldier_state
-	return null
+	ensure_cell_occupancy()
+	return _cell_occupancy.get(cell)
 
 
 func enemy_team_id(team_id: int) -> int:

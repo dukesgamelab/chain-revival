@@ -117,16 +117,22 @@ static func target_has_hard_cover(
 
 
 ## Who is using a complete-cover wall on this fire line (peek / hard cover).
+## Optional `line` avoids rebuilding Bresenham when the caller already has it.
 static func evaluate_wall_cover_usage(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
 	map_data: MapData,
+	line: Array[Vector2i] = [],
 ) -> WallCoverUsage:
 	var usage := WallCoverUsage.new()
 	if map_data == null or from_cell == to_cell:
 		return usage
 
-	for cell in line_cells_between(from_cell, to_cell):
+	## Build the line ONCE — previously adjacent checks re-walked the full ray up to 16×.
+	var cells: Array[Vector2i] = line if not line.is_empty() else line_cells_between(from_cell, to_cell)
+	var line_set: Dictionary = {}
+	for cell in cells:
+		line_set[cell] = true
 		var object_def := map_data.get_object_def(cell)
 		if not _is_complete_cover_wall(object_def):
 			continue
@@ -141,20 +147,14 @@ static func evaluate_wall_cover_usage(
 		var shooter_adj := from_cell + offset
 		if map_data.is_in_bounds(shooter_adj):
 			var shooter_def := map_data.get_object_def(shooter_adj)
-			if (
-				_is_complete_cover_wall(shooter_def)
-				and is_cell_on_fire_line(from_cell, to_cell, shooter_adj)
-			):
+			if _is_complete_cover_wall(shooter_def) and line_set.has(shooter_adj):
 				usage.shooter_using_wall_cover = true
 				usage.shooter_cover_cell = shooter_adj
 
 		var target_adj := to_cell + offset
 		if map_data.is_in_bounds(target_adj):
 			var target_def := map_data.get_object_def(target_adj)
-			if (
-				_is_complete_cover_wall(target_def)
-				and is_cell_on_fire_line(from_cell, to_cell, target_adj)
-			):
+			if _is_complete_cover_wall(target_def) and line_set.has(target_adj):
 				usage.target_using_wall_cover = true
 				usage.target_cover_cell = target_adj
 
@@ -163,12 +163,14 @@ static func evaluate_wall_cover_usage(
 
 ## Tile on the line of fire that completely blocks the shot.
 ## Set block_soldiers false for spotting visibility (soldiers do not hide each other).
+## Optional `line` shares Bresenham with wall-cover evaluation.
 static func find_blocking_tile(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
 	map_data: MapData,
 	game_state: GameState = null,
 	block_soldiers: bool = true,
+	line: Array[Vector2i] = [],
 ) -> BlockResult:
 	var result := BlockResult.new()
 	if map_data == null:
@@ -178,8 +180,9 @@ static func find_blocking_tile(
 	var observer_prone := _cell_occupant_prone(from_cell, game_state)
 	var target_prone := _cell_occupant_prone(to_cell, game_state)
 
+	var cells: Array[Vector2i] = line if not line.is_empty() else line_cells_between(from_cell, to_cell)
 	var skipped_shooter_side_blocker := false
-	for cell in line_cells_between(from_cell, to_cell):
+	for cell in cells:
 		if block_soldiers and living_standing_soldier_blocks_line(cell, game_state):
 			result.blocked = true
 			result.blocking_cell = cell
@@ -210,46 +213,100 @@ static func find_blocking_tile(
 
 
 ## Spotting LOS: height/terrain blockers; walls never block rays; soldier cells never block.
+## Iterates Bresenham without allocating a cell array. Optional prone flags avoid occupancy.
 static func find_spotting_blocking_tile(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
 	map_data: MapData,
 	game_state: GameState = null,
+	line: Array[Vector2i] = [],
+	observer_prone: bool = false,
+	target_prone: bool = false,
 ) -> BlockResult:
 	var result := BlockResult.new()
 	if map_data == null:
 		result.blocked = true
 		return result
 
-	var observer_prone := _cell_occupant_prone(from_cell, game_state)
-	var target_prone := _cell_occupant_prone(to_cell, game_state)
+	if game_state != null:
+		observer_prone = _cell_occupant_prone(from_cell, game_state)
+		target_prone = _cell_occupant_prone(to_cell, game_state)
 
 	var skipped_shooter_side_blocker := false
-	for cell in line_cells_between(from_cell, to_cell):
-		if game_state != null and cell != to_cell:
-			var occupant := game_state.find_soldier_at_cell(cell)
-			if occupant != null:
+	if not line.is_empty():
+		for cell in line:
+			var blocked := _spotting_cell_blocks(
+				from_cell, to_cell, cell, map_data,
+				observer_prone, target_prone, skipped_shooter_side_blocker, result,
+			)
+			if blocked < 0:
 				continue
-
-		var object_def := map_data.get_object_def(cell)
-		if object_def == null and not map_data.has_object(cell):
-			continue
-		if _is_complete_cover_wall(object_def):
-			continue
-		if not tile_blocks_vision(map_data, cell, object_def, observer_prone, target_prone):
-			continue
-		if (
-			not skipped_shooter_side_blocker
-			and can_peek_and_shoot_over(from_cell, to_cell, cell, object_def)
-		):
-			skipped_shooter_side_blocker = true
-			continue
-		result.blocked = true
-		result.blocking_cell = cell
-		result.blocking_type_id = object_def.type_id if object_def != null else "terrain"
+			if blocked == 0:
+				skipped_shooter_side_blocker = true
+				continue
+			return result
 		return result
 
+	## Inline Bresenham — avoid allocating Array[Vector2i] on every observers×enemies pair.
+	var x0 := from_cell.x
+	var y0 := from_cell.y
+	var x1 := to_cell.x
+	var y1 := to_cell.y
+	var dx := absi(x1 - x0)
+	var dy := absi(y1 - y0)
+	var sx := 1 if x0 < x1 else -1
+	var sy := 1 if y0 < y1 else -1
+	var err := dx - dy
+	while true:
+		var cell := Vector2i(x0, y0)
+		if cell != from_cell and cell != to_cell:
+			var blocked := _spotting_cell_blocks(
+				from_cell, to_cell, cell, map_data,
+				observer_prone, target_prone, skipped_shooter_side_blocker, result,
+			)
+			if blocked > 0:
+				return result
+			if blocked == 0:
+				skipped_shooter_side_blocker = true
+		if x0 == x1 and y0 == y1:
+			break
+		var e2 := 2 * err
+		if e2 > -dy:
+			err -= dy
+			x0 += sx
+		if e2 < dx:
+			err += dx
+			y0 += sy
 	return result
+
+
+## Returns 1 = blocked (result filled), 0 = peek-skipped, -1 = clear cell.
+static func _spotting_cell_blocks(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	cell: Vector2i,
+	map_data: MapData,
+	observer_prone: bool,
+	target_prone: bool,
+	skipped_shooter_side_blocker: bool,
+	result: BlockResult,
+) -> int:
+	var object_def := map_data.get_object_def(cell)
+	if object_def == null and not map_data.has_object(cell):
+		return -1
+	if _is_complete_cover_wall(object_def):
+		return -1
+	if not tile_blocks_vision(map_data, cell, object_def, observer_prone, target_prone):
+		return -1
+	if (
+		not skipped_shooter_side_blocker
+		and can_peek_and_shoot_over(from_cell, to_cell, cell, object_def)
+	):
+		return 0
+	result.blocked = true
+	result.blocking_cell = cell
+	result.blocking_type_id = object_def.type_id if object_def != null else "terrain"
+	return 1
 
 
 static func _cell_occupant_prone(cell: Vector2i, game_state: GameState) -> bool:
@@ -455,6 +512,9 @@ static func is_cell_on_fire_line(
 	to_cell: Vector2i,
 	cell: Vector2i,
 ) -> bool:
+	## Prefer evaluate_wall_cover_usage's line_set path; this remains for rare call sites.
+	if cell == from_cell or cell == to_cell:
+		return false
 	for line_cell in line_cells_between(from_cell, to_cell):
 		if line_cell == cell:
 			return true

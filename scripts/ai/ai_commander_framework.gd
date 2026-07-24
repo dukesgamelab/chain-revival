@@ -7,14 +7,18 @@ extends RefCounted
 
 const AiCommanderClass := preload("res://scripts/ai/ai_commander.gd")
 const AiTeamCoordinatorClass := preload("res://scripts/ai/ai_team_coordinator.gd")
+const AiBattlefieldSnapshotClass := preload("res://scripts/ai/ai_battlefield_snapshot.gd")
 const AiOrderClass := preload("res://scripts/ai/ai_order.gd")
 const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 const AiCommanderStateClass := preload("res://scripts/ai/ai_commander_state.gd")
 const CommandContextClass := preload("res://scripts/core/command_context.gd")
 
 ## TUNED — think every N simulation ticks (movement still runs every tick).
-## 8 @ 20 Hz ≈ 2.5 Hz — keeps pathfinding/LOS cache pressure low.
+## 8 @ 20 Hz ≈ 2.5 Hz per commander; commanders are staggered across slots.
 const THINK_EVERY_N_TICKS := 8
+## Cap A* calls from all AI MoveCommands in one sim tick.
+## One staggered thinker ≈ one squad order: lead A* + a couple formation fallbacks.
+const MAX_AI_PATHFINDS_PER_TICK := 4
 
 var _commanders: Dictionary = {} ## player_id -> AiCommander
 var _coordinator: AiTeamCoordinatorClass = AiTeamCoordinatorClass.new()
@@ -25,6 +29,8 @@ var _enabled: bool = true
 var _authority: bool = true
 ## Optional override for tests: Callable(command, context) -> ActionResult
 var submit_override: Callable = Callable()
+var _pathfinds_remaining: int = 0
+var _logged_simple_rush: bool = false
 
 
 func setup(game_state, find_path: Callable) -> void:
@@ -133,28 +139,89 @@ func tick(game_state) -> void:
 	if game_state.is_deployment_phase():
 		return
 	_tick_counter += 1
-	if _tick_counter % THINK_EVERY_N_TICKS != 0:
-		return
 
 	var now_msec: int = SimulationClock.get_ticks_msec()
 	var commanders: Array = all_commanders()
+	if commanders.is_empty():
+		return
+
+	## Who thinks this sim tick?
+	var thinkers: Array = []
+	var slot := 0
 	for commander in commanders:
-		var claimed := _coordinator.claimed_cells_for(commander.player_id)
+		if (_tick_counter + slot) % THINK_EVERY_N_TICKS == 0:
+			thinkers.append(commander)
+		slot += 1
+	if thinkers.is_empty():
+		return
+
+	if AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH and not _logged_simple_rush:
+		_logged_simple_rush = true
+		GameLog.log_system(
+			"[AI] DIAGNOSTIC_SIMPLE_RUSH on — AIs only march to enemy deployment (no fight/cover/fire)."
+		)
+
+	## ONE shared battlefield read for every thinker — not N× soldier/LOS scans.
+	var thinker_ids: Array = []
+	for commander in thinkers:
+		thinker_ids.append(commander.player_id)
+	## Simple rush skips visibility/LOS cache warm — movement roster only.
+	var snapshot: AiBattlefieldSnapshotClass = AiBattlefieldSnapshotClass.build(
+		game_state, thinker_ids, AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH
+	)
+
+	## Shared A* budget for this tick (all MoveCommands from these thinkers).
+	_pathfinds_remaining = MAX_AI_PATHFINDS_PER_TICK
+	var budgeted_find := func(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
+		return _budgeted_find_path(from_cell, to_cell)
+
+	for commander in thinkers:
+		var claimed: Array[Vector2i] = []
+		if not AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH:
+			claimed = _coordinator.claimed_cells_for(commander.player_id)
 		var cell: Vector2i = commander.tick(
 			game_state,
-			_find_path,
+			budgeted_find,
 			func(command: RefCounted, context: CommandContextClass):
 				return _submit(game_state, command, context),
 			claimed,
 			now_msec,
+			snapshot,
 		)
-		_coordinator.set_claim(commander.player_id, cell)
-	_coordinator.resolve_duplicate_claims(commanders)
+		if not AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH:
+			_coordinator.set_claim(commander.player_id, cell)
+	if not AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH:
+		_coordinator.resolve_duplicate_claims(commanders)
+
+
+func _budgeted_find_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
+	var empty: Array[Vector2i] = []
+	if not _find_path.is_valid():
+		return empty
+	if _pathfinds_remaining <= 0:
+		return empty
+	_pathfinds_remaining -= 1
+	var path: Variant = _find_path.call(from_cell, to_cell)
+	if path is Array:
+		var typed: Array[Vector2i] = []
+		for cell in path:
+			typed.append(Vector2i(cell))
+		return typed
+	return empty
+
+
+## Advance one full stagger cycle so every commander gets exactly one think slot.
+## Used by tests (and rare debug); runtime prefers per-tick `tick()`.
+func tick_full_cycle(game_state) -> void:
+	for _i in THINK_EVERY_N_TICKS:
+		tick(game_state)
 
 
 func debug_lines(game_state) -> PackedStringArray:
 	var lines: PackedStringArray = []
 	lines.append("[DEBUG] AI Commanders")
+	if AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH:
+		lines.append("(DIAGNOSTIC_SIMPLE_RUSH — march to enemy deployment only)")
 	if not _authority:
 		lines.append("(client — AI runs on host only)")
 	if _commanders.is_empty():

@@ -15,6 +15,10 @@ const StressLabelsClass := preload("res://scripts/combat/stress_labels.gd")
 const GrenadePolicyClass := preload("res://scripts/gameplay_policies/grenade_policy.gd")
 const MovementPolicyClass := preload("res://scripts/gameplay_policies/movement_policy.gd")
 
+## Bumped whenever any soldier's grid_position changes (incl. tests teleporting).
+## GameState uses this to rebuild the O(1) occupancy map only when needed.
+static var position_generation: int = 0
+
 var soldier_id: int = 1
 var team_id: int = Team.USA
 var weapon_id: String = ""
@@ -22,7 +26,15 @@ var weapon_type: int = WeaponTypeClass.RIFLE
 var weapon_name: String = ""
 ## Carried equipment IDs (e.g. ammunition_box). Not a weapon swap — separate from weapon_id.
 var equipment: Array[String] = []
-var grid_position: Vector2i = Vector2i.ZERO
+var _grid_position: Vector2i = Vector2i.ZERO
+var grid_position: Vector2i:
+	get:
+		return _grid_position
+	set(value):
+		if _grid_position == value:
+			return
+		_grid_position = value
+		position_generation += 1
 var facing_direction: Vector2i = FacingDirection.NORTH
 var current_path: Array[Vector2i] = []
 var is_moving: bool = false
