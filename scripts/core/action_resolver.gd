@@ -380,6 +380,8 @@ static func execute_move(
 		var squad_mode_label := MovementModeClass.display_name(cmd.movement_mode).to_lower()
 		for state in fireteam.soldiers:
 			var squad_soldier: SoldierState = state
+			if not _can_local_order_soldier(game_state, cmd.team_id, squad_soldier.soldier_id):
+				continue
 			var squad_move_result := _resolve_move_order(squad_soldier, cmd.movement_mode)
 			if squad_move_result.rejected:
 				if not squad_move_result.message.is_empty():
@@ -403,6 +405,9 @@ static func execute_move(
 		if not notices.is_empty():
 			squad_status += "\n" + "\n".join(notices)
 		return result.set_status(squad_status)
+
+	if not _can_local_order_soldier(game_state, cmd.team_id, cmd.soldier_id):
+		return ActionResult.fail("That soldier is not under your control.")
 
 	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
 	if soldier_state == null:
@@ -442,6 +447,9 @@ static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> A
 	if cmd.scope == FaceCommandClass.Scope.SQUAD:
 		return _execute_face_squad(game_state, cmd)
 
+	if not _can_local_order_soldier(game_state, cmd.team_id, cmd.soldier_id):
+		return ActionResult.fail("That soldier is not under your control.")
+
 	var fireteam := game_state.session.get_fireteam(cmd.team_id)
 	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
 	if soldier_state == null or soldier_state.is_dead:
@@ -463,6 +471,8 @@ static func _execute_face_squad(game_state: GameStateClass, cmd: FaceCommandClas
 		var soldier_state: SoldierState = state
 		if soldier_state == null or soldier_state.is_dead or soldier_state.is_stunned():
 			continue
+		if not _can_local_order_soldier(game_state, cmd.team_id, soldier_state.soldier_id):
+			continue
 		if not fireteam.face_toward_tile(soldier_state.soldier_id, cmd.target_cell):
 			continue
 		faced += 1
@@ -475,6 +485,17 @@ static func _execute_face_squad(game_state: GameStateClass, cmd: FaceCommandClas
 		"%s Fireteam facing — %d soldier(s) reoriented."
 		% [Team.display_name(cmd.team_id), faced],
 	)
+
+
+## Human UI / local client may only order soldiers owned by session.local_player_id.
+static func _can_local_order_soldier(
+	game_state: GameStateClass,
+	team_id: int,
+	soldier_id: int,
+) -> bool:
+	if game_state == null or game_state.session == null:
+		return true
+	return game_state.session.can_local_control_soldier(team_id, soldier_id)
 
 
 static func _face_result_after_reorient(
@@ -1048,8 +1069,10 @@ static func _resolve_shooter_ids(
 	if cmd.scope == FireCommandClass.Scope.SQUAD:
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
-			if soldier_state.is_alive():
-				ids.append(soldier_state.soldier_id)
+			if not soldier_state.is_alive():
+				continue
+			## Shooter list is built in UI context; when empty fallback, still respect ownership.
+			ids.append(soldier_state.soldier_id)
 	else:
 		var shooter: SoldierState = fireteam.get_soldier(cmd.soldier_id)
 		if shooter != null and shooter.is_alive():

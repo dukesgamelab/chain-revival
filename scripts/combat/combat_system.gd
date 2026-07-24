@@ -59,6 +59,9 @@ static var _last_preview_debug_key: String = ""
 static var _team_visibility_cache_key: String = ""
 static var _visibility_cache_by_team: Dictionary = {}
 static var _visibility_log_keys: Dictionary = {}
+## Per-observer direct spots built with the team map (key "team:soldier" -> { enemy_key -> Result }).
+## Lets player fog reuse team LOS instead of re-spotting.
+static var _observer_spot_maps: Dictionary = {}
 ## Presentation layer: world-derived grid cells for soldiers mid-move (key "team_id:soldier_id").
 static var _spotting_cell_overrides: Dictionary = {}
 
@@ -386,21 +389,36 @@ static func can_spot_enemy(
 	target: SoldierStateClass,
 	game_state: GameStateClass,
 ) -> bool:
-	return _passes_spotting_checks(observer, target, game_state)
+	return _spot_score_once(observer, target, game_state) >= 0.0
 
 
-static func _passes_spotting_checks(
+## Single LOS + facing/range pass. Returns visibility score, or -1 if not spotted.
+## Prefer this over can_spot_enemy + get_visibility_score (which used to double LOS).
+static func _spot_score_once(
 	observer: SoldierStateClass,
 	target: SoldierStateClass,
 	game_state: GameStateClass,
-) -> bool:
+) -> float:
 	if observer == null or target == null or target.is_dead or observer.is_dead:
-		return false
+		return -1.0
 	if observer.team_id == target.team_id:
-		return false
+		return -1.0
 
 	var observer_cell := spotting_cell_for(observer)
 	var target_cell := spotting_cell_for(target)
+	var weapon := observer.get_weapon_data()
+	var spotting_range := _effective_spotting_range(weapon)
+	var dist := _manhattan_distance(observer_cell, target_cell)
+	## Cheap rejects before LOS raycast.
+	if dist > spotting_range:
+		return -1.0
+	if not ConeOfFireClass.is_facing_toward_target(
+		observer_cell,
+		observer.facing_direction,
+		target_cell,
+		spotting_range,
+	):
+		return -1.0
 
 	var los := LOSSystemClass.evaluate_spotting(
 		observer_cell,
@@ -409,19 +427,29 @@ static func _passes_spotting_checks(
 		game_state,
 	)
 	if los.status == LOSSystemClass.Status.BLOCKED:
-		return false
+		return -1.0
 
-	var weapon := observer.get_weapon_data()
-	var spotting_range := _effective_spotting_range(weapon)
-	if _manhattan_distance(observer_cell, target_cell) > spotting_range:
-		return false
+	var hit_p := GameplayPolicies.hit
+	var score := hit_p.vis_score_base - float(dist) * hit_p.vis_score_dist_penalty
+	if target.is_moving:
+		if target.movement_mode == MovementModeClass.RUN:
+			score += hit_p.vis_score_run_bonus
+		elif target.movement_mode == MovementModeClass.WALK:
+			score += hit_p.vis_score_walk_bonus
+	if _target_recently_fired(target):
+		score += hit_p.vis_score_recently_fired_bonus
+	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
+		score -= hit_p.vis_score_moderate_cover_penalty
+	score *= get_cover_visibility_modifier(observer, target, game_state, los)
+	return score
 
-	return ConeOfFireClass.is_facing_toward_target(
-		observer_cell,
-		observer.facing_direction,
-		target_cell,
-		spotting_range,
-	)
+
+static func _passes_spotting_checks(
+	observer: SoldierStateClass,
+	target: SoldierStateClass,
+	game_state: GameStateClass,
+) -> bool:
+	return _spot_score_once(observer, target, game_state) >= 0.0
 
 
 static func get_visibility_score(
@@ -429,37 +457,7 @@ static func get_visibility_score(
 	target: SoldierStateClass,
 	game_state: GameStateClass,
 ) -> float:
-	if not _passes_spotting_checks(observer, target, game_state):
-		return -1.0
-
-	var observer_cell := spotting_cell_for(observer)
-	var target_cell := spotting_cell_for(target)
-	var weapon := observer.get_weapon_data()
-	var max_range := _effective_weapon_range(weapon) if weapon != null else ConeOfFireClass.RANGE_BONUS
-	var dist := _manhattan_distance(observer_cell, target_cell)
-	var hit_p := GameplayPolicies.hit
-	var score := hit_p.vis_score_base - float(dist) * hit_p.vis_score_dist_penalty
-
-	if target.is_moving:
-		if target.movement_mode == MovementModeClass.RUN:
-			score += hit_p.vis_score_run_bonus
-		elif target.movement_mode == MovementModeClass.WALK:
-			score += hit_p.vis_score_walk_bonus
-
-	if _target_recently_fired(target):
-		score += hit_p.vis_score_recently_fired_bonus
-
-	var los := LOSSystemClass.evaluate_spotting(
-		observer_cell,
-		target_cell,
-		game_state.map_data,
-		game_state,
-	)
-	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		score -= hit_p.vis_score_moderate_cover_penalty
-
-	score *= get_cover_visibility_modifier(observer, target, game_state, los)
-	return score
+	return _spot_score_once(observer, target, game_state)
 
 
 static func get_cover_visibility_modifier(
@@ -531,30 +529,24 @@ static func can_assign_manual_priority_target(
 
 
 static func update_spotting(game_state: GameStateClass) -> void:
+	## One pass per team from the shared visibility cache (no per-observer re-query loop).
 	for fireteam in game_state.session.all_fireteams():
-		for state in fireteam.soldiers:
-			var observer: SoldierStateClass = state
-			if observer.is_dead:
+		var team_id: int = fireteam.team_id
+		var team_cache := _get_team_visibility_cache(game_state, team_id)
+		for enemy_key in team_cache.keys():
+			var visibility: EnemyVisibilityResult = team_cache[enemy_key]
+			if visibility == null or not visibility.visible:
 				continue
-			var enemy_team_id: int = game_state.enemy_team_id(observer.team_id)
-			var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
-			for enemy_state in enemy_fireteam.soldiers:
-				var enemy: SoldierStateClass = enemy_state
-				if enemy.is_dead:
-					continue
-				var visibility := get_enemy_visibility_for_team(
-					game_state,
-					observer.team_id,
-					enemy,
-				)
-				if not visibility.visible:
-					continue
-				var spotter := game_state.get_soldier(
-					visibility.spotter_team_id,
-					visibility.spotter_soldier_id,
-				)
-				if spotter != null:
-					spotter.record_last_seen_enemy(enemy)
+			var spotter := game_state.get_soldier(
+				visibility.spotter_team_id,
+				visibility.spotter_soldier_id,
+			)
+			var parts := str(enemy_key).split(":")
+			if parts.size() < 2 or spotter == null:
+				continue
+			var enemy := game_state.get_soldier(int(parts[0]), int(parts[1]))
+			if enemy != null:
+				spotter.record_last_seen_enemy(enemy)
 
 
 static func is_enemy_visible_to_team(
@@ -659,6 +651,10 @@ static func clear_player_visibility_cache() -> void:
 	_player_vis_cache.clear()
 	_player_vis_prev_sets.clear()
 	_player_vis_changed_ids.clear()
+	## Observer maps are tied to team cache lifetime; clear with player cache for safety.
+	_observer_spot_maps.clear()
+	_team_visibility_cache_key = ""
+	_visibility_cache_by_team.clear()
 
 
 static func _ensure_player_visibility_cache(game_state: GameStateClass) -> void:
@@ -729,36 +725,21 @@ static func _build_effective_visibility(
 
 
 ## Spotting from this player's own soldiers only (no command-chain share).
+## Reuses per-observer maps filled while building the team visibility cache — no extra LOS.
 static func _own_visibility_map(game_state: GameStateClass, player_id: int) -> Dictionary:
 	var out: Dictionary = {}
 	var hierarchy := game_state.command_hierarchy
 	if not hierarchy.has_player(player_id):
 		return out
 	var team_id := hierarchy.get_team_id(player_id)
-	var enemy_team_id := game_state.enemy_team_id(team_id)
-	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
+	## Ensure team (and observer) maps exist for this team.
+	_get_team_visibility_cache(game_state, team_id)
 	for soldier_id in hierarchy.get_soldier_ids(player_id):
-		var observer := game_state.get_soldier(team_id, soldier_id)
-		if observer == null or observer.is_dead:
+		var observer_key := ObjectId.team_soldier_key(team_id, soldier_id)
+		var spots: Variant = _observer_spot_maps.get(observer_key)
+		if not (spots is Dictionary):
 			continue
-		for enemy_state in enemy_fireteam.soldiers:
-			var enemy: SoldierStateClass = enemy_state
-			if enemy.is_dead:
-				continue
-			if not can_spot_enemy(observer, enemy, game_state):
-				continue
-			var score := get_visibility_score(observer, enemy, game_state)
-			var key := SoldierStateClass.enemy_tracking_key(enemy.team_id, enemy.soldier_id)
-			var existing: EnemyVisibilityResult = out.get(key)
-			if existing != null and existing.visibility_score >= score:
-				continue
-			var result := EnemyVisibilityResult.new()
-			result.visible = true
-			result.source = EnemyVisibilityResultClass.Source.DIRECT
-			result.visibility_score = score
-			result.spotter_team_id = observer.team_id
-			result.spotter_soldier_id = observer.soldier_id
-			out[key] = result
+		_merge_visibility_maps(out, spots as Dictionary, false)
 	return out
 
 
@@ -808,10 +789,13 @@ static func _get_team_visibility_cache(
 	observer_team_id: int,
 ) -> Dictionary:
 	var signature := _build_visibility_cache_signature(game_state)
-	if signature != _team_visibility_cache_key or not _visibility_cache_by_team.has(observer_team_id):
+	## Only clear when the world signature changes — never wipe the other team mid-scan.
+	if signature != _team_visibility_cache_key:
 		_team_visibility_cache_key = signature
 		_visibility_cache_by_team.clear()
 		_visibility_log_keys.clear()
+		_observer_spot_maps.clear()
+	if not _visibility_cache_by_team.has(observer_team_id):
 		_visibility_cache_by_team[observer_team_id] = _build_team_visibility_map(
 			game_state,
 			observer_team_id,
@@ -828,6 +812,15 @@ static func _build_team_visibility_map(
 	var observer_fireteam := game_state.session.get_fireteam(observer_team_id)
 	var enemy_fireteam := game_state.session.get_fireteam(enemy_team_id)
 
+	## Seed empty per-observer maps for living observers on this team.
+	for observer_state in observer_fireteam.soldiers:
+		var observer: SoldierStateClass = observer_state
+		if observer.is_dead:
+			continue
+		var observer_key := ObjectId.team_soldier_key(observer.team_id, observer.soldier_id)
+		if not _observer_spot_maps.has(observer_key):
+			_observer_spot_maps[observer_key] = {}
+
 	for enemy_state in enemy_fireteam.soldiers:
 		var enemy: SoldierStateClass = enemy_state
 		if enemy.is_dead:
@@ -841,9 +834,19 @@ static func _build_team_visibility_map(
 			var observer: SoldierStateClass = observer_state
 			if observer.is_dead:
 				continue
-			if not can_spot_enemy(observer, enemy, game_state):
+			var score := _spot_score_once(observer, enemy, game_state)
+			if score < 0.0:
 				continue
-			var score := get_visibility_score(observer, enemy, game_state)
+			var observer_key := ObjectId.team_soldier_key(observer.team_id, observer.soldier_id)
+			var spot := EnemyVisibilityResult.new()
+			spot.visible = true
+			spot.source = EnemyVisibilityResultClass.Source.DIRECT
+			spot.visibility_score = score
+			spot.spotter_team_id = observer.team_id
+			spot.spotter_soldier_id = observer.soldier_id
+			var obs_map: Dictionary = _observer_spot_maps[observer_key]
+			obs_map[enemy_key] = spot
+			_observer_spot_maps[observer_key] = obs_map
 			if score > best_score:
 				best_score = score
 				best_observer = observer
@@ -855,11 +858,8 @@ static func _build_team_visibility_map(
 			result.spotter_team_id = best_observer.team_id
 			result.spotter_soldier_id = best_observer.soldier_id
 		else:
-			result.visibility_score = _best_team_visibility_score(
-				game_state,
-				observer_team_id,
-				enemy,
-			)
+			## Already scored every observer once — no second LOS pass.
+			result.visibility_score = -1.0
 
 		results[enemy_key] = result
 		_log_enemy_visibility(observer_team_id, enemy, result)

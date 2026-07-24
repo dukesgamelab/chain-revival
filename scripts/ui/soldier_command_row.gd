@@ -59,6 +59,7 @@ func _ready() -> void:
 	set_position_state(PositionState.UP)
 	set_fire_control_state(FireControlState.HOLD_FIRE)
 	set_grenade_count(5)
+	_status_label.add_theme_color_override("font_color", CocUiTheme.TEXT_STATUS_RED)
 
 
 func set_move_mode_pressed(movement_mode: int, is_pressed: bool) -> void:
@@ -120,8 +121,9 @@ func set_grenade_pressed(is_pressed: bool) -> void:
 
 
 func set_activity_status(text: String) -> void:
+	if _status_label.text == text:
+		return
 	_status_label.text = text
-	_status_label.add_theme_color_override("font_color", CocUiTheme.TEXT_STATUS_RED)
 
 
 func set_stress(stress: float) -> void:

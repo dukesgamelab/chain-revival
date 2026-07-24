@@ -142,6 +142,12 @@ func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0
 	row.set_move_button_enabled(MovementMode.CRAWL, MovementMode.is_allowed(state.position_state, MovementMode.CRAWL))
 
 
+func set_soldier_row_interactive(row_index: int, enabled: bool) -> void:
+	if row_index < 0 or row_index >= _rows.size():
+		return
+	_rows[row_index].set_row_enabled(enabled)
+
+
 func update_hit_columns(hit_pcts: Array) -> void:
 	for i in range(min(_rows.size(), hit_pcts.size())):
 		_rows[i].set_hit_pct(float(hit_pcts[i]))

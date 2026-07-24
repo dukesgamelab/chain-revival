@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://matchcfgtests01"]
+
+[ext_resource type="Script" path="res://scripts/tests/match_config_tests.gd" id="1"]
+
+[node name="MatchConfigTests" type="Node"]
+script = ExtResource("1")

@@ -28,6 +28,8 @@ const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 const SimpleAIControllerClass := preload("res://scripts/ai/simple_ai_controller.gd")
 const CommandDialogScene := preload("res://scenes/ui/command_dialog.tscn")
 const AssignWeaponsDialogScene := preload("res://scenes/ui/assign_weapons_dialog.tscn")
+const MatchConfigClass := preload("res://scripts/core/match_config.gd")
+const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 
 @onready var _world: MapWorldView = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -72,6 +74,10 @@ var _sim_accum_sec: float = 0.0
 var _combat_scan_accum_msec: int = 0
 var _grass_layer_visible: bool = true
 var _simple_ai: SimpleAIControllerClass
+var _fire_at_preview_accum_sec: float = 0.0
+var _fire_at_hit_accum_sec: float = 0.0
+var _last_fire_at_preview_cell: Vector2i = Vector2i(-999999, -999999)
+const _FIRE_AT_PREVIEW_INTERVAL_SEC := 0.08
 
 
 func _ready() -> void:
@@ -109,15 +115,8 @@ func _bootstrap_simulation() -> void:
 
 
 func _start_simple_ai() -> void:
-	_simple_ai = SimpleAIControllerClass.new()
-	## Defer one frame so soldier views finish entering the tree before paths animate.
-	call_deferred("_run_simple_ai_opening")
-
-
-func _run_simple_ai_opening() -> void:
-	if _simple_ai == null:
-		return
-	_simple_ai.on_match_started(_game_state, _map_data, _apply_move_command)
+	## Phase 1: AI fireteams idle — no opening orders / behavior yet.
+	_simple_ai = null
 
 
 func _log_network_mode() -> void:
@@ -183,11 +182,29 @@ func _process(delta: float) -> void:
 	_step_fixed_simulation(delta)
 
 	if not _map_edit_mode:
-		_update_los_preview()
-		## Hit % columns: only while aiming Fire At (mouse-driven). Fire At Will
-		## refreshes on the combat-scan cadence in _present_action_result.
+		_update_los_preview_throttled(delta)
+		## Hit % columns: throttle while aiming; combat-scan path covers Fire At Will.
 		if _fire_at_mode:
-			_update_command_bar_hit_columns()
+			_fire_at_hit_accum_sec += delta
+			if _fire_at_hit_accum_sec >= _FIRE_AT_PREVIEW_INTERVAL_SEC:
+				_fire_at_hit_accum_sec = 0.0
+				_update_command_bar_hit_columns()
+
+
+func _update_los_preview_throttled(delta: float) -> void:
+	if not _fire_at_mode and not _grenade_mode:
+		_los_visualizer.hide_preview()
+		_last_fire_at_preview_cell = Vector2i(-999999, -999999)
+		return
+	_fire_at_preview_accum_sec += delta
+	var aim_world := _get_world_mouse_local()
+	var click_cell := IsometricGrid.world_to_grid(aim_world)
+	var cell_changed := click_cell != _last_fire_at_preview_cell
+	if not cell_changed and _fire_at_preview_accum_sec < _FIRE_AT_PREVIEW_INTERVAL_SEC:
+		return
+	_fire_at_preview_accum_sec = 0.0
+	_last_fire_at_preview_cell = click_cell
+	_update_los_preview()
 
 
 ## Advance SimulationClock in fixed ticks; run movement every tick and combat on policy cadence.
@@ -275,11 +292,18 @@ func _get_manual_fire_at_shooters() -> Array[SoldierState]:
 	if _squad_fire_at_mode:
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
-			if soldier_state.is_alive():
-				shooters.append(soldier_state)
+			if not soldier_state.is_alive():
+				continue
+			if not _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id):
+				continue
+			shooters.append(soldier_state)
 	else:
 		var shooter: SoldierState = fireteam.get_soldier(_fire_at_soldier_id)
-		if shooter != null and shooter.is_alive():
+		if (
+			shooter != null
+			and shooter.is_alive()
+			and _session.can_local_control_soldier(shooter.team_id, shooter.soldier_id)
+		):
 			shooters.append(shooter)
 	return shooters
 
@@ -541,7 +565,11 @@ func _load_map_data() -> void:
 	if not pending.is_empty():
 		_map_data = MapLoader.load_path(pending)
 	else:
-		_map_data = MapLoader.load_path(MapDataClass.resolve_startup_map_path())
+		var match_cfg = MatchConfigStoreClass.peek_pending()
+		if match_cfg != null and not str(match_cfg.map_path()).is_empty():
+			_map_data = MapLoader.load_path(match_cfg.map_path())
+		else:
+			_map_data = MapLoader.load_path(MapDataClass.resolve_startup_map_path())
 	IsometricGrid.set_original_projection_enabled(
 		_map_data != null and _map_data.uses_original_projection
 	)
@@ -554,7 +582,17 @@ func _init_session_from_spawns() -> void:
 		blue_spawns = MapDataClass.default_usa_spawn_points()
 	if red_spawns.is_empty():
 		red_spawns = MapDataClass.default_germany_spawn_points()
-	_session = GameSessionClass.new(blue_spawns, red_spawns)
+	var match_cfg = MatchConfigStoreClass.consume_pending()
+	if match_cfg == null:
+		match_cfg = MatchConfigClass.default_offline_1v1()
+	var validation: Dictionary = match_cfg.validate()
+	if not bool(validation.get("ok", false)):
+		push_warning(
+			"MatchConfig invalid — falling back to offline 1v1: %s"
+			% str(validation.get("errors", []))
+		)
+		match_cfg = MatchConfigClass.default_offline_1v1()
+	_session = GameSessionClass.from_match_config(match_cfg, blue_spawns, red_spawns)
 	_game_state = _session.create_game_state(_map_data)
 	ActionResolverClass.apply_match_start_setup(_game_state)
 
@@ -812,6 +850,15 @@ func _switch_active_team(team_id: int) -> void:
 			"You control %s only." % PlayerSides.display_side_name()
 		)
 		return
+	if _session != null and not _session.local_owned_fireteams().is_empty():
+		var owns_side := false
+		for ft in _session.local_owned_fireteams():
+			if ft.team_id == team_id:
+				owns_side = true
+				break
+		if not owns_side:
+			_command_bar.show_status("You do not own a fireteam on that side.")
+			return
 	if team_id == _session.active_team_id:
 		return
 	_session.set_active_team(team_id)
@@ -1039,6 +1086,27 @@ func _refresh_command_bar() -> void:
 		var soldier_state: SoldierState = fireteam.soldiers[i]
 		var hit_pct := _hit_pct_for_command_row(soldier_state)
 		_command_bar.sync_soldier_row(i, soldier_state, hit_pct)
+		## Human only interacts with locally owned fireteam soldiers.
+		var owned := _session.can_local_control_soldier(
+			soldier_state.team_id,
+			soldier_state.soldier_id,
+		)
+		_command_bar.set_soldier_row_interactive(i, owned and soldier_state.is_alive())
+
+
+## Combat-scan path: ammo/stress/status only — skip expensive hit% LOS unless needed.
+func _refresh_command_bar_light() -> void:
+	var fireteam: Fireteam = _session.get_active_fireteam()
+	var need_hit := _should_update_hit_columns()
+	for i in range(fireteam.soldiers.size()):
+		var soldier_state: SoldierState = fireteam.soldiers[i]
+		var hit_pct := _hit_pct_for_command_row(soldier_state) if need_hit else -1.0
+		_command_bar.sync_soldier_row(i, soldier_state, hit_pct)
+		var owned := _session.can_local_control_soldier(
+			soldier_state.team_id,
+			soldier_state.soldier_id,
+		)
+		_command_bar.set_soldier_row_interactive(i, owned and soldier_state.is_alive())
 
 
 func _update_command_bar_hit_columns() -> void:
@@ -1154,9 +1222,22 @@ func _center_camera_on_active_fireteam() -> void:
 
 func _repair_fireteam_selection(fireteam: Fireteam) -> bool:
 	var selected: SoldierState = fireteam.get_selected()
-	if selected != null and selected.is_alive():
+	if (
+		selected != null
+		and selected.is_alive()
+		and _session.can_local_control_soldier(selected.team_id, selected.soldier_id)
+	):
 		return false
 	var previous_id := fireteam.selected_soldier_id
+	## Prefer a locally owned living soldier on this side.
+	for state in fireteam.soldiers:
+		var soldier_state: SoldierState = state
+		if not soldier_state.is_alive():
+			continue
+		if not _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id):
+			continue
+		fireteam.selected_soldier_id = soldier_state.soldier_id
+		return fireteam.selected_soldier_id != previous_id
 	fireteam.select_first_alive()
 	return fireteam.selected_soldier_id != previous_id
 
@@ -1214,6 +1295,9 @@ func _clear_spotting_cell_overrides() -> void:
 
 func _on_soldier_selected(soldier_id: int) -> void:
 	## UI-local selection only (client-side; not an authoritative gameplay command).
+	if not _session.can_local_control_soldier(_session.active_team_id, soldier_id):
+		_command_bar.show_status("That soldier is not under your control.")
+		return
 	_session.get_active_fireteam().select_soldier(soldier_id)
 	_refresh_all_views()
 
@@ -1273,10 +1357,10 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		_refresh_all_views()
 		_refresh_command_bar()
 	elif combat_tick:
-		## Spotting + stress UI at combat-scan cadence without full sync_from_state.
+		## Spotting + light UI at combat-scan cadence without full sync_from_state
+		## or duplicate hit% LOS work (_refresh_command_bar already fills hit%).
 		_refresh_enemy_spotting_visuals()
-		_refresh_command_bar()
-		_update_command_bar_hit_columns()
+		_refresh_command_bar_light()
 
 	for order in result.throw_orders:
 		var throw_view: Soldier = _get_view(int(order.team_id), int(order.soldier_id))
@@ -1380,6 +1464,10 @@ func _apply_grenade_command(target_cell: Vector2i) -> void:
 		_apply_squad_grenade_command(target_cell)
 		return
 
+	if not _session.can_local_control_soldier(_session.active_team_id, _grenade_soldier_id):
+		_command_bar.show_status("That soldier is not under your control.")
+		return
+
 	var soldier_state: SoldierState = _game_state.get_soldier(
 		_session.active_team_id,
 		_grenade_soldier_id,
@@ -1419,6 +1507,8 @@ func _apply_squad_grenade_command(target_cell: Vector2i) -> void:
 			or soldier_state.has_pending_grenade()
 			or soldier_state.is_moving
 		):
+			continue
+		if not _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id):
 			continue
 		var cmd := GrenadeCommand.new()
 		cmd.team_id = _session.active_team_id
@@ -1523,6 +1613,8 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 			var soldier_state: SoldierState = state
 			if soldier_state == null or soldier_state.is_dead:
 				continue
+			if not _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id):
+				continue
 			var cmd := FireControlCommandClass.new()
 			cmd.team_id = _session.active_team_id
 			cmd.soldier_id = soldier_state.soldier_id
@@ -1534,6 +1626,9 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 			_command_bar.show_status("No soldiers available.")
 		return
 
+	if not _session.can_local_control_soldier(_session.active_team_id, soldier_id):
+		_command_bar.show_status("That soldier is not under your control.")
+		return
 	var cmd := FireControlCommandClass.new()
 	cmd.team_id = _session.active_team_id
 	cmd.soldier_id = soldier_id
@@ -1550,6 +1645,8 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
 			if soldier_state == null or soldier_state.is_dead or soldier_state.is_stunned():
+				continue
+			if not _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id):
 				continue
 			var cmd := PositionCommand.new()
 			cmd.team_id = _session.active_team_id
@@ -1578,6 +1675,9 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 			_command_bar.show_status("No soldiers available.")
 		return
 
+	if not _session.can_local_control_soldier(_session.active_team_id, soldier_id):
+		_command_bar.show_status("That soldier is not under your control.")
+		return
 	var cmd := PositionCommand.new()
 	cmd.team_id = _session.active_team_id
 	cmd.soldier_id = soldier_id

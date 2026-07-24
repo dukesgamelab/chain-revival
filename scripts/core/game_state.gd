@@ -36,6 +36,8 @@ func _init(game_session: GameSession, map: MapData) -> void:
 	command_hierarchy = CommandHierarchyClass.new()
 	command_hierarchy.bootstrap_default_match()
 	local_player_id = 1
+	if session != null and session.local_player_id > 0:
+		local_player_id = session.local_player_id
 	match_phase = MatchPhase.DEPLOYMENT
 	weapon_cache = WeaponCacheClass.new()
 	_bootstrap_weapon_caches()

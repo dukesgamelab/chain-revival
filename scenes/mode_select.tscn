@@ -40,7 +40,7 @@ theme_override_constants/margin_bottom = 28
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
@@ -51,43 +51,62 @@ horizontal_alignment = 1
 [node name="Subtitle" type="Label" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "Select game mode"
+text = "Main Menu"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="Center/Panel/Margin/VBox"]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 
-[node name="OfflineButton" type="Button" parent="Center/Panel/Margin/VBox"]
+[node name="SinglePlayerButton" type="Button" parent="Center/Panel/Margin/VBox"]
 custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
-text = "Single Player / Offline Dev"
-
-[node name="EditorButton" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(320, 48)
-layout_mode = 2
-text = "Chain Revival Editor"
-
-[node name="AssetAnimEditorButton" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(320, 48)
-layout_mode = 2
-text = "Dev: Asset & Animation Editor"
+text = "Single Player"
 
 [node name="MultiplayerButton" type="Button" parent="Center/Panel/Margin/VBox"]
 custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
-text = "Local Multiplayer"
+text = "Multiplayer"
 
-[node name="SoldierParityButton" type="Button" parent="Center/Panel/Margin/VBox"]
+[node name="QuitButton" type="Button" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(320, 48)
+layout_mode = 2
+text = "Quit"
+
+[node name="DevBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DevLabel" type="Label" parent="Center/Panel/Margin/VBox/DevBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Developer"
+horizontal_alignment = 1
+
+[node name="OfflineQuickButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
+custom_minimum_size = Vector2(320, 40)
+layout_mode = 2
+text = "Dev: Offline Quick Start (1v1)"
+
+[node name="EditorButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
+custom_minimum_size = Vector2(320, 40)
+layout_mode = 2
+text = "Chain Revival Editor"
+
+[node name="AssetAnimEditorButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
+custom_minimum_size = Vector2(320, 40)
+layout_mode = 2
+text = "Dev: Asset & Animation Editor"
+
+[node name="SoldierParityButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
 custom_minimum_size = Vector2(320, 40)
 layout_mode = 2
 text = "Dev: US vs German Soldier Parity"
 
 [node name="Hint" type="Label" parent="Center/Panel/Margin/VBox"]
-
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.78, 0.72, 1)
 theme_override_font_sizes/font_size = 13
-text = "Local Multiplayer connects to a server you start manually. See steps below."
+text = "Single Player and Multiplayer open Match Setup."
 horizontal_alignment = 1
 autowrap_mode = 2
