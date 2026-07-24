@@ -240,6 +240,18 @@ func stop_movement() -> void:
 		_play_locomotion(_locomotion_direction, false)
 
 
+func _finish_presentation_move() -> void:
+	## Arrived at the final chase cell after sim already cleared is_moving.
+	if not _is_moving:
+		return
+	_is_moving = false
+	_path.clear()
+	_path_index = 0
+	set_process(false)
+	if _uses_og_frames() and not _blocks_action_override():
+		_update_locomotion_visual(_last_applied_facing, false)
+
+
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	## Presentation-only path chase. Authoritative grid_position advances on sim ticks.
 	_cancel_stance_transition_visual(false)
@@ -267,18 +279,25 @@ func _process(delta: float) -> void:
 
 	var to_target := _move_target_world - position
 	var distance := to_target.length()
-	if _path_index < _path.size():
+	## Only play walk while still chasing a sim path cell. After sim finishes we clear
+	## _path and settle to the final cell — do not keep looping the run anim in place.
+	var chasing_path := _path_index < _path.size() and not _path.is_empty()
+	if chasing_path:
 		var step_delta := _path[_path_index] - _previous_grid_pos
 		_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
 		_update_locomotion_visual(step_delta, true)
 
 	if distance <= 0.001:
 		position = _move_target_world
+		if not chasing_path:
+			_finish_presentation_move()
 		return
 
 	var move_amount := move_speed * _speed_multiplier * delta
 	if move_amount >= distance:
 		position = _move_target_world
+		if not chasing_path:
+			_finish_presentation_move()
 	else:
 		position += to_target.normalized() * move_amount
 
@@ -299,14 +318,13 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 		_update_locomotion_visual(step_delta, true)
 		set_process(true)
 		return
-	## Path finished in sim — finish interpolating to the final cell, then idle.
+	## Path finished in sim — clear path chase and settle onto the final cell, then idle.
+	_path.clear()
+	_path_index = 0
 	_move_target_world = IsometricGrid.grid_to_world(state.grid_position)
 	if position.distance_to(_move_target_world) <= 0.5:
 		position = _move_target_world
-		if _is_moving:
-			_is_moving = false
-			set_process(false)
-			_update_locomotion_visual(_last_applied_facing, false)
+		_finish_presentation_move()
 	else:
 		_is_moving = true
 		set_process(true)

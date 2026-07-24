@@ -1,12 +1,16 @@
 class_name LosVisualizer
 extends Node2D
 ## Aim preview cone while Fire At mode is active (separate from fired shot tracers).
+## Drawing is gated by debug_visible (test overlay; off by default, toggle with T).
 
 const FireAtPreviewResultClass := preload("res://scripts/combat/fire_at_preview_result.gd")
 const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
 
 const CONE_COLOR_HAS_TARGET := Color(0.25, 0.95, 0.35, 0.16)
 const CONE_COLOR_NO_TARGET := Color(0.95, 0.18, 0.12, 0.16)
+
+## When false, show_* calls are ignored / cleared (test overlay).
+var debug_visible: bool = false
 
 var _cone: Polygon2D
 var _aim_line: Line2D
@@ -26,11 +30,20 @@ func _ready() -> void:
 	add_child(_aim_line)
 
 
+func set_debug_visible(enabled: bool) -> void:
+	debug_visible = enabled
+	if not debug_visible:
+		hide_preview()
+
+
 func show_fire_at_preview(
 	from_world: Vector2,
 	cone_world_points: PackedVector2Array,
 	preview: FireAtPreviewResultClass,
 ) -> void:
+	if not debug_visible:
+		hide_preview()
+		return
 	_clear_squad_aim_lines()
 	_aim_line.visible = true
 	_cone.visible = true
@@ -49,6 +62,9 @@ func show_squad_fire_at_previews(
 	cone_world_points: PackedVector2Array,
 	cone_has_target: bool,
 ) -> void:
+	if not debug_visible:
+		hide_preview()
+		return
 	_clear_squad_aim_lines()
 	_aim_line.visible = false
 	_cone.visible = true
@@ -74,6 +90,9 @@ func show_grenade_throw_preview(
 	target_world: Vector2,
 	in_range: bool,
 ) -> void:
+	if not debug_visible:
+		hide_preview()
+		return
 	_clear_squad_aim_lines()
 	_cone.visible = false
 	_aim_line.visible = true

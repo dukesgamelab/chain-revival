@@ -123,6 +123,11 @@ func clear_path() -> void:
 	_path_overlay.clear_path()
 
 
+func set_path_overlay_debug_visible(enabled: bool) -> void:
+	if _path_overlay != null:
+		_path_overlay.set_debug_visible(enabled)
+
+
 ## Redraw tiles and any active path overlay after a presentation-only view rotation.
 func refresh_view_rotation() -> void:
 	queue_redraw()

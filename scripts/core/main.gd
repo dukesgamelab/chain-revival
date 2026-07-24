@@ -61,6 +61,8 @@ var _face_soldier_id: int = 1
 var _grenade_mode: bool = false
 var _grenade_soldier_id: int = 1
 var _map_edit_mode: bool = false
+## Test-only: yellow run path, aim line, and LOS cone. Off by default; toggle with T.
+var _debug_targeting_overlays: bool = false
 var _map_edit_palette: int = MapEditorClass.Palette.WALL
 var _sim_accum_sec: float = 0.0
 var _combat_scan_accum_msec: int = 0
@@ -590,6 +592,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_toggle_grass_layer()
 			get_viewport().set_input_as_handled()
 			return
+		if event.keycode == KEY_T:
+			_toggle_debug_targeting_overlays()
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_F3:
 			_world.toggle_debug_overlay()
 			_command_bar.show_status(
@@ -798,6 +804,16 @@ func _toggle_grass_layer() -> void:
 		_command_bar.show_status("Ground Layer Visible")
 	else:
 		_command_bar.show_status("Ground Layer Hidden")
+
+
+func _toggle_debug_targeting_overlays() -> void:
+	_debug_targeting_overlays = not _debug_targeting_overlays
+	_iso_map.set_path_overlay_debug_visible(_debug_targeting_overlays)
+	_los_visualizer.set_debug_visible(_debug_targeting_overlays)
+	_command_bar.show_status(
+		"Targeting overlays %s (path / aim / LOS)"
+		% ("ON" if _debug_targeting_overlays else "OFF")
+	)
 
 
 func _spawn_all_soldier_views() -> void:
