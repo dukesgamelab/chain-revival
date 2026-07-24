@@ -20,6 +20,8 @@ var team_id: int = Team.USA
 var weapon_id: String = ""
 var weapon_type: int = WeaponTypeClass.RIFLE
 var weapon_name: String = ""
+## Carried equipment IDs (e.g. ammunition_box). Not a weapon swap — separate from weapon_id.
+var equipment: Array[String] = []
 var grid_position: Vector2i = Vector2i.ZERO
 var facing_direction: Vector2i = FacingDirection.NORTH
 var current_path: Array[Vector2i] = []
@@ -130,6 +132,28 @@ func assign_weapon(weapon_id_value: String, refill_ammo: bool = false) -> void:
 
 func get_weapon_data() -> WeaponDataClass:
 	return WeaponRegistryClass.get_weapon(weapon_id)
+
+
+func add_equipment(item_id: String) -> void:
+	if item_id.is_empty():
+		return
+	equipment.append(item_id)
+
+
+func remove_equipment(item_id: String) -> bool:
+	var idx := equipment.find(item_id)
+	if idx < 0:
+		return false
+	equipment.remove_at(idx)
+	return true
+
+
+func equipment_count(item_id: String) -> int:
+	var n := 0
+	for e in equipment:
+		if e == item_id:
+			n += 1
+	return n
 
 
 func is_alive() -> bool:
@@ -337,6 +361,7 @@ func to_dict() -> Dictionary:
 		"weapon_id": weapon_id,
 		"weapon_type": weapon_type,
 		"weapon_name": weapon_name,
+		"equipment": equipment.duplicate(),
 		"grid_x": grid_position.x,
 		"grid_y": grid_position.y,
 		"facing_x": facing_direction.x,
@@ -370,6 +395,13 @@ static func from_dict(data: Dictionary) -> SoldierState:
 		state.assign_weapon(saved_weapon_id, false)
 	state.ammo_current = int(data.get("ammo_current", state.ammo_max))
 	state.ammo_max = int(data.get("ammo_max", state.ammo_max))
+	state.equipment.clear()
+	var saved_equipment: Variant = data.get("equipment", [])
+	if saved_equipment is Array:
+		for item in saved_equipment:
+			var item_id := str(item)
+			if not item_id.is_empty():
+				state.equipment.append(item_id)
 	state.is_dead = bool(data.get("is_dead", false))
 	state.position_state = int(data.get("position_state", PositionStateClass.UP))
 	state.movement_mode = int(data.get("movement_mode", MovementModeClass.RUN))

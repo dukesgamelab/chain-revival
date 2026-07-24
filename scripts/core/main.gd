@@ -27,6 +27,7 @@ const CommandContextClass := preload("res://scripts/core/command_context.gd")
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 const SimpleAIControllerClass := preload("res://scripts/ai/simple_ai_controller.gd")
 const CommandDialogScene := preload("res://scenes/ui/command_dialog.tscn")
+const AssignWeaponsDialogScene := preload("res://scenes/ui/assign_weapons_dialog.tscn")
 
 @onready var _world: MapWorldView = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -44,6 +45,7 @@ const CommandDialogScene := preload("res://scenes/ui/command_dialog.tscn")
 @onready var _command_bar: CommandBar = $UI/CommandBar
 var _return_to_editor_on_exit: bool = false
 var _command_dialog: CommandDialog = null
+var _assign_weapons_dialog: AssignWeaponsDialog = null
 
 var _map_data = MapDataClass.create_default()
 var _session: GameSession = GameSessionClass.new([], [])
@@ -574,6 +576,7 @@ func _connect_command_bar() -> void:
 	_command_bar.map_edit_mode_changed.connect(_on_map_edit_mode_changed)
 	_command_bar.map_edit_palette_changed.connect(_on_map_edit_palette_changed)
 	_command_bar.set_commanders_requested.connect(_on_set_commanders_requested)
+	_command_bar.assign_weapons_requested.connect(_on_assign_weapons_requested)
 
 
 func _ensure_command_dialog() -> void:
@@ -583,6 +586,15 @@ func _ensure_command_dialog() -> void:
 	$UI.add_child(_command_dialog)
 	_command_dialog.briefing_requested.connect(_on_command_briefing_requested)
 	_command_dialog.dialog_closed.connect(_on_command_dialog_closed)
+
+
+func _ensure_assign_weapons_dialog() -> void:
+	if _assign_weapons_dialog != null:
+		return
+	_assign_weapons_dialog = AssignWeaponsDialogScene.instantiate() as AssignWeaponsDialog
+	$UI.add_child(_assign_weapons_dialog)
+	_assign_weapons_dialog.briefing_requested.connect(_on_assign_weapons_briefing_requested)
+	_assign_weapons_dialog.dialog_closed.connect(_on_assign_weapons_dialog_closed)
 
 
 func _open_command_dialog_for_deployment() -> void:
@@ -595,6 +607,10 @@ func _on_set_commanders_requested() -> void:
 	_open_command_dialog()
 
 
+func _on_assign_weapons_requested() -> void:
+	_open_assign_weapons_dialog()
+
+
 func _open_command_dialog() -> void:
 	_ensure_command_dialog()
 	if _command_dialog == null or _game_state == null:
@@ -603,14 +619,31 @@ func _open_command_dialog() -> void:
 	_command_dialog.popup_centered()
 
 
+func _open_assign_weapons_dialog() -> void:
+	_ensure_assign_weapons_dialog()
+	if _assign_weapons_dialog == null or _game_state == null:
+		return
+	_assign_weapons_dialog.bind_game_state(_game_state, _game_state.local_player_id)
+	_assign_weapons_dialog.popup_centered()
+
+
 func _on_command_briefing_requested() -> void:
 	_command_bar.show_status("View Briefing: set commanders, then hold your objectives.")
+
+
+func _on_assign_weapons_briefing_requested() -> void:
+	_command_bar.show_status("View Briefing: assign weapons from your cache to soldiers.")
 
 
 func _on_command_dialog_closed() -> void:
 	if _game_state != null and _game_state.is_deployment_phase():
 		_game_state.begin_running_phase()
 	_command_bar.show_status("Deployment complete. Chain of command ready.")
+
+
+func _on_assign_weapons_dialog_closed() -> void:
+	_refresh_all_views()
+	_command_bar.show_status("Weapon assignment updated.")
 
 
 func _unhandled_input(event: InputEvent) -> void:

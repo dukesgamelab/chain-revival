@@ -17,7 +17,10 @@ const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd"
 const AssignCommanderCommandClass := preload("res://scripts/commands/assign_commander_command.gd")
 const BreakCommandLinkCommandClass := preload("res://scripts/commands/break_command_link_command.gd")
 const SetMissionCommanderCommandClass := preload("res://scripts/commands/set_mission_commander_command.gd")
+const AssignWeaponCommandClass := preload("res://scripts/commands/assign_weapon_command.gd")
+const ReturnWeaponCommandClass := preload("res://scripts/commands/return_weapon_command.gd")
 const CommandHierarchyClass := preload("res://scripts/core/command_hierarchy.gd")
+const WeaponCacheClass := preload("res://scripts/core/weapon_cache.gd")
 const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 const MapDataClass := preload("res://scripts/map/map_data.gd")
@@ -57,6 +60,10 @@ static func execute(
 			game_state,
 			command as SetMissionCommanderCommandClass,
 		)
+	if command is AssignWeaponCommandClass:
+		return execute_assign_weapon(game_state, command as AssignWeaponCommandClass)
+	if command is ReturnWeaponCommandClass:
+		return execute_return_weapon(game_state, command as ReturnWeaponCommandClass)
 	return ActionResult.fail("Unknown command type.")
 
 
@@ -1098,6 +1105,10 @@ static func _command_type_name(command: RefCounted) -> String:
 		return "BreakCommandLinkCommand"
 	if command is SetMissionCommanderCommandClass:
 		return "SetMissionCommanderCommand"
+	if command is AssignWeaponCommandClass:
+		return "AssignWeaponCommand"
+	if command is ReturnWeaponCommandClass:
+		return "ReturnWeaponCommand"
 	return command.get_class() if command != null else "null"
 
 
@@ -1175,4 +1186,171 @@ static func execute_set_mission_commander(
 	return result.set_status(
 		"%s is now the Mission Commander" % hierarchy.list_label(player_id)
 	)
+
+
+## --- Weapon cache assignment (WeaponAss_*) ---
+
+static func execute_assign_weapon(
+	game_state: GameStateClass,
+	cmd: AssignWeaponCommandClass,
+) -> ActionResult:
+	if cmd == null or game_state == null or game_state.weapon_cache == null:
+		return ActionResult.fail("Choose a weapon from the cache")
+	var cache: WeaponCacheClass = game_state.weapon_cache
+	var hierarchy: CommandHierarchyClass = game_state.command_hierarchy
+	var from_player_id := int(cmd.from_player_id)
+	var item_id := str(cmd.item_id).strip_edges()
+	var target_kind := int(cmd.target_kind)
+	var target_id := int(cmd.target_id)
+
+	if item_id.is_empty():
+		return ActionResult.fail("Choose a weapon from the cache")
+	if from_player_id <= 0 or hierarchy == null or not hierarchy.has_player(from_player_id):
+		return ActionResult.fail("Choose a weapon from the cache")
+	if target_id <= 0:
+		return ActionResult.fail("Choose a target for weapon assignment")
+
+	var available := cache.pool_count(from_player_id, item_id)
+	if available <= 0:
+		return ActionResult.fail("No weapon available")
+
+	if target_kind == WeaponCacheClass.TargetKind.PLAYER:
+		return _assign_weapon_to_player(
+			game_state, cache, hierarchy, from_player_id, item_id, target_id
+		)
+
+	return _assign_weapon_to_soldier(game_state, cache, hierarchy, cmd)
+
+
+static func _assign_weapon_to_player(
+	game_state: GameStateClass,
+	cache: WeaponCacheClass,
+	hierarchy: CommandHierarchyClass,
+	from_player_id: int,
+	item_id: String,
+	target_player_id: int,
+) -> ActionResult:
+	if not hierarchy.has_player(target_player_id):
+		return ActionResult.fail("Choose a target for weapon assignment")
+	if target_player_id == from_player_id:
+		return ActionResult.fail("Choose a target for weapon assignment")
+	## WeaponPlus<-FromCommander: only to direct subordinates when hierarchy is present.
+	if target_player_id not in hierarchy.get_subordinates(from_player_id):
+		return ActionResult.fail("Choose a target for weapon assignment")
+	if not cache.take_from_pool(from_player_id, item_id):
+		return ActionResult.fail("That weapon was already taken")
+	cache.add_to_pool(target_player_id, item_id, 1)
+	var entry: Dictionary = hierarchy.get_entry(target_player_id)
+	if bool(entry.get("is_ai", false)):
+		cache.auto_distribute_to_soldiers(
+			game_state,
+			target_player_id,
+			hierarchy.get_soldier_ids(target_player_id),
+			hierarchy.get_team_id(target_player_id),
+		)
+	var result := ActionResult.new()
+	result.refresh_views = true
+	return result.set_status(
+		"Gave %s to %s"
+		% [cache.display_name(item_id), hierarchy.get_display_name(target_player_id)]
+	)
+
+
+static func _assign_weapon_to_soldier(
+	game_state: GameStateClass,
+	cache: WeaponCacheClass,
+	hierarchy: CommandHierarchyClass,
+	cmd: AssignWeaponCommandClass,
+) -> ActionResult:
+	var from_player_id := int(cmd.from_player_id)
+	var item_id := str(cmd.item_id).strip_edges()
+	var soldier_id := int(cmd.target_id)
+	var team_id := int(cmd.target_team_id)
+	if team_id < 0 and hierarchy != null:
+		team_id = hierarchy.get_team_id(from_player_id)
+	var owned := hierarchy.get_soldier_ids(from_player_id) if hierarchy != null else ([] as Array[int])
+	if soldier_id <= 0 or soldier_id not in owned:
+		return ActionResult.fail("Choose a target for weapon assignment")
+	var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
+	if soldier == null or soldier.is_dead:
+		return ActionResult.fail("Choose a target for weapon assignment")
+
+	var is_equip := cache.is_equipment(item_id)
+	if not is_equip and WeaponCacheClass.would_exceed_squad_limit(game_state, team_id, item_id):
+		## Already holding this weapon: swap is a no-op on count, allow re-equip from cache.
+		if str(soldier.weapon_id) != item_id:
+			return ActionResult.fail("Weapon limit for this squad reached")
+
+	if not cache.take_from_pool(from_player_id, item_id):
+		return ActionResult.fail("That weapon was already taken")
+
+	if is_equip:
+		soldier.add_equipment(item_id)
+		var equip_result := ActionResult.new()
+		equip_result.refresh_views = true
+		return equip_result.set_status(
+			"Assigned %s to soldier%d" % [cache.display_name(item_id), soldier_id]
+		)
+
+	## WeaponGetNew + WeaponRemoveOld: previous weapon returns to the pool.
+	var old_weapon_id := str(soldier.weapon_id)
+	soldier.assign_weapon(item_id, true)
+	if not old_weapon_id.is_empty() and old_weapon_id != item_id:
+		cache.add_to_pool(from_player_id, old_weapon_id, 1, WeaponCacheClass.Kind.WEAPON)
+
+	var result := ActionResult.new()
+	result.refresh_views = true
+	return result.set_status(
+		"Assigned %s to soldier%d (%s, %d)"
+		% [
+			cache.display_name(item_id),
+			soldier_id,
+			cache.display_name(item_id),
+			soldier.ammo_current,
+		]
+	)
+
+
+static func execute_return_weapon(
+	game_state: GameStateClass,
+	cmd: ReturnWeaponCommandClass,
+) -> ActionResult:
+	if cmd == null or game_state == null or game_state.weapon_cache == null:
+		return ActionResult.fail("Choose a target for weapon assignment")
+	var cache: WeaponCacheClass = game_state.weapon_cache
+	var hierarchy: CommandHierarchyClass = game_state.command_hierarchy
+	var to_player_id := int(cmd.to_player_id)
+	var team_id := int(cmd.team_id)
+	var soldier_id := int(cmd.soldier_id)
+	var item_id := str(cmd.item_id).strip_edges()
+
+	if to_player_id <= 0 or hierarchy == null or not hierarchy.has_player(to_player_id):
+		return ActionResult.fail("Choose a target for weapon assignment")
+	if team_id < 0:
+		team_id = hierarchy.get_team_id(to_player_id)
+	if soldier_id <= 0 or soldier_id not in hierarchy.get_soldier_ids(to_player_id):
+		return ActionResult.fail("Choose a target for weapon assignment")
+	var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
+	if soldier == null or soldier.is_dead:
+		return ActionResult.fail("Choose a target for weapon assignment")
+
+	if item_id.is_empty():
+		item_id = str(soldier.weapon_id)
+
+	if cache.is_equipment(item_id):
+		if not soldier.remove_equipment(item_id):
+			return ActionResult.fail("No weapon available")
+		cache.add_to_pool(to_player_id, item_id, 1, WeaponCacheClass.Kind.EQUIPMENT)
+		var equip_result := ActionResult.new()
+		equip_result.refresh_views = true
+		return equip_result.set_status("Returned %s to cache" % cache.display_name(item_id))
+
+	if str(soldier.weapon_id) != item_id:
+		return ActionResult.fail("No weapon available")
+	var default_rifle := WeaponCacheClass.default_rifle_for_team(team_id)
+	soldier.assign_weapon(default_rifle, true)
+	cache.add_to_pool(to_player_id, item_id, 1, WeaponCacheClass.Kind.WEAPON)
+	var result := ActionResult.new()
+	result.refresh_views = true
+	return result.set_status("Returned %s to cache" % cache.display_name(item_id))
 

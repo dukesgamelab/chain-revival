@@ -158,6 +158,12 @@ custom_minimum_size = Vector2(110, 18)
 layout_mode = 2
 text = "Set Commander(s)"
 
+[node name="AssignWeaponsButton" type="Button" parent="Panel/Margin/HBox/RightControls/UtilityButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 18)
+layout_mode = 2
+text = "Assign Weapons"
+
 [node name="SaveButton" type="Button" parent="Panel/Margin/HBox/RightControls/UtilityButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 18)

@@ -13,6 +13,7 @@ extends RefCounted
 ## Soldier scene nodes are presentation-only and are never stored in the registry.
 
 const CommandHierarchyClass := preload("res://scripts/core/command_hierarchy.gd")
+const WeaponCacheClass := preload("res://scripts/core/weapon_cache.gd")
 
 enum MatchPhase { DEPLOYMENT, RUNNING }
 
@@ -20,6 +21,8 @@ var session: GameSession
 var map_data: MapData
 var objects: ObjectRegistry
 var command_hierarchy: CommandHierarchyClass
+## Per-player weapon/equipment pool (WeaponCashe).
+var weapon_cache: WeaponCacheClass
 var match_phase: int = MatchPhase.DEPLOYMENT
 ## Local/offline controlling player for UI + shared visibility (human USA by default).
 var local_player_id: int = 1
@@ -34,6 +37,26 @@ func _init(game_session: GameSession, map: MapData) -> void:
 	command_hierarchy.bootstrap_default_match()
 	local_player_id = 1
 	match_phase = MatchPhase.DEPLOYMENT
+	weapon_cache = WeaponCacheClass.new()
+	_bootstrap_weapon_caches()
+
+
+func _bootstrap_weapon_caches() -> void:
+	var player_ids: Array[int] = command_hierarchy.all_player_ids()
+	weapon_cache.bootstrap_default_caches(
+		player_ids,
+		func(pid: int) -> int: return command_hierarchy.get_team_id(pid),
+	)
+	## AI players auto-distribute specials from their starting cache onto rifle-holders.
+	for pid in player_ids:
+		if not bool(command_hierarchy.get_entry(pid).get("is_ai", false)):
+			continue
+		weapon_cache.auto_distribute_to_soldiers(
+			self,
+			pid,
+			command_hierarchy.get_soldier_ids(pid),
+			command_hierarchy.get_team_id(pid),
+		)
 
 
 func rebuild_object_registry() -> void:
