@@ -79,7 +79,8 @@ static func get_def(type_id: String) -> MapObjectDef:
 
 
 static func _coc_default_def(type_id: String) -> MapObjectDef:
-	## Tooling defaults only — per-tile JSON flags override via MapData meta.
+	## Fallback when family is unknown / not in map_asset_registry.json.
+	## Authoritative CoC family gameplay lives in MapAssetRegistry; MapData prefers that.
 	match type_id:
 		"coc_window", "coc_door_wood", "coc_bush", "coc_cw01", "coc_cw02", "coc_swin", "coc_wh11":
 			return MapObjectDef.new(

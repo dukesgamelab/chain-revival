@@ -18,6 +18,7 @@ const AVAILABLE_MAPS := {
 const DEFAULT_WIDTH := 60
 const DEFAULT_HEIGHT := 60
 const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
+const MapAssetRegistryClass := preload("res://scripts/map/map_asset_registry.gd")
 
 ## Default deployment: vertical columns facing each other, paired by row (same y).
 const DEFAULT_TEAM_SEPARATION := 10
@@ -64,24 +65,44 @@ func get_object_type(cell: Vector2i) -> String:
 	return str(_object_lookup.get(cell, ""))
 
 
+func get_object_family(cell: Vector2i) -> String:
+	return str(get_object_source(cell).get("image", "")).to_upper()
+
+
+func get_gameplay_overrides(cell: Vector2i) -> Dictionary:
+	## Explicit overrides only — legacy baked blocks_*/source.terrain are ignored.
+	var meta: Dictionary = _object_meta.get(cell, {})
+	var ov: Variant = meta.get("gameplay_overrides", {})
+	if ov is Dictionary and not (ov as Dictionary).is_empty():
+		return (ov as Dictionary).duplicate(true)
+	var source := get_object_source(cell)
+	ov = source.get("gameplay_overrides", {})
+	return (ov as Dictionary).duplicate(true) if ov is Dictionary else {}
+
+
 func get_object_def(cell: Vector2i) -> MapObjectDef:
 	var type_id := get_object_type(cell)
 	if type_id.is_empty():
 		return null
-	var base_def := MapObjectRegistryClass.get_def(type_id)
+	var family := get_object_family(cell)
+	var base_def: MapObjectDef = null
+	if not family.is_empty() and MapAssetRegistryClass.has_family(family):
+		base_def = MapAssetRegistryClass.map_object_def_for(family, type_id)
+	if base_def == null:
+		base_def = MapObjectRegistryClass.get_def(type_id)
 	if base_def == null:
 		return null
-	var meta: Dictionary = _object_meta.get(cell, {})
-	if meta.is_empty():
+	var overrides := get_gameplay_overrides(cell)
+	if overrides.is_empty():
 		return base_def
 	return MapObjectDef.new(
 		base_def.type_id,
 		base_def.display_name,
-		bool(meta.get("blocks_movement", base_def.blocks_movement)),
-		bool(meta.get("blocks_los", base_def.blocks_los)),
-		bool(meta.get("provides_cover", base_def.provides_cover)),
-		int(meta.get("cover_type", base_def.cover_type)),
-		str(meta.get("sprite_path", base_def.sprite_path)),
+		bool(overrides.get("blocks_movement", base_def.blocks_movement)),
+		bool(overrides.get("blocks_los", base_def.blocks_los)),
+		bool(overrides.get("provides_cover", base_def.provides_cover)),
+		int(overrides.get("cover_type", base_def.cover_type)),
+		base_def.sprite_path,
 	)
 
 
@@ -138,10 +159,20 @@ static func terrain_class_label(terrain: int) -> String:
 			return "Even"
 
 
-## Family defaults when placing tiles (Climb = low obstacle: blocks move, standing can fire over).
+## Family defaults when placing tiles — prefers map asset registry.
 static func default_terrain_for_family(family: String) -> Dictionary:
 	var fam := family.to_upper()
-	## Low field walls / cows — height-1 climb obstacles.
+	if MapAssetRegistryClass.has_family(fam):
+		var gp := MapAssetRegistryClass.gameplay_for(fam)
+		return {
+			"terrain": str(gp.get("terrain", "_HG_EVEN")),
+			"terrain_height": int(gp.get("terrain_height", 0)),
+			"blocks_movement": bool(gp.get("blocks_movement", false)),
+			"blocks_los": bool(gp.get("blocks_los", false)),
+			"provides_cover": bool(gp.get("provides_cover", false)),
+			"cover_type": int(gp.get("cover_type", 0)),
+		}
+	## Hardcoded fallback for families not yet in the registry.
 	if fam in ["WH00", "CW01"]:
 		return {
 			"terrain": "_HG_Climb",
@@ -164,10 +195,18 @@ static func default_terrain_for_family(family: String) -> Dictionary:
 func terrain_raw(cell: Vector2i) -> String:
 	if not is_in_bounds(cell):
 		return ""
+	var overrides := get_gameplay_overrides(cell)
+	if overrides.has("terrain"):
+		return str(overrides.get("terrain", ""))
+	var family := get_object_family(cell)
+	if family.is_empty():
+		family = _visual_family_at(cell)
+	if MapAssetRegistryClass.has_family(family):
+		return str(MapAssetRegistryClass.gameplay_for(family).get("terrain", "_HG_EVEN"))
+	## Legacy maps / families without registry entries.
 	var source := get_object_source(cell)
 	if not source.is_empty():
 		return str(source.get("terrain", ""))
-	## Fallback for visuals that never entered _object_lookup (unknown type_id).
 	for entry in visual_placements:
 		if int(entry.get("x", -1)) != cell.x or int(entry.get("y", -1)) != cell.y:
 			continue
@@ -196,6 +235,16 @@ func is_climb(cell: Vector2i) -> bool:
 func obstruction_height(cell: Vector2i) -> int:
 	if not is_in_bounds(cell):
 		return 0
+	var overrides := get_gameplay_overrides(cell)
+	if overrides.has("terrain_height"):
+		return clampi(int(float(overrides.get("terrain_height", 0))), 0, 2)
+	var family := get_object_family(cell)
+	if family.is_empty():
+		family = _visual_family_at(cell)
+	if MapAssetRegistryClass.has_family(family):
+		var gp := MapAssetRegistryClass.gameplay_for(family)
+		if gp.has("terrain_height"):
+			return clampi(int(float(gp.get("terrain_height", 0))), 0, 2)
 	var source := get_object_source(cell)
 	if source.is_empty():
 		for entry in visual_placements:
@@ -217,6 +266,21 @@ func obstruction_height(cell: Vector2i) -> int:
 			return 1
 		_:
 			return 0
+
+
+func _visual_family_at(cell: Vector2i) -> String:
+	for entry in visual_placements:
+		if int(entry.get("x", -1)) != cell.x or int(entry.get("y", -1)) != cell.y:
+			continue
+		if str(entry.get("layer", "object")) != "object":
+			continue
+		var fam := str(entry.get("family", "")).to_upper()
+		if fam.is_empty():
+			var src: Variant = entry.get("source", {})
+			if src is Dictionary:
+				fam = str(src.get("image", "")).to_upper()
+		return fam
+	return ""
 
 
 ## Optional future vaulting — NOT confirmed OG behavior. Default OFF.
@@ -337,72 +401,86 @@ func place_family_object(
 	erase_all_at(cell, true)
 	var type_id := str(gameplay.get("object_type", MapObjectDefinition.type_id_for_family(fam)))
 	var default_terrain := default_terrain_for_family(fam)
-	## Persist identity only — never a camera-specific sprite letter/path.
+	## Persist identity — family registry owns shared gameplay. Optional overrides only.
 	var source := {
 		"image": fam,
 		"direction": direction,
 		"z": z,
-		"terrain": str(gameplay.get("terrain", default_terrain.get("terrain", "_HG_EVEN"))),
-		"terrain_height": int(gameplay.get("terrain_height", default_terrain.get("terrain_height", 0))),
 	}
 	if not image1.is_empty():
 		source["image1"] = image1.to_upper()
-	for key in gameplay.keys():
-		if key in ["object_type", "terrain", "terrain_height", "sprite_path", "sprite"]:
-			continue
-		source[key] = gameplay[key]
+	## Optional explicit overrides from caller (editor tools).
+	var overrides: Dictionary = {}
+	if gameplay.get("gameplay_overrides", {}) is Dictionary:
+		overrides = (gameplay["gameplay_overrides"] as Dictionary).duplicate(true)
+	for key in [
+		"terrain",
+		"terrain_height",
+		"blocks_movement",
+		"blocks_los",
+		"provides_cover",
+		"cover_type",
+		"blocks_bullets",
+		"concealment",
+		"suppression_modifier",
+	]:
+		if gameplay.has(key) and not overrides.has(key):
+			## Only treat as override when caller intentionally differs from registry default.
+			var def_val = default_terrain.get(key, null)
+			if def_val == null or gameplay[key] != def_val:
+				overrides[key] = gameplay[key]
 	## Drop any legacy baked sprite keys so saves stay camera-agnostic.
 	source.erase("sprite")
 	var blocks_move := bool(
-		gameplay.get(
+		overrides.get(
 			"blocks_movement",
 			default_terrain.get("blocks_movement", true),
 		)
 	)
 	var blocks_sight := bool(
-		gameplay.get(
+		overrides.get(
 			"blocks_los",
 			default_terrain.get("blocks_los", true),
 		)
 	)
 	var provides_cover := bool(
-		gameplay.get(
+		overrides.get(
 			"provides_cover",
 			default_terrain.get("provides_cover", true),
 		)
 	)
 	var cover_type := int(
-		gameplay.get(
+		overrides.get(
 			"cover_type",
 			default_terrain.get("cover_type", 2),
 		)
 	)
 	_object_lookup[cell] = MapObjectRegistryClass.normalize_type_id(type_id)
-	_object_meta[cell] = {
+	var meta := {
 		"source": source,
+		"sprite_path": "",
+	}
+	if not overrides.is_empty():
+		meta["gameplay_overrides"] = overrides
+	_object_meta[cell] = meta
+	var placement := {
+		"x": cell.x,
+		"y": cell.y,
+		"object_type": type_id,
+		"family": fam,
+		"direction": direction,
+		"image1": image1.to_upper(),
+		"source": source,
+		"layer": "object",
+		"z": z,
 		"blocks_movement": blocks_move,
 		"blocks_los": blocks_sight,
 		"provides_cover": provides_cover,
 		"cover_type": cover_type,
-		"sprite_path": "",
 	}
-	_upsert_visual_placement(
-		{
-			"x": cell.x,
-			"y": cell.y,
-			"object_type": type_id,
-			"family": fam,
-			"direction": direction,
-			"image1": image1.to_upper(),
-			"source": source,
-			"layer": "object",
-			"z": z,
-			"blocks_movement": blocks_move,
-			"blocks_los": blocks_sight,
-			"provides_cover": provides_cover,
-			"cover_type": cover_type,
-		}
-	)
+	if not overrides.is_empty():
+		placement["gameplay_overrides"] = overrides.duplicate(true)
+	_upsert_visual_placement(placement)
 	_rebuild_blocked_tiles_list()
 
 
@@ -440,7 +518,7 @@ func erase_all_at(cell: Vector2i, include_floors: bool = true) -> void:
 	_rebuild_blocked_tiles_list()
 
 
-## Editor: set terrain class / height on an existing object; syncs derived flags.
+## Editor: set terrain class / height as an explicit per-placement override.
 func set_cell_terrain(
 	cell: Vector2i,
 	terrain: int = -1,
@@ -449,43 +527,56 @@ func set_cell_terrain(
 	if not is_in_bounds(cell) or not has_object(cell):
 		return
 	var meta: Dictionary = _object_meta.get(cell, {}).duplicate(true)
-	var source: Dictionary = {}
-	if meta.get("source", {}) is Dictionary:
-		source = (meta["source"] as Dictionary).duplicate(true)
-	var resolved_terrain := terrain if terrain >= 0 else parse_terrain_class(str(source.get("terrain", "")))
-	var resolved_height := height if height >= 0 else obstruction_height(cell)
+	var overrides: Dictionary = {}
+	if meta.get("gameplay_overrides", {}) is Dictionary:
+		overrides = (meta["gameplay_overrides"] as Dictionary).duplicate(true)
+	var family := get_object_family(cell)
+	var gp := (
+		MapAssetRegistryClass.gameplay_for(family)
+		if MapAssetRegistryClass.has_family(family)
+		else default_terrain_for_family(family)
+	)
+	var resolved_terrain := (
+		terrain
+		if terrain >= 0
+		else parse_terrain_class(str(overrides.get("terrain", gp.get("terrain", "_HG_EVEN"))))
+	)
+	var resolved_height := (
+		height
+		if height >= 0
+		else clampi(int(float(overrides.get("terrain_height", gp.get("terrain_height", 0)))), 0, 2)
+	)
 	resolved_height = clampi(resolved_height, 0, 2)
-	source["terrain"] = terrain_class_token(resolved_terrain)
-	source["terrain_height"] = resolved_height
-	## Derived gameplay bits so authors / JSON stay consistent with class+height.
-	## Movement follows terrain class; LOS follows height (Climb blocks move, not standing LOS).
+	overrides["terrain"] = terrain_class_token(resolved_terrain)
+	overrides["terrain_height"] = resolved_height
+	## Derived gameplay bits so authors stay consistent with class+height.
 	var blocks_move := (
 		resolved_terrain == TerrainClass.NO_PASS
 		or (resolved_terrain == TerrainClass.CLIMB and not ALLOW_CLIMB_TRAVERSAL)
 	)
 	var blocks_sight := resolved_height >= 2
-	meta["source"] = source
-	meta["blocks_movement"] = blocks_move
-	meta["blocks_los"] = blocks_sight
+	overrides["blocks_movement"] = blocks_move
+	overrides["blocks_los"] = blocks_sight
 	if resolved_terrain == TerrainClass.CLIMB or resolved_height == 1:
-		meta["provides_cover"] = true
-		if int(meta.get("cover_type", 0)) == 0:
-			meta["cover_type"] = 1 ## CoverSystem.MODERATE
+		overrides["provides_cover"] = true
+		if int(overrides.get("cover_type", gp.get("cover_type", 0))) == 0:
+			overrides["cover_type"] = 1 ## CoverSystem.MODERATE
+	meta["gameplay_overrides"] = overrides
 	_object_meta[cell] = meta
-	## Keep visual_placements source in sync for save/display.
+	## Keep visual_placements informed for editor/debug (runtime still uses overrides).
 	for i in range(visual_placements.size()):
 		var entry: Dictionary = visual_placements[i]
 		if int(entry.get("x", -1)) != cell.x or int(entry.get("y", -1)) != cell.y:
 			continue
 		if str(entry.get("layer", "object")) != "object":
 			continue
-		entry["source"] = source.duplicate(true)
+		entry["gameplay_overrides"] = overrides.duplicate(true)
 		entry["blocks_movement"] = blocks_move
 		entry["blocks_los"] = blocks_sight
-		if meta.has("provides_cover"):
-			entry["provides_cover"] = meta["provides_cover"]
-		if meta.has("cover_type"):
-			entry["cover_type"] = meta["cover_type"]
+		if overrides.has("provides_cover"):
+			entry["provides_cover"] = overrides["provides_cover"]
+		if overrides.has("cover_type"):
+			entry["cover_type"] = overrides["cover_type"]
 		visual_placements[i] = entry
 		break
 	_rebuild_blocked_tiles_list()
@@ -937,6 +1028,11 @@ func _objects_to_json() -> Array:
 		var meta: Dictionary = _object_meta.get(cell, {})
 		if meta.has("source"):
 			entry["source"] = meta["source"]
+		## Persist explicit overrides only — family registry owns shared gameplay.
+		if meta.get("gameplay_overrides", {}) is Dictionary:
+			var ov: Dictionary = meta["gameplay_overrides"]
+			if not ov.is_empty():
+				entry["gameplay_overrides"] = ov.duplicate(true)
 		result.append(entry)
 	return result
 
@@ -951,6 +1047,7 @@ static func _object_entry_to_dict(cell: Vector2i, object_def: MapObjectDef) -> D
 		"grid_position": {"x": cell.x, "y": cell.y},
 		## Empty for CoC families — facets resolve at draw time from source.image + direction.
 		"sprite_path": "",
+		## Resolved snapshot for tooling/debug; runtime prefers registry + gameplay_overrides.
 		"blocks_movement": object_def.blocks_movement,
 		"blocks_los": object_def.blocks_los,
 		"provides_cover": object_def.provides_cover,
@@ -974,8 +1071,9 @@ func _load_objects_from_json(raw: Array) -> void:
 		)
 		type_id = MapObjectRegistryClass.normalize_type_id(type_id)
 		var source: Dictionary = {}
-		if entry.get("source", {}) is Dictionary:
-			source = (entry.get("source") as Dictionary).duplicate(true)
+		var source_raw: Variant = entry.get("source", null)
+		if source_raw is Dictionary:
+			source = (source_raw as Dictionary).duplicate(true)
 		var family := str(source.get("image", "")).to_upper()
 		var direction := int(source.get("direction", 0))
 		var image1 := str(
@@ -983,6 +1081,16 @@ func _load_objects_from_json(raw: Array) -> void:
 		).to_upper()
 		if not image1.is_empty():
 			source["image1"] = image1
+		## Explicit overrides survive; baked top-level flags do not become permanent overrides.
+		var overrides: Dictionary = {}
+		var ov_raw: Variant = entry.get("gameplay_overrides", null)
+		if ov_raw is Dictionary:
+			overrides = (ov_raw as Dictionary).duplicate(true)
+		else:
+			ov_raw = source.get("gameplay_overrides", null)
+			if ov_raw is Dictionary:
+				overrides = (ov_raw as Dictionary).duplicate(true)
+				source.erase("gameplay_overrides")
 		var placement := {
 			"x": cell.x,
 			"y": cell.y,
@@ -994,6 +1102,8 @@ func _load_objects_from_json(raw: Array) -> void:
 			"layer": "object",
 			"z": int(source.get("z", 0)),
 		}
+		if not overrides.is_empty():
+			placement["gameplay_overrides"] = overrides.duplicate(true)
 		visual_placements.append(placement)
 
 		## Always register for terrain/collision — never leave authored tiles as visuals-only.
@@ -1006,14 +1116,13 @@ func _load_objects_from_json(raw: Array) -> void:
 		_object_lookup[cell] = type_id
 		## Ignore baked sprite_path/sprite — presentation always re-resolves via CocSpriteResolver.
 		source.erase("sprite")
-		_object_meta[cell] = {
+		var meta := {
 			"source": source,
-			"blocks_movement": bool(entry.get("blocks_movement", false)),
-			"blocks_los": bool(entry.get("blocks_los", false)),
-			"provides_cover": bool(entry.get("provides_cover", false)),
-			"cover_type": int(entry.get("cover_type", 0)),
 			"sprite_path": "",
 		}
+		if not overrides.is_empty():
+			meta["gameplay_overrides"] = overrides
+		_object_meta[cell] = meta
 
 
 func _append_decoration_visuals() -> void:

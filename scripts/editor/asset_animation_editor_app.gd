@@ -1,10 +1,14 @@
 extends Control
-## Asset & Animation Editor — single source of truth UI for animation_database.json.
+## Asset & Animation Editor — Animations + Map Assets modes.
 ##
-## Layout: Families | Animations | Directions+Timeline | Preview+Camera+Metadata
+## Animations: single source of truth UI for animation_database.json.
+## Map Assets: map_asset_registry.json (shared gameplay + camera visuals).
 
 const MODE_SELECT_SCENE := "res://scenes/mode_select.tscn"
+const MapAssetEditorPanelScript := preload("res://scripts/editor/map_asset_editor_panel.gd")
 const DIRECTIONS: PackedStringArray = ["n", "ne", "e", "se", "s", "sw", "w", "nw"]
+
+enum EditorMode { ANIMATIONS, MAP_ASSETS }
 
 var _family_id: String = ""
 var _anim_id: String = ""
@@ -20,6 +24,8 @@ var _dirty: bool = false
 var _accum: float = 0.0
 var _drag_frame_i: int = -1
 var _drag_moved: bool = false
+var _mode: int = EditorMode.ANIMATIONS
+var _map_assets_panel: Control = null
 
 @onready var _family_list: ItemList = %FamilyList
 @onready var _anim_list: ItemList = %AnimList
@@ -42,6 +48,7 @@ var _drag_moved: bool = false
 @onready var _auto_folder: LineEdit = %AutoFolder
 @onready var _auto_prefix: LineEdit = %AutoPrefix
 @onready var _auto_anim_name: LineEdit = %AutoAnimName
+@onready var _main_row: HBoxContainer = %MainRow
 
 
 func _ready() -> void:
@@ -56,12 +63,16 @@ func _ready() -> void:
 	_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_preview.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_status.text = "Loaded animation_database.json"
+	_ensure_map_assets_panel()
+	_set_mode(EditorMode.ANIMATIONS)
 	set_process(true)
 
 
 func _wire_signals() -> void:
 	%BackButton.pressed.connect(_on_back_pressed)
 	%SaveButton.pressed.connect(_on_save_pressed)
+	%ModeAnimations.pressed.connect(_on_mode_animations)
+	%ModeMapAssets.pressed.connect(_on_mode_map_assets)
 	%NewFamilyButton.pressed.connect(_on_new_family_pressed)
 	%NewAnimButton.pressed.connect(_on_new_anim_pressed)
 	%AddFrameButton.pressed.connect(_on_add_frame_pressed)
@@ -89,6 +100,47 @@ func _wire_signals() -> void:
 	_meta_muzzle.value_changed.connect(_on_meta_changed)
 	_meta_footstep.value_changed.connect(_on_meta_changed)
 	_meta_move.value_changed.connect(_on_meta_changed)
+
+
+func _ensure_map_assets_panel() -> void:
+	if _map_assets_panel != null:
+		return
+	var root: VBoxContainer = _main_row.get_parent() as VBoxContainer
+	_map_assets_panel = MapAssetEditorPanelScript.new()
+	_map_assets_panel.name = "MapAssetsPanel"
+	_map_assets_panel.visible = false
+	_map_assets_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_map_assets_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.add_child(_map_assets_panel)
+	_map_assets_panel.status_message.connect(func(text: String) -> void:
+		_status.text = text
+	)
+	_map_assets_panel.dirty_changed.connect(func(is_dirty: bool) -> void:
+		if is_dirty and _mode == EditorMode.MAP_ASSETS:
+			_status.text = "Unsaved map asset registry changes"
+	)
+
+
+func _on_mode_animations() -> void:
+	_set_mode(EditorMode.ANIMATIONS)
+
+
+func _on_mode_map_assets() -> void:
+	_set_mode(EditorMode.MAP_ASSETS)
+
+
+func _set_mode(mode: int) -> void:
+	_mode = mode
+	_ensure_map_assets_panel()
+	var anim_mode := mode == EditorMode.ANIMATIONS
+	_main_row.visible = anim_mode
+	_map_assets_panel.visible = not anim_mode
+	%ModeAnimations.button_pressed = anim_mode
+	%ModeMapAssets.button_pressed = not anim_mode
+	if anim_mode:
+		_status.text = "Animations mode"
+	else:
+		_status.text = "Map Assets mode — family registry"
 
 
 func _process(delta: float) -> void:
@@ -238,6 +290,10 @@ func _on_back_pressed() -> void:
 
 
 func _on_save_pressed() -> void:
+	if _mode == EditorMode.MAP_ASSETS:
+		if _map_assets_panel != null:
+			_map_assets_panel.save_registry()
+		return
 	_flush_meta_to_db()
 	if AnimationDatabase.save():
 		_dirty = false

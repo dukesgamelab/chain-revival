@@ -1,0 +1,2726 @@
+{
+	"_comment": "Static CoC map-object family registry. Gameplay is shared; camera_variants are presentation-only.",
+	"version": 1,
+	"families": {
+		"BH01": {
+			"family": "BH01",
+			"display_name": "Bush",
+			"category": "bush",
+			"material": "",
+			"usage_ff_farm": 19,
+			"gameplay": {
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 1,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "BH01_e",
+					"path": "sprites/coc_tiles/BH01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "e",
+					"facet": "BH01_e",
+					"path": "sprites/coc_tiles/BH01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				},
+				"180": {
+					"letter": "e",
+					"facet": "BH01_e",
+					"path": "sprites/coc_tiles/BH01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				},
+				"270": {
+					"letter": "e",
+					"facet": "BH01_e",
+					"path": "sprites/coc_tiles/BH01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				}
+			}
+		},
+		"CW01": {
+			"family": "CW01",
+			"display_name": "Cow",
+			"category": "bush",
+			"material": "",
+			"usage_ff_farm": 3,
+			"gameplay": {
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 1,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "CW01_e",
+					"path": "sprites/coc_tiles/CW01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "e",
+					"facet": "CW01_e",
+					"path": "sprites/coc_tiles/CW01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				},
+				"180": {
+					"letter": "e",
+					"facet": "CW01_e",
+					"path": "sprites/coc_tiles/CW01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				},
+				"270": {
+					"letter": "e",
+					"facet": "CW01_e",
+					"path": "sprites/coc_tiles/CW01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				}
+			}
+		},
+		"IWCL": {
+			"family": "IWCL",
+			"display_name": "Interior wood corner L",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 1,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "IWCL_e",
+					"path": "sprites/coc_tiles/IWCL_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "IWCL_n",
+					"path": "sprites/coc_tiles/IWCL_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "IWCL_w",
+					"path": "sprites/coc_tiles/IWCL_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "IWCL_s",
+					"path": "sprites/coc_tiles/IWCL_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"IWCLS3A": {
+			"family": "IWCLS3A",
+			"display_name": "Interior wood corner L S3A",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 1,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "IWCLS3A_e",
+					"path": "sprites/coc_tiles/IWCLS3A_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "IWCLS3A_n",
+					"path": "sprites/coc_tiles/IWCLS3A_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "IWCLS3A_w",
+					"path": "sprites/coc_tiles/IWCLS3A_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "IWCLS3A_s",
+					"path": "sprites/coc_tiles/IWCLS3A_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"IWCR": {
+			"family": "IWCR",
+			"display_name": "Interior wood corner R",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 1,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "IWCR_e",
+					"path": "sprites/coc_tiles/IWCR_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "IWCR_n",
+					"path": "sprites/coc_tiles/IWCR_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "IWCR_w",
+					"path": "sprites/coc_tiles/IWCR_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "IWCR_s",
+					"path": "sprites/coc_tiles/IWCR_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"IWDRS7A": {
+			"family": "IWDRS7A",
+			"display_name": "Interior wood door",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 3,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "IWDRS7A_e",
+					"path": "sprites/coc_tiles/IWDRS7A_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "IWDRS7A_n",
+					"path": "sprites/coc_tiles/IWDRS7A_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "IWDRS7A_w",
+					"path": "sprites/coc_tiles/IWDRS7A_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "IWDRS7A_s",
+					"path": "sprites/coc_tiles/IWDRS7A_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"IWWL": {
+			"family": "IWWL",
+			"display_name": "Interior wood wall",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 36,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "IWWL_e",
+					"path": "sprites/coc_tiles/IWWL_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "IWWL_n",
+					"path": "sprites/coc_tiles/IWWL_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "IWWL_w",
+					"path": "sprites/coc_tiles/IWWL_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "IWWL_s",
+					"path": "sprites/coc_tiles/IWWL_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"IWWLS1C": {
+			"family": "IWWLS1C",
+			"display_name": "Interior wood wall S1C",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 4,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "IWWLS1C_e",
+					"path": "sprites/coc_tiles/IWWLS1C_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "IWWLS1C_n",
+					"path": "sprites/coc_tiles/IWWLS1C_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "IWWLS1C_w",
+					"path": "sprites/coc_tiles/IWWLS1C_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "IWWLS1C_s",
+					"path": "sprites/coc_tiles/IWWLS1C_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"LIHW": {
+			"family": "LIHW",
+			"display_name": "Long interior wood wall",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 6,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "LIHW_e",
+					"path": "sprites/coc_tiles/LIHW_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "LIHW_n",
+					"path": "sprites/coc_tiles/LIHW_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "LIHW_w",
+					"path": "sprites/coc_tiles/LIHW_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "LIHW_s",
+					"path": "sprites/coc_tiles/LIHW_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"SCOR": {
+			"family": "SCOR",
+			"display_name": "Stone corner",
+			"category": "wall",
+			"material": "stone",
+			"usage_ff_farm": 6,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "SCOR_e",
+					"path": "sprites/coc_tiles/SCOR_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "SCOR_n",
+					"path": "sprites/coc_tiles/SCOR_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "SCOR_w",
+					"path": "sprites/coc_tiles/SCOR_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "SCOR_s",
+					"path": "sprites/coc_tiles/SCOR_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"SICR": {
+			"family": "SICR",
+			"display_name": "Stone inner corner",
+			"category": "wall",
+			"material": "stone",
+			"usage_ff_farm": 5,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "SICR_e",
+					"path": "sprites/coc_tiles/SICR_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "SICR_n",
+					"path": "sprites/coc_tiles/SICR_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "SICR_w",
+					"path": "sprites/coc_tiles/SICR_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "SICR_s",
+					"path": "sprites/coc_tiles/SICR_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"SWAI": {
+			"family": "SWAI",
+			"display_name": "Stone wall AI",
+			"category": "wall",
+			"material": "stone",
+			"usage_ff_farm": 6,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "SWAI_e",
+					"path": "sprites/coc_tiles/SWAI_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "SWAI_n",
+					"path": "sprites/coc_tiles/SWAI_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "SWAI_w",
+					"path": "sprites/coc_tiles/SWAI_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "SWAI_s",
+					"path": "sprites/coc_tiles/SWAI_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"SWAIS3A": {
+			"family": "SWAIS3A",
+			"display_name": "Stone wall AI S3A",
+			"category": "prop",
+			"material": "stone",
+			"usage_ff_farm": 2,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "SWAIS3A_e",
+					"path": "sprites/coc_tiles/SWAIS3A_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "SWAIS3A_n",
+					"path": "sprites/coc_tiles/SWAIS3A_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "SWAIS3A_w",
+					"path": "sprites/coc_tiles/SWAIS3A_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "SWAIS3A_s",
+					"path": "sprites/coc_tiles/SWAIS3A_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"SWAL": {
+			"family": "SWAL",
+			"display_name": "Stone wall",
+			"category": "wall",
+			"material": "stone",
+			"usage_ff_farm": 31,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "SWAL_e",
+					"path": "sprites/coc_tiles/SWAL_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "SWAL_n",
+					"path": "sprites/coc_tiles/SWAL_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "SWAL_w",
+					"path": "sprites/coc_tiles/SWAL_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "SWAL_s",
+					"path": "sprites/coc_tiles/SWAL_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"SWAQ": {
+			"family": "SWAQ",
+			"display_name": "Stone wall AQ",
+			"category": "wall",
+			"material": "stone",
+			"usage_ff_farm": 2,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "SWAQ_e",
+					"path": "sprites/coc_tiles/SWAQ_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "SWAQ_n",
+					"path": "sprites/coc_tiles/SWAQ_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "SWAQ_w",
+					"path": "sprites/coc_tiles/SWAQ_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "SWAQ_s",
+					"path": "sprites/coc_tiles/SWAQ_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"SWAR": {
+			"family": "SWAR",
+			"display_name": "Stone wall AR",
+			"category": "wall",
+			"material": "stone",
+			"usage_ff_farm": 1,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "SWAR_e",
+					"path": "sprites/coc_tiles/SWAR_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "SWAR_n",
+					"path": "sprites/coc_tiles/SWAR_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "SWAR_w",
+					"path": "sprites/coc_tiles/SWAR_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "SWAR_s",
+					"path": "sprites/coc_tiles/SWAR_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"SWIN": {
+			"family": "SWIN",
+			"display_name": "Stone window",
+			"category": "window",
+			"material": "stone",
+			"usage_ff_farm": 6,
+			"gameplay": {
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 1,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "SWIN_e",
+					"path": "sprites/coc_tiles/SWIN_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "SWIN_n",
+					"path": "sprites/coc_tiles/SWIN_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "SWIN_w",
+					"path": "sprites/coc_tiles/SWIN_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "SWIN_s",
+					"path": "sprites/coc_tiles/SWIN_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"SWINS27A": {
+			"family": "SWINS27A",
+			"display_name": "Stone window 2",
+			"category": "window",
+			"material": "stone",
+			"usage_ff_farm": 2,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "SWINS27A_e",
+					"path": "sprites/coc_tiles/SWINS27A_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "SWINS27A_n",
+					"path": "sprites/coc_tiles/SWINS27A_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "SWINS27A_w",
+					"path": "sprites/coc_tiles/SWINS27A_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "SWINS27A_s",
+					"path": "sprites/coc_tiles/SWINS27A_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"TR01": {
+			"family": "TR01",
+			"display_name": "Tree 1",
+			"category": "tree",
+			"material": "",
+			"usage_ff_farm": 30,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "TR01_e",
+					"path": "sprites/coc_tiles/TR01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "e",
+					"facet": "TR01_e",
+					"path": "sprites/coc_tiles/TR01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				},
+				"180": {
+					"letter": "e",
+					"facet": "TR01_e",
+					"path": "sprites/coc_tiles/TR01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				},
+				"270": {
+					"letter": "e",
+					"facet": "TR01_e",
+					"path": "sprites/coc_tiles/TR01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				}
+			}
+		},
+		"TR02": {
+			"family": "TR02",
+			"display_name": "Tree 2",
+			"category": "tree",
+			"material": "",
+			"usage_ff_farm": 5,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "TR02_e",
+					"path": "sprites/coc_tiles/TR02_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "e",
+					"facet": "TR02_e",
+					"path": "sprites/coc_tiles/TR02_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				},
+				"180": {
+					"letter": "e",
+					"facet": "TR02_e",
+					"path": "sprites/coc_tiles/TR02_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				},
+				"270": {
+					"letter": "e",
+					"facet": "TR02_e",
+					"path": "sprites/coc_tiles/TR02_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": true
+				}
+			}
+		},
+		"WCOR": {
+			"family": "WCOR",
+			"display_name": "Wood corner",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 7,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WCOR_e",
+					"path": "sprites/coc_tiles/WCOR_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WCOR_n",
+					"path": "sprites/coc_tiles/WCOR_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WCOR_w",
+					"path": "sprites/coc_tiles/WCOR_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WCOR_s",
+					"path": "sprites/coc_tiles/WCOR_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WH00": {
+			"family": "WH00",
+			"display_name": "Low field wall",
+			"category": "wall",
+			"material": "stone",
+			"usage_ff_farm": 116,
+			"gameplay": {
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 1,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WH00_e",
+					"path": "sprites/coc_tiles/WH00_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WH00_n",
+					"path": "sprites/coc_tiles/WH00_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WH00_w",
+					"path": "sprites/coc_tiles/WH00_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WH00_s",
+					"path": "sprites/coc_tiles/WH00_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WH01": {
+			"family": "WH01",
+			"display_name": "Field wall 1",
+			"category": "wall",
+			"material": "stone",
+			"usage_ff_farm": 133,
+			"gameplay": {
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 1,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WH01_e",
+					"path": "sprites/coc_tiles/WH01_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WH01_n",
+					"path": "sprites/coc_tiles/WH01_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WH01_w",
+					"path": "sprites/coc_tiles/WH01_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WH01_s",
+					"path": "sprites/coc_tiles/WH01_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WH02": {
+			"family": "WH02",
+			"display_name": "Field wall 2",
+			"category": "wall",
+			"material": "stone",
+			"usage_ff_farm": 13,
+			"gameplay": {
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 1,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WH02_e",
+					"path": "sprites/coc_tiles/WH02_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WH02_n",
+					"path": "sprites/coc_tiles/WH02_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WH02_w",
+					"path": "sprites/coc_tiles/WH02_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WH02_s",
+					"path": "sprites/coc_tiles/WH02_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WH11": {
+			"family": "WH11",
+			"display_name": "Field wall 11",
+			"category": "wall",
+			"material": "stone",
+			"usage_ff_farm": 15,
+			"gameplay": {
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 1,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WH11_e",
+					"path": "sprites/coc_tiles/WH11_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WH11_n",
+					"path": "sprites/coc_tiles/WH11_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WH11_w",
+					"path": "sprites/coc_tiles/WH11_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WH11_s",
+					"path": "sprites/coc_tiles/WH11_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WICR": {
+			"family": "WICR",
+			"display_name": "Wood inner corner",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 1,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WICR_e",
+					"path": "sprites/coc_tiles/WICR_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WICR_n",
+					"path": "sprites/coc_tiles/WICR_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WICR_w",
+					"path": "sprites/coc_tiles/WICR_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WICR_s",
+					"path": "sprites/coc_tiles/WICR_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WWAI": {
+			"family": "WWAI",
+			"display_name": "Wood wall AI",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 16,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WWAI_e",
+					"path": "sprites/coc_tiles/WWAI_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WWAI_n",
+					"path": "sprites/coc_tiles/WWAI_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WWAI_w",
+					"path": "sprites/coc_tiles/WWAI_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WWAI_s",
+					"path": "sprites/coc_tiles/WWAI_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WWAIS3A": {
+			"family": "WWAIS3A",
+			"display_name": "Wood wall AI S3A",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 3,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WWAIS3A_e",
+					"path": "sprites/coc_tiles/WWAIS3A_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WWAIS3A_n",
+					"path": "sprites/coc_tiles/WWAIS3A_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WWAIS3A_w",
+					"path": "sprites/coc_tiles/WWAIS3A_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WWAIS3A_s",
+					"path": "sprites/coc_tiles/WWAIS3A_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WWAL": {
+			"family": "WWAL",
+			"display_name": "Wood wall",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 35,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WWAL_e",
+					"path": "sprites/coc_tiles/WWAL_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WWAL_n",
+					"path": "sprites/coc_tiles/WWAL_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WWAL_w",
+					"path": "sprites/coc_tiles/WWAL_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WWAL_s",
+					"path": "sprites/coc_tiles/WWAL_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WWAQ": {
+			"family": "WWAQ",
+			"display_name": "Wood wall AQ",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 2,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WWAQ_e",
+					"path": "sprites/coc_tiles/WWAQ_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WWAQ_n",
+					"path": "sprites/coc_tiles/WWAQ_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WWAQ_w",
+					"path": "sprites/coc_tiles/WWAQ_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WWAQ_s",
+					"path": "sprites/coc_tiles/WWAQ_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WWAR": {
+			"family": "WWAR",
+			"display_name": "Wood wall AR",
+			"category": "wall",
+			"material": "wood",
+			"usage_ff_farm": 2,
+			"gameplay": {
+				"terrain": "_HG_NoPass",
+				"terrain_height": 2,
+				"blocks_movement": true,
+				"blocks_los": true,
+				"blocks_bullets": true,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WWAR_e",
+					"path": "sprites/coc_tiles/WWAR_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WWAR_n",
+					"path": "sprites/coc_tiles/WWAR_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WWAR_w",
+					"path": "sprites/coc_tiles/WWAR_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WWAR_s",
+					"path": "sprites/coc_tiles/WWAR_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WWIN": {
+			"family": "WWIN",
+			"display_name": "Wood window",
+			"category": "window",
+			"material": "wood",
+			"usage_ff_farm": 5,
+			"gameplay": {
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 1,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WWIN_e",
+					"path": "sprites/coc_tiles/WWIN_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WWIN_n",
+					"path": "sprites/coc_tiles/WWIN_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WWIN_w",
+					"path": "sprites/coc_tiles/WWIN_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WWIN_s",
+					"path": "sprites/coc_tiles/WWIN_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WWINS17A": {
+			"family": "WWINS17A",
+			"display_name": "Wood window 17A",
+			"category": "window",
+			"material": "wood",
+			"usage_ff_farm": 3,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WWINS17A_e",
+					"path": "sprites/coc_tiles/WWINS17A_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WWINS17A_n",
+					"path": "sprites/coc_tiles/WWINS17A_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WWINS17A_w",
+					"path": "sprites/coc_tiles/WWINS17A_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WWINS17A_s",
+					"path": "sprites/coc_tiles/WWINS17A_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		},
+		"WWINS27A": {
+			"family": "WWINS27A",
+			"display_name": "Wood window 27A",
+			"category": "window",
+			"material": "wood",
+			"usage_ff_farm": 3,
+			"gameplay": {
+				"terrain": "_HG_EVEN",
+				"terrain_height": 0,
+				"blocks_movement": true,
+				"blocks_los": false,
+				"blocks_bullets": false,
+				"provides_cover": true,
+				"cover_type": 2,
+				"concealment": 0.0,
+				"suppression_modifier": 0.0
+			},
+			"camera_variants": {
+				"0": {
+					"letter": "e",
+					"facet": "WWINS27A_e",
+					"path": "sprites/coc_tiles/WWINS27A_e.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"90": {
+					"letter": "n",
+					"facet": "WWINS27A_n",
+					"path": "sprites/coc_tiles/WWINS27A_n.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"180": {
+					"letter": "w",
+					"facet": "WWINS27A_w",
+					"path": "sprites/coc_tiles/WWINS27A_w.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				},
+				"270": {
+					"letter": "s",
+					"facet": "WWINS27A_s",
+					"path": "sprites/coc_tiles/WWINS27A_s.png",
+					"hotspot": [
+						-50,
+						-73
+					],
+					"render_offset": [
+						0,
+						0
+					],
+					"depth_offset": 0,
+					"fallback": false
+				}
+			}
+		}
+	}
+}
