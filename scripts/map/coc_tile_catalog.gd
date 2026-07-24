@@ -116,6 +116,67 @@ static func exists(path: String) -> bool:
 	return ResourceLoader.exists(path) or FileAccess.file_exists(path)
 
 
+static func letters_for_family(family: String) -> PackedStringArray:
+	ensure_loaded()
+	var fam := family.to_upper()
+	if not _family_letters.has(fam):
+		return PackedStringArray()
+	return (_family_letters[fam] as PackedStringArray).duplicate()
+
+
+static func family_ids() -> PackedStringArray:
+	ensure_loaded()
+	var ids: Array = _family_letters.keys()
+	ids.sort()
+	var out := PackedStringArray()
+	for id in ids:
+		out.append(str(id))
+	return out
+
+
+## Unique static facets (anim_frame 0). Optional family filter.
+static func list_sprites(family_filter: String = "") -> Array:
+	ensure_loaded()
+	var fam_f := family_filter.to_upper()
+	var seen: Dictionary = {}
+	var out: Array = []
+	for key in _sprite_index.keys():
+		var rec: Variant = _sprite_index[key]
+		if not rec is Dictionary:
+			continue
+		var entry: Dictionary = rec
+		if int(entry.get("anim_frame", 0)) != 0:
+			continue
+		var fam := str(entry.get("family", "")).to_upper()
+		if fam.is_empty():
+			continue
+		if not fam_f.is_empty() and fam != fam_f:
+			continue
+		var letter := str(entry.get("letter", "e")).to_lower()
+		var id := "%s_%s" % [fam, letter]
+		if seen.has(id):
+			continue
+		seen[id] = true
+		var path := str(entry.get("path", ""))
+		var hotspot: Vector2 = entry.get("hotspot", DEFAULT_HOTSPOT)
+		out.append(
+			{
+				"family": fam,
+				"letter": letter,
+				"facet": id,
+				"path": path,
+				"rel_path": path.trim_prefix("res://assets/"),
+				"hotspot": [int(hotspot.x), int(hotspot.y)],
+			}
+		)
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var ka := "%s_%s" % [a.get("family", ""), a.get("letter", "")]
+		var kb := "%s_%s" % [b.get("family", ""), b.get("letter", "")]
+		return ka < kb
+	)
+	return out
+
+
 static func _load_manifest() -> void:
 	var root := _read_json_dict(MANIFEST_PATH)
 	var sprites: Variant = root.get("sprites", [])

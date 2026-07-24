@@ -58,7 +58,7 @@ func _ready() -> void:
 	_refresh_families()
 	_fps_slider.value = 12.0
 	_zoom_slider.value = 2.0
-	_preview.custom_minimum_size = Vector2(200, 200)
+	_preview.custom_minimum_size = Vector2(160, 160)
 	_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_preview.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -71,6 +71,9 @@ func _ready() -> void:
 func _wire_signals() -> void:
 	%BackButton.pressed.connect(_on_back_pressed)
 	%SaveButton.pressed.connect(_on_save_pressed)
+	var mode_group := ButtonGroup.new()
+	%ModeAnimations.button_group = mode_group
+	%ModeMapAssets.button_group = mode_group
 	%ModeAnimations.pressed.connect(_on_mode_animations)
 	%ModeMapAssets.pressed.connect(_on_mode_map_assets)
 	%NewFamilyButton.pressed.connect(_on_new_family_pressed)
@@ -111,7 +114,10 @@ func _ensure_map_assets_panel() -> void:
 	_map_assets_panel.visible = false
 	_map_assets_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_map_assets_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_map_assets_panel.custom_minimum_size = Vector2(0, 0)
+	## Place after MainRow so mode swap keeps layout stable.
 	root.add_child(_map_assets_panel)
+	root.move_child(_map_assets_panel, _main_row.get_index() + 1)
 	_map_assets_panel.status_message.connect(func(text: String) -> void:
 		_status.text = text
 	)
@@ -138,9 +144,9 @@ func _set_mode(mode: int) -> void:
 	%ModeAnimations.button_pressed = anim_mode
 	%ModeMapAssets.button_pressed = not anim_mode
 	if anim_mode:
-		_status.text = "Animations mode"
+		_status.text = "Soldier Animations — animation_database.json"
 	else:
-		_status.text = "Map Assets mode — family registry"
+		_status.text = "Farm Fight Map Assets (FF) — 34 families in map_asset_registry.json"
 
 
 func _process(delta: float) -> void:
@@ -504,7 +510,9 @@ func _on_fps_changed(value: float) -> void:
 
 
 func _on_zoom_changed(value: float) -> void:
-	_preview.custom_minimum_size = Vector2(100, 100) * value
+	## Keep preview usable without forcing the top bar off-screen.
+	var side := clampf(100.0 * value, 120.0, 260.0)
+	_preview.custom_minimum_size = Vector2(side, side)
 
 
 func _on_cam_pressed(degrees: int) -> void:

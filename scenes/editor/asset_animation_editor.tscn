@@ -21,50 +21,55 @@ grow_vertical = 2
 color = Color(0.1, 0.11, 0.13, 1)
 
 [node name="Root" type="VBoxContainer" parent="."]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 0
+theme_override_constants/separation = 4
 
 [node name="TopBar" type="HBoxContainer" parent="Root"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+size_flags_vertical = 0
 theme_override_constants/separation = 8
 
 [node name="BackButton" type="Button" parent="Root/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
 text = "Back"
 
 [node name="Title" type="Label" parent="Root/TopBar"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Asset & Animation Editor"
+theme_override_font_sizes/font_size = 16
+text = "Asset Editor"
 
 [node name="ModeAnimations" type="Button" parent="Root/TopBar"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 toggle_mode = true
 button_pressed = true
-text = "Animations"
+text = "Soldier Animations"
 
 [node name="ModeMapAssets" type="Button" parent="Root/TopBar"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 toggle_mode = true
-text = "Map Assets"
+text = "FF Map Assets"
 
 [node name="StatusLabel" type="Label" parent="Root/TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 11
 text = "Ready"
 horizontal_alignment = 2
+text_overrun_behavior = 3
 
 [node name="SaveButton" type="Button" parent="Root/TopBar"]
 unique_name_in_owner = true
@@ -74,6 +79,7 @@ text = "Save"
 
 [node name="MainRow" type="HBoxContainer" parent="Root"]
 unique_name_in_owner = true
+clip_contents = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 6
@@ -128,8 +134,9 @@ text = "Directions"
 
 [node name="DirList" type="ItemList" parent="Root/MainRow/CenterPanel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 160)
+custom_minimum_size = Vector2(0, 96)
 layout_mode = 2
+size_flags_vertical = 3
 max_columns = 4
 same_column_width = true
 
@@ -147,7 +154,7 @@ layout_mode = 2
 text = "Add Frame…"
 
 [node name="TimelineScroll" type="ScrollContainer" parent="Root/MainRow/CenterPanel"]
-custom_minimum_size = Vector2(0, 140)
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 1
@@ -198,64 +205,76 @@ text = "Auto Detect"
 
 [node name="RightPanel" type="VBoxContainer" parent="Root/MainRow"]
 custom_minimum_size = Vector2(280, 0)
+clip_contents = true
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="RightScroll" type="ScrollContainer" parent="Root/MainRow/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 1
+
+[node name="RightInner" type="VBoxContainer" parent="Root/MainRow/RightPanel/RightScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="PreviewHeader" type="Label" parent="Root/MainRow/RightPanel"]
+[node name="PreviewHeader" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 layout_mode = 2
 text = "Live Preview"
 
-[node name="PreviewFrame" type="PanelContainer" parent="Root/MainRow/RightPanel"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="PreviewCenter" type="CenterContainer" parent="Root/MainRow/RightPanel/PreviewFrame"]
+[node name="PreviewFrame" type="PanelContainer" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
+custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 
-[node name="Preview" type="TextureRect" parent="Root/MainRow/RightPanel/PreviewFrame/PreviewCenter"]
+[node name="PreviewCenter" type="CenterContainer" parent="Root/MainRow/RightPanel/RightScroll/RightInner/PreviewFrame"]
+layout_mode = 2
+
+[node name="Preview" type="TextureRect" parent="Root/MainRow/RightPanel/RightScroll/RightInner/PreviewFrame/PreviewCenter"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 200)
+custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
 
-[node name="FrameInfo" type="Label" parent="Root/MainRow/RightPanel"]
+[node name="FrameInfo" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 text = "Frame —"
 autowrap_mode = 2
 
-[node name="PlaybackRow" type="HBoxContainer" parent="Root/MainRow/RightPanel"]
+[node name="PlaybackRow" type="HBoxContainer" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 layout_mode = 2
 
-[node name="PlayButton" type="Button" parent="Root/MainRow/RightPanel/PlaybackRow"]
+[node name="PlayButton" type="Button" parent="Root/MainRow/RightPanel/RightScroll/RightInner/PlaybackRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Play"
 
-[node name="PauseButton" type="Button" parent="Root/MainRow/RightPanel/PlaybackRow"]
+[node name="PauseButton" type="Button" parent="Root/MainRow/RightPanel/RightScroll/RightInner/PlaybackRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Pause"
 
-[node name="PrevButton" type="Button" parent="Root/MainRow/RightPanel/PlaybackRow"]
+[node name="PrevButton" type="Button" parent="Root/MainRow/RightPanel/RightScroll/RightInner/PlaybackRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "◀"
 
-[node name="NextButton" type="Button" parent="Root/MainRow/RightPanel/PlaybackRow"]
+[node name="NextButton" type="Button" parent="Root/MainRow/RightPanel/RightScroll/RightInner/PlaybackRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "▶"
 
-[node name="FpsRow" type="HBoxContainer" parent="Root/MainRow/RightPanel"]
+[node name="FpsRow" type="HBoxContainer" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 layout_mode = 2
 
-[node name="FpsLabel" type="Label" parent="Root/MainRow/RightPanel/FpsRow"]
+[node name="FpsLabel" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner/FpsRow"]
 layout_mode = 2
 text = "FPS"
 
-[node name="FpsSlider" type="HSlider" parent="Root/MainRow/RightPanel/FpsRow"]
+[node name="FpsSlider" type="HSlider" parent="Root/MainRow/RightPanel/RightScroll/RightInner/FpsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -264,20 +283,20 @@ max_value = 30.0
 step = 1.0
 value = 12.0
 
-[node name="FpsValue" type="Label" parent="Root/MainRow/RightPanel/FpsRow"]
+[node name="FpsValue" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner/FpsRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
 text = "12"
 
-[node name="ZoomRow" type="HBoxContainer" parent="Root/MainRow/RightPanel"]
+[node name="ZoomRow" type="HBoxContainer" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 layout_mode = 2
 
-[node name="ZoomLabel" type="Label" parent="Root/MainRow/RightPanel/ZoomRow"]
+[node name="ZoomLabel" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner/ZoomRow"]
 layout_mode = 2
 text = "Zoom"
 
-[node name="ZoomSlider" type="HSlider" parent="Root/MainRow/RightPanel/ZoomRow"]
+[node name="ZoomSlider" type="HSlider" parent="Root/MainRow/RightPanel/RightScroll/RightInner/ZoomRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -286,112 +305,112 @@ max_value = 6.0
 step = 0.5
 value = 2.0
 
-[node name="CamHeader" type="Label" parent="Root/MainRow/RightPanel"]
+[node name="CamHeader" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 layout_mode = 2
 text = "Camera Rotation Preview"
 
-[node name="CamRow" type="HBoxContainer" parent="Root/MainRow/RightPanel"]
+[node name="CamRow" type="HBoxContainer" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 layout_mode = 2
 
-[node name="Cam0" type="Button" parent="Root/MainRow/RightPanel/CamRow"]
+[node name="Cam0" type="Button" parent="Root/MainRow/RightPanel/RightScroll/RightInner/CamRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "0°"
 
-[node name="Cam90" type="Button" parent="Root/MainRow/RightPanel/CamRow"]
+[node name="Cam90" type="Button" parent="Root/MainRow/RightPanel/RightScroll/RightInner/CamRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "90°"
 
-[node name="Cam180" type="Button" parent="Root/MainRow/RightPanel/CamRow"]
+[node name="Cam180" type="Button" parent="Root/MainRow/RightPanel/RightScroll/RightInner/CamRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "180°"
 
-[node name="Cam270" type="Button" parent="Root/MainRow/RightPanel/CamRow"]
+[node name="Cam270" type="Button" parent="Root/MainRow/RightPanel/RightScroll/RightInner/CamRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "270°"
 
-[node name="CamLabel" type="Label" parent="Root/MainRow/RightPanel"]
+[node name="CamLabel" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 text = "Cam 0°"
 autowrap_mode = 2
 
-[node name="WorldFacingRow" type="HBoxContainer" parent="Root/MainRow/RightPanel"]
+[node name="WorldFacingRow" type="HBoxContainer" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 layout_mode = 2
 
-[node name="WorldFacingLabel" type="Label" parent="Root/MainRow/RightPanel/WorldFacingRow"]
+[node name="WorldFacingLabel" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner/WorldFacingRow"]
 layout_mode = 2
 text = "World facing"
 
-[node name="WorldFacingOption" type="OptionButton" parent="Root/MainRow/RightPanel/WorldFacingRow"]
+[node name="WorldFacingOption" type="OptionButton" parent="Root/MainRow/RightPanel/RightScroll/RightInner/WorldFacingRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="MetaHeader" type="Label" parent="Root/MainRow/RightPanel"]
+[node name="MetaHeader" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 layout_mode = 2
 text = "Animation Metadata"
 
-[node name="MetaLoop" type="CheckBox" parent="Root/MainRow/RightPanel"]
+[node name="MetaLoop" type="CheckBox" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Loop"
 
-[node name="MetaSound" type="LineEdit" parent="Root/MainRow/RightPanel"]
+[node name="MetaSound" type="LineEdit" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Sound effect path / id"
 
-[node name="MetaNums" type="GridContainer" parent="Root/MainRow/RightPanel"]
+[node name="MetaNums" type="GridContainer" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 layout_mode = 2
 columns = 2
 
-[node name="MuzzleLbl" type="Label" parent="Root/MainRow/RightPanel/MetaNums"]
+[node name="MuzzleLbl" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner/MetaNums"]
 layout_mode = 2
 text = "Muzzle frame"
 
-[node name="MetaMuzzle" type="SpinBox" parent="Root/MainRow/RightPanel/MetaNums"]
+[node name="MetaMuzzle" type="SpinBox" parent="Root/MainRow/RightPanel/RightScroll/RightInner/MetaNums"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = -1.0
 max_value = 64.0
 value = -1.0
 
-[node name="FootLbl" type="Label" parent="Root/MainRow/RightPanel/MetaNums"]
+[node name="FootLbl" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner/MetaNums"]
 layout_mode = 2
 text = "Footstep frame"
 
-[node name="MetaFootstep" type="SpinBox" parent="Root/MainRow/RightPanel/MetaNums"]
+[node name="MetaFootstep" type="SpinBox" parent="Root/MainRow/RightPanel/RightScroll/RightInner/MetaNums"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = -1.0
 max_value = 64.0
 value = -1.0
 
-[node name="MoveLbl" type="Label" parent="Root/MainRow/RightPanel/MetaNums"]
+[node name="MoveLbl" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner/MetaNums"]
 layout_mode = 2
 text = "Move / cycle"
 
-[node name="MetaMove" type="SpinBox" parent="Root/MainRow/RightPanel/MetaNums"]
+[node name="MetaMove" type="SpinBox" parent="Root/MainRow/RightPanel/RightScroll/RightInner/MetaNums"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 0.0
 max_value = 32.0
 step = 0.1
 
-[node name="NotesLbl" type="Label" parent="Root/MainRow/RightPanel"]
+[node name="NotesLbl" type="Label" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 layout_mode = 2
 text = "Notes"
 
-[node name="MetaNotes" type="TextEdit" parent="Root/MainRow/RightPanel"]
+[node name="MetaNotes" type="TextEdit" parent="Root/MainRow/RightPanel/RightScroll/RightInner"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
