@@ -19,6 +19,7 @@ const BreakCommandLinkCommandClass := preload("res://scripts/commands/break_comm
 const SetMissionCommanderCommandClass := preload("res://scripts/commands/set_mission_commander_command.gd")
 const AssignWeaponCommandClass := preload("res://scripts/commands/assign_weapon_command.gd")
 const ReturnWeaponCommandClass := preload("res://scripts/commands/return_weapon_command.gd")
+const AdjustAmmoCommandClass := preload("res://scripts/commands/adjust_ammo_command.gd")
 const CommandHierarchyClass := preload("res://scripts/core/command_hierarchy.gd")
 const WeaponCacheClass := preload("res://scripts/core/weapon_cache.gd")
 const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
@@ -64,6 +65,8 @@ static func execute(
 		return execute_assign_weapon(game_state, command as AssignWeaponCommandClass)
 	if command is ReturnWeaponCommandClass:
 		return execute_return_weapon(game_state, command as ReturnWeaponCommandClass)
+	if command is AdjustAmmoCommandClass:
+		return execute_adjust_ammo(game_state, command as AdjustAmmoCommandClass)
 	return ActionResult.fail("Unknown command type.")
 
 
@@ -1163,6 +1166,8 @@ static func execute_assign_commander(
 		return ActionResult.fail("Commander can't be subordinate of subordinate")
 	if hierarchy.get_rank(subordinate_id) >= hierarchy.get_rank(commander_id):
 		return ActionResult.fail("Rank order broken")
+	if hierarchy.get_team_id(commander_id) != hierarchy.get_team_id(subordinate_id):
+		return ActionResult.fail("Commander and subordinate must be on the same team")
 
 	hierarchy.assign_link(commander_id, subordinate_id)
 	CombatSystem.notify_command_hierarchy_changed(game_state)
@@ -1308,6 +1313,18 @@ static func _assign_weapon_to_soldier(
 		return ActionResult.fail("That weapon was already taken")
 
 	if is_equip:
+		## Ammunition boxes top off the soldier's current gun (original Add Ammo flow).
+		if item_id == WeaponCacheClass.ITEM_AMMUNITION_BOX:
+			if soldier.ammo_current >= soldier.ammo_max and soldier.ammo_max > 0:
+				cache.add_to_pool(from_player_id, item_id, 1, WeaponCacheClass.Kind.EQUIPMENT)
+				return ActionResult.fail("Soldier already has full ammo")
+			soldier.ammo_current = soldier.ammo_max
+			var ammo_result := ActionResult.new()
+			ammo_result.refresh_views = true
+			return ammo_result.set_status(
+				"Added ammo to soldier%d (%s, %d)"
+				% [soldier_id, cache.display_name(str(soldier.weapon_id)), soldier.ammo_current]
+			)
 		soldier.add_equipment(item_id)
 		var equip_result := ActionResult.new()
 		equip_result.refresh_views = true
@@ -1376,4 +1393,28 @@ static func execute_return_weapon(
 	var result := ActionResult.new()
 	result.refresh_views = true
 	return result.set_status("Returned %s to cache" % cache.display_name(item_id))
+
+
+static func execute_adjust_ammo(
+	game_state: GameStateClass,
+	cmd: AdjustAmmoCommandClass,
+) -> ActionResult:
+	if cmd == null or game_state == null:
+		return ActionResult.fail("Soldier unavailable.")
+	var soldier: SoldierState = game_state.get_soldier(cmd.team_id, cmd.soldier_id)
+	if soldier == null or soldier.is_dead:
+		return ActionResult.fail("Soldier unavailable.")
+	if soldier.ammo_max <= 0:
+		return ActionResult.fail("No ammo capacity on this weapon.")
+	var next := clampi(soldier.ammo_current + int(cmd.delta), 0, soldier.ammo_max)
+	if next == soldier.ammo_current:
+		return ActionResult.fail(
+			"Ammo already at %s." % ("max" if cmd.delta > 0 else "minimum")
+		)
+	soldier.ammo_current = next
+	var result := ActionResult.new()
+	result.refresh_views = true
+	return result.set_status(
+		"Soldier %d ammo: %d / %d" % [cmd.soldier_id, soldier.ammo_current, soldier.ammo_max]
+	)
 

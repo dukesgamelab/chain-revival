@@ -75,7 +75,7 @@ func _build_layout() -> void:
 	top.add_theme_constant_override("separation", 8)
 	root.add_child(top)
 
-	var left := _make_list_column("Commanders with Openings")
+	var left := _make_list_column("Commanders with Openings\n(Players / AI Fireteams)")
 	_commanders_list = left["list"]
 	top.add_child(left["root"])
 
@@ -88,7 +88,7 @@ func _build_layout() -> void:
 	mid.add_child(_link_button)
 	top.add_child(mid)
 
-	var right := _make_list_column("Players without Commanders")
+	var right := _make_list_column("Without Commanders\n(Players / AI Fireteams)")
 	_unassigned_list = right["list"]
 	top.add_child(right["root"])
 
@@ -182,7 +182,7 @@ func _on_break_pressed() -> void:
 
 func _on_briefing_pressed() -> void:
 	briefing_requested.emit()
-	_status_label.text = "Briefing: hold objectives; set your chain of command."
+	_status_label.text = "Briefing: link players and whole AI fireteams into your chain of command."
 
 
 func _show_result(result) -> void:

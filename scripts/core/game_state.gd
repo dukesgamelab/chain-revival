@@ -34,7 +34,7 @@ func _init(game_session: GameSession, map: MapData) -> void:
 	objects = ObjectRegistry.new()
 	objects.rebuild_from(self)
 	command_hierarchy = CommandHierarchyClass.new()
-	command_hierarchy.bootstrap_default_match()
+	command_hierarchy.bootstrap_from_session(session)
 	local_player_id = 1
 	if session != null and session.local_player_id > 0:
 		local_player_id = session.local_player_id

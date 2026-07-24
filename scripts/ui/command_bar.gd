@@ -22,6 +22,7 @@ signal map_edit_mode_changed(is_active: bool)
 signal map_edit_palette_changed(palette: int)
 signal set_commanders_requested
 signal assign_weapons_requested
+signal ammo_adjust_requested(soldier_id: int, delta: int)
 
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 
@@ -65,6 +66,9 @@ func _ready() -> void:
 
 	for row in _rows:
 		row.move_mode_toggled.connect(_on_row_move_mode_toggled)
+		row.ammo_adjust_requested.connect(func(sid: int, delta: int) -> void:
+			ammo_adjust_requested.emit(sid, delta)
+		)
 		row.fire_at_toggled.connect(_on_row_fire_at_toggled)
 		row.face_toggled.connect(_on_row_face_toggled)
 		row.position_toggled.connect(_on_row_position_toggled)

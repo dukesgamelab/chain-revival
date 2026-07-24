@@ -14,6 +14,7 @@ const AssignCommanderCommandClass := preload("res://scripts/commands/assign_comm
 const WeaponCacheClass := preload("res://scripts/core/weapon_cache.gd")
 const WeaponPolicyClass := preload("res://scripts/gameplay_policies/weapon_policy.gd")
 const ActionResultClass := preload("res://scripts/core/action_result.gd")
+const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 
 var _failed: int = 0
 var _passed: int = 0
@@ -60,7 +61,12 @@ func _make_game_state() -> GameStateClass:
 		blue = MapDataClass.default_usa_spawn_points()
 	if red.is_empty():
 		red = MapDataClass.default_germany_spawn_points()
-	var session := GameSessionClass.new(blue, red)
+	## 2v2: local human owns soldiers 1–2; allied AI fireteam owns 3–4.
+	var cfg = MatchConfigClass.new(
+		MatchConfigClass.GameModeKind.SINGLE_PLAYER,
+		MatchConfigClass.MatchType.TWO_V_TWO,
+	)
+	var session := GameSessionClass.from_match_config(cfg, blue, red)
 	return session.create_game_state(map_data)
 
 
@@ -186,6 +192,8 @@ func _test_squad_limit_refused() -> void:
 func _test_ammunition_box_as_equipment() -> void:
 	var gs := _make_game_state()
 	var soldier: SoldierState = gs.get_soldier(Team.USA, 1)
+	## Spend some ammo so Add Ammo has room to refill.
+	soldier.ammo_current = maxi(0, soldier.ammo_max - 20)
 	var prior_weapon := str(soldier.weapon_id)
 	var prior_ammo := int(soldier.ammo_current)
 	var before := gs.weapon_cache.pool_count(1, WeaponCacheClass.ITEM_AMMUNITION_BOX)
@@ -198,8 +206,8 @@ func _test_ammunition_box_as_equipment() -> void:
 	var result := _submit(gs, cmd)
 	_assert("ammo box assign succeeds", result.success)
 	_assert("weapon unchanged", soldier.weapon_id == prior_weapon)
-	_assert("ammo unchanged", soldier.ammo_current == prior_ammo)
-	_assert("equipment has ammo box", soldier.equipment_count(WeaponCacheClass.ITEM_AMMUNITION_BOX) == 1)
+	_assert("ammo refilled to max", soldier.ammo_current == soldier.ammo_max)
+	_assert("ammo increased from prior", soldier.ammo_current > prior_ammo)
 	_assert(
 		"ammo box left pool",
 		gs.weapon_cache.pool_count(1, WeaponCacheClass.ITEM_AMMUNITION_BOX) == before - 1,

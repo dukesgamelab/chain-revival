@@ -28,6 +28,7 @@ const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 const SimpleAIControllerClass := preload("res://scripts/ai/simple_ai_controller.gd")
 const CommandDialogScene := preload("res://scenes/ui/command_dialog.tscn")
 const AssignWeaponsDialogScene := preload("res://scenes/ui/assign_weapons_dialog.tscn")
+const AdjustAmmoCommandClass := preload("res://scripts/commands/adjust_ammo_command.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 
@@ -616,6 +617,7 @@ func _connect_command_bar() -> void:
 	_command_bar.map_edit_palette_changed.connect(_on_map_edit_palette_changed)
 	_command_bar.set_commanders_requested.connect(_on_set_commanders_requested)
 	_command_bar.assign_weapons_requested.connect(_on_assign_weapons_requested)
+	_command_bar.ammo_adjust_requested.connect(_on_ammo_adjust_requested)
 
 
 func _ensure_command_dialog() -> void:
@@ -686,6 +688,20 @@ func _on_command_dialog_closed() -> void:
 func _on_assign_weapons_dialog_closed() -> void:
 	_refresh_all_views()
 	_command_bar.show_status("Weapon assignment updated.")
+
+
+func _on_ammo_adjust_requested(soldier_id: int, delta: int) -> void:
+	if _game_state == null or _session == null:
+		return
+	if not _session.can_local_control_soldier(_session.active_team_id, soldier_id):
+		_command_bar.show_status("That soldier is not under your control.")
+		return
+	var cmd := AdjustAmmoCommandClass.new()
+	cmd.team_id = _session.active_team_id
+	cmd.soldier_id = soldier_id
+	cmd.delta = delta
+	var result: ActionResultClass = CommandRouter.submit_command(_game_state, cmd)
+	_present_action_result(result)
 
 
 func _unhandled_input(event: InputEvent) -> void:

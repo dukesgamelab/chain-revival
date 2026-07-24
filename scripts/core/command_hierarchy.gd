@@ -108,6 +108,55 @@ func bootstrap_default_match() -> void:
 	set_mission_commander(1)
 
 
+## Build hierarchy from MatchConfig player slots / owned fireteams (players + whole AI fireteams).
+## Each owned fireteam becomes one hierarchy player — never individual soldiers as commanders.
+func bootstrap_from_session(session) -> void:
+	if session == null or session.owned_fireteams.is_empty():
+		bootstrap_default_match()
+		return
+	clear()
+	var config = session.match_config
+	var local_id := int(session.local_player_id) if session.local_player_id > 0 else 1
+	for ft in session.owned_fireteams:
+		var player_id := int(ft.owner_player_id)
+		if player_id <= 0:
+			continue
+		var team_id := int(ft.team_id)
+		var slot_index := 0
+		var controller := 1 ## MatchConfig.ControllerType.AI
+		var display_name := "Player %d" % player_id
+		if config != null:
+			for slot in config.slots:
+				if int(slot.get("player_id", -1)) != player_id:
+					continue
+				slot_index = int(slot.get("slot_index", 0))
+				controller = int(slot.get("controller", controller))
+				display_name = str(slot.get("display_name", display_name))
+				break
+		## HUMAN / OPEN = human-capable slot; AI = whole AI fireteam entry.
+		var is_ai := controller == 1 ## ControllerType.AI
+		if not is_ai and player_id == local_id:
+			display_name = "YOU"
+		elif is_ai and display_name.is_empty():
+			display_name = "AI Fireteam"
+		var soldier_ids: Array[int] = []
+		for state in ft.soldiers:
+			soldier_ids.append(int(state.soldier_id))
+		## Lead slot on a side starts higher rank so they can command allied AI fireteams.
+		var rank := 3 if slot_index == 0 else 1
+		register_player(display_name, rank, team_id, is_ai, soldier_ids, player_id)
+	if has_player(local_id):
+		set_mission_commander(local_id)
+	elif not all_player_ids().is_empty():
+		set_mission_commander(all_player_ids()[0])
+
+
+func is_ai_player(player_id: int) -> bool:
+	if not _players.has(player_id):
+		return false
+	return bool((_players[player_id] as Dictionary).get("is_ai", false))
+
+
 func get_commander(player_id: int) -> int:
 	if not _players.has(player_id):
 		return NO_COMMANDER
@@ -177,7 +226,10 @@ func rank_label(rank: int) -> String:
 
 
 func list_label(player_id: int) -> String:
-	return "%s   %s" % [rank_label(get_rank(player_id)), get_display_name(player_id)]
+	var name := get_display_name(player_id)
+	if is_ai_player(player_id):
+		name = "%s (AI Fireteam)" % name
+	return "%s   %s" % [rank_label(get_rank(player_id)), name]
 
 
 func subordinate_count(player_id: int) -> int:

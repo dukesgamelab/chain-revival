@@ -1,6 +1,7 @@
 class_name AssignWeaponsDialog
 extends AcceptDialog
-## Original-style Weapons dialog: assign cache items to subordinates / own soldiers.
+## Original-style Weapons dialog: individual cache items → subordinates / soldiers.
+## Layout: pool | Assign to + subordinate players square | soldiers with weapon, ammo.
 ## Reads GameState; mutates only via CommandRouter.submit_command().
 
 const AssignWeaponCommandClass := preload("res://scripts/commands/assign_weapon_command.gd")
@@ -15,13 +16,12 @@ var _game_state: GameStateClass = null
 var _player_id: int = 1
 
 var _pool_list: ItemList
-var _players_header: Label
-var _players_list: ItemList
-var _players_column: VBoxContainer
+var _subordinates_list: ItemList
 var _soldiers_list: ItemList
 var _status_label: Label
 var _assign_button: Button
 var _return_button: Button
+var _add_ammo_button: Button
 
 
 func _ready() -> void:
@@ -48,36 +48,48 @@ func refresh() -> void:
 		return
 	var cache: WeaponCacheClass = _game_state.weapon_cache
 	var hierarchy = _game_state.command_hierarchy
-	var team_id := hierarchy.get_team_id(_player_id) if hierarchy != null else Team.USA
 
 	_pool_list.clear()
+	## List each physical item individually (4 ammo boxes → 4 rows).
 	for entry in cache.get_cache(_player_id):
 		var item_id := str(entry.get("item_id", ""))
 		var count := int(entry.get("count", 0))
 		if item_id.is_empty() or count <= 0:
 			continue
-		_pool_list.add_item(cache.pool_line(item_id, count))
-		_pool_list.set_item_metadata(_pool_list.item_count - 1, item_id)
+		var label := cache.display_name(item_id)
+		for _i in count:
+			_pool_list.add_item(label)
+			_pool_list.set_item_metadata(_pool_list.item_count - 1, item_id)
 
-	_players_list.clear()
+	_subordinates_list.clear()
 	var subs: Array[int] = []
 	if hierarchy != null:
 		subs = hierarchy.get_subordinates(_player_id)
 	for pid in subs:
-		var text := "%s   %s" % [
-			hierarchy.get_display_name(pid),
-			hierarchy.rank_label(hierarchy.get_rank(pid)),
-		]
-		_players_list.add_item(text)
-		_players_list.set_item_metadata(_players_list.item_count - 1, pid)
-	var show_players := not subs.is_empty()
-	_players_column.visible = show_players
-	_players_header.visible = show_players
+		var text := hierarchy.get_display_name(pid)
+		if hierarchy.is_ai_player(pid):
+			text = "%s (AI)" % text
+		_subordinates_list.add_item(text)
+		_subordinates_list.set_item_metadata(_subordinates_list.item_count - 1, pid)
 
+	_refresh_soldiers_list()
+
+
+func _refresh_soldiers_list() -> void:
 	_soldiers_list.clear()
+	if _game_state == null or _game_state.weapon_cache == null:
+		return
+	var cache: WeaponCacheClass = _game_state.weapon_cache
+	var hierarchy = _game_state.command_hierarchy
+	var owner_id := _player_id
+	var selected_sub := _selected_int_meta(_subordinates_list)
+	## Viewing a human subordinate's soldiers; AI fireteams receive gear via the player slot.
+	if selected_sub > 0 and hierarchy != null and not hierarchy.is_ai_player(selected_sub):
+		owner_id = selected_sub
+	var team_id := hierarchy.get_team_id(owner_id) if hierarchy != null else Team.USA
 	var soldier_ids: Array[int] = []
 	if hierarchy != null:
-		soldier_ids = hierarchy.get_soldier_ids(_player_id)
+		soldier_ids = hierarchy.get_soldier_ids(owner_id)
 	for sid in soldier_ids:
 		var soldier: SoldierState = _game_state.get_soldier(team_id, sid)
 		if soldier == null:
@@ -85,7 +97,11 @@ func refresh() -> void:
 		var weapon_text := cache.display_name(str(soldier.weapon_id))
 		var line := "soldier%d   %s, %d" % [sid, weapon_text, soldier.ammo_current]
 		_soldiers_list.add_item(line)
-		_soldiers_list.set_item_metadata(_soldiers_list.item_count - 1, sid)
+		_soldiers_list.set_item_metadata(_soldiers_list.item_count - 1, {
+			"soldier_id": sid,
+			"owner_player_id": owner_id,
+			"team_id": team_id,
+		})
 
 
 func _build_layout() -> void:
@@ -109,9 +125,9 @@ func _build_layout() -> void:
 	_pool_list = left["list"]
 	body.add_child(left["root"])
 
+	## Center: Assign to + black square of subordinate player names (original layout).
 	var mid := VBoxContainer.new()
-	mid.alignment = BoxContainer.ALIGNMENT_CENTER
-	mid.custom_minimum_size = Vector2(140, 0)
+	mid.custom_minimum_size = Vector2(160, 0)
 	mid.add_theme_constant_override("separation", 8)
 	_assign_button = Button.new()
 	_assign_button.text = "Assign to ▶▶▶"
@@ -121,6 +137,27 @@ func _build_layout() -> void:
 	_return_button.text = "Return ◀◀◀"
 	_return_button.pressed.connect(_on_return_pressed)
 	mid.add_child(_return_button)
+	_add_ammo_button = Button.new()
+	_add_ammo_button.text = "Add Ammo ▶"
+	_add_ammo_button.tooltip_text = "Assign an Ammunition Box to the selected soldier's gun."
+	_add_ammo_button.pressed.connect(_on_add_ammo_pressed)
+	mid.add_child(_add_ammo_button)
+
+	var sub_hdr := Label.new()
+	sub_hdr.text = "Subordinate players"
+	sub_hdr.add_theme_font_size_override("font_size", 11)
+	mid.add_child(sub_hdr)
+	_subordinates_list = ItemList.new()
+	_subordinates_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_subordinates_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_subordinates_list.custom_minimum_size = Vector2(150, 120)
+	_subordinates_list.select_mode = ItemList.SELECT_SINGLE
+	_subordinates_list.item_selected.connect(_on_subordinate_selected)
+	## Dark panel look matching the original empty black square.
+	_subordinates_list.add_theme_color_override("font_color", Color(0.95, 0.9, 0.35))
+	_subordinates_list.add_theme_color_override("font_selected_color", Color(1, 1, 0.55))
+	_subordinates_list.add_theme_stylebox_override("panel", _dark_list_style())
+	mid.add_child(_subordinates_list)
 	body.add_child(mid)
 
 	var right := VBoxContainer.new()
@@ -133,27 +170,10 @@ func _build_layout() -> void:
 	right_header.text = "Assign to subordinate players/soldiers"
 	right.add_child(right_header)
 
-	_players_column = VBoxContainer.new()
-	_players_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_players_header = Label.new()
-	_players_header.text = "Players"
-	_players_column.add_child(_players_header)
-	_players_list = ItemList.new()
-	_players_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_players_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_players_list.custom_minimum_size = Vector2(200, 72)
-	_players_list.select_mode = ItemList.SELECT_SINGLE
-	_players_list.item_selected.connect(_on_player_selected)
-	_players_column.add_child(_players_list)
-	right.add_child(_players_column)
-
-	var soldiers_header := Label.new()
-	soldiers_header.text = "Soldiers"
-	right.add_child(soldiers_header)
 	_soldiers_list = ItemList.new()
 	_soldiers_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_soldiers_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_soldiers_list.custom_minimum_size = Vector2(200, 100)
+	_soldiers_list.custom_minimum_size = Vector2(220, 180)
 	_soldiers_list.select_mode = ItemList.SELECT_SINGLE
 	_soldiers_list.item_selected.connect(_on_soldier_selected)
 	right.add_child(_soldiers_list)
@@ -170,6 +190,15 @@ func _build_layout() -> void:
 	briefing_btn.text = "View Briefing"
 	briefing_btn.pressed.connect(_on_briefing_pressed)
 	footer.add_child(briefing_btn)
+
+
+func _dark_list_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.05, 0.05, 1)
+	style.set_border_width_all(1)
+	style.border_color = Color(0.25, 0.25, 0.25, 1)
+	style.set_content_margin_all(4)
+	return style
 
 
 func _make_list_column(header: String) -> Dictionary:
@@ -202,33 +231,84 @@ func _selected_int_meta(list: ItemList) -> int:
 	return int(list.get_item_metadata(selected[0]))
 
 
-func _on_player_selected(_index: int) -> void:
+func _selected_soldier_meta() -> Dictionary:
+	var selected := _soldiers_list.get_selected_items()
+	if selected.is_empty():
+		return {}
+	var meta: Variant = _soldiers_list.get_item_metadata(selected[0])
+	if meta is Dictionary:
+		return meta as Dictionary
+	return {}
+
+
+func _on_subordinate_selected(_index: int) -> void:
 	_soldiers_list.deselect_all()
+	_refresh_soldiers_list()
 
 
 func _on_soldier_selected(_index: int) -> void:
-	_players_list.deselect_all()
+	## Keep subordinate selection — soldier rows may belong to that player.
+	pass
 
 
 func _on_assign_pressed() -> void:
 	if _game_state == null:
 		return
 	var item_id := _selected_string_meta(_pool_list)
-	var player_target := _selected_int_meta(_players_list)
-	var soldier_target := _selected_int_meta(_soldiers_list)
+	var player_target := _selected_int_meta(_subordinates_list)
+	var soldier_meta := _selected_soldier_meta()
 	var cmd := AssignWeaponCommandClass.new()
 	cmd.from_player_id = _player_id
 	cmd.item_id = item_id
-	if player_target > 0:
+	if player_target > 0 and soldier_meta.is_empty():
+		## Giving gear to a subordinate player's cache (whole AI fireteam / allied player).
 		cmd.target_kind = WeaponCacheClass.TargetKind.PLAYER
 		cmd.target_id = player_target
-	elif soldier_target > 0:
+	elif not soldier_meta.is_empty():
 		cmd.target_kind = WeaponCacheClass.TargetKind.SOLDIER
-		cmd.target_id = soldier_target
-		if _game_state.command_hierarchy != null:
-			cmd.target_team_id = _game_state.command_hierarchy.get_team_id(_player_id)
+		cmd.target_id = int(soldier_meta.get("soldier_id", -1))
+		cmd.target_team_id = int(soldier_meta.get("team_id", Team.USA))
+		## Assignments to another player's soldiers still come from our cache but must be ours.
+		var owner_id := int(soldier_meta.get("owner_player_id", _player_id))
+		if owner_id != _player_id:
+			_status_label.text = "Select your own soldiers, or Assign to the subordinate player."
+			_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
+			return
 	else:
 		cmd.target_id = -1
+	var result = CommandRouter.submit_command(_game_state, cmd)
+	_show_result(result)
+	refresh()
+
+
+func _on_add_ammo_pressed() -> void:
+	## Convenience: pick an ammo box from the pool (or require one selected) → selected soldier.
+	if _game_state == null:
+		return
+	var soldier_meta := _selected_soldier_meta()
+	if soldier_meta.is_empty():
+		_status_label.text = "Select a soldier to add ammo to their gun."
+		_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
+		return
+	var owner_id := int(soldier_meta.get("owner_player_id", _player_id))
+	if owner_id != _player_id:
+		_status_label.text = "You can only add ammo to your own soldiers' guns."
+		_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
+		return
+	var item_id := _selected_string_meta(_pool_list)
+	if item_id.is_empty() or item_id != WeaponCacheClass.ITEM_AMMUNITION_BOX:
+		## Auto-select ammo box if any remain.
+		if _game_state.weapon_cache.pool_count(_player_id, WeaponCacheClass.ITEM_AMMUNITION_BOX) <= 0:
+			_status_label.text = "No Ammunition Box available in your cache."
+			_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
+			return
+		item_id = WeaponCacheClass.ITEM_AMMUNITION_BOX
+	var cmd := AssignWeaponCommandClass.new()
+	cmd.from_player_id = _player_id
+	cmd.item_id = item_id
+	cmd.target_kind = WeaponCacheClass.TargetKind.SOLDIER
+	cmd.target_id = int(soldier_meta.get("soldier_id", -1))
+	cmd.target_team_id = int(soldier_meta.get("team_id", Team.USA))
 	var result = CommandRouter.submit_command(_game_state, cmd)
 	_show_result(result)
 	refresh()
@@ -237,19 +317,23 @@ func _on_assign_pressed() -> void:
 func _on_return_pressed() -> void:
 	if _game_state == null:
 		return
-	var soldier_target := _selected_int_meta(_soldiers_list)
-	if soldier_target <= 0:
+	var soldier_meta := _selected_soldier_meta()
+	if soldier_meta.is_empty():
 		_status_label.text = "Choose a target for weapon assignment"
 		_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
 		return
-	var team_id := Team.USA
-	if _game_state.command_hierarchy != null:
-		team_id = _game_state.command_hierarchy.get_team_id(_player_id)
-	var soldier: SoldierState = _game_state.get_soldier(team_id, soldier_target)
+	var owner_id := int(soldier_meta.get("owner_player_id", _player_id))
+	if owner_id != _player_id:
+		_status_label.text = "You can only return weapons from your own soldiers."
+		_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
+		return
+	var team_id := int(soldier_meta.get("team_id", Team.USA))
+	var soldier_id := int(soldier_meta.get("soldier_id", -1))
+	var soldier: SoldierState = _game_state.get_soldier(team_id, soldier_id)
 	var cmd := ReturnWeaponCommandClass.new()
 	cmd.to_player_id = _player_id
 	cmd.team_id = team_id
-	cmd.soldier_id = soldier_target
+	cmd.soldier_id = soldier_id
 	cmd.item_id = str(soldier.weapon_id) if soldier != null else ""
 	var result = CommandRouter.submit_command(_game_state, cmd)
 	_show_result(result)
@@ -258,7 +342,10 @@ func _on_return_pressed() -> void:
 
 func _on_briefing_pressed() -> void:
 	briefing_requested.emit()
-	_status_label.text = "Briefing: assign weapons from your cache to soldiers or subordinates."
+	_status_label.text = (
+		"Briefing: assign weapons from your cache to your soldiers, "
+		+ "or to subordinate players / AI fireteams. Use Add Ammo for ammunition boxes."
+	)
 
 
 func _show_result(result) -> void:

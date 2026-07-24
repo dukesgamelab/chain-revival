@@ -16,6 +16,7 @@ const CombatSystemClass := preload("res://scripts/combat/combat_system.gd")
 const EnemyVisibilityResultClass := preload("res://scripts/combat/enemy_visibility_result.gd")
 const FacingDirectionClass := preload("res://scripts/enums/facing_direction.gd")
 const ActionResultClass := preload("res://scripts/core/action_result.gd")
+const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 
 var _failed: int = 0
 var _passed: int = 0
@@ -61,7 +62,12 @@ func _make_game_state() -> GameStateClass:
 		blue = MapDataClass.default_usa_spawn_points()
 	if red.is_empty():
 		red = MapDataClass.default_germany_spawn_points()
-	var session := GameSessionClass.new(blue, red)
+	## 2v2 so hierarchy has allied AI fireteams (YOU + USA AI) matching commander tests.
+	var cfg = MatchConfigClass.new(
+		MatchConfigClass.GameModeKind.SINGLE_PLAYER,
+		MatchConfigClass.MatchType.TWO_V_TWO,
+	)
+	var session := GameSessionClass.from_match_config(cfg, blue, red)
 	return session.create_game_state(map_data)
 
 

@@ -8,12 +8,15 @@ signal face_toggled(soldier_id: int, is_pressed: bool)
 signal position_toggled(soldier_id: int, is_down: bool)
 signal fire_control_selected(soldier_id: int, fire_control_state: int)
 signal grenade_toggled(soldier_id: int, is_pressed: bool)
+signal ammo_adjust_requested(soldier_id: int, delta: int)
 
 @export var soldier_id: int = 1
 
 @onready var _dots_label: Label = %DotsLabel
 @onready var _weapon_label: Label = %WeaponLabel
 @onready var _ammo_label: Label = %AmmoLabel
+@onready var _ammo_up_button: Button = %AmmoUpButton
+@onready var _ammo_down_button: Button = %AmmoDownButton
 @onready var _fire_at_button: Button = %FireAtButton
 @onready var _run_to_button: Button = %RunToButton
 @onready var _crawl_to_button: Button = %CrawlToButton
@@ -56,6 +59,10 @@ func _ready() -> void:
 	_face_button.toggled.connect(_on_face_toggled)
 	_grenade_button.toggled.connect(_on_grenade_toggled)
 	_position_button.toggled.connect(_on_position_toggled)
+	_ammo_up_button.pressed.connect(func() -> void: ammo_adjust_requested.emit(soldier_id, 1))
+	_ammo_down_button.pressed.connect(func() -> void: ammo_adjust_requested.emit(soldier_id, -1))
+	_ammo_up_button.tooltip_text = "Add ammo to this gun"
+	_ammo_down_button.tooltip_text = "Reduce ammo on this gun"
 	set_position_state(PositionState.UP)
 	set_fire_control_state(FireControlState.HOLD_FIRE)
 	set_grenade_count(5)
@@ -152,6 +159,10 @@ func set_row_enabled(enabled: bool) -> void:
 	_face_button.disabled = not enabled
 	_position_button.disabled = not enabled
 	_grenade_button.disabled = not enabled
+	if _ammo_up_button != null:
+		_ammo_up_button.disabled = not enabled
+	if _ammo_down_button != null:
+		_ammo_down_button.disabled = not enabled
 	modulate = Color.WHITE if enabled else Color(0.75, 0.75, 0.75, 1.0)
 
 
