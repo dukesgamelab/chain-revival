@@ -1,6 +1,8 @@
 class_name FireteamLoadout
 extends RefCounted
 ## Data-driven weapon assignments per faction. Add new teams here without changing soldier code.
+## Squad weapon caps (RECOVERED INIT_LimitPerSquad): BAR 1, Thompson 2, MG42 1, MP40 2;
+## rifles unlimited. See WeaponPolicy.squad_limit().
 
 ## Slot order: soldier_id 1–4. Composition: 2 rifles, 1 SMG, 1 LMG.
 const LOADOUTS: Dictionary = {

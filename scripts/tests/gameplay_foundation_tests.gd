@@ -30,10 +30,15 @@ func _ready() -> void:
 	_test_grenade_throwing()
 	_test_los_fixture()
 	_test_wall_cover_fixture()
+	_test_directional_cover()
 	_test_rng_seed_reproducibility()
 	_test_firing_sequence_reproducibility()
 	_test_grenade_sequence_reproducibility()
 	_test_policy_defaults_unchanged()
+	_test_recovered_weapon_stats()
+	_test_smg_vs_rifle_range_falloff()
+	_test_grenade_range_cap()
+	_test_stress_model()
 	_test_fixed_simulation_tick()
 	_test_movement_frame_rate_independence()
 	_test_object_id_and_registry()
@@ -367,6 +372,92 @@ func _test_wall_cover_fixture() -> void:
 	)
 
 
+func _test_directional_cover() -> void:
+	_bootstrap()
+	var CoverPolicyClass := preload("res://scripts/gameplay_policies/cover_policy.gd")
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+
+	var target := Vector2i(20, 20)
+	var wall := Vector2i(19, 20) ## west of target
+	map_data.set_object(wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+
+	## Shooter west of wall: wall is between shooter and target → cover.
+	var west_shooter := Vector2i(16, 20)
+	var covered := CoverSystemClass.evaluate_target_cover(west_shooter, target, map_data)
+	_assert(
+		"Directional cover: wall on shooter-facing side grants cover",
+		covered.cover_type != CoverSystemClass.CoverType.NONE
+		and covered.source_cell == wall,
+		"type=%s cell=%s" % [covered.cover_type, covered.source_cell],
+	)
+
+	## Flank from the east: same wall is behind the target relative to the shot → no cover.
+	var east_shooter := Vector2i(24, 20)
+	var flanked := CoverSystemClass.evaluate_target_cover(east_shooter, target, map_data)
+	_assert(
+		"Directional cover: flanking defeats the same wall",
+		flanked.cover_type == CoverSystemClass.CoverType.NONE,
+		"type=%s cell=%s" % [flanked.cover_type, flanked.source_cell],
+	)
+
+	## Obstruction beside target but off the shot vector grants no cover.
+	map_data.clear_object(wall)
+	var side_wall := Vector2i(20, 19) ## north of target; shot is east-west
+	map_data.set_object(side_wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var side_check := CoverSystemClass.evaluate_target_cover(west_shooter, target, map_data)
+	_assert(
+		"Directional cover: off-axis adjacent wall grants no cover",
+		side_check.cover_type == CoverSystemClass.CoverType.NONE,
+		"type=%s cells=%s" % [side_check.cover_type, str(side_check.qualifying_cells)],
+	)
+
+	## Wall 4+ tiles from target is outside INITCoverRangeLimit.
+	map_data.clear_object(side_wall)
+	var far_wall := Vector2i(15, 20) ## Chebyshev 5 from target
+	map_data.set_object(far_wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var far_check := GameplayPolicies.cover.cover_check(west_shooter, target, map_data)
+	_assert(
+		"Directional cover: wall beyond range limit grants no cover",
+		not far_check.in_cover,
+		"cells=%s limit=%d" % [str(far_check.qualifying_cells), GameplayPolicies.cover.cover_range_limit],
+	)
+
+	## Height 1 (haybail) and height 2 (wall) both grant cover when on the facing side.
+	map_data.clear_object(far_wall)
+	var low_cover := Vector2i(19, 20)
+	map_data.set_object(low_cover, MapObjectRegistryClass.TYPE_HAYBAIL)
+	_assert(
+		"Directional cover: height-1 tile can grant cover",
+		map_data.obstruction_height(low_cover) >= 1
+		and CoverSystemClass.evaluate_target_cover(west_shooter, target, map_data).cover_type
+		!= CoverSystemClass.CoverType.NONE,
+		"height=%d" % map_data.obstruction_height(low_cover),
+	)
+	map_data.clear_object(low_cover)
+	var high_cover := Vector2i(19, 20)
+	map_data.set_object(high_cover, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	_assert(
+		"Directional cover: height-2 tile can grant cover",
+		map_data.obstruction_height(high_cover) >= 2
+		and CoverSystemClass.evaluate_target_cover(west_shooter, target, map_data).cover_type
+		!= CoverSystemClass.CoverType.NONE,
+		"height=%d" % map_data.obstruction_height(high_cover),
+	)
+
+	## Corner offset relative to shot → PseudoCover / CORNER qualifier.
+	map_data.clear_object(high_cover)
+	var corner := Vector2i(19, 19)
+	map_data.set_object(corner, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var corner_check := GameplayPolicies.cover.cover_check(west_shooter, target, map_data)
+	_assert(
+		"Directional cover: diagonal facing tile is CORNER qualifier",
+		corner_check.in_cover and corner_check.qualifier == CoverPolicyClass.Qualifier.CORNER,
+		"in_cover=%s qualifier=%s" % [corner_check.in_cover, corner_check.qualifier],
+	)
+
+
 func _test_rng_seed_reproducibility() -> void:
 	GameRandom.reseed(42)
 	var a: Array[float] = []
@@ -492,7 +583,7 @@ func _test_grenade_sequence_reproducibility() -> void:
 func _test_policy_defaults_unchanged() -> void:
 	GameplayPolicies.reset_all_to_defaults()
 	_assert("Hit chance policy base unchanged", is_equal_approx(GameplayPolicies.hit.clear_base_hit_chance, 0.78))
-	_assert("Grenade policy range unchanged", GameplayPolicies.grenade.throw_range == 7)
+	_assert("Grenade policy range is recovered 5", GameplayPolicies.grenade.throw_range == 5)
 	_assert("Grenade policy blast unchanged", GameplayPolicies.grenade.blast_radius == 3)
 	_assert("Grenade policy kill chance unchanged", is_equal_approx(GameplayPolicies.grenade.kill_chance, 0.25))
 	_assert("Suppression pinned threshold unchanged", is_equal_approx(GameplayPolicies.suppression.pinned_threshold, 45.0))
@@ -518,6 +609,152 @@ func _test_policy_defaults_unchanged() -> void:
 	)
 	_assert("Simulation tick hz default 20", SimulationClock.tick_hz == 20)
 	_assert("Simulation tick msec is 50", SimulationClock.tick_msec() == 50)
+
+
+func _test_recovered_weapon_stats() -> void:
+	GameplayPolicies.reset_all_to_defaults()
+	var WeaponPolicyClass := preload("res://scripts/gameplay_policies/weapon_policy.gd")
+	var expected := {
+		"m1_garand": {"rpa": 1, "ammo": 70, "speed": 6, "supp": 0.25, "sl": 25.0, "saf": 0.5, "fo": "cubic", "aim": 1.1},
+		"kar98k": {"rpa": 1, "ammo": 70, "speed": 6, "supp": 0.25, "sl": 25.0, "saf": 0.5, "fo": "cubic", "aim": 1.1},
+		"thompson": {"rpa": 4, "ammo": 200, "speed": 6, "supp": 2.0, "sl": 13.0, "saf": 1.5, "fo": "pentic", "aim": 1.1},
+		"mp40": {"rpa": 5, "ammo": 200, "speed": 6, "supp": 2.0, "sl": 13.0, "saf": 1.5, "fo": "pentic", "aim": 1.1},
+		"bar": {"rpa": 7, "ammo": 900, "speed": 6, "supp": 0.6, "sl": 25.0, "saf": 2.0, "fo": "cubic", "aim": 1.7},
+		"mg42": {"rpa": 6, "ammo": 900, "speed": 7, "supp": 0.6, "sl": 25.0, "saf": 2.0, "fo": "cubic", "aim": 1.7},
+	}
+	for weapon_id in expected.keys():
+		var w := GameplayPolicies.weapons.create_weapon(weapon_id)
+		var e: Dictionary = expected[weapon_id]
+		_assert(
+			"%s recovered stats" % weapon_id,
+			w != null
+			and w.rounds_per_attack == int(e.rpa)
+			and w.ammo_capacity == int(e.ammo)
+			and w.bullet_speed == int(e.speed)
+			and is_equal_approx(w.suppression_generated, float(e.supp))
+			and is_equal_approx(w.stress_limit, float(e.sl))
+			and is_equal_approx(w.stress_aim_factor, float(e.saf))
+			and w.range_falloff == str(e.fo)
+			and is_equal_approx(w.aim_delay_sec, float(e.aim)),
+			"weapon=%s" % [w.weapon_id if w else "null"],
+		)
+	var bar := GameplayPolicies.weapons.create_weapon("bar")
+	var mg42 := GameplayPolicies.weapons.create_weapon("mg42")
+	var garand := GameplayPolicies.weapons.create_weapon("m1_garand")
+	var thompson := GameplayPolicies.weapons.create_weapon("thompson")
+	_assert(
+		"aim_delay ordering: LMGs > rifles/SMGs",
+		bar.aim_delay_sec > garand.aim_delay_sec
+		and is_equal_approx(bar.aim_delay_sec, mg42.aim_delay_sec)
+		and is_equal_approx(garand.aim_delay_sec, thompson.aim_delay_sec),
+	)
+	_assert("squad limit BAR is 1", WeaponPolicyClass.squad_limit("bar") == 1)
+	_assert("squad limit Thompson is 2", WeaponPolicyClass.squad_limit("thompson") == 2)
+	_assert("squad limit MG42 is 1", WeaponPolicyClass.squad_limit("mg42") == 1)
+	_assert("squad limit MP40 is 2", WeaponPolicyClass.squad_limit("mp40") == 2)
+	_assert("squad limit rifle unlimited", WeaponPolicyClass.squad_limit("m1_garand") == -1)
+
+
+func _test_smg_vs_rifle_range_falloff() -> void:
+	GameplayPolicies.reset_all_to_defaults()
+	var from_cell := Vector2i(0, 0)
+	var to_cell := Vector2i(12, 0)
+	var rifle := GameplayPolicies.weapons.create_weapon("m1_garand")
+	var smg := GameplayPolicies.weapons.create_weapon("thompson")
+	var rifle_chance := CombatSystemClass.hit_chance(from_cell, to_cell, rifle)
+	var smg_chance := CombatSystemClass.hit_chance(from_cell, to_cell, smg)
+	_assert(
+		"SMG hit chance at range 12 < rifle hit chance at range 12",
+		smg_chance < rifle_chance,
+		"smg=%.3f rifle=%.3f" % [smg_chance, rifle_chance],
+	)
+
+
+func _test_grenade_range_cap() -> void:
+	_bootstrap()
+	var game_state := _make_game_state()
+	var thrower := game_state.get_soldier(Team.USA, 1)
+	thrower.grid_position = Vector2i(20, 30)
+	thrower.clear_path()
+	var cmd := GrenadeCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = 1
+	cmd.target_cell = Vector2i(26, 30) ## manhattan 6 > recovered throw_range 5
+	var result := ActionResolverClass.execute_grenade(
+		game_state,
+		cmd,
+		CommandContextClass.new(),
+	)
+	_assert(
+		"Grenade throws beyond 5 tiles are refused",
+		not result.success,
+		result.status_message,
+	)
+	cmd.target_cell = Vector2i(25, 30) ## manhattan 5 == max
+	result = ActionResolverClass.execute_grenade(
+		game_state,
+		cmd,
+		CommandContextClass.new(),
+	)
+	_assert("Grenade throw at exactly 5 tiles succeeds", result.success, result.status_message)
+
+
+func _test_stress_model() -> void:
+	GameplayPolicies.reset_all_to_defaults()
+	var SuppressionPolicyClass := preload("res://scripts/gameplay_policies/suppression_policy.gd")
+	var policy := GameplayPolicies.suppression
+	_assert(
+		"STRESS_SCALE is single conversion constant",
+		is_equal_approx(SuppressionPolicyClass.STRESS_SCALE, 100.0 / 7.0),
+	)
+
+	var thompson := GameplayPolicies.weapons.create_weapon("thompson")
+	var garand := GameplayPolicies.weapons.create_weapon("m1_garand")
+	var bar := GameplayPolicies.weapons.create_weapon("bar")
+	var smg_gain := policy.suppression_gain_runtime(thompson.suppression_generated)
+	var rifle_gain := policy.suppression_gain_runtime(garand.suppression_generated)
+	_assert(
+		"SMG fire generates more suppression than rifle fire",
+		smg_gain > rifle_gain,
+		"smg=%.3f rifle=%.3f" % [smg_gain, rifle_gain],
+	)
+	var smg_cap := policy.weapon_stress_cap_runtime(thompson.stress_limit)
+	var lmg_cap := policy.weapon_stress_cap_runtime(bar.stress_limit)
+	_assert(
+		"LMG stress cap is higher than SMG cap",
+		lmg_cap > smg_cap,
+		"lmg=%.1f smg=%.1f" % [lmg_cap, smg_cap],
+	)
+
+	## Calm vs stressed: long-range accuracy falls harder than point-blank.
+	var calm_near := policy.accuracy_modifier_for(0.0, 0, 1.0)
+	var stressed_near := policy.accuracy_modifier_for(100.0, 0, 1.0)
+	var calm_far := policy.accuracy_modifier_for(0.0, 6, 1.0)
+	var stressed_far := policy.accuracy_modifier_for(100.0, 6, 1.0)
+	var near_ratio := stressed_near / maxf(calm_near, 0.0001)
+	var far_ratio := stressed_far / maxf(calm_far, 0.0001)
+	_assert(
+		"Stress hurts long-range accuracy more than point-blank",
+		far_ratio < near_ratio,
+		"near_ratio=%.3f far_ratio=%.3f" % [near_ratio, far_ratio],
+	)
+
+	## Decay toward 0 when unthreatened.
+	var decayed := policy.apply_stress_decay(50.0, false)
+	_assert("Stress decays when unthreatened", decayed < 50.0 and decayed >= 0.0, "decayed=%.3f" % decayed)
+	var fully := 50.0
+	for _i in 20:
+		fully = policy.apply_stress_decay(fully, false)
+	_assert("Stress decays to 0", is_equal_approx(fully, 0.0), "fully=%.5f" % fully)
+
+	## Tier mapping is one documented function.
+	var tier_calm := policy.effective_tier_from_stress(0.0)
+	var tier_max := policy.effective_tier_from_stress(100.0)
+	_assert(
+		"effective_tier falls as stress rises",
+		tier_calm > tier_max,
+		"calm=%.2f max=%.2f" % [tier_calm, tier_max],
+	)
 
 
 func _test_fixed_simulation_tick() -> void:

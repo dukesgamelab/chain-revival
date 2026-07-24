@@ -34,6 +34,8 @@ class LossResult extends RefCounted:
 	var cover_type: int = CoverSystem.CoverType.NONE
 	var cover_source_type: String = ""
 	var cover_source_cell: Vector2i = Vector2i(-999, -999)
+	var cover_qualifier: int = 0 ## CoverPolicy.Qualifier
+	var cover_qualifying_cells: Array[Vector2i] = []
 	var blocking_cell: Vector2i = Vector2i(-999, -999)
 	var blocking_type: String = ""
 	var shooter_using_wall_cover: bool = false
@@ -70,6 +72,8 @@ static func evaluate(
 	result.cover_type = cover.cover_type
 	result.cover_source_type = cover.source_type_id
 	result.cover_source_cell = cover.source_cell
+	result.cover_qualifier = cover.qualifier
+	result.cover_qualifying_cells = cover.qualifying_cells.duplicate()
 	if cover.cover_type in [CoverSystem.CoverType.MODERATE, CoverSystem.CoverType.COMPLETE]:
 		result.status = Status.COVER
 	else:
@@ -110,6 +114,8 @@ static func evaluate_spotting(
 	result.cover_type = cover.cover_type
 	result.cover_source_type = cover.source_type_id
 	result.cover_source_cell = cover.source_cell
+	result.cover_qualifier = cover.qualifier
+	result.cover_qualifying_cells = cover.qualifying_cells.duplicate()
 	if cover.cover_type == CoverSystem.CoverType.MODERATE:
 		result.status = Status.COVER
 	else:

@@ -31,8 +31,9 @@
 		"auto_score_smg_lmg_bonus": 20.0
 	},
 	"grenade": {
+		"comment": "RECOVERED: starting_count=ArmamentGranade=5, throw_range=INITMaxGranadeDistance=5. Reference VarA=30 VarB=0 VarC=30 VarD=5. TUNED: fuse/blast/kill/stun (originals unknown).",
 		"starting_count": 5,
-		"throw_range": 7,
+		"throw_range": 5,
 		"fuse_msec": 1800,
 		"blast_radius": 3,
 		"kill_radius": 1,
@@ -40,8 +41,11 @@
 		"stun_duration_sec": 8.0
 	},
 	"suppression": {
-		"recovery_per_tick": 0.15,
-		"recovery_prone_per_tick": 0.25,
+		"comment": "SCALE (B): runtime stress 0–100; original 0–7 via SuppressionPolicy.STRESS_SCALE only. Generation/caps from weapon StressFactor/StressLimit. Accuracy from stress_accuracy_table.json (normalized). Decay: INITStressFallMultiplier retain fraction toward INITStressInitial. Legacy suppression_mg42/bar/smg match recovered LMG/SMG factors for fallbacks only.",
+		"stress_base": 0.8,
+		"stress_fall_multiplier": 0.3,
+		"stress_initial": 0,
+		"stress_multiplier_global": 1.0,
 		"moderate_cover_suppression_mult": 0.65,
 		"prone_suppression_mult": 0.75,
 		"pinned_threshold": 45.0,
@@ -50,31 +54,12 @@
 		"band_suppressed": 25.0,
 		"band_pinned": 45.0,
 		"band_panicked": 70.0,
-		"accuracy_by_band": [
-			1.0,
-			0.85,
-			0.65,
-			0.4,
-			0.2
-		],
-		"movement_by_band": [
-			1.0,
-			0.9,
-			0.75,
-			0.5,
-			0.35
-		],
-		"fire_delay_by_band": [
-			1.0,
-			1.1,
-			1.25,
-			1.5,
-			2.0
-		],
-		"suppression_mg42": 2.0,
-		"suppression_bar": 1.2,
-		"suppression_smg": 0.8,
-		"suppression_default": 0.4,
+		"movement_by_band": [1.0, 0.9, 0.75, 0.5, 0.35],
+		"fire_delay_by_band": [1.0, 1.1, 1.25, 1.5, 2.0],
+		"suppression_mg42": 0.6,
+		"suppression_bar": 0.6,
+		"suppression_smg": 2.0,
+		"suppression_default": 0.25,
 		"max_stress": 100.0
 	},
 	"movement": {
@@ -83,8 +68,11 @@
 		"speed_crawl": 0.3
 	},
 	"cover": {
+		"comment": "RECOVERED: INITCoverRangeLimit=3, INITCoverInMultiplier=1.0, INITCoverHitMultiplier=0.005 (combine arithmetic UNRESOLVED), INITMinDuckingRange=4, INITKilledProbability=20. moderate_hit_mult is TUNED magnitude; directional geometry decides when it applies. stack_mode: first|count (UNRESOLVED; default first).",
 		"moderate_hit_mult": 0.5,
-		"moderate_visibility_mult": 0.65
+		"moderate_visibility_mult": 0.65,
+		"cover_range_limit": 3,
+		"stack_mode": "first"
 	},
 	"vision": {
 		"cone_width_at_max_range": 30,
@@ -98,6 +86,7 @@
 		"peek_adjacency_chebyshev": 1
 	},
 	"weapons": {
+		"comment": "RECOVERED from Initial-*.oin: rounds_per_attack, ammo_pool (total rounds, no reload), bullet_speed, suppression_generated, stress_limit, stress_aim_factor, range_falloff, INIT_LimitPerSquad. Cadence aim_delay_sec/fire_interval_sec: ratio from aim_factor_sqr; absolute seconds TUNED. range_tiles/hit_modifier/close_range TUNED.",
 		"definitions": {
 			"m1_garand": {
 				"weapon_name": "M1 Garand",
@@ -105,9 +94,14 @@
 				"range_tiles": 18,
 				"hit_modifier": 0.1,
 				"rounds_per_attack": 1,
-				"ammo_capacity": 80,
+				"ammo_pool": 70,
 				"close_range_bonus": 0.0,
 				"close_range_tiles": 0,
+				"bullet_speed": 6,
+				"suppression_generated": 0.25,
+				"stress_limit": 25.0,
+				"stress_aim_factor": 0.5,
+				"range_falloff": "cubic",
 				"fire_interval_sec": 1.2,
 				"aim_delay_sec": 1.1
 			},
@@ -116,24 +110,34 @@
 				"weapon_type": 2,
 				"range_tiles": 20,
 				"hit_modifier": 0.05,
-				"rounds_per_attack": 4,
-				"ammo_capacity": 120,
+				"rounds_per_attack": 7,
+				"ammo_pool": 900,
 				"close_range_bonus": 0.0,
 				"close_range_tiles": 0,
+				"bullet_speed": 6,
+				"suppression_generated": 0.6,
+				"stress_limit": 25.0,
+				"stress_aim_factor": 2.0,
+				"range_falloff": "cubic",
 				"fire_interval_sec": 1.1,
-				"aim_delay_sec": 0.9
+				"aim_delay_sec": 1.7
 			},
 			"thompson": {
 				"weapon_name": "Thompson",
 				"weapon_type": 1,
 				"range_tiles": 8,
 				"hit_modifier": 0.0,
-				"rounds_per_attack": 3,
-				"ammo_capacity": 100,
+				"rounds_per_attack": 4,
+				"ammo_pool": 200,
 				"close_range_bonus": 0.15,
 				"close_range_tiles": 4,
+				"bullet_speed": 6,
+				"suppression_generated": 2.0,
+				"stress_limit": 13.0,
+				"stress_aim_factor": 1.5,
+				"range_falloff": "pentic",
 				"fire_interval_sec": 0.8,
-				"aim_delay_sec": 0.7
+				"aim_delay_sec": 1.1
 			},
 			"kar98k": {
 				"weapon_name": "Kar98k",
@@ -141,11 +145,16 @@
 				"range_tiles": 20,
 				"hit_modifier": 0.14,
 				"rounds_per_attack": 1,
-				"ammo_capacity": 60,
+				"ammo_pool": 70,
 				"close_range_bonus": 0.0,
 				"close_range_tiles": 0,
-				"fire_interval_sec": 2.0,
-				"aim_delay_sec": 1.3
+				"bullet_speed": 6,
+				"suppression_generated": 0.25,
+				"stress_limit": 25.0,
+				"stress_aim_factor": 0.5,
+				"range_falloff": "cubic",
+				"fire_interval_sec": 1.5,
+				"aim_delay_sec": 1.1
 			},
 			"mg42": {
 				"weapon_name": "MG42",
@@ -153,24 +162,43 @@
 				"range_tiles": 22,
 				"hit_modifier": 0.04,
 				"rounds_per_attack": 6,
-				"ammo_capacity": 150,
+				"ammo_pool": 900,
 				"close_range_bonus": 0.0,
 				"close_range_tiles": 0,
+				"bullet_speed": 7,
+				"suppression_generated": 0.6,
+				"stress_limit": 25.0,
+				"stress_aim_factor": 2.0,
+				"range_falloff": "cubic",
 				"fire_interval_sec": 0.6,
-				"aim_delay_sec": 1.0
+				"aim_delay_sec": 1.7
 			},
 			"mp40": {
 				"weapon_name": "MP40",
 				"weapon_type": 1,
 				"range_tiles": 8,
 				"hit_modifier": 0.0,
-				"rounds_per_attack": 3,
-				"ammo_capacity": 100,
+				"rounds_per_attack": 5,
+				"ammo_pool": 200,
 				"close_range_bonus": 0.12,
 				"close_range_tiles": 4,
+				"bullet_speed": 6,
+				"suppression_generated": 2.0,
+				"stress_limit": 13.0,
+				"stress_aim_factor": 1.5,
+				"range_falloff": "pentic",
 				"fire_interval_sec": 0.9,
-				"aim_delay_sec": 0.7
+				"aim_delay_sec": 1.1
 			}
+		},
+		"squad_limits": {
+			"comment": "RECOVERED INIT_LimitPerSquad. Rifles unlimited (-1).",
+			"bar": 1,
+			"thompson": 2,
+			"mg42": 1,
+			"mp40": 2,
+			"m1_garand": -1,
+			"kar98k": -1
 		}
 	},
 	"simulation": {

@@ -27,6 +27,9 @@ class CoverResult extends RefCounted:
 	var cover_type: int = CoverType.NONE
 	var source_type_id: String = ""
 	var source_cell: Vector2i = Vector2i(-999, -999)
+	## CoverPolicy.Qualifier — CORNER models PseudoCover (not a weaker hit tier).
+	var qualifier: int = CoverPolicyClass.Qualifier.NONE
+	var qualifying_cells: Array[Vector2i] = []
 
 
 class BlockResult extends RefCounted:
@@ -376,6 +379,8 @@ static func is_shooter_side_cover_on_line(
 
 
 ## Cover affecting the target when the shot is not blocked.
+## Directional geometry (CoverPolicy.cover_check): only shooter-facing obstructions within
+## Chebyshev INITCoverRangeLimit of the target. Flanking defeats cover.
 static func evaluate_target_cover(
 	from_cell: Vector2i,
 	target_cell: Vector2i,
@@ -385,38 +390,30 @@ static func evaluate_target_cover(
 	if map_data == null or from_cell == target_cell:
 		return result
 
-	var wall_usage := evaluate_wall_cover_usage(from_cell, target_cell, map_data)
-	if wall_usage.target_using_wall_cover:
-		var cover_cell := wall_usage.target_cover_cell
-		var object_def := map_data.get_object_def(cover_cell)
-		if object_def != null:
-			_apply_complete_cover(object_def, cover_cell, result)
+	var check: CoverPolicyClass.CoverCheckResult = GameplayPolicies.cover.cover_check(
+		from_cell,
+		target_cell,
+		map_data,
+	)
+	result.qualifying_cells = check.qualifying_cells.duplicate()
+	result.qualifier = check.qualifier
+	if not check.in_cover:
+		return result
 
-	for offset in ADJACENT_OFFSETS:
-		_consider_adjacent_target_cover(
-			from_cell,
-			target_cell,
-			target_cell + offset,
-			map_data,
-			result,
-		)
-	for cell in line_cells_between(from_cell, target_cell):
-		var object_def := map_data.get_object_def(cell)
-		if object_def == null:
-			continue
-		if can_peek_and_shoot_over(from_cell, target_cell, cell, object_def):
-			continue
-		var wall_skip := get_wall_skip_reason(from_cell, target_cell, cell, object_def)
-		if wall_skip == WallSkipReason.TARGET_COVER:
-			continue
-		if wall_skip == WallSkipReason.SHOOTER_PEEK:
-			continue
-		if _is_complete_cover_wall(object_def):
-			_apply_moderate_cover(object_def, cell, result)
-			continue
-		if object_def.provides_cover and object_def.cover_type == CoverType.MODERATE:
-			_apply_moderate_cover(object_def, cell, result)
-
+	result.cover_type = CoverType.MODERATE
+	result.source_cell = check.source_cell
+	var object_def := map_data.get_object_def(check.source_cell)
+	if object_def != null:
+		result.source_type_id = object_def.type_id
+		## Preserve COMPLETE label for adjacent hard walls so existing combat messaging stays.
+		if (
+			_is_complete_cover_wall(object_def)
+			and _is_adjacent(target_cell, check.source_cell)
+			and is_cell_on_fire_line(from_cell, target_cell, check.source_cell)
+		):
+			result.cover_type = CoverType.COMPLETE
+	else:
+		result.source_type_id = "terrain"
 	return result
 
 
@@ -465,19 +462,14 @@ static func is_cell_on_fire_line(
 
 
 static func _consider_adjacent_target_cover(
-	from_cell: Vector2i,
-	target_cell: Vector2i,
-	cell: Vector2i,
-	map_data: MapData,
-	result: CoverResult,
+	_from_cell: Vector2i,
+	_target_cell: Vector2i,
+	_cell: Vector2i,
+	_map_data: MapData,
+	_result: CoverResult,
 ) -> void:
-	if not map_data.is_in_bounds(cell):
-		return
-	var object_def := map_data.get_object_def(cell)
-	if object_def == null or not object_def.provides_cover:
-		return
-	if object_def.cover_type == CoverType.MODERATE:
-		_apply_moderate_cover(object_def, cell, result)
+	## Retained for call-site compatibility; cover is now CoverPolicy.cover_check.
+	pass
 
 
 static func _apply_complete_cover(

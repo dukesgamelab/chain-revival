@@ -1,7 +1,7 @@
 class_name WeaponPolicy
 extends RefCounted
-## Weapon catalog tuning. Defaults match the former WeaponRegistry table.
-## Gameplay asks: "What is the rifle cooldown / range / accuracy?"
+## Weapon catalog. Recovered fields come from Initial-*.oin (identical across scenarios).
+## Absolute aim/fire seconds and range_tiles / hit_modifier are TUNED, not recovered.
 
 const WeaponDataClass := preload("res://scripts/combat/weapon_data.gd")
 const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
@@ -13,7 +13,14 @@ const ID_KAR98K := "kar98k"
 const ID_MG42 := "mg42"
 const ID_MP40 := "mp40"
 
-## Per-weapon definition dictionaries (tunable; clone into WeaponData on request).
+## RECOVERED INIT_LimitPerSquad. -1 = unlimited (rifles).
+const SQUAD_LIMIT_BAR := 1
+const SQUAD_LIMIT_THOMPSON := 2
+const SQUAD_LIMIT_MG42 := 1
+const SQUAD_LIMIT_MP40 := 2
+const SQUAD_LIMIT_UNLIMITED := -1
+
+## Per-weapon definition dictionaries (clone into WeaponData on request).
 var definitions: Dictionary = {}
 
 
@@ -26,40 +33,132 @@ func reset_to_defaults() -> void:
 
 
 static func default_definitions() -> Dictionary:
+	## Cadence note: ratio from recovered aim_factor_sqr (2000 rifles/SMGs, 7000 LMGs ~3.5x);
+	## absolute seconds are TUNED, not recovered. Anchored to ~1.1s rifle aim @ 20 Hz clock.
 	return {
-		ID_M1_GARAND: _def("M1 Garand", WeaponTypeClass.RIFLE, 18, 0.10, 1, 80, 0.0, 0, 1.2, 1.1),
-		ID_BAR: _def("BAR", WeaponTypeClass.LMG, 20, 0.05, 4, 120, 0.0, 0, 1.1, 0.9),
-		ID_THOMPSON: _def("Thompson", WeaponTypeClass.SMG, 8, 0.0, 3, 100, 0.15, 4, 0.8, 0.7),
-		ID_KAR98K: _def("Kar98k", WeaponTypeClass.RIFLE, 20, 0.14, 1, 60, 0.0, 0, 2.0, 1.3),
-		ID_MG42: _def("MG42", WeaponTypeClass.LMG, 22, 0.04, 6, 150, 0.0, 0, 0.6, 1.0),
-		ID_MP40: _def("MP40", WeaponTypeClass.SMG, 8, 0.0, 3, 100, 0.12, 4, 0.9, 0.7),
+		ID_M1_GARAND: {
+			"weapon_name": "M1 Garand",
+			"weapon_type": WeaponTypeClass.RIFLE,
+			## TUNED engagement envelope
+			"range_tiles": 18,
+			"hit_modifier": 0.10,
+			"close_range_bonus": 0.0,
+			"close_range_tiles": 0,
+			## RECOVERED
+			"rounds_per_attack": 1,
+			"ammo_pool": 70, ## total rounds carried; no reload in the original
+			"bullet_speed": 6,
+			"suppression_generated": 0.25,
+			"stress_limit": 25.0,
+			"stress_aim_factor": 0.5,
+			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
+			## TUNED cadence (aim_factor_sqr 2000)
+			"aim_delay_sec": 1.1,
+			"fire_interval_sec": 1.2,
+		},
+		ID_KAR98K: {
+			"weapon_name": "Kar98k",
+			"weapon_type": WeaponTypeClass.RIFLE,
+			"range_tiles": 20,
+			"hit_modifier": 0.14,
+			"close_range_bonus": 0.0,
+			"close_range_tiles": 0,
+			"rounds_per_attack": 1,
+			"ammo_pool": 70,
+			"bullet_speed": 6,
+			"suppression_generated": 0.25,
+			"stress_limit": 25.0,
+			"stress_aim_factor": 0.5,
+			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
+			"aim_delay_sec": 1.1,
+			"fire_interval_sec": 1.5, ## bolt — TUNED
+		},
+		ID_THOMPSON: {
+			"weapon_name": "Thompson",
+			"weapon_type": WeaponTypeClass.SMG,
+			"range_tiles": 8,
+			"hit_modifier": 0.0,
+			"close_range_bonus": 0.15, ## TUNED close-in feel
+			"close_range_tiles": 4,
+			"rounds_per_attack": 4,
+			"ammo_pool": 200,
+			"bullet_speed": 6,
+			"suppression_generated": 2.0,
+			"stress_limit": 13.0,
+			"stress_aim_factor": 1.5,
+			"range_falloff": WeaponDataClass.FALLOFF_PENTIC, ## RECOVERED range_const_pent 0.02
+			"aim_delay_sec": 1.1,
+			"fire_interval_sec": 0.8,
+		},
+		ID_MP40: {
+			"weapon_name": "MP40",
+			"weapon_type": WeaponTypeClass.SMG,
+			"range_tiles": 8,
+			"hit_modifier": 0.0,
+			"close_range_bonus": 0.12,
+			"close_range_tiles": 4,
+			"rounds_per_attack": 5,
+			"ammo_pool": 200,
+			"bullet_speed": 6,
+			"suppression_generated": 2.0,
+			"stress_limit": 13.0,
+			"stress_aim_factor": 1.5,
+			"range_falloff": WeaponDataClass.FALLOFF_PENTIC,
+			"aim_delay_sec": 1.1,
+			"fire_interval_sec": 0.9,
+		},
+		ID_BAR: {
+			"weapon_name": "BAR",
+			"weapon_type": WeaponTypeClass.LMG,
+			"range_tiles": 20,
+			"hit_modifier": 0.05,
+			"close_range_bonus": 0.0,
+			"close_range_tiles": 0,
+			"rounds_per_attack": 7,
+			"ammo_pool": 900,
+			"bullet_speed": 6,
+			"suppression_generated": 0.6,
+			"stress_limit": 25.0,
+			"stress_aim_factor": 2.0,
+			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
+			"aim_delay_sec": 1.7, ## LMG ~ longer aim cycle; TUNED absolute
+			"fire_interval_sec": 1.1,
+		},
+		ID_MG42: {
+			"weapon_name": "MG42",
+			"weapon_type": WeaponTypeClass.LMG,
+			"range_tiles": 22,
+			"hit_modifier": 0.04,
+			"close_range_bonus": 0.0,
+			"close_range_tiles": 0,
+			"rounds_per_attack": 6,
+			"ammo_pool": 900,
+			"bullet_speed": 7,
+			"suppression_generated": 0.6,
+			"stress_limit": 25.0,
+			"stress_aim_factor": 2.0,
+			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
+			"aim_delay_sec": 1.7,
+			"fire_interval_sec": 0.6,
+		},
 	}
 
 
-static func _def(
-	weapon_name: String,
-	weapon_type: int,
-	range_tiles: int,
-	hit_modifier: float,
-	rounds_per_attack: int,
-	ammo_capacity: int,
-	close_range_bonus: float,
-	close_range_tiles: int,
-	fire_interval_sec: float,
-	aim_delay_sec: float,
-) -> Dictionary:
-	return {
-		"weapon_name": weapon_name,
-		"weapon_type": weapon_type,
-		"range_tiles": range_tiles,
-		"hit_modifier": hit_modifier,
-		"rounds_per_attack": rounds_per_attack,
-		"ammo_capacity": ammo_capacity,
-		"close_range_bonus": close_range_bonus,
-		"close_range_tiles": close_range_tiles,
-		"fire_interval_sec": fire_interval_sec,
-		"aim_delay_sec": aim_delay_sec,
-	}
+## RECOVERED INIT_LimitPerSquad for a future loadout system. Rifles unlimited.
+static func squad_limit(weapon_id: String) -> int:
+	match weapon_id:
+		ID_BAR:
+			return SQUAD_LIMIT_BAR
+		ID_THOMPSON:
+			return SQUAD_LIMIT_THOMPSON
+		ID_MG42:
+			return SQUAD_LIMIT_MG42
+		ID_MP40:
+			return SQUAD_LIMIT_MP40
+		ID_M1_GARAND, ID_KAR98K:
+			return SQUAD_LIMIT_UNLIMITED
+		_:
+			return SQUAD_LIMIT_UNLIMITED
 
 
 func has_weapon(weapon_id: String) -> bool:
@@ -70,6 +169,8 @@ func create_weapon(weapon_id: String) -> WeaponDataClass:
 	if not definitions.has(weapon_id):
 		return null
 	var d: Dictionary = definitions[weapon_id]
+	## ammo_pool is the recovered name; ammo_capacity kept as legacy JSON key.
+	var ammo := int(d.get("ammo_pool", d.get("ammo_capacity", 200)))
 	return WeaponDataClass.new(
 		weapon_id,
 		str(d.get("weapon_name", weapon_id)),
@@ -77,11 +178,16 @@ func create_weapon(weapon_id: String) -> WeaponDataClass:
 		int(d.get("range_tiles", 18)),
 		float(d.get("hit_modifier", 0.0)),
 		int(d.get("rounds_per_attack", 1)),
-		int(d.get("ammo_capacity", 200)),
+		ammo,
 		float(d.get("close_range_bonus", 0.0)),
 		int(d.get("close_range_tiles", 0)),
 		float(d.get("fire_interval_sec", 0.0)),
 		float(d.get("aim_delay_sec", 0.0)),
+		int(d.get("bullet_speed", 6)),
+		float(d.get("suppression_generated", 0.4)),
+		float(d.get("stress_limit", 25.0)),
+		float(d.get("stress_aim_factor", 0.5)),
+		str(d.get("range_falloff", WeaponDataClass.FALLOFF_CUBIC)),
 	)
 
 

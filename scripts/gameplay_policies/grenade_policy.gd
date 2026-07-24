@@ -1,14 +1,17 @@
 class_name GrenadePolicy
 extends RefCounted
-## Configurable grenade values. Defaults match current CombatSystem / SoldierState.
+## Configurable grenade values.
+## RECOVERED: starting_count (ArmamentGranade=5), throw_range (INITMaxGranadeDistance=5).
+## Per-grenade reference RECOVERED: VarA=30, VarB=0, VarC=30, VarD=5.
+## TUNED (originals unknown): fuse, blast radius, kill chance, stun duration.
 
-const DEFAULT_STARTING_COUNT := 5
-const DEFAULT_THROW_RANGE := 7
-const DEFAULT_FUSE_MSEC := 1800
-const DEFAULT_BLAST_RADIUS := 3
-const DEFAULT_KILL_RADIUS := 1
-const DEFAULT_KILL_CHANCE := 0.25
-const DEFAULT_STUN_DURATION_SEC := 8.0
+const DEFAULT_STARTING_COUNT := 5 ## RECOVERED ArmamentGranade
+const DEFAULT_THROW_RANGE := 5 ## RECOVERED INITMaxGranadeDistance
+const DEFAULT_FUSE_MSEC := 1800 ## TUNED
+const DEFAULT_BLAST_RADIUS := 3 ## TUNED
+const DEFAULT_KILL_RADIUS := 1 ## TUNED
+const DEFAULT_KILL_CHANCE := 0.25 ## TUNED
+const DEFAULT_STUN_DURATION_SEC := 8.0 ## TUNED
 ## 0-based frame index into A–X throw sequence; -1 disables anim-driven release.
 ## Gameplay fuse still arms on command accept until a release frame is visually verified.
 const DEFAULT_THROW_RELEASE_FRAME_USA := -1

@@ -261,6 +261,13 @@ func obstruction_height(cell: Vector2i) -> int:
 		var gp := MapAssetRegistryClass.gameplay_for(family)
 		if gp.has("terrain_height"):
 			return clampi(int(float(gp.get("terrain_height", 0))), 0, 2)
+	## Legacy registry objects (tree/wall/haybail) placed without authored height.
+	var object_def := get_object_def(cell)
+	if object_def != null:
+		if object_def.blocks_los or object_def.cover_type >= 2:
+			return 2
+		if object_def.provides_cover:
+			return 1
 	## Fallback from class when height missing in authored data.
 	match terrain_class(cell):
 		TerrainClass.NO_PASS:

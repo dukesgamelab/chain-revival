@@ -4,6 +4,9 @@ extends RefCounted
 
 const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
 
+const FALLOFF_CUBIC := "cubic"
+const FALLOFF_PENTIC := "pentic"
+
 var weapon_id: String = ""
 var weapon_name: String = ""
 var weapon_type: int = WeaponTypeClass.RIFLE
@@ -12,27 +15,46 @@ var hit_modifier: float = 0.0
 var close_range_bonus: float = 0.0
 var close_range_tiles: int = 0
 var rounds_per_attack: int = 1
+## Total rounds carried (recovered AmmoMax / ammo_pool). Not a magazine — there is no reload;
+## ammo depletes to zero and firing stops.
 var ammo_capacity: int = 200
 ## Burst visual count; defaults to rounds_per_attack in _init.
 var tracer_count: int = 1
 ## First-shot target acquisition time; target changes restart aiming via begin_fire_prep().
+## Absolute seconds are TUNED; ratio tracks recovered aim_factor_sqr.
 var aim_delay_sec: float = 0.0
 ## Repeat shot/burst cadence after the first aimed shot (last_shot_msec + this value).
+## Absolute seconds are TUNED, not recovered.
 var fire_interval_sec: float = 0.0
+## RECOVERED BulletSpeed$weapon.
+var bullet_speed: int = 6
+## RECOVERED StressFactor$weapon — stress applied to target per shot.
+var suppression_generated: float = 0.4
+## RECOVERED StressLimit$weapon — per-weapon runtime stress cap (mapped via STRESS_LIMIT_REF).
+var stress_limit: float = 25.0
+## RECOVERED stress_aim_factor$weapon — scales how hard the shooter's stress degrades their aim.
+var stress_aim_factor: float = 0.5
+## RECOVERED range_const_cub / range_const_pent selector: "cubic" | "pentic".
+var range_falloff: String = FALLOFF_CUBIC
 
 
 func _init(
-	p_weapon_id: String,
-	p_weapon_name: String,
-	p_weapon_type: int,
-	p_range_tiles: int,
-	p_hit_modifier: float,
-	p_rounds_per_attack: int,
-	p_ammo_capacity: int,
+	p_weapon_id: String = "",
+	p_weapon_name: String = "",
+	p_weapon_type: int = WeaponTypeClass.RIFLE,
+	p_range_tiles: int = 18,
+	p_hit_modifier: float = 0.0,
+	p_rounds_per_attack: int = 1,
+	p_ammo_capacity: int = 200,
 	p_close_range_bonus: float = 0.0,
 	p_close_range_tiles: int = 0,
 	p_fire_interval_sec: float = 0.0,
 	p_aim_delay_sec: float = 0.0,
+	p_bullet_speed: int = 6,
+	p_suppression_generated: float = 0.4,
+	p_stress_limit: float = 25.0,
+	p_stress_aim_factor: float = 0.5,
+	p_range_falloff: String = FALLOFF_CUBIC,
 ) -> void:
 	weapon_id = p_weapon_id
 	weapon_name = p_weapon_name
@@ -47,6 +69,11 @@ func _init(
 	tracer_count = p_rounds_per_attack
 	fire_interval_sec = p_fire_interval_sec
 	aim_delay_sec = p_aim_delay_sec
+	bullet_speed = p_bullet_speed
+	suppression_generated = p_suppression_generated
+	stress_limit = p_stress_limit
+	stress_aim_factor = p_stress_aim_factor
+	range_falloff = p_range_falloff
 
 
 func is_burst() -> bool:
@@ -58,9 +85,24 @@ func ammo_cost(available: int) -> int:
 	return mini(rounds_per_attack, available)
 
 
-## Hit modifier including optional SMG close-range bonus.
+## Hit modifier including optional SMG close-range bonus (TUNED, not recovered).
 func effective_hit_modifier(distance_tiles: int) -> float:
 	var modifier := hit_modifier
 	if close_range_bonus > 0.0 and distance_tiles <= close_range_tiles:
 		modifier += close_range_bonus
 	return modifier
+
+
+## Extra hit-chance penalty from recovered range_const_cub / range_const_pent.
+## Cubic (rifles/LMGs): gentle long-range loss. Pentic 0.02 (SMGs): steep drop-off.
+func range_falloff_penalty(distance_tiles: int) -> float:
+	var d := float(maxi(distance_tiles, 0))
+	match range_falloff:
+		FALLOFF_PENTIC:
+			## RECOVERED range_const_pent$weapon = 0.02
+			return 0.02 * pow(d / 6.0, 5.0)
+		FALLOFF_CUBIC:
+			## RECOVERED range_const_cub$weapon = 1 — accurate at distance vs pentic
+			return pow(d / 28.0, 3.0)
+		_:
+			return 0.0

@@ -1060,15 +1060,17 @@ static func apply_suppression_from_shot(
 	if los.status == LOSSystemClass.Status.BLOCKED:
 		return
 
+	var policy := GameplayPolicies.suppression
 	var gain := _suppression_stress_gain(weapon)
 	var cover_mult := 1.0
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		cover_mult = GameplayPolicies.suppression.moderate_cover_suppression_mult
+		cover_mult = policy.moderate_cover_suppression_mult
 	var stance_mult := 1.0
 	if target.position_state == PositionStateClass.DOWN:
-		stance_mult = GameplayPolicies.suppression.prone_suppression_mult
+		stance_mult = policy.prone_suppression_mult
 	gain *= cover_mult * stance_mult
-	target.stress = clampf(target.stress + gain, 0.0, GameplayPolicies.suppression.max_stress)
+	var cap := minf(policy.max_stress, policy.weapon_stress_cap_runtime(weapon.stress_limit))
+	target.stress = clampf(target.stress + gain, 0.0, cap)
 	target.received_suppression_this_tick = true
 
 
@@ -1083,6 +1085,7 @@ static func recover_stress_tick(
 	game_state: GameStateClass,
 	_delta_sec: float = AUTO_FIRE_SCAN_INTERVAL,
 ) -> void:
+	var policy := GameplayPolicies.suppression
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier: SoldierStateClass = state
@@ -1090,32 +1093,24 @@ static func recover_stress_tick(
 				continue
 			if soldier.received_suppression_this_tick:
 				continue
-			var rate := (
-				GameplayPolicies.suppression.recovery_prone_per_tick
-				if soldier.position_state == PositionStateClass.DOWN
-				else GameplayPolicies.suppression.recovery_per_tick
-			)
-			soldier.stress = maxf(0.0, soldier.stress - rate)
+			var prone := soldier.position_state == PositionStateClass.DOWN
+			soldier.stress = policy.apply_stress_decay(soldier.stress, prone)
 
 
 static func _suppression_stress_gain(weapon: WeaponDataClass) -> float:
-	var policy := GameplayPolicies.suppression
-	match weapon.weapon_id:
-		WeaponRegistryClass.ID_MG42:
-			return policy.suppression_mg42
-		WeaponRegistryClass.ID_BAR:
-			return policy.suppression_bar
-		_:
-			match weapon.weapon_type:
-				WeaponTypeClass.SMG:
-					return policy.suppression_smg
-				_:
-					return policy.suppression_default
+	## RECOVERED StressFactor → runtime via STRESS_SCALE (option B).
+	var factor := (
+		weapon.suppression_generated
+		if weapon != null
+		else GameplayPolicies.suppression.suppression_default
+	)
+	return GameplayPolicies.suppression.suppression_gain_runtime(factor)
 
 
 ## Stress represents suppression/combat pressure and reduces firing effectiveness.
-static func get_stress_accuracy_modifier(stress: float) -> float:
-	return GameplayPolicies.suppression.accuracy_modifier(stress)
+## Uses Exp-Str × Range table (normalized); optional mid-range legacy call.
+static func get_stress_accuracy_modifier(stress: float, distance_tiles: int = 3) -> float:
+	return GameplayPolicies.suppression.accuracy_modifier_for(stress, distance_tiles, 1.0)
 
 
 static func get_stress_movement_modifier(stress: float) -> float:
@@ -1156,7 +1151,13 @@ static func _final_hit_chance(
 	var chance := base_chance
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
 		chance = CoverSystemClass.apply_moderate_cover(base_chance)
-	chance *= get_stress_accuracy_modifier(shooter.stress)
+	var dist := _manhattan_distance(shooter.grid_position, target.grid_position)
+	var aim_factor := weapon.stress_aim_factor if weapon != null else 1.0
+	chance *= GameplayPolicies.suppression.accuracy_modifier_for(
+		shooter.stress,
+		dist,
+		aim_factor,
+	)
 	if shooter.position_state == PositionStateClass.DOWN:
 		chance *= GameplayPolicies.hit.shooter_prone_accuracy_mult
 	if target.position_state == PositionStateClass.DOWN:
@@ -1400,7 +1401,7 @@ static func _get_engaged_target(
 	return target
 
 
-## Base hit chance before cover modifiers (distance + weapon bonus only).
+## Base hit chance before cover modifiers (distance + weapon bonus + range falloff).
 static func hit_chance(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
@@ -1413,6 +1414,7 @@ static func hit_chance(
 		hit_policy.clear_base_hit_chance - float(dist) * hit_policy.clear_distance_penalty,
 	)
 	if weapon != null:
+		chance -= weapon.range_falloff_penalty(dist)
 		chance += weapon.effective_hit_modifier(dist)
 	return clampf(chance, hit_policy.min_hit_chance, 1.0)
 
