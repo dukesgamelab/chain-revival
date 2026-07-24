@@ -1,8 +1,10 @@
 extends Control
-## Match setup: 1v1 / 2v2, Farm Fight, player slot controllers. Writes MatchConfig → main.
+## Match setup: 1v1 / 2v2, Farm Fight, player slot controllers, AI plans.
+## Writes MatchConfig → main. Draft AI plans live on MatchConfig slots until match start.
 
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
+const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 const MAIN_SCENE := "res://scenes/main.tscn"
 const MODE_SELECT_SCENE := "res://scenes/mode_select.tscn"
 
@@ -14,6 +16,9 @@ var _type_1v1: Button
 var _type_2v2: Button
 var _switch_side: Button
 var _cycle_controller: Button
+var _ai_plans_root: VBoxContainer
+## player_id -> OptionButton
+var _plan_option_by_player: Dictionary = {}
 
 
 func _ready() -> void:
@@ -129,6 +134,14 @@ func _build_layout() -> void:
 	_cycle_controller.pressed.connect(_on_cycle_controller)
 	tools.add_child(_cycle_controller)
 
+	var plans_hdr := Label.new()
+	plans_hdr.text = "AI Plans (pre-game)"
+	plans_hdr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	root.add_child(plans_hdr)
+	_ai_plans_root = VBoxContainer.new()
+	_ai_plans_root.add_theme_constant_override("separation", 6)
+	root.add_child(_ai_plans_root)
+
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -180,24 +193,22 @@ func _on_cycle_controller() -> void:
 			current = int(slot.get("controller", MatchConfigClass.ControllerType.AI))
 			break
 	var next := current
-	if _config.game_mode == MatchConfigClass.GameModeKind.SINGLE_PLAYER:
-		## Human <-> AI only.
-		next = (
-			MatchConfigClass.ControllerType.AI
-			if current == MatchConfigClass.ControllerType.HUMAN
-			else MatchConfigClass.ControllerType.HUMAN
-		)
+	## SP and MP: Human ↔ AI. Unused seats stay AI; joining humans replace AI at runtime.
+	## OPEN remains valid for legacy lobbies and is filled to AI on Start.
+	if current == MatchConfigClass.ControllerType.HUMAN:
+		next = MatchConfigClass.ControllerType.AI
+	elif current == MatchConfigClass.ControllerType.OPEN:
+		next = MatchConfigClass.ControllerType.HUMAN
 	else:
-		## Human -> Open -> (Human)
-		if current == MatchConfigClass.ControllerType.HUMAN:
-			next = MatchConfigClass.ControllerType.OPEN
-		else:
-			next = MatchConfigClass.ControllerType.HUMAN
+		next = MatchConfigClass.ControllerType.HUMAN
+	## SP enforces a single Human via set_slot_controller demotion.
 	_config.set_slot_controller(pid, next)
 	_refresh()
 
 
 func _on_start() -> void:
+	## Unused Open seats become AI so every slot has a controller before GameState.
+	_config.fill_open_slots_with_ai()
 	var result: Dictionary = _config.validate()
 	if not bool(result.get("ok", false)):
 		var errs: PackedStringArray = result.get("errors", PackedStringArray())
@@ -206,7 +217,7 @@ func _on_start() -> void:
 		return
 	PlayerSides.clear()
 	GameModeManager.set_mode(_config.to_runtime_game_mode())
-	## Soft side lock for multiplayer open lobbies: prefer local human team when present.
+	## Soft side lock for multiplayer: prefer local human team when present.
 	for slot in _config.slots:
 		if int(slot.get("controller", -1)) == MatchConfigClass.ControllerType.HUMAN:
 			PlayerSides.assign_team(int(slot.get("team_id", Team.USA)))
@@ -221,6 +232,7 @@ func _refresh() -> void:
 	_switch_side.visible = _config.game_mode == MatchConfigClass.GameModeKind.SINGLE_PLAYER
 	_fill_team_list(_usa_list, Team.USA)
 	_fill_team_list(_ger_list, Team.GERMANY)
+	_rebuild_ai_plan_selectors()
 	_status.text = "%s · %s · Farm Fight" % [
 		MatchConfigClass.game_mode_label(_config.game_mode),
 		MatchConfigClass.match_type_label(_config.match_type),
@@ -244,3 +256,72 @@ func _fill_team_list(list: ItemList, team_id: int) -> void:
 		]
 		list.add_item(label)
 		list.set_item_metadata(list.item_count - 1, int(slot.get("player_id", -1)))
+
+
+func _rebuild_ai_plan_selectors() -> void:
+	## Keep valid existing choices on MatchConfig; only rebuild OptionButtons.
+	while _ai_plans_root.get_child_count() > 0:
+		var child := _ai_plans_root.get_child(0)
+		_ai_plans_root.remove_child(child)
+		child.free()
+	_plan_option_by_player.clear()
+
+	var ai_slots := _config.ai_slots()
+	if ai_slots.is_empty():
+		var empty := Label.new()
+		empty.text = "No AI players in this match."
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_ai_plans_root.add_child(empty)
+		return
+
+	for slot in ai_slots:
+		if (
+			_config.match_type == MatchConfigClass.MatchType.ONE_V_ONE
+			and int(slot.get("slot_index", 0)) > 0
+		):
+			continue
+		var player_id := int(slot.get("player_id", -1))
+		var team_id := int(slot.get("team_id", Team.USA))
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		_ai_plans_root.add_child(row)
+
+		var info := Label.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.text = "%s · %s · Controller: AI" % [
+			str(slot.get("display_name", "Player %d" % player_id)),
+			Team.display_name(team_id),
+		]
+		row.add_child(info)
+
+		var plan_lbl := Label.new()
+		plan_lbl.text = "Plan:"
+		row.add_child(plan_lbl)
+
+		var option := OptionButton.new()
+		option.custom_minimum_size = Vector2(140, 0)
+		for plan_id in AiPlanClass.ALL_IDS:
+			option.add_item(AiPlanClass.display_name(plan_id))
+			option.set_item_metadata(option.item_count - 1, plan_id)
+		var selected := AiPlanClass.normalize_id(str(slot.get("selected_ai_plan", "")))
+		if not AiPlanClass.is_valid_id(selected):
+			selected = AiPlanClass.default_selected_for_slot(
+				MatchConfigClass.ControllerType.AI,
+				team_id,
+				_config.local_human_team_id(),
+			)
+			_config.set_slot_ai_plan(player_id, selected)
+		for i in option.item_count:
+			if str(option.get_item_metadata(i)) == selected:
+				option.select(i)
+				break
+		option.item_selected.connect(_on_ai_plan_selected.bind(player_id, option))
+		row.add_child(option)
+		_plan_option_by_player[player_id] = option
+
+
+func _on_ai_plan_selected(index: int, player_id: int, option: OptionButton) -> void:
+	var plan_id := str(option.get_item_metadata(index))
+	if not _config.set_slot_ai_plan(player_id, plan_id):
+		_status.text = "Could not set AI plan for player %d." % player_id
+		_status.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))

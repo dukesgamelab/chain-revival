@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bgvqq3a4mh0qq"]
+
+[ext_resource type="Script" path="res://scripts/tests/multiplayer_ai_tests.gd" id="1"]
+
+[node name="MultiplayerAiTests" type="Node"]
+script = ExtResource("1")

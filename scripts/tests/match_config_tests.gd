@@ -149,11 +149,41 @@ func _test_mp_open_slots() -> void:
 		MatchConfigClass.GameModeKind.MULTIPLAYER,
 		MatchConfigClass.MatchType.ONE_V_ONE,
 	) as MatchConfigClass
-	_assert("MP 1v1 valid with Open", cfg.is_valid())
+	_assert("MP 1v1 valid", cfg.is_valid())
+	var humans := 0
+	var ais := 0
 	for slot in cfg.slots:
-		_assert(
-			"MP default Open",
-			int(slot.get("controller", -1)) == MatchConfigClass.ControllerType.OPEN,
-		)
+		var c := int(slot.get("controller", -1))
+		if c == MatchConfigClass.ControllerType.HUMAN:
+			humans += 1
+		elif c == MatchConfigClass.ControllerType.AI:
+			ais += 1
+	_assert("MP 1v1 defaults one Human", humans == 1)
+	_assert("MP 1v1 unused slots are AI", ais == 1)
 	cfg.set_match_type(MatchConfigClass.MatchType.TWO_V_TWO)
-	_assert("MP 2v2 four Open slots", cfg.slots.size() == 4 and cfg.is_valid())
+	_assert("MP 2v2 four slots", cfg.slots.size() == 4 and cfg.is_valid())
+	ais = 0
+	humans = 0
+	for slot in cfg.slots:
+		var c2 := int(slot.get("controller", -1))
+		if c2 == MatchConfigClass.ControllerType.HUMAN:
+			humans += 1
+		elif c2 == MatchConfigClass.ControllerType.AI:
+			ais += 1
+	_assert("MP 2v2 one Human three AI", humans == 1 and ais == 3, "h=%d a=%d" % [humans, ais])
+
+	## Legacy Open seats fill to AI before match start.
+	cfg.set_slot_controller(2, MatchConfigClass.ControllerType.OPEN)
+	## Direct write for Open (set_slot_controller may normalize).
+	for i in cfg.slots.size():
+		var slot: Dictionary = cfg.slots[i]
+		if int(slot.get("player_id", -1)) == 2:
+			slot["controller"] = MatchConfigClass.ControllerType.OPEN
+			slot["selected_ai_plan"] = ""
+			cfg.slots[i] = slot
+	cfg.fill_open_slots_with_ai()
+	_assert(
+		"fill_open converts Open→AI",
+		int(cfg.slots[1].get("controller", -1)) == MatchConfigClass.ControllerType.AI
+		or cfg.find_ai_slot(Team.USA) == 2,
+	)

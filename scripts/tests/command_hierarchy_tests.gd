@@ -514,7 +514,7 @@ func _test_future_hook_apis() -> void:
 	link.subordinate_id = 2
 	_submit(game_state, link)
 	var order := game_state.issue_order(1, 2, {"type": "attack"})
-	_assert("issue_order stub refuses", not bool(order.get("ok", true)))
+	_assert("issue_order to AI succeeds", bool(order.get("ok", false)), str(order))
 	var visible_players := game_state.get_visible_players(1)
 	_assert("get_visible_players includes self", 1 in visible_players)
 	_assert("get_visible_players includes subordinate", 2 in visible_players)

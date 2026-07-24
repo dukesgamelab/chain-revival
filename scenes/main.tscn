@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cb3p3n36g1wb6" path="res://scripts/core/main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://c14uyvmy1frdd" path="res://scenes/ui/command_bar.tscn" id="3_cmdbar"]
 [ext_resource type="Script" path="res://scripts/ui/status_hud.gd" id="7_status"]
+[ext_resource type="Script" path="res://scripts/ui/ai_plan_hud.gd" id="8_aiplan"]
 [ext_resource type="Script" path="res://scripts/map/map_camera.gd" id="4_camera"]
 [ext_resource type="PackedScene" uid="uid://cmapworld001" path="res://scenes/map/map_world.tscn" id="2_world"]
 [ext_resource type="Script" path="res://scripts/effects/los_visualizer.gd" id="6_losviz"]
@@ -74,5 +75,17 @@ theme_override_font_sizes/font_size = 11
 text = "Press 1 = USA, 2 = Germany."
 horizontal_alignment = 2
 autowrap_mode = 3
+
+[node name="AiPlanHud" type="PanelContainer" parent="UI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 60.0
+offset_right = -4.0
+offset_bottom = 180.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("8_aiplan")
 
 [node name="CommandBar" parent="UI" instance=ExtResource("3_cmdbar")]

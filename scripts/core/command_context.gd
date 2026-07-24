@@ -14,3 +14,7 @@ var soldier_snap_cells: Dictionary = {}
 
 ## Soldier ids included in a Fire At order (single or squad scope).
 var shooter_ids: Array[int] = []
+
+## When > 0, authorize Move/Face/etc. for this player's owned soldiers (AI / MP).
+## When <= 0, fall back to local human ownership checks.
+var acting_player_id: int = -1

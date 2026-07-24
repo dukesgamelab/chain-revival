@@ -17,11 +17,15 @@ const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd"
 const AssignCommanderCommandClass := preload("res://scripts/commands/assign_commander_command.gd")
 const BreakCommandLinkCommandClass := preload("res://scripts/commands/break_command_link_command.gd")
 const SetMissionCommanderCommandClass := preload("res://scripts/commands/set_mission_commander_command.gd")
+const SetAiPlanCommandClass := preload("res://scripts/commands/set_ai_plan_command.gd")
+const IssueAiOrderCommandClass := preload("res://scripts/commands/issue_ai_order_command.gd")
 const AssignWeaponCommandClass := preload("res://scripts/commands/assign_weapon_command.gd")
 const ReturnWeaponCommandClass := preload("res://scripts/commands/return_weapon_command.gd")
 const AdjustAmmoCommandClass := preload("res://scripts/commands/adjust_ammo_command.gd")
 const CommandHierarchyClass := preload("res://scripts/core/command_hierarchy.gd")
 const WeaponCacheClass := preload("res://scripts/core/weapon_cache.gd")
+const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
+const AiOrderClass := preload("res://scripts/ai/ai_order.gd")
 const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 const MapDataClass := preload("res://scripts/map/map_data.gd")
@@ -43,7 +47,7 @@ static func execute(
 	if command is MoveCommandClass:
 		return execute_move(game_state, command as MoveCommandClass, context)
 	if command is FaceCommandClass:
-		return execute_face(game_state, command as FaceCommandClass)
+		return execute_face(game_state, command as FaceCommandClass, context)
 	if command is FireCommandClass:
 		return execute_fire(game_state, command as FireCommandClass, context)
 	if command is PositionCommandClass:
@@ -61,6 +65,10 @@ static func execute(
 			game_state,
 			command as SetMissionCommanderCommandClass,
 		)
+	if command is SetAiPlanCommandClass:
+		return execute_set_ai_plan(game_state, command as SetAiPlanCommandClass)
+	if command is IssueAiOrderCommandClass:
+		return execute_issue_ai_order(game_state, command as IssueAiOrderCommandClass)
 	if command is AssignWeaponCommandClass:
 		return execute_assign_weapon(game_state, command as AssignWeaponCommandClass)
 	if command is ReturnWeaponCommandClass:
@@ -70,7 +78,8 @@ static func execute(
 	return ActionResult.fail("Unknown command type.")
 
 
-## One-time match bootstrap: face teams toward each other, Hold Fire on all soldiers.
+## One-time match bootstrap: face teams toward each other, Hold Fire on all soldiers,
+## and resolve AI Random plans once (GameRandom already seeded at match start).
 static func apply_match_start_setup(game_state: GameStateClass) -> void:
 	var usa_team: Fireteam = game_state.session.blue_team
 	var germany_team: Fireteam = game_state.session.red_team
@@ -87,6 +96,7 @@ static func apply_match_start_setup(game_state: GameStateClass) -> void:
 		)
 		usa_soldier.fire_control_state = FireControlStateClass.HOLD_FIRE
 		germany_soldier.fire_control_state = FireControlStateClass.HOLD_FIRE
+	game_state.resolve_ai_plans()
 
 
 ## Dev map editor: toggle a blocker tile on authoritative map_data.
@@ -383,7 +393,7 @@ static func execute_move(
 		var squad_mode_label := MovementModeClass.display_name(cmd.movement_mode).to_lower()
 		for state in fireteam.soldiers:
 			var squad_soldier: SoldierState = state
-			if not _can_local_order_soldier(game_state, cmd.team_id, squad_soldier.soldier_id):
+			if not _can_order_soldier(game_state, cmd.team_id, squad_soldier.soldier_id, context):
 				continue
 			var squad_move_result := _resolve_move_order(squad_soldier, cmd.movement_mode)
 			if squad_move_result.rejected:
@@ -409,7 +419,7 @@ static func execute_move(
 			squad_status += "\n" + "\n".join(notices)
 		return result.set_status(squad_status)
 
-	if not _can_local_order_soldier(game_state, cmd.team_id, cmd.soldier_id):
+	if not _can_order_soldier(game_state, cmd.team_id, cmd.soldier_id, context):
 		return ActionResult.fail("That soldier is not under your control.")
 
 	var soldier_state: SoldierState = fireteam.get_soldier(cmd.soldier_id)
@@ -446,11 +456,15 @@ static func execute_move(
 	return result.set_status(status)
 
 
-static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> ActionResult:
+static func execute_face(
+	game_state: GameStateClass,
+	cmd: FaceCommandClass,
+	context: CommandContext = null,
+) -> ActionResult:
 	if cmd.scope == FaceCommandClass.Scope.SQUAD:
-		return _execute_face_squad(game_state, cmd)
+		return _execute_face_squad(game_state, cmd, context)
 
-	if not _can_local_order_soldier(game_state, cmd.team_id, cmd.soldier_id):
+	if not _can_order_soldier(game_state, cmd.team_id, cmd.soldier_id, context):
 		return ActionResult.fail("That soldier is not under your control.")
 
 	var fireteam := game_state.session.get_fireteam(cmd.team_id)
@@ -466,7 +480,11 @@ static func execute_face(game_state: GameStateClass, cmd: FaceCommandClass) -> A
 	return _face_result_after_reorient(game_state, cmd.team_id, soldier_state)
 
 
-static func _execute_face_squad(game_state: GameStateClass, cmd: FaceCommandClass) -> ActionResult:
+static func _execute_face_squad(
+	game_state: GameStateClass,
+	cmd: FaceCommandClass,
+	context: CommandContext = null,
+) -> ActionResult:
 	var fireteam := game_state.session.get_fireteam(cmd.team_id)
 	var faced := 0
 	var result := ActionResult.new()
@@ -474,7 +492,7 @@ static func _execute_face_squad(game_state: GameStateClass, cmd: FaceCommandClas
 		var soldier_state: SoldierState = state
 		if soldier_state == null or soldier_state.is_dead or soldier_state.is_stunned():
 			continue
-		if not _can_local_order_soldier(game_state, cmd.team_id, soldier_state.soldier_id):
+		if not _can_order_soldier(game_state, cmd.team_id, soldier_state.soldier_id, context):
 			continue
 		if not fireteam.face_toward_tile(soldier_state.soldier_id, cmd.target_cell):
 			continue
@@ -490,15 +508,31 @@ static func _execute_face_squad(game_state: GameStateClass, cmd: FaceCommandClas
 	)
 
 
-## Human UI / local client may only order soldiers owned by session.local_player_id.
+## Authorize Move/Face for local human ownership, or for context.acting_player_id (AI / MP).
+static func _can_order_soldier(
+	game_state: GameStateClass,
+	team_id: int,
+	soldier_id: int,
+	context: CommandContext = null,
+) -> bool:
+	if game_state == null or game_state.session == null:
+		return true
+	if context != null and int(context.acting_player_id) > 0:
+		return game_state.session.is_soldier_owned_by_player(
+			int(context.acting_player_id),
+			team_id,
+			soldier_id,
+		)
+	return game_state.session.can_local_control_soldier(team_id, soldier_id)
+
+
+## Deprecated alias — prefer _can_order_soldier with CommandContext.
 static func _can_local_order_soldier(
 	game_state: GameStateClass,
 	team_id: int,
 	soldier_id: int,
 ) -> bool:
-	if game_state == null or game_state.session == null:
-		return true
-	return game_state.session.can_local_control_soldier(team_id, soldier_id)
+	return _can_order_soldier(game_state, team_id, soldier_id, null)
 
 
 static func _face_result_after_reorient(
@@ -1131,6 +1165,10 @@ static func _command_type_name(command: RefCounted) -> String:
 		return "BreakCommandLinkCommand"
 	if command is SetMissionCommanderCommandClass:
 		return "SetMissionCommanderCommand"
+	if command is SetAiPlanCommandClass:
+		return "SetAiPlanCommand"
+	if command is IssueAiOrderCommandClass:
+		return "IssueAiOrderCommand"
 	if command is AssignWeaponCommandClass:
 		return "AssignWeaponCommand"
 	if command is ReturnWeaponCommandClass:
@@ -1213,6 +1251,81 @@ static func execute_set_mission_commander(
 	result.refresh_views = false
 	return result.set_status(
 		"%s is now the Mission Commander" % hierarchy.list_label(player_id)
+	)
+
+
+static func execute_set_ai_plan(
+	game_state: GameStateClass,
+	cmd: SetAiPlanCommandClass,
+) -> ActionResult:
+	if cmd == null or game_state == null or game_state.command_hierarchy == null:
+		return ActionResult.fail("Missing player")
+	if game_state.are_ai_plans_locked():
+		return ActionResult.fail("AI plans are locked once the scenario is running")
+	var hierarchy := game_state.command_hierarchy
+	var player_id := int(cmd.player_id)
+	if player_id <= 0 or not hierarchy.has_player(player_id):
+		return ActionResult.fail("Missing player")
+	if not hierarchy.is_ai_player(player_id):
+		return ActionResult.fail("Only AI-controlled players can have AI plans")
+	var plan_id := AiPlanClass.normalize_id(str(cmd.plan_id))
+	if not AiPlanClass.is_valid_id(plan_id):
+		return ActionResult.fail("Invalid AI plan")
+	hierarchy.apply_selected_ai_plan(player_id, plan_id)
+	var result := ActionResult.new()
+	result.refresh_views = true
+	return result.set_status(
+		"%s plan set to %s (active: %s)"
+		% [
+			hierarchy.list_label(player_id),
+			AiPlanClass.display_name(plan_id),
+			AiPlanClass.display_name(hierarchy.get_active_ai_plan(player_id)),
+		]
+	)
+
+
+static func execute_issue_ai_order(
+	game_state: GameStateClass,
+	cmd: IssueAiOrderCommandClass,
+) -> ActionResult:
+	if cmd == null or game_state == null or game_state.command_hierarchy == null:
+		return ActionResult.fail("Missing player")
+	if game_state.is_deployment_phase():
+		## Allow orders once scenario is running; also allow late deployment briefing.
+		pass
+	var hierarchy := game_state.command_hierarchy
+	var from_id := int(cmd.from_player_id)
+	var to_id := int(cmd.to_player_id)
+	if from_id <= 0:
+		from_id = game_state.local_player_id
+	if to_id <= 0 or not hierarchy.has_player(to_id):
+		return ActionResult.fail("Choose an AI player to order")
+	if not hierarchy.is_ai_player(to_id):
+		return ActionResult.fail("Orders only apply to AI-controlled players")
+	if from_id > 0 and hierarchy.has_player(from_id):
+		if hierarchy.get_team_id(from_id) != hierarchy.get_team_id(to_id):
+			return ActionResult.fail("Cannot order enemy AI players")
+	var order_id := AiOrderClass.normalize_id(str(cmd.order_id))
+	if not AiOrderClass.is_valid_id(order_id) or order_id == AiOrderClass.ID_NONE:
+		return ActionResult.fail("Invalid AI order")
+	if AiOrderClass.requires_target_cell(order_id) and cmd.target_cell.x <= -900:
+		## Defend may omit cell (AI picks cover); Move To / Face require a cell.
+		if order_id == AiOrderClass.ID_MOVE_TO or order_id == AiOrderClass.ID_FACE_DIRECTION:
+			return ActionResult.fail("Choose a destination for that order")
+	var issued := hierarchy.issue_order(
+		from_id,
+		to_id,
+		{
+			"order_id": order_id,
+			"target_cell": {"x": cmd.target_cell.x, "y": cmd.target_cell.y},
+		},
+	)
+	if not bool(issued.get("ok", false)):
+		return ActionResult.fail(str(issued.get("error", "Order failed")))
+	var result := ActionResult.new()
+	result.refresh_views = true
+	return result.set_status(
+		"Ordered %s: %s" % [hierarchy.list_label(to_id), AiOrderClass.display_name(order_id)]
 	)
 
 

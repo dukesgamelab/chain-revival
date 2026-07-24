@@ -1,0 +1,195 @@
+class_name AiCommanderFramework
+extends RefCounted
+## Match-level AI orchestration. Authoritative host/server only — clients never tick AI.
+##
+## Discovers AI players from CommandHierarchy, ticks AiCommanders, coordinates objectives,
+## and submits gameplay commands through CommandRouter (never direct GameState mutation).
+
+const AiCommanderClass := preload("res://scripts/ai/ai_commander.gd")
+const AiTeamCoordinatorClass := preload("res://scripts/ai/ai_team_coordinator.gd")
+const AiOrderClass := preload("res://scripts/ai/ai_order.gd")
+const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
+const AiCommanderStateClass := preload("res://scripts/ai/ai_commander_state.gd")
+const CommandContextClass := preload("res://scripts/core/command_context.gd")
+
+## TUNED — think every N simulation ticks (movement still runs every tick).
+const THINK_EVERY_N_TICKS := 4
+
+var _commanders: Dictionary = {} ## player_id -> AiCommander
+var _coordinator: AiTeamCoordinatorClass = AiTeamCoordinatorClass.new()
+var _find_path: Callable = Callable()
+var _tick_counter: int = 0
+var _enabled: bool = true
+## Host/server authority gate. Clients must leave this false (no local AI execution).
+var _authority: bool = true
+## Optional override for tests: Callable(command, context) -> ActionResult
+var submit_override: Callable = Callable()
+
+
+func setup(game_state, find_path: Callable) -> void:
+	_find_path = find_path
+	_commanders.clear()
+	_coordinator.clear()
+	_tick_counter = 0
+	if game_state == null or game_state.command_hierarchy == null:
+		return
+	for pid in game_state.command_hierarchy.all_player_ids():
+		if not game_state.command_hierarchy.is_ai_player(pid):
+			continue
+		_commanders[pid] = AiCommanderClass.new(pid)
+
+
+func set_enabled(enabled: bool) -> void:
+	_enabled = enabled
+
+
+## Only the authoritative host/server may tick AI. Thin clients call set_authority(false).
+func set_authority(is_authority: bool) -> void:
+	_authority = is_authority
+
+
+func has_authority() -> bool:
+	return _authority
+
+
+func has_commanders() -> bool:
+	return not _commanders.is_empty()
+
+
+func get_commander(player_id: int) -> AiCommanderClass:
+	return _commanders.get(player_id, null)
+
+
+func all_commanders() -> Array:
+	var out: Array = []
+	for pid in _commanders.keys():
+		out.append(_commanders[pid])
+	return out
+
+
+## Disable AI for a player that became Human. Fireteam / hierarchy links stay intact.
+func disable_commander(player_id: int) -> void:
+	if _commanders.has(player_id):
+		_commanders.erase(player_id)
+	_coordinator.set_claim(player_id, Vector2i(-999, -999))
+
+
+## Enable AI for a player that became AI (leave / unused slot). Resumes plan via hierarchy.
+func enable_commander(player_id: int) -> void:
+	if player_id <= 0:
+		return
+	if _commanders.has(player_id):
+		var existing: AiCommanderClass = _commanders[player_id]
+		existing.request_replan("controller_ai")
+		return
+	var commander := AiCommanderClass.new(player_id)
+	commander.request_replan("controller_ai")
+	_commanders[player_id] = commander
+
+
+## Rebuild commander set from hierarchy is_ai flags (after bulk join/leave).
+func sync_from_hierarchy(game_state) -> void:
+	if game_state == null or game_state.command_hierarchy == null:
+		return
+	var hierarchy = game_state.command_hierarchy
+	var keep: Dictionary = {}
+	for pid in hierarchy.all_player_ids():
+		if not hierarchy.is_ai_player(int(pid)):
+			continue
+		keep[int(pid)] = true
+		if not _commanders.has(int(pid)):
+			enable_commander(int(pid))
+	var remove_ids: Array = []
+	for pid in _commanders.keys():
+		if not keep.has(int(pid)):
+			remove_ids.append(int(pid))
+	for pid in remove_ids:
+		disable_commander(int(pid))
+
+
+## Apply a validated human order onto the live commander (called after ActionResolver).
+func apply_order_to_commander(
+	to_player_id: int,
+	order_id: String,
+	target_cell: Vector2i = Vector2i(-999, -999),
+) -> bool:
+	var commander: AiCommanderClass = _commanders.get(to_player_id, null)
+	if commander == null:
+		return false
+	commander.apply_human_order(order_id, target_cell)
+	return true
+
+
+func notify_visibility_changed() -> void:
+	for commander in all_commanders():
+		commander.request_replan("visibility")
+
+
+func tick(game_state) -> void:
+	## Clients never execute AI — authority gate for dedicated-server readiness.
+	if not _authority or not _enabled or game_state == null:
+		return
+	if game_state.is_deployment_phase():
+		return
+	_tick_counter += 1
+	if _tick_counter % THINK_EVERY_N_TICKS != 0:
+		return
+
+	var now_msec: int = SimulationClock.get_ticks_msec()
+	var commanders: Array = all_commanders()
+	for commander in commanders:
+		var claimed := _coordinator.claimed_cells_for(commander.player_id)
+		var cell: Vector2i = commander.tick(
+			game_state,
+			_find_path,
+			func(command: RefCounted, context: CommandContextClass):
+				return _submit(game_state, command, context),
+			claimed,
+			now_msec,
+		)
+		_coordinator.set_claim(commander.player_id, cell)
+	_coordinator.resolve_duplicate_claims(commanders)
+
+
+func debug_lines(game_state) -> PackedStringArray:
+	var lines: PackedStringArray = []
+	lines.append("[DEBUG] AI Commanders")
+	if not _authority:
+		lines.append("(client — AI runs on host only)")
+	if _commanders.is_empty():
+		lines.append("(none)")
+		return lines
+	var pids: Array = _commanders.keys()
+	pids.sort()
+	for pid in pids:
+		var commander: AiCommanderClass = _commanders[pid]
+		var snap: Dictionary = commander.debug_snapshot(game_state)
+		var hierarchy = game_state.command_hierarchy if game_state != null else null
+		var team_name := ""
+		var player_name := "Player %d" % int(pid)
+		if hierarchy != null:
+			team_name = Team.display_name(hierarchy.get_team_id(int(pid)))
+			player_name = hierarchy.get_display_name(int(pid))
+			if player_name.is_empty():
+				player_name = "Player %d" % int(pid)
+		var plan_label := AiPlanClass.display_name(str(snap.get("plan", "")))
+		var state_label := AiCommanderStateClass.display_name(str(snap.get("state", "")))
+		var order_id := str(snap.get("order", AiOrderClass.ID_RESUME_PLAN))
+		var order_label := AiOrderClass.display_name(order_id)
+		var objective := str(snap.get("objective", "—"))
+		var target := str(snap.get("target", ""))
+		lines.append("%s %s" % [team_name, player_name])
+		lines.append("  Plan: %s" % plan_label)
+		lines.append("  State: %s" % state_label)
+		lines.append("  Objective: %s" % objective)
+		lines.append("  Order: %s" % order_label)
+		if not target.is_empty():
+			lines.append("  Target: %s" % target)
+	return lines
+
+
+func _submit(game_state, command: RefCounted, context: CommandContextClass):
+	if submit_override.is_valid():
+		return submit_override.call(command, context)
+	## Runtime: go through CommandRouter so MP can later intercept.
+	return CommandRouter.submit_command(game_state, command, context)

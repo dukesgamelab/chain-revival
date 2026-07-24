@@ -1,7 +1,9 @@
-class_name MatchConfig
+﻿class_name MatchConfig
 extends RefCounted
 ## Serializable match setup (IDs only — no nodes). Consumed by GameSession / GameState.
 ## Used by commander hierarchy bootstrap, AI plans, multiplayer lobby, dedicated server.
+
+const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 
 enum GameModeKind { SINGLE_PLAYER, MULTIPLAYER }
 enum MatchType { ONE_V_ONE, TWO_V_TWO }
@@ -17,7 +19,8 @@ var match_type: int = MatchType.ONE_V_ONE
 var map_id: String = MAP_FARM_FIGHT
 ## Local controlling player (human). Slot player_id.
 var local_player_id: int = 1
-## [{ player_id, team_id, controller, slot_index, display_name }, ...]
+## [{ player_id, team_id, controller, slot_index, display_name, selected_ai_plan }, ...]
+## selected_ai_plan: AiPlan stable id for AI slots; empty for Human/Open.
 var slots: Array[Dictionary] = []
 
 
@@ -51,12 +54,13 @@ func rebuild_default_slots() -> void:
 			_add_slot(1, Team.USA, _default_controller(Team.USA, 0), 0, "USA")
 			_add_slot(2, Team.GERMANY, _default_controller(Team.GERMANY, 0), 0, "Germany")
 	_ensure_local_human()
+	_apply_default_ai_plans()
 
 
 func _default_controller(team_id: int, slot_on_team: int) -> int:
-	if game_mode == GameModeKind.MULTIPLAYER:
-		return ControllerType.OPEN
-	## Single player: first USA slot human; everyone else AI.
+	## SP and MP share the same ownership model: unused slots are AI.
+	## Joining humans replace AI slots at runtime (PlayerSlotOwnership).
+	## First USA slot defaults to Human (local host / single player).
 	if team_id == Team.USA and slot_on_team == 0:
 		return ControllerType.HUMAN
 	return ControllerType.AI
@@ -75,7 +79,68 @@ func _add_slot(
 		"controller": controller,
 		"slot_index": slot_index,
 		"display_name": display_name,
+		"selected_ai_plan": "",
 	})
+
+
+func local_human_team_id() -> int:
+	return _local_human_team_id()
+
+
+func _local_human_team_id() -> int:
+	for slot in slots:
+		if int(slot.get("controller", -1)) == ControllerType.HUMAN:
+			return int(slot.get("team_id", Team.USA))
+	return Team.USA
+
+
+## Friendly AI â†’ Attack Center; enemy AI â†’ Random; Human/Open â†’ clear.
+func _apply_default_ai_plans() -> void:
+	var human_team := _local_human_team_id()
+	for i in slots.size():
+		var slot: Dictionary = slots[i]
+		var controller := int(slot.get("controller", ControllerType.OPEN))
+		if controller != ControllerType.AI:
+			slot["selected_ai_plan"] = ""
+		else:
+			slot["selected_ai_plan"] = AiPlanClass.default_selected_for_slot(
+				controller,
+				int(slot.get("team_id", Team.USA)),
+				human_team,
+			)
+		slots[i] = slot
+
+
+func set_slot_ai_plan(player_id: int, plan_id: String) -> bool:
+	## Draft MatchConfig edit (pre-GameState). Returns false if slot is not AI / invalid plan.
+	var normalized := AiPlanClass.normalize_id(plan_id)
+	if not AiPlanClass.is_valid_id(normalized):
+		return false
+	for i in slots.size():
+		var slot: Dictionary = slots[i]
+		if int(slot.get("player_id", -1)) != player_id:
+			continue
+		if int(slot.get("controller", -1)) != ControllerType.AI:
+			return false
+		slot["selected_ai_plan"] = normalized
+		slots[i] = slot
+		return true
+	return false
+
+
+func get_slot_ai_plan(player_id: int) -> String:
+	for slot in slots:
+		if int(slot.get("player_id", -1)) == player_id:
+			return AiPlanClass.normalize_id(str(slot.get("selected_ai_plan", "")))
+	return ""
+
+
+func ai_slots() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for slot in slots:
+		if int(slot.get("controller", -1)) == ControllerType.AI:
+			out.append(slot.duplicate(true))
+	return out
 
 
 func set_match_type(new_type: int) -> void:
@@ -108,6 +173,7 @@ func switch_human_side() -> void:
 		else:
 			slot["controller"] = ControllerType.AI
 		slots[i] = slot
+	_apply_default_ai_plans()
 
 
 func set_slot_controller(player_id: int, controller: int) -> void:
@@ -121,6 +187,7 @@ func set_slot_controller(player_id: int, controller: int) -> void:
 	if controller == ControllerType.HUMAN:
 		local_player_id = player_id
 		## Single human for SP: demote other humans to AI.
+		## Multiplayer allows multiple humans (join replaces AI).
 		if game_mode == GameModeKind.SINGLE_PLAYER:
 			for j in slots.size():
 				var other: Dictionary = slots[j]
@@ -129,6 +196,56 @@ func set_slot_controller(player_id: int, controller: int) -> void:
 				if int(other.get("controller", -1)) == ControllerType.HUMAN:
 					other["controller"] = ControllerType.AI
 					slots[j] = other
+	## Preserve existing AI plan choices when still AI; fill defaults for new AI slots.
+	_normalize_ai_plans_after_controller_change()
+
+
+## Convert any Open lobby slots to AI so unused seats always have a controller.
+func fill_open_slots_with_ai() -> void:
+	var changed := false
+	for i in slots.size():
+		var slot: Dictionary = slots[i]
+		if int(slot.get("controller", -1)) != ControllerType.OPEN:
+			continue
+		slot["controller"] = ControllerType.AI
+		slots[i] = slot
+		changed = true
+	if changed:
+		_normalize_ai_plans_after_controller_change()
+
+
+## First AI slot, optionally preferring a team. Returns player_id or -1.
+func find_ai_slot(preferred_team_id: int = -1) -> int:
+	var fallback := -1
+	for slot in slots:
+		if int(slot.get("controller", -1)) != ControllerType.AI:
+			continue
+		var pid := int(slot.get("player_id", -1))
+		var team_id := int(slot.get("team_id", -1))
+		if preferred_team_id > 0 and team_id == preferred_team_id:
+			return pid
+		if fallback < 0:
+			fallback = pid
+	return fallback
+
+
+func _normalize_ai_plans_after_controller_change() -> void:
+	var human_team := _local_human_team_id()
+	for i in slots.size():
+		var slot: Dictionary = slots[i]
+		var controller := int(slot.get("controller", ControllerType.OPEN))
+		if controller != ControllerType.AI:
+			slot["selected_ai_plan"] = ""
+			slots[i] = slot
+			continue
+		var current := AiPlanClass.normalize_id(str(slot.get("selected_ai_plan", "")))
+		if not AiPlanClass.is_valid_id(current):
+			slot["selected_ai_plan"] = AiPlanClass.default_selected_for_slot(
+				controller,
+				int(slot.get("team_id", Team.USA)),
+				human_team,
+			)
+			slots[i] = slot
 
 
 func _ensure_local_human() -> void:
@@ -136,7 +253,7 @@ func _ensure_local_human() -> void:
 		if int(slot.get("controller", -1)) == ControllerType.HUMAN:
 			local_player_id = int(slot.get("player_id", 1))
 			return
-	## Multiplayer may be all OPEN — keep default local_player_id.
+	## No human yet (all AI / Open) — keep default local_player_id.
 
 
 func slots_for_team(team_id: int) -> Array[Dictionary]:
@@ -158,7 +275,7 @@ func fireteam_count() -> int:
 func map_path() -> String:
 	if map_id == MAP_FARM_FIGHT or map_id.is_empty():
 		return MAP_FARM_FIGHT_PATH
-	## IDs only — no MapData / scene refs. Convention: res://maps/<id>.json
+	## IDs only â€” no MapData / scene refs. Convention: res://maps/<id>.json
 	return "res://maps/%s.json" % map_id
 
 
@@ -204,6 +321,15 @@ func validate() -> Dictionary:
 			humans += 1
 		if controller == ControllerType.OPEN:
 			opens += 1
+		if controller == ControllerType.AI:
+			var plan := AiPlanClass.normalize_id(str(slot.get("selected_ai_plan", "")))
+			if plan.is_empty():
+				## Backfill default rather than fail older saves â€” normalize in from_dict too.
+				pass
+			elif not AiPlanClass.is_valid_id(plan):
+				errors.append("Invalid AI plan on player %d" % pid)
+		elif not str(slot.get("selected_ai_plan", "")).is_empty():
+			errors.append("Non-AI player %d must not have an AI plan" % pid)
 	if game_mode == GameModeKind.SINGLE_PLAYER:
 		if humans != 1:
 			errors.append("Single Player requires exactly one Human slot")
@@ -270,6 +396,7 @@ static func from_dict(data: Dictionary) -> RefCounted:
 		for entry in raw_slots:
 			if entry is Dictionary:
 				cfg.slots.append((entry as Dictionary).duplicate(true))
+		cfg._normalize_ai_plans_after_controller_change()
 	else:
 		cfg.rebuild_default_slots()
 	return cfg

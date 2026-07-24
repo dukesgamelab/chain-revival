@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bf1c1ype48trg"]
+
+[ext_resource type="Script" path="res://scripts/tests/ai_commander_tests.gd" id="1"]
+
+[node name="AiCommanderTests" type="Node"]
+script = ExtResource("1")

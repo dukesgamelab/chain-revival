@@ -25,12 +25,13 @@ const ActionResolverClass := preload("res://scripts/core/action_resolver.gd")
 const ActionResultClass := preload("res://scripts/core/action_result.gd")
 const CommandContextClass := preload("res://scripts/core/command_context.gd")
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
-const SimpleAIControllerClass := preload("res://scripts/ai/simple_ai_controller.gd")
 const CommandDialogScene := preload("res://scenes/ui/command_dialog.tscn")
 const AssignWeaponsDialogScene := preload("res://scenes/ui/assign_weapons_dialog.tscn")
 const AdjustAmmoCommandClass := preload("res://scripts/commands/adjust_ammo_command.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
+const AiCommanderFrameworkClass := preload("res://scripts/ai/ai_commander_framework.gd")
+const IssueAiOrderCommandClass := preload("res://scripts/commands/issue_ai_order_command.gd")
 
 @onready var _world: MapWorldView = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -46,6 +47,7 @@ const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd
 @onready var _los_visualizer: LosVisualizerClass = $World/LosVisualizer
 @onready var _camera: MapCamera = $Camera2D
 @onready var _command_bar: CommandBar = $UI/CommandBar
+@onready var _ai_plan_hud = $UI/AiPlanHud
 var _return_to_editor_on_exit: bool = false
 var _command_dialog: CommandDialog = null
 var _assign_weapons_dialog: AssignWeaponsDialog = null
@@ -74,7 +76,7 @@ var _map_edit_palette: int = MapEditorClass.Palette.WALL
 var _sim_accum_sec: float = 0.0
 var _combat_scan_accum_msec: int = 0
 var _grass_layer_visible: bool = true
-var _simple_ai: SimpleAIControllerClass
+var _ai_framework: AiCommanderFrameworkClass = null
 var _fire_at_preview_accum_sec: float = 0.0
 var _fire_at_hit_accum_sec: float = 0.0
 var _last_fire_at_preview_cell: Vector2i = Vector2i(-999999, -999999)
@@ -97,9 +99,10 @@ func _ready() -> void:
 	_log_fireteam_loadouts()
 	_command_bar.set_active_team(_session.active_team_id)
 	_command_bar.set_deployment_phase(_game_state != null and _game_state.is_deployment_phase())
+	_refresh_ai_plan_hud()
 	_refresh_all_views()
 	_show_startup_status()
-	_start_simple_ai()
+	_start_ai_framework()
 	_ensure_command_dialog()
 	call_deferred("_open_command_dialog_for_deployment")
 
@@ -115,9 +118,15 @@ func _bootstrap_simulation() -> void:
 	_combat_scan_accum_msec = 0
 
 
-func _start_simple_ai() -> void:
-	## Phase 1: AI fireteams idle — no opening orders / behavior yet.
-	_simple_ai = null
+func _start_ai_framework() -> void:
+	_ai_framework = AiCommanderFrameworkClass.new()
+	var find_path := Callable()
+	if _iso_map != null and _iso_map.has_method("find_path"):
+		find_path = _iso_map.find_path
+	## Clients never tick AI; host/offline keep authority.
+	_ai_framework.set_authority(GameModeManager.is_ai_authority())
+	_ai_framework.setup(_game_state, find_path)
+	_refresh_ai_plan_hud()
 
 
 func _log_network_mode() -> void:
@@ -236,6 +245,15 @@ func _step_simulation_tick() -> void:
 	):
 		_present_movement_tick_result(move_result)
 
+	## AI Commanders think on the authoritative host/server only (never on thin clients).
+	if (
+		GameModeManager.is_ai_authority()
+		and _ai_framework != null
+		and _game_state != null
+		and not _game_state.is_deployment_phase()
+	):
+		_ai_framework.tick(_game_state)
+
 	_combat_scan_accum_msec += stepped
 	var scan_msec := _combat_scan_interval_msec()
 	if _combat_scan_accum_msec < scan_msec:
@@ -243,6 +261,7 @@ func _step_simulation_tick() -> void:
 	_combat_scan_accum_msec -= scan_msec
 	var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
 	_present_action_result(tick_result, true)
+	_refresh_ai_plan_hud()
 
 
 func _present_movement_tick_result(result: ActionResultClass) -> void:
@@ -683,6 +702,16 @@ func _on_command_dialog_closed() -> void:
 		_command_bar.set_deployment_phase(false)
 		_command_bar.append_chat_system("ATTENTION: Scenario Running")
 	_command_bar.show_status("Deployment complete. Chain of command ready.")
+	_refresh_ai_plan_hud()
+
+
+func _refresh_ai_plan_hud() -> void:
+	if _ai_plan_hud == null:
+		return
+	if _ai_plan_hud.has_method("bind_framework"):
+		_ai_plan_hud.bind_framework(_ai_framework, _game_state)
+	elif _ai_plan_hud.has_method("bind_game_state"):
+		_ai_plan_hud.bind_game_state(_game_state)
 
 
 func _on_assign_weapons_dialog_closed() -> void:

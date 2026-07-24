@@ -57,6 +57,9 @@ func setup_from_match_config(
 	if config == null:
 		config = MatchConfigClass.default_offline_1v1() as MatchConfigClass
 		match_config = config
+	## Unused Open lobby seats become AI before fireteam / hierarchy bootstrap.
+	config.fill_open_slots_with_ai()
+	local_player_id = config.local_player_id
 
 	var usa_parts: Array[Fireteam] = []
 	var ger_parts: Array[Fireteam] = []
@@ -178,6 +181,15 @@ func is_soldier_owned_by_local(team_id: int, soldier_id: int) -> bool:
 	if owned_fireteams.is_empty():
 		return true
 	return false
+
+
+func is_soldier_owned_by_player(player_id: int, team_id: int, soldier_id: int) -> bool:
+	if player_id <= 0:
+		return false
+	var ft := get_fireteam_for_player(player_id)
+	if ft == null:
+		return false
+	return ft.team_id == team_id and ft.owns_soldier(soldier_id)
 
 
 func can_local_control_soldier(team_id: int, soldier_id: int) -> bool:

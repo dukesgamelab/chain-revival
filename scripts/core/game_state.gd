@@ -143,6 +143,31 @@ func can_receive_orders(player_id: int) -> bool:
 	return command_hierarchy.can_receive_orders(player_id)
 
 
+## --- Phase 3 AI plans (selection / resolution; no behavior) ---
+
+func get_selected_ai_plan(player_id: int) -> String:
+	return command_hierarchy.get_selected_ai_plan(player_id)
+
+
+func get_active_ai_plan(player_id: int) -> String:
+	return command_hierarchy.get_active_ai_plan(player_id)
+
+
+func set_selected_ai_plan(player_id: int, plan) -> void:
+	## Accepts AiPlan string id. Prefer SetAiPlanCommand from UI.
+	command_hierarchy.set_selected_ai_plan(player_id, str(plan))
+
+
+func resolve_ai_plans() -> void:
+	## Resolve Random once; active plans stay fixed for the match.
+	command_hierarchy.resolve_ai_plans()
+
+
+func are_ai_plans_locked() -> bool:
+	## Locked once Scenario Running (MatchPhase.RUNNING).
+	return match_phase == MatchPhase.RUNNING
+
+
 ## --- Serialization (IDs only; no scene refs) ---
 
 func to_dict() -> Dictionary:

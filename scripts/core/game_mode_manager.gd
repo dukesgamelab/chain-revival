@@ -2,6 +2,9 @@ extends Node
 ## Autoload: current game mode for offline dev vs local multiplayer connection tests.
 
 var current_mode: int = GameConfig.DEFAULT_GAME_MODE
+## Host/server runs AI Commanders. Thin clients set false when networking lands.
+## Offline + current local-MP (single process) both keep authority true.
+var _ai_authority: bool = true
 
 
 func _ready() -> void:
@@ -32,3 +35,12 @@ func is_offline_dev() -> bool:
 
 func is_local_multiplayer() -> bool:
 	return current_mode == GameMode.LOCAL_MULTIPLAYER
+
+
+## True when this process may execute AI (authoritative host/server).
+func is_ai_authority() -> bool:
+	return _ai_authority
+
+
+func set_ai_authority(enabled: bool) -> void:
+	_ai_authority = enabled
