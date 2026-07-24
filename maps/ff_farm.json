@@ -2,6 +2,42 @@
 	"apply_terrain_gameplay": true,
 	"blocked_tiles": [
 		{
+			"x": 50,
+			"y": 53
+		},
+		{
+			"x": 28,
+			"y": 63
+		},
+		{
+			"x": 37,
+			"y": 11
+		},
+		{
+			"x": 36,
+			"y": 17
+		},
+		{
+			"x": 36,
+			"y": 11
+		},
+		{
+			"x": 35,
+			"y": 11
+		},
+		{
+			"x": 34,
+			"y": 11
+		},
+		{
+			"x": 40,
+			"y": 18
+		},
+		{
+			"x": 40,
+			"y": 12
+		},
+		{
 			"x": 7,
 			"y": 49
 		},
@@ -24,6 +60,326 @@
 		{
 			"x": 15,
 			"y": 45
+		},
+		{
+			"x": 8,
+			"y": 38
+		},
+		{
+			"x": 14,
+			"y": 38
+		},
+		{
+			"x": 13,
+			"y": 38
+		},
+		{
+			"x": 11,
+			"y": 38
+		},
+		{
+			"x": 10,
+			"y": 38
+		},
+		{
+			"x": 9,
+			"y": 38
+		},
+		{
+			"x": 12,
+			"y": 29
+		},
+		{
+			"x": 11,
+			"y": 29
+		},
+		{
+			"x": 10,
+			"y": 29
+		},
+		{
+			"x": 9,
+			"y": 29
+		},
+		{
+			"x": 8,
+			"y": 29
+		},
+		{
+			"x": 14,
+			"y": 29
+		},
+		{
+			"x": 10,
+			"y": 13
+		},
+		{
+			"x": 9,
+			"y": 13
+		},
+		{
+			"x": 8,
+			"y": 13
+		},
+		{
+			"x": 7,
+			"y": 13
+		},
+		{
+			"x": 11,
+			"y": 13
+		},
+		{
+			"x": 12,
+			"y": 13
+		},
+		{
+			"x": 13,
+			"y": 13
+		},
+		{
+			"x": 14,
+			"y": 13
+		},
+		{
+			"x": 15,
+			"y": 13
+		},
+		{
+			"x": 8,
+			"y": 22
+		},
+		{
+			"x": 9,
+			"y": 22
+		},
+		{
+			"x": 14,
+			"y": 22
+		},
+		{
+			"x": 13,
+			"y": 22
+		},
+		{
+			"x": 12,
+			"y": 22
+		},
+		{
+			"x": 11,
+			"y": 22
+		},
+		{
+			"x": 15,
+			"y": 22
+		},
+		{
+			"x": 52,
+			"y": 30
+		},
+		{
+			"x": 46,
+			"y": 25
+		},
+		{
+			"x": 47,
+			"y": 29
+		},
+		{
+			"x": 51,
+			"y": 26
+		},
+		{
+			"x": 52,
+			"y": 33
+		},
+		{
+			"x": 55,
+			"y": 28
+		},
+		{
+			"x": 57,
+			"y": 28
+		},
+		{
+			"x": 56,
+			"y": 28
+		},
+		{
+			"x": 59,
+			"y": 28
+		},
+		{
+			"x": 55,
+			"y": 23
+		},
+		{
+			"x": 60,
+			"y": 28
+		},
+		{
+			"x": 54,
+			"y": 23
+		},
+		{
+			"x": 53,
+			"y": 23
+		},
+		{
+			"x": 52,
+			"y": 23
+		},
+		{
+			"x": 50,
+			"y": 23
+		},
+		{
+			"x": 49,
+			"y": 23
+		},
+		{
+			"x": 48,
+			"y": 23
+		},
+		{
+			"x": 47,
+			"y": 23
+		},
+		{
+			"x": 58,
+			"y": 33
+		},
+		{
+			"x": 57,
+			"y": 33
+		},
+		{
+			"x": 56,
+			"y": 33
+		},
+		{
+			"x": 54,
+			"y": 33
+		},
+		{
+			"x": 53,
+			"y": 33
+		},
+		{
+			"x": 51,
+			"y": 33
+		},
+		{
+			"x": 60,
+			"y": 43
+		},
+		{
+			"x": 58,
+			"y": 43
+		},
+		{
+			"x": 57,
+			"y": 43
+		},
+		{
+			"x": 56,
+			"y": 43
+		},
+		{
+			"x": 54,
+			"y": 43
+		},
+		{
+			"x": 53,
+			"y": 43
+		},
+		{
+			"x": 59,
+			"y": 50
+		},
+		{
+			"x": 58,
+			"y": 50
+		},
+		{
+			"x": 57,
+			"y": 50
+		},
+		{
+			"x": 55,
+			"y": 50
+		},
+		{
+			"x": 54,
+			"y": 50
+		},
+		{
+			"x": 53,
+			"y": 50
+		},
+		{
+			"x": 52,
+			"y": 50
+		},
+		{
+			"x": 52,
+			"y": 43
+		},
+		{
+			"x": 52,
+			"y": 37
+		},
+		{
+			"x": 51,
+			"y": 37
+		},
+		{
+			"x": 49,
+			"y": 37
+		},
+		{
+			"x": 48,
+			"y": 37
+		},
+		{
+			"x": 47,
+			"y": 37
+		},
+		{
+			"x": 46,
+			"y": 37
+		},
+		{
+			"x": 49,
+			"y": 33
+		},
+		{
+			"x": 48,
+			"y": 33
+		},
+		{
+			"x": 47,
+			"y": 33
+		},
+		{
+			"x": 45,
+			"y": 33
+		},
+		{
+			"x": 44,
+			"y": 33
+		},
+		{
+			"x": 45,
+			"y": 23
+		},
+		{
+			"x": 44,
+			"y": 23
+		},
+		{
+			"x": 43,
+			"y": 23
 		},
 		{
 			"x": 11,
@@ -80,6 +436,306 @@
 		{
 			"x": 15,
 			"y": 48
+		},
+		{
+			"x": 39,
+			"y": 60
+		},
+		{
+			"x": 40,
+			"y": 60
+		},
+		{
+			"x": 39,
+			"y": 67
+		},
+		{
+			"x": 38,
+			"y": 67
+		},
+		{
+			"x": 36,
+			"y": 67
+		},
+		{
+			"x": 35,
+			"y": 67
+		},
+		{
+			"x": 34,
+			"y": 67
+		},
+		{
+			"x": 33,
+			"y": 67
+		},
+		{
+			"x": 32,
+			"y": 60
+		},
+		{
+			"x": 32,
+			"y": 67
+		},
+		{
+			"x": 31,
+			"y": 67
+		},
+		{
+			"x": 29,
+			"y": 67
+		},
+		{
+			"x": 28,
+			"y": 67
+		},
+		{
+			"x": 27,
+			"y": 67
+		},
+		{
+			"x": 26,
+			"y": 67
+		},
+		{
+			"x": 25,
+			"y": 67
+		},
+		{
+			"x": 25,
+			"y": 60
+		},
+		{
+			"x": 26,
+			"y": 60
+		},
+		{
+			"x": 27,
+			"y": 60
+		},
+		{
+			"x": 29,
+			"y": 60
+		},
+		{
+			"x": 30,
+			"y": 60
+		},
+		{
+			"x": 31,
+			"y": 60
+		},
+		{
+			"x": 33,
+			"y": 60
+		},
+		{
+			"x": 35,
+			"y": 60
+		},
+		{
+			"x": 36,
+			"y": 60
+		},
+		{
+			"x": 37,
+			"y": 60
+		},
+		{
+			"x": 22,
+			"y": 17
+		},
+		{
+			"x": 21,
+			"y": 17
+		},
+		{
+			"x": 20,
+			"y": 17
+		},
+		{
+			"x": 18,
+			"y": 17
+		},
+		{
+			"x": 17,
+			"y": 17
+		},
+		{
+			"x": 16,
+			"y": 17
+		},
+		{
+			"x": 15,
+			"y": 17
+		},
+		{
+			"x": 26,
+			"y": 17
+		},
+		{
+			"x": 25,
+			"y": 17
+		},
+		{
+			"x": 24,
+			"y": 17
+		},
+		{
+			"x": 32,
+			"y": 11
+		},
+		{
+			"x": 31,
+			"y": 11
+		},
+		{
+			"x": 30,
+			"y": 11
+		},
+		{
+			"x": 28,
+			"y": 11
+		},
+		{
+			"x": 26,
+			"y": 11
+		},
+		{
+			"x": 25,
+			"y": 11
+		},
+		{
+			"x": 35,
+			"y": 17
+		},
+		{
+			"x": 34,
+			"y": 17
+		},
+		{
+			"x": 33,
+			"y": 17
+		},
+		{
+			"x": 32,
+			"y": 17
+		},
+		{
+			"x": 30,
+			"y": 17
+		},
+		{
+			"x": 29,
+			"y": 17
+		},
+		{
+			"x": 28,
+			"y": 17
+		},
+		{
+			"x": 27,
+			"y": 17
+		},
+		{
+			"x": 22,
+			"y": 28
+		},
+		{
+			"x": 15,
+			"y": 28
+		},
+		{
+			"x": 16,
+			"y": 28
+		},
+		{
+			"x": 17,
+			"y": 28
+		},
+		{
+			"x": 18,
+			"y": 28
+		},
+		{
+			"x": 24,
+			"y": 28
+		},
+		{
+			"x": 23,
+			"y": 28
+		},
+		{
+			"x": 21,
+			"y": 28
+		},
+		{
+			"x": 20,
+			"y": 28
+		},
+		{
+			"x": 26,
+			"y": 28
+		},
+		{
+			"x": 44,
+			"y": 37
+		},
+		{
+			"x": 43,
+			"y": 37
+		},
+		{
+			"x": 41,
+			"y": 37
+		},
+		{
+			"x": 40,
+			"y": 37
+		},
+		{
+			"x": 39,
+			"y": 37
+		},
+		{
+			"x": 38,
+			"y": 39
+		},
+		{
+			"x": 37,
+			"y": 39
+		},
+		{
+			"x": 36,
+			"y": 39
+		},
+		{
+			"x": 36,
+			"y": 33
+		},
+		{
+			"x": 42,
+			"y": 33
+		},
+		{
+			"x": 41,
+			"y": 33
+		},
+		{
+			"x": 43,
+			"y": 33
+		},
+		{
+			"x": 39,
+			"y": 33
+		},
+		{
+			"x": 38,
+			"y": 33
+		},
+		{
+			"x": 37,
+			"y": 33
 		},
 		{
 			"x": 42,
@@ -142,6 +798,22 @@
 			"y": 53
 		},
 		{
+			"x": 28,
+			"y": 44
+		},
+		{
+			"x": 37,
+			"y": 43
+		},
+		{
+			"x": 32,
+			"y": 45
+		},
+		{
+			"x": 34,
+			"y": 43
+		},
+		{
 			"x": 23,
 			"y": 40
 		},
@@ -190,6 +862,10 @@
 			"y": 26
 		},
 		{
+			"x": 31,
+			"y": 25
+		},
+		{
 			"x": 36,
 			"y": 27
 		},
@@ -227,6 +903,14 @@
 		},
 		{
 			"x": 34,
+			"y": 22
+		},
+		{
+			"x": 33,
+			"y": 22
+		},
+		{
+			"x": 35,
 			"y": 22
 		},
 		{
@@ -326,6 +1010,10 @@
 			"y": 35
 		},
 		{
+			"x": 32,
+			"y": 35
+		},
+		{
 			"x": 31,
 			"y": 35
 		},
@@ -335,6 +1023,10 @@
 		},
 		{
 			"x": 28,
+			"y": 35
+		},
+		{
+			"x": 26,
 			"y": 35
 		},
 		{
@@ -399,6 +1091,10 @@
 		},
 		{
 			"x": 20,
+			"y": 35
+		},
+		{
+			"x": 20,
 			"y": 36
 		},
 		{
@@ -424,6 +1120,14 @@
 		{
 			"x": 20,
 			"y": 43
+		},
+		{
+			"x": 20,
+			"y": 42
+		},
+		{
+			"x": 20,
+			"y": 44
 		},
 		{
 			"x": 20,
@@ -531,6 +1235,14 @@
 		},
 		{
 			"x": 31,
+			"y": 50
+		},
+		{
+			"x": 30,
+			"y": 50
+		},
+		{
+			"x": 32,
 			"y": 50
 		},
 		{
@@ -670,719 +1382,7 @@
 			"y": 46
 		},
 		{
-			"x": 8,
-			"y": 23
-		},
-		{
-			"x": 8,
-			"y": 24
-		},
-		{
-			"x": 8,
-			"y": 26
-		},
-		{
-			"x": 8,
-			"y": 27
-		},
-		{
-			"x": 8,
-			"y": 28
-		},
-		{
-			"x": 8,
-			"y": 31
-		},
-		{
-			"x": 8,
-			"y": 32
-		},
-		{
-			"x": 8,
-			"y": 35
-		},
-		{
-			"x": 8,
-			"y": 36
-		},
-		{
-			"x": 8,
-			"y": 37
-		},
-		{
-			"x": 8,
-			"y": 33
-		},
-		{
-			"x": 15,
-			"y": 37
-		},
-		{
-			"x": 15,
-			"y": 36
-		},
-		{
-			"x": 15,
-			"y": 35
-		},
-		{
-			"x": 15,
-			"y": 34
-		},
-		{
-			"x": 15,
-			"y": 33
-		},
-		{
-			"x": 15,
-			"y": 31
-		},
-		{
-			"x": 15,
-			"y": 25
-		},
-		{
-			"x": 15,
-			"y": 26
-		},
-		{
-			"x": 15,
-			"y": 27
-		},
-		{
-			"x": 15,
-			"y": 23
-		},
-		{
-			"x": 15,
-			"y": 21
-		},
-		{
-			"x": 15,
-			"y": 18
-		},
-		{
-			"x": 15,
-			"y": 19
-		},
-		{
-			"x": 15,
-			"y": 14
-		},
-		{
-			"x": 15,
-			"y": 15
-		},
-		{
-			"x": 15,
-			"y": 16
-		},
-		{
-			"x": 22,
-			"y": 18
-		},
-		{
-			"x": 22,
-			"y": 19
-		},
-		{
-			"x": 22,
-			"y": 21
-		},
-		{
-			"x": 22,
-			"y": 22
-		},
-		{
-			"x": 22,
-			"y": 23
-		},
-		{
-			"x": 22,
-			"y": 25
-		},
-		{
-			"x": 22,
-			"y": 26
-		},
-		{
-			"x": 22,
-			"y": 27
-		},
-		{
-			"x": 27,
-			"y": 18
-		},
-		{
-			"x": 27,
-			"y": 19
-		},
-		{
-			"x": 27,
-			"y": 21
-		},
-		{
-			"x": 27,
-			"y": 22
-		},
-		{
-			"x": 27,
-			"y": 23
-		},
-		{
-			"x": 27,
-			"y": 24
-		},
-		{
-			"x": 27,
-			"y": 25
-		},
-		{
-			"x": 27,
-			"y": 27
-		},
-		{
-			"x": 27,
-			"y": 11
-		},
-		{
-			"x": 27,
-			"y": 12
-		},
-		{
-			"x": 27,
-			"y": 13
-		},
-		{
-			"x": 27,
-			"y": 14
-		},
-		{
-			"x": 27,
-			"y": 15
-		},
-		{
-			"x": 37,
-			"y": 12
-		},
-		{
-			"x": 37,
-			"y": 13
-		},
-		{
-			"x": 37,
-			"y": 14
-		},
-		{
-			"x": 37,
-			"y": 15
-		},
-		{
-			"x": 43,
-			"y": 26
-		},
-		{
-			"x": 43,
-			"y": 24
-		},
-		{
-			"x": 43,
-			"y": 27
-		},
-		{
-			"x": 43,
-			"y": 28
-		},
-		{
-			"x": 43,
-			"y": 29
-		},
-		{
-			"x": 43,
-			"y": 31
-		},
-		{
-			"x": 43,
-			"y": 32
-		},
-		{
-			"x": 43,
-			"y": 34
-		},
-		{
-			"x": 43,
-			"y": 35
-		},
-		{
-			"x": 36,
-			"y": 34
-		},
-		{
-			"x": 36,
-			"y": 35
-		},
-		{
-			"x": 36,
-			"y": 37
-		},
-		{
-			"x": 36,
-			"y": 38
-		},
-		{
-			"x": 39,
-			"y": 38
-		},
-		{
-			"x": 52,
-			"y": 34
-		},
-		{
-			"x": 52,
-			"y": 35
-		},
-		{
-			"x": 52,
-			"y": 38
-		},
-		{
-			"x": 52,
-			"y": 39
-		},
-		{
-			"x": 52,
-			"y": 41
-		},
-		{
-			"x": 52,
-			"y": 42
-		},
-		{
-			"x": 52,
-			"y": 44
-		},
-		{
-			"x": 52,
-			"y": 46
-		},
-		{
-			"x": 52,
-			"y": 47
-		},
-		{
-			"x": 52,
-			"y": 48
-		},
-		{
-			"x": 52,
-			"y": 49
-		},
-		{
-			"x": 60,
-			"y": 49
-		},
-		{
-			"x": 60,
-			"y": 46
-		},
-		{
-			"x": 60,
-			"y": 44
-		},
-		{
-			"x": 60,
-			"y": 45
-		},
-		{
-			"x": 60,
-			"y": 47
-		},
-		{
-			"x": 60,
-			"y": 29
-		},
-		{
-			"x": 60,
-			"y": 30
-		},
-		{
-			"x": 60,
-			"y": 32
-		},
-		{
-			"x": 60,
-			"y": 33
-		},
-		{
-			"x": 60,
-			"y": 34
-		},
-		{
-			"x": 60,
-			"y": 35
-		},
-		{
-			"x": 60,
-			"y": 36
-		},
-		{
-			"x": 60,
-			"y": 38
-		},
-		{
-			"x": 60,
-			"y": 39
-		},
-		{
-			"x": 60,
-			"y": 40
-		},
-		{
-			"x": 60,
-			"y": 41
-		},
-		{
-			"x": 55,
-			"y": 26
-		},
-		{
-			"x": 55,
-			"y": 27
-		},
-		{
-			"x": 49,
-			"y": 27
-		},
-		{
-			"x": 43,
-			"y": 16
-		},
-		{
-			"x": 47,
-			"y": 15
-		},
-		{
-			"x": 45,
-			"y": 19
-		},
-		{
-			"x": 55,
-			"y": 30
-		},
-		{
-			"x": 45,
-			"y": 31
-		},
-		{
-			"x": 52,
-			"y": 19
-		},
-		{
-			"x": 37,
-			"y": 17
-		},
-		{
-			"x": 27,
-			"y": 28
-		},
-		{
-			"x": 15,
-			"y": 29
-		},
-		{
-			"x": 15,
-			"y": 38
-		},
-		{
-			"x": 39,
-			"y": 39
-		},
-		{
-			"x": 60,
-			"y": 50
-		},
-		{
-			"x": 55,
-			"y": 24
-		},
-		{
-			"x": 40,
-			"y": 62
-		},
-		{
-			"x": 40,
-			"y": 63
-		},
-		{
-			"x": 40,
-			"y": 64
-		},
-		{
-			"x": 40,
-			"y": 66
-		},
-		{
-			"x": 35,
-			"y": 68
-		},
-		{
-			"x": 35,
-			"y": 69
-		},
-		{
-			"x": 35,
-			"y": 71
-		},
-		{
-			"x": 35,
-			"y": 72
-		},
-		{
-			"x": 32,
-			"y": 66
-		},
-		{
-			"x": 32,
-			"y": 65
-		},
-		{
-			"x": 32,
-			"y": 64
-		},
-		{
-			"x": 32,
-			"y": 61
-		},
-		{
-			"x": 32,
-			"y": 62
-		},
-		{
-			"x": 25,
-			"y": 61
-		},
-		{
-			"x": 25,
-			"y": 62
-		},
-		{
-			"x": 25,
-			"y": 63
-		},
-		{
-			"x": 25,
-			"y": 65
-		},
-		{
-			"x": 25,
-			"y": 66
-		},
-		{
-			"x": 40,
-			"y": 67
-		},
-		{
-			"x": 35,
-			"y": 63
-		},
-		{
 			"x": 29,
-			"y": 55
-		},
-		{
-			"x": 36,
-			"y": 45
-		},
-		{
-			"x": 30,
-			"y": 46
-		},
-		{
-			"x": 33,
-			"y": 52
-		},
-		{
-			"x": 33,
-			"y": 53
-		},
-		{
-			"x": 37,
-			"y": 51
-		},
-		{
-			"x": 37,
-			"y": 52
-		},
-		{
-			"x": 37,
-			"y": 54
-		},
-		{
-			"x": 47,
-			"y": 48
-		},
-		{
-			"x": 47,
-			"y": 42
-		},
-		{
-			"x": 47,
-			"y": 43
-		},
-		{
-			"x": 47,
-			"y": 45
-		},
-		{
-			"x": 40,
-			"y": 23
-		},
-		{
-			"x": 40,
-			"y": 24
-		},
-		{
-			"x": 40,
-			"y": 25
-		},
-		{
-			"x": 40,
-			"y": 26
-		},
-		{
-			"x": 40,
-			"y": 29
-		},
-		{
-			"x": 34,
-			"y": 36
-		},
-		{
-			"x": 34,
-			"y": 37
-		},
-		{
-			"x": 34,
-			"y": 38
-		},
-		{
-			"x": 34,
-			"y": 39
-		},
-		{
-			"x": 47,
-			"y": 44
-		},
-		{
-			"x": 47,
-			"y": 46
-		},
-		{
-			"x": 31,
-			"y": 40
-		},
-		{
-			"x": 29,
-			"y": 40
-		},
-		{
-			"x": 27,
-			"y": 40
-		},
-		{
-			"x": 25,
-			"y": 33
-		},
-		{
-			"x": 25,
-			"y": 41
-		},
-		{
-			"x": 25,
-			"y": 34
-		},
-		{
-			"x": 36,
-			"y": 30
-		},
-		{
-			"x": 34,
-			"y": 30
-		},
-		{
-			"x": 40,
-			"y": 30
-		},
-		{
-			"x": 40,
-			"y": 28
-		},
-		{
-			"x": 47,
-			"y": 47
-		},
-		{
-			"x": 47,
-			"y": 49
-		},
-		{
-			"x": 34,
-			"y": 40
-		},
-		{
-			"x": 25,
-			"y": 46
-		},
-		{
-			"x": 23,
-			"y": 36
-		},
-		{
-			"x": 23,
-			"y": 37
-		},
-		{
-			"x": 23,
-			"y": 38
-		},
-		{
-			"x": 25,
-			"y": 37
-		},
-		{
-			"x": 25,
-			"y": 38
-		},
-		{
-			"x": 25,
-			"y": 45
-		},
-		{
-			"x": 25,
-			"y": 44
-		},
-		{
-			"x": 38,
-			"y": 27
-		},
-		{
-			"x": 35,
-			"y": 27
-		},
-		{
-			"x": 33,
-			"y": 27
-		},
-		{
-			"x": 35,
-			"y": 24
-		},
-		{
-			"x": 29,
-			"y": 52
-		},
-		{
-			"x": 37,
 			"y": 55
 		}
 	],
@@ -2300,22 +2300,22 @@
 			"y": 45.0
 		},
 		{
-			"direction": 0,
+			"direction": 0.0,
 			"image": "WFLO",
-			"x": 32,
-			"y": 37
+			"x": 32.0,
+			"y": 37.0
 		},
 		{
-			"direction": 0,
+			"direction": 0.0,
 			"image": "WFLO",
-			"x": 25,
-			"y": 43
+			"x": 25.0,
+			"y": 43.0
 		},
 		{
-			"direction": 0,
+			"direction": 0.0,
 			"image": "WFLO",
-			"x": 25,
-			"y": 42
+			"x": 25.0,
+			"y": 42.0
 		}
 	],
 	"height": 100,
@@ -6192,7 +6192,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6206,7 +6206,7 @@
 				"direction": 0.0,
 				"image": "WH00",
 				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
+				"terrain_height": 1,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6720,7 +6720,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6734,7 +6734,7 @@
 				"direction": 0.0,
 				"image": "WH00",
 				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
+				"terrain_height": 1,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10679,10 +10679,10 @@
 			"y": 46
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 23
@@ -10693,8 +10693,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10703,10 +10703,10 @@
 			"y": 23
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 24
@@ -10717,8 +10717,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10727,10 +10727,10 @@
 			"y": 24
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 26
@@ -10741,8 +10741,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10751,10 +10751,10 @@
 			"y": 26
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 27
@@ -10765,8 +10765,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10775,10 +10775,10 @@
 			"y": 27
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 28
@@ -10789,8 +10789,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10799,10 +10799,10 @@
 			"y": 28
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 31
@@ -10813,8 +10813,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10823,10 +10823,10 @@
 			"y": 31
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 32
@@ -10837,8 +10837,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10847,10 +10847,10 @@
 			"y": 32
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 35
@@ -10861,8 +10861,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10871,10 +10871,10 @@
 			"y": 35
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 36
@@ -10885,8 +10885,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10895,10 +10895,10 @@
 			"y": 36
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 37
@@ -10909,8 +10909,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10919,10 +10919,10 @@
 			"y": 37
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
 				"y": 33
@@ -10933,8 +10933,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10943,10 +10943,10 @@
 			"y": 33
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 37
@@ -10957,8 +10957,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10967,10 +10967,10 @@
 			"y": 37
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 36
@@ -10981,8 +10981,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10991,10 +10991,10 @@
 			"y": 36
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 35
@@ -11005,8 +11005,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11015,10 +11015,10 @@
 			"y": 35
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 34
@@ -11029,8 +11029,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11039,10 +11039,10 @@
 			"y": 34
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 33
@@ -11053,8 +11053,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11063,10 +11063,10 @@
 			"y": 33
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 31
@@ -11077,8 +11077,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11087,10 +11087,10 @@
 			"y": 31
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 25
@@ -11101,8 +11101,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11111,10 +11111,10 @@
 			"y": 25
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 26
@@ -11125,8 +11125,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11135,10 +11135,10 @@
 			"y": 26
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 27
@@ -11149,8 +11149,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11159,10 +11159,10 @@
 			"y": 27
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 23
@@ -11173,8 +11173,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11183,10 +11183,10 @@
 			"y": 23
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 21
@@ -11197,8 +11197,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11207,10 +11207,10 @@
 			"y": 21
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 18
@@ -11221,8 +11221,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11231,10 +11231,10 @@
 			"y": 18
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 19
@@ -11245,8 +11245,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11255,10 +11255,10 @@
 			"y": 19
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 14
@@ -11269,8 +11269,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11279,10 +11279,10 @@
 			"y": 14
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 15
@@ -11293,8 +11293,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11303,10 +11303,10 @@
 			"y": 15
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 16
@@ -11317,8 +11317,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11327,10 +11327,10 @@
 			"y": 16
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 22,
 				"y": 18
@@ -11341,8 +11341,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11351,10 +11351,10 @@
 			"y": 18
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 22,
 				"y": 19
@@ -11365,8 +11365,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11375,10 +11375,10 @@
 			"y": 19
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 22,
 				"y": 21
@@ -11389,8 +11389,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11399,10 +11399,10 @@
 			"y": 21
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 22,
 				"y": 22
@@ -11413,8 +11413,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11423,10 +11423,10 @@
 			"y": 22
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 22,
 				"y": 23
@@ -11437,8 +11437,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11447,10 +11447,10 @@
 			"y": 23
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 22,
 				"y": 25
@@ -11461,8 +11461,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11471,10 +11471,10 @@
 			"y": 25
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 22,
 				"y": 26
@@ -11485,8 +11485,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11495,10 +11495,10 @@
 			"y": 26
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 22,
 				"y": 27
@@ -11509,8 +11509,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11519,10 +11519,10 @@
 			"y": 27
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 18
@@ -11533,8 +11533,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11543,10 +11543,10 @@
 			"y": 18
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 19
@@ -11557,8 +11557,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11567,10 +11567,10 @@
 			"y": 19
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 21
@@ -11581,8 +11581,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11591,10 +11591,10 @@
 			"y": 21
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 22
@@ -11605,8 +11605,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11615,10 +11615,10 @@
 			"y": 22
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 23
@@ -11629,8 +11629,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11639,10 +11639,10 @@
 			"y": 23
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 24
@@ -11653,8 +11653,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11663,10 +11663,10 @@
 			"y": 24
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 25
@@ -11677,8 +11677,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11687,10 +11687,10 @@
 			"y": 25
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 27
@@ -11701,8 +11701,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11711,10 +11711,10 @@
 			"y": 27
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 11
@@ -11725,8 +11725,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11735,10 +11735,10 @@
 			"y": 11
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 12
@@ -11749,8 +11749,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11759,10 +11759,10 @@
 			"y": 12
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 13
@@ -11773,8 +11773,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11783,10 +11783,10 @@
 			"y": 13
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 14
@@ -11797,8 +11797,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11807,10 +11807,10 @@
 			"y": 14
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 15
@@ -11821,8 +11821,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11831,10 +11831,10 @@
 			"y": 15
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 37,
 				"y": 12
@@ -11845,8 +11845,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11855,10 +11855,10 @@
 			"y": 12
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 37,
 				"y": 13
@@ -11869,8 +11869,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11879,10 +11879,10 @@
 			"y": 13
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 37,
 				"y": 14
@@ -11893,8 +11893,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11903,10 +11903,10 @@
 			"y": 14
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 37,
 				"y": 15
@@ -11917,8 +11917,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11927,10 +11927,10 @@
 			"y": 15
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 43,
 				"y": 26
@@ -11941,8 +11941,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11951,10 +11951,10 @@
 			"y": 26
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 43,
 				"y": 24
@@ -11965,8 +11965,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11975,10 +11975,10 @@
 			"y": 24
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 43,
 				"y": 27
@@ -11989,8 +11989,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11999,10 +11999,10 @@
 			"y": 27
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 43,
 				"y": 28
@@ -12013,8 +12013,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12023,10 +12023,10 @@
 			"y": 28
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 43,
 				"y": 29
@@ -12037,8 +12037,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12047,10 +12047,10 @@
 			"y": 29
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 43,
 				"y": 31
@@ -12061,8 +12061,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12071,10 +12071,10 @@
 			"y": 31
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 43,
 				"y": 32
@@ -12085,8 +12085,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12095,10 +12095,10 @@
 			"y": 32
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 43,
 				"y": 34
@@ -12109,8 +12109,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12119,10 +12119,10 @@
 			"y": 34
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 43,
 				"y": 35
@@ -12133,8 +12133,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12143,10 +12143,10 @@
 			"y": 35
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 36,
 				"y": 34
@@ -12157,8 +12157,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12167,10 +12167,10 @@
 			"y": 34
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 36,
 				"y": 35
@@ -12181,8 +12181,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12191,10 +12191,10 @@
 			"y": 35
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 36,
 				"y": 37
@@ -12205,8 +12205,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12215,10 +12215,10 @@
 			"y": 37
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 36,
 				"y": 38
@@ -12229,8 +12229,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12239,10 +12239,10 @@
 			"y": 38
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 39,
 				"y": 38
@@ -12253,8 +12253,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12263,10 +12263,10 @@
 			"y": 38
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 34
@@ -12277,8 +12277,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12287,10 +12287,10 @@
 			"y": 34
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 35
@@ -12301,8 +12301,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12311,10 +12311,10 @@
 			"y": 35
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 38
@@ -12325,8 +12325,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12335,10 +12335,10 @@
 			"y": 38
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 39
@@ -12349,8 +12349,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12359,10 +12359,10 @@
 			"y": 39
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 41
@@ -12373,8 +12373,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12383,10 +12383,10 @@
 			"y": 41
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 42
@@ -12397,8 +12397,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12407,10 +12407,10 @@
 			"y": 42
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 44
@@ -12421,8 +12421,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12431,10 +12431,10 @@
 			"y": 44
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 46
@@ -12445,8 +12445,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12455,10 +12455,10 @@
 			"y": 46
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 47
@@ -12469,8 +12469,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12479,10 +12479,10 @@
 			"y": 47
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 48
@@ -12493,8 +12493,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12503,10 +12503,10 @@
 			"y": 48
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 49
@@ -12517,8 +12517,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12527,10 +12527,10 @@
 			"y": 49
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 49
@@ -12541,8 +12541,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12551,10 +12551,10 @@
 			"y": 49
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 46
@@ -12565,8 +12565,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12575,10 +12575,10 @@
 			"y": 46
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 44
@@ -12589,8 +12589,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12599,10 +12599,10 @@
 			"y": 44
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 45
@@ -12613,8 +12613,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12623,10 +12623,10 @@
 			"y": 45
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 47
@@ -12637,8 +12637,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12647,10 +12647,10 @@
 			"y": 47
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 29
@@ -12661,8 +12661,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12671,10 +12671,10 @@
 			"y": 29
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 30
@@ -12685,8 +12685,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12695,10 +12695,10 @@
 			"y": 30
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 32
@@ -12709,8 +12709,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12719,10 +12719,10 @@
 			"y": 32
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 33
@@ -12733,8 +12733,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12743,10 +12743,10 @@
 			"y": 33
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 34
@@ -12757,8 +12757,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12767,10 +12767,10 @@
 			"y": 34
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 35
@@ -12781,8 +12781,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12791,10 +12791,10 @@
 			"y": 35
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 36
@@ -12805,8 +12805,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12815,10 +12815,10 @@
 			"y": 36
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 38
@@ -12829,8 +12829,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12839,10 +12839,10 @@
 			"y": 38
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 39
@@ -12853,8 +12853,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12863,10 +12863,10 @@
 			"y": 39
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 40
@@ -12877,8 +12877,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12887,10 +12887,10 @@
 			"y": 40
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 41
@@ -12901,8 +12901,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12911,10 +12911,10 @@
 			"y": 41
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 55,
 				"y": 26
@@ -12925,8 +12925,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12935,10 +12935,10 @@
 			"y": 26
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 55,
 				"y": 27
@@ -12949,8 +12949,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13031,10 +13031,10 @@
 			"y": 15
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 45,
 				"y": 19
@@ -13045,8 +13045,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "CW01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13055,10 +13055,10 @@
 			"y": 19
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 55,
 				"y": 30
@@ -13069,8 +13069,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "CW01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13271,10 +13271,10 @@
 			"y": 50
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 55,
 				"y": 24
@@ -13285,8 +13285,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13295,10 +13295,10 @@
 			"y": 24
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 40,
 				"y": 62
@@ -13309,8 +13309,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13319,10 +13319,10 @@
 			"y": 62
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 40,
 				"y": 63
@@ -13333,8 +13333,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13343,10 +13343,10 @@
 			"y": 63
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 40,
 				"y": 64
@@ -13357,8 +13357,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13367,10 +13367,10 @@
 			"y": 64
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 40,
 				"y": 66
@@ -13381,8 +13381,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13391,10 +13391,10 @@
 			"y": 66
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 35,
 				"y": 68
@@ -13405,8 +13405,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13415,10 +13415,10 @@
 			"y": 68
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 35,
 				"y": 69
@@ -13429,8 +13429,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13439,10 +13439,10 @@
 			"y": 69
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 35,
 				"y": 71
@@ -13453,8 +13453,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13463,10 +13463,10 @@
 			"y": 71
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 35,
 				"y": 72
@@ -13477,8 +13477,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13487,10 +13487,10 @@
 			"y": 72
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 32,
 				"y": 66
@@ -13501,8 +13501,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13511,10 +13511,10 @@
 			"y": 66
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 32,
 				"y": 65
@@ -13525,8 +13525,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13535,10 +13535,10 @@
 			"y": 65
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 32,
 				"y": 64
@@ -13549,8 +13549,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13559,10 +13559,10 @@
 			"y": 64
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 32,
 				"y": 61
@@ -13573,8 +13573,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13583,10 +13583,10 @@
 			"y": 61
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 32,
 				"y": 62
@@ -13597,8 +13597,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13607,10 +13607,10 @@
 			"y": 62
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 25,
 				"y": 61
@@ -13621,8 +13621,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13631,10 +13631,10 @@
 			"y": 61
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 25,
 				"y": 62
@@ -13645,8 +13645,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13655,10 +13655,10 @@
 			"y": 62
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 25,
 				"y": 63
@@ -13669,8 +13669,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13679,10 +13679,10 @@
 			"y": 63
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 25,
 				"y": 65
@@ -13693,8 +13693,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13703,10 +13703,10 @@
 			"y": 65
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 25,
 				"y": 66
@@ -13717,8 +13717,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13751,10 +13751,10 @@
 			"y": 67
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 35,
 				"y": 63
@@ -13765,8 +13765,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "CW01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13775,7 +13775,7 @@
 			"y": 63
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13789,8 +13789,8 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWIN",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14483,11 +14483,11 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWINS27A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_window",
@@ -14507,11 +14507,11 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWINS27A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_window",
@@ -14531,11 +14531,11 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWAIS3A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -14555,11 +14555,11 @@
 			"object_type": "coc_swal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWAL",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_swal",
@@ -14579,11 +14579,11 @@
 			"object_type": "coc_door_wood",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAI",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_door_wood",
@@ -14603,11 +14603,11 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAIS3A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -14627,11 +14627,11 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAIS3A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -14651,11 +14651,11 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAIS3A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -14675,11 +14675,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWCLS3A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14699,11 +14699,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWDRS7A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14723,11 +14723,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWWL",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14747,11 +14747,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWDRS7A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14771,11 +14771,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWDRS7A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14795,11 +14795,11 @@
 			"object_type": "coc_door_wood",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAI",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_door_wood",
@@ -14819,11 +14819,11 @@
 			"object_type": "coc_door_wood",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAI",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_door_wood",
@@ -14843,11 +14843,11 @@
 			"object_type": "coc_door_wood",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAI",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_door_wood",
@@ -14867,11 +14867,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWWLS1C",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14891,11 +14891,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWWLS1C",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14915,11 +14915,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWWLS1C",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14939,11 +14939,11 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWWLS1C",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14963,11 +14963,11 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "SWAIS3A",
 				"terrain": "_HG_EVEN",
-				"terrain_height": 0,
-				"z": 0
+				"terrain_height": 0.0,
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",

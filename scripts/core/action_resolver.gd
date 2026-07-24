@@ -234,6 +234,14 @@ static func _advance_soldier_movement(
 		soldier.move_accum_msec -= soldier.move_step_cost_msec
 		var from_cell := soldier.current_path[soldier.path_index - 1]
 		var to_cell := soldier.current_path[soldier.path_index]
+		## Never advance onto climb/NoPass (stale paths / bad pathfinder results).
+		if game_state.map_data != null and game_state.map_data.is_blocked(to_cell):
+			on_movement_complete(game_state, soldier.team_id, soldier.soldier_id)
+			result.movement_completions.append({
+				"team_id": soldier.team_id,
+				"soldier_id": soldier.soldier_id,
+			})
+			return
 		var step_delta := to_cell - from_cell
 		on_movement_step(game_state, soldier.team_id, soldier.soldier_id, to_cell, step_delta)
 		result.movement_steps.append({
@@ -890,6 +898,10 @@ static func _assign_move_path(
 	var path: Array[Vector2i] = context.find_path.call(start_cell, cmd.target_cell)
 	if path.is_empty():
 		return false
+	## Reject any path that still contains blocked climb/NoPass cells.
+	for i in range(1, path.size()):
+		if game_state.map_data.is_blocked(path[i]):
+			return false
 
 	state.movement_mode = mode
 	var speed_mult := (

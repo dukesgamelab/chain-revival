@@ -86,6 +86,10 @@ func _update_from_mouse() -> void:
 	_info["z"] = int(best.get("z", 0))
 	_info["image1"] = image1
 	_info["layer"] = str(best.get("layer", "object"))
+	_info["terrain"] = MapData.terrain_class_label(map_data.terrain_class(cell))
+	_info["terrain_height"] = map_data.obstruction_height(cell)
+	_info["walkable"] = map_data.is_walkable(cell)
+	_info["climb"] = map_data.is_climb(cell)
 
 
 func _draw() -> void:
@@ -112,6 +116,15 @@ func _draw() -> void:
 		lines.append("path %s" % str(_info.get("path", "")).get_file())
 		var hs: Vector2 = _info.get("hotspot", Vector2.ZERO)
 		lines.append("hotspot %s" % hs)
+		lines.append(
+			"terrain %s  h=%s  walk=%s climb=%s"
+			% [
+				_info.get("terrain", "?"),
+				_info.get("terrain_height", 0),
+				_info.get("walkable", false),
+				_info.get("climb", false),
+			]
+		)
 		var image1 := str(_info.get("image1", ""))
 		if not image1.is_empty():
 			lines.append("Image1 %s" % image1)

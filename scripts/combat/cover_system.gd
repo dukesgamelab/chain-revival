@@ -53,14 +53,32 @@ class LineTraceEntry extends RefCounted:
 	var soldier_pass_through: bool = false
 
 
-## True when a map object blocks line of fire (trees, etc.).
+## True when a map object blocks line of fire (trees, full-height tiles, etc.).
 ## Complete-cover walls are handled separately — they provide cover, not opaque blocking.
+## Prefer terrain_height via MapData.blocks_vision; fall back to legacy blocks_los.
 static func blocks_line_of_fire(object_def: MapObjectDef) -> bool:
 	if object_def == null:
 		return false
 	if _is_complete_cover_wall(object_def):
 		return false
 	return object_def.blocks_los
+
+
+static func tile_blocks_vision(
+	map_data: MapData,
+	cell: Vector2i,
+	object_def: MapObjectDef,
+	observer_prone: bool = false,
+	target_prone: bool = false,
+) -> bool:
+	if map_data == null:
+		return false
+	if _is_complete_cover_wall(object_def):
+		return false
+	## Height is the authority for vision obstruction (0/1/2).
+	if map_data.has_object(cell):
+		return map_data.blocks_vision(cell, observer_prone, target_prone)
+	return blocks_line_of_fire(object_def)
 
 
 ## Only low cover beside the shooter may be fired over (haybail).
@@ -154,6 +172,9 @@ static func find_blocking_tile(
 		result.blocked = true
 		return result
 
+	var observer_prone := _cell_occupant_prone(from_cell, game_state)
+	var target_prone := _cell_occupant_prone(to_cell, game_state)
+
 	var skipped_shooter_side_blocker := false
 	for cell in line_cells_between(from_cell, to_cell):
 		if block_soldiers and living_standing_soldier_blocks_line(cell, game_state):
@@ -163,13 +184,13 @@ static func find_blocking_tile(
 			return result
 
 		var object_def := map_data.get_object_def(cell)
-		if object_def == null:
+		if object_def == null and not map_data.has_object(cell):
 			continue
 
 		if _is_complete_cover_wall(object_def):
 			continue
 
-		if not blocks_line_of_fire(object_def):
+		if not tile_blocks_vision(map_data, cell, object_def, observer_prone, target_prone):
 			continue
 		if (
 			not skipped_shooter_side_blocker
@@ -179,13 +200,13 @@ static func find_blocking_tile(
 			continue
 		result.blocked = true
 		result.blocking_cell = cell
-		result.blocking_type_id = object_def.type_id
+		result.blocking_type_id = object_def.type_id if object_def != null else "terrain"
 		return result
 
 	return result
 
 
-## Spotting LOS: trees block; walls never block rays; soldier cells never block.
+## Spotting LOS: height/terrain blockers; walls never block rays; soldier cells never block.
 static func find_spotting_blocking_tile(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
@@ -197,6 +218,9 @@ static func find_spotting_blocking_tile(
 		result.blocked = true
 		return result
 
+	var observer_prone := _cell_occupant_prone(from_cell, game_state)
+	var target_prone := _cell_occupant_prone(to_cell, game_state)
+
 	var skipped_shooter_side_blocker := false
 	for cell in line_cells_between(from_cell, to_cell):
 		if game_state != null and cell != to_cell:
@@ -205,11 +229,11 @@ static func find_spotting_blocking_tile(
 				continue
 
 		var object_def := map_data.get_object_def(cell)
-		if object_def == null:
+		if object_def == null and not map_data.has_object(cell):
 			continue
 		if _is_complete_cover_wall(object_def):
 			continue
-		if not blocks_line_of_fire(object_def):
+		if not tile_blocks_vision(map_data, cell, object_def, observer_prone, target_prone):
 			continue
 		if (
 			not skipped_shooter_side_blocker
@@ -219,10 +243,19 @@ static func find_spotting_blocking_tile(
 			continue
 		result.blocked = true
 		result.blocking_cell = cell
-		result.blocking_type_id = object_def.type_id
+		result.blocking_type_id = object_def.type_id if object_def != null else "terrain"
 		return result
 
 	return result
+
+
+static func _cell_occupant_prone(cell: Vector2i, game_state: GameState) -> bool:
+	if game_state == null:
+		return false
+	var soldier := game_state.find_living_soldier_at_cell(cell)
+	if soldier == null:
+		return false
+	return soldier.position_state == PositionStateClass.DOWN
 
 
 ## Deprecated: spotting no longer hides by adjacent wall cover alone (see find_spotting_blocking_tile).
@@ -265,7 +298,10 @@ static func trace_line_of_sight(
 		if object_def != null:
 			entry.type_id = object_def.type_id
 			entry.blocks_los = object_def.blocks_los
-			entry.blocks_line = _is_complete_cover_wall(object_def) or blocks_line_of_fire(object_def)
+			entry.blocks_line = (
+				_is_complete_cover_wall(object_def)
+				or tile_blocks_vision(map_data, cell, object_def)
+			)
 			if _is_complete_cover_wall(object_def):
 				entry.wall_skip_reason = get_wall_skip_reason(
 					from_cell,
@@ -280,6 +316,10 @@ static func trace_line_of_sight(
 				):
 					entry.peek_skipped = true
 					skipped_shooter_side_blocker = true
+		elif map_data.has_object(cell) and map_data.blocks_vision(cell):
+			entry.type_id = "terrain"
+			entry.blocks_los = true
+			entry.blocks_line = true
 		trace.append(entry)
 	return trace
 

@@ -613,6 +613,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			_command_bar.show_status("Handedness candidate: %s" % cand)
 			get_viewport().set_input_as_handled()
 			return
+		if event.keycode == KEY_F6:
+			_world.toggle_terrain_overlay()
+			_command_bar.show_status(
+				"Terrain overlay %s (green=Even yellow=Climb red=NoPass)"
+				% ("ON" if _world.is_terrain_overlay_enabled() else "OFF")
+			)
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_ESCAPE and _return_to_editor_on_exit:
 			EditorPlaySession.clear_return_flag()
 			get_tree().change_scene_to_file("res://scenes/editor/map_editor.tscn")
@@ -1239,6 +1247,10 @@ func _snap_cell_for_soldier(state: SoldierState) -> Vector2i:
 
 func _make_move_context(cmd: MoveCommand) -> CommandContextClass:
 	var ctx := CommandContextClass.new()
+	## Keep pathfinding grid synced to the authoritative map (shared reference).
+	if _iso_map != null and _game_state != null and _game_state.map_data != null:
+		if _iso_map.map_data != _game_state.map_data:
+			_iso_map.apply_map_data(_game_state.map_data)
 	ctx.find_path = _iso_map.find_path
 	return ctx
 

@@ -70,15 +70,18 @@ func rebuild_pathfinding() -> void:
 
 	_astar.region = Rect2i(0, 0, map_data.width, map_data.height)
 	_astar.cell_size = Vector2(1.0, 1.0)
-	# 8-direction movement; block diagonals that would cut through a blocked corner.
-	_astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_AT_LEAST_ONE_WALKABLE
+	## Never cut diagonally through a blocked corner (looks like walking through walls).
+	_astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
 	_astar.default_compute_heuristic = AStarGrid2D.HEURISTIC_OCTILE
 	_astar.default_estimate_heuristic = AStarGrid2D.HEURISTIC_OCTILE
 	_astar.update()
 
-	for cell in map_data.blocked_tiles:
-		if map_data.is_in_bounds(cell):
-			_astar.set_point_solid(cell, true)
+	## CLIMB and NO_PASS are both solid for normal movement (see MapData.is_blocked).
+	for y in range(map_data.height):
+		for x in range(map_data.width):
+			var cell := Vector2i(x, y)
+			_astar.set_point_solid(cell, map_data.is_blocked(cell))
+			_astar.set_point_weight_scale(cell, 1.0)
 
 
 func is_in_bounds(cell: Vector2i) -> bool:
@@ -94,6 +97,8 @@ func is_walkable(cell: Vector2i) -> bool:
 
 
 func find_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
+	if map_data == null:
+		return []
 	if not is_walkable(from_cell) or not is_walkable(to_cell):
 		return []
 	if _astar.is_point_solid(to_cell):
@@ -102,7 +107,11 @@ func find_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
 	var raw_path := _astar.get_id_path(from_cell, to_cell)
 	var path: Array[Vector2i] = []
 	for cell in raw_path:
-		path.append(Vector2i(cell))
+		var step := Vector2i(cell)
+		## Belt-and-suspenders: never return a path that steps onto blocked terrain.
+		if step != from_cell and map_data.is_blocked(step):
+			return []
+		path.append(step)
 	return path
 
 

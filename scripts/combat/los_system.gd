@@ -2,7 +2,7 @@ class_name LOSSystem
 extends RefCounted
 ## Central line-of-sight evaluation for combat and UI preview.
 ## evaluate() = strict shot LOS (soldiers block). evaluate_spotting() = visibility only.
-## Uses MapData map objects (blocks_los / cover_type) via CoverSystem.
+## Uses MapData obstruction_height / terrain class via CoverSystem.
 enum Status { CLEAR, COVER, BLOCKED }
 
 const COLOR_CLEAR := Color(0.25, 0.95, 0.35, 0.90)

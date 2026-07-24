@@ -91,6 +91,152 @@ func get_object_source(cell: Vector2i) -> Dictionary:
 	return source if source is Dictionary else {}
 
 
+## --- Original CoC per-tile terrain (movement class + LOS height) ---
+
+enum TerrainClass { EVEN, NO_PASS, CLIMB }
+
+
+## Parse archive / map terrain tokens (aliases appear in original data).
+static func parse_terrain_class(raw: String) -> int:
+	var key := raw.strip_edges().to_upper().replace(" ", "")
+	if key.is_empty():
+		return TerrainClass.EVEN
+	## Strip leading underscore variants: _HG_EVEN, HG_EVEN, _EVEN, etc.
+	while key.begins_with("_"):
+		key = key.substr(1)
+	if key.begins_with("HG_"):
+		key = key.substr(3)
+	match key:
+		"NOPASS", "NO_PASS", "BLOCKED":
+			return TerrainClass.NO_PASS
+		"CLIMB":
+			return TerrainClass.CLIMB
+		"EVEN", "EVAN", "GRASS":
+			return TerrainClass.EVEN
+		_:
+			## Unknown → treat as open ground (do not invent blockers).
+			return TerrainClass.EVEN
+
+
+static func terrain_class_token(terrain: int) -> String:
+	match terrain:
+		TerrainClass.NO_PASS:
+			return "_HG_NoPass"
+		TerrainClass.CLIMB:
+			return "_HG_Climb"
+		_:
+			return "_HG_EVEN"
+
+
+static func terrain_class_label(terrain: int) -> String:
+	match terrain:
+		TerrainClass.NO_PASS:
+			return "NoPass"
+		TerrainClass.CLIMB:
+			return "Climb"
+		_:
+			return "Even"
+
+
+## Family defaults when placing tiles (Climb = low obstacle: blocks move, standing can fire over).
+static func default_terrain_for_family(family: String) -> Dictionary:
+	var fam := family.to_upper()
+	## Low field walls / cows — height-1 climb obstacles.
+	if fam in ["WH00", "CW01"]:
+		return {
+			"terrain": "_HG_Climb",
+			"terrain_height": 1,
+			"blocks_movement": true,
+			"blocks_los": false,
+			"provides_cover": true,
+			"cover_type": 1, ## CoverSystem.MODERATE
+		}
+	return {
+		"terrain": "_HG_EVEN",
+		"terrain_height": 0,
+		"blocks_movement": true,
+		"blocks_los": true,
+		"provides_cover": true,
+		"cover_type": 2,
+	}
+
+
+func terrain_raw(cell: Vector2i) -> String:
+	if not is_in_bounds(cell):
+		return ""
+	var source := get_object_source(cell)
+	if not source.is_empty():
+		return str(source.get("terrain", ""))
+	## Fallback for visuals that never entered _object_lookup (unknown type_id).
+	for entry in visual_placements:
+		if int(entry.get("x", -1)) != cell.x or int(entry.get("y", -1)) != cell.y:
+			continue
+		if str(entry.get("layer", "object")) != "object":
+			continue
+		var src: Variant = entry.get("source", {})
+		if src is Dictionary:
+			return str(src.get("terrain", ""))
+	return ""
+
+
+func terrain_class(cell: Vector2i) -> int:
+	if not is_in_bounds(cell):
+		return TerrainClass.EVEN
+	var raw := terrain_raw(cell)
+	if raw.is_empty() and not has_object(cell):
+		return TerrainClass.EVEN
+	return parse_terrain_class(raw)
+
+
+func is_climb(cell: Vector2i) -> bool:
+	return terrain_class(cell) == TerrainClass.CLIMB
+
+
+## TTerrHight: 0 ground · 1 low · 2 full. Drives LOS, not movement.
+func obstruction_height(cell: Vector2i) -> int:
+	if not is_in_bounds(cell):
+		return 0
+	var source := get_object_source(cell)
+	if source.is_empty():
+		for entry in visual_placements:
+			if int(entry.get("x", -1)) != cell.x or int(entry.get("y", -1)) != cell.y:
+				continue
+			if str(entry.get("layer", "object")) != "object":
+				continue
+			var src: Variant = entry.get("source", {})
+			if src is Dictionary:
+				source = src
+			break
+	if source is Dictionary and source.has("terrain_height"):
+		return clampi(int(float(source.get("terrain_height", 0))), 0, 2)
+	## Fallback from class when height missing in authored data.
+	match terrain_class(cell):
+		TerrainClass.NO_PASS:
+			return 2
+		TerrainClass.CLIMB:
+			return 1
+		_:
+			return 0
+
+
+## Optional future vaulting — NOT confirmed OG behavior. Default OFF.
+const ALLOW_CLIMB_TRAVERSAL := false
+
+
+## Vision obstruction from height. Full (2) always blocks; low (1) only when prone.
+func blocks_vision(
+	cell: Vector2i,
+	observer_prone: bool = false,
+	target_prone: bool = false,
+) -> bool:
+	var height := obstruction_height(cell)
+	if height >= 2:
+		return true
+	if height == 1:
+		return observer_prone or target_prone
+	return false
+
+
 func is_original_visual_map() -> bool:
 	return uses_original_projection or not floors.is_empty() or not visual_placements.is_empty()
 
@@ -107,13 +253,26 @@ func get_object_cells() -> Array[Vector2i]:
 
 
 func is_blocked(cell: Vector2i) -> bool:
+	## Movement authority is terrain class (+ height fallback) — not blocks_movement alone.
+	## CLIMB is a low obstacle: impassable for normal pathfinding (same as NO_PASS).
 	if not apply_terrain_gameplay:
 		return false
-	var object_def := get_object_def(cell)
-	return object_def != null and object_def.blocks_movement
+	if not is_in_bounds(cell):
+		return true
+	var tc := terrain_class(cell)
+	if tc == TerrainClass.NO_PASS:
+		return true
+	if tc == TerrainClass.CLIMB:
+		return not ALLOW_CLIMB_TRAVERSAL
+	## If class token is missing/wrong but height says low/full obstacle, still block.
+	var height := obstruction_height(cell)
+	if height >= 1 and not ALLOW_CLIMB_TRAVERSAL:
+		return true
+	return false
 
 
 func is_walkable(cell: Vector2i) -> bool:
+	## CLIMB blocks normal movement (windows / low walls / bushes).
 	return is_in_bounds(cell) and not is_blocked(cell)
 
 
@@ -177,13 +336,14 @@ func place_family_object(
 	## Editor replace semantics: new object owns the cell (clears floor/objects/decoration).
 	erase_all_at(cell, true)
 	var type_id := str(gameplay.get("object_type", MapObjectDefinition.type_id_for_family(fam)))
+	var default_terrain := default_terrain_for_family(fam)
 	## Persist identity only — never a camera-specific sprite letter/path.
 	var source := {
 		"image": fam,
 		"direction": direction,
 		"z": z,
-		"terrain": str(gameplay.get("terrain", "_HG_EVEN")),
-		"terrain_height": int(gameplay.get("terrain_height", 0)),
+		"terrain": str(gameplay.get("terrain", default_terrain.get("terrain", "_HG_EVEN"))),
+		"terrain_height": int(gameplay.get("terrain_height", default_terrain.get("terrain_height", 0))),
 	}
 	if not image1.is_empty():
 		source["image1"] = image1.to_upper()
@@ -193,13 +353,37 @@ func place_family_object(
 		source[key] = gameplay[key]
 	## Drop any legacy baked sprite keys so saves stay camera-agnostic.
 	source.erase("sprite")
+	var blocks_move := bool(
+		gameplay.get(
+			"blocks_movement",
+			default_terrain.get("blocks_movement", true),
+		)
+	)
+	var blocks_sight := bool(
+		gameplay.get(
+			"blocks_los",
+			default_terrain.get("blocks_los", true),
+		)
+	)
+	var provides_cover := bool(
+		gameplay.get(
+			"provides_cover",
+			default_terrain.get("provides_cover", true),
+		)
+	)
+	var cover_type := int(
+		gameplay.get(
+			"cover_type",
+			default_terrain.get("cover_type", 2),
+		)
+	)
 	_object_lookup[cell] = MapObjectRegistryClass.normalize_type_id(type_id)
 	_object_meta[cell] = {
 		"source": source,
-		"blocks_movement": bool(gameplay.get("blocks_movement", true)),
-		"blocks_los": bool(gameplay.get("blocks_los", true)),
-		"provides_cover": bool(gameplay.get("provides_cover", true)),
-		"cover_type": int(gameplay.get("cover_type", 2)),
+		"blocks_movement": blocks_move,
+		"blocks_los": blocks_sight,
+		"provides_cover": provides_cover,
+		"cover_type": cover_type,
 		"sprite_path": "",
 	}
 	_upsert_visual_placement(
@@ -213,10 +397,10 @@ func place_family_object(
 			"source": source,
 			"layer": "object",
 			"z": z,
-			"blocks_movement": bool(gameplay.get("blocks_movement", true)),
-			"blocks_los": bool(gameplay.get("blocks_los", true)),
-			"provides_cover": bool(gameplay.get("provides_cover", true)),
-			"cover_type": int(gameplay.get("cover_type", 2)),
+			"blocks_movement": blocks_move,
+			"blocks_los": blocks_sight,
+			"provides_cover": provides_cover,
+			"cover_type": cover_type,
 		}
 	)
 	_rebuild_blocked_tiles_list()
@@ -253,6 +437,57 @@ func erase_all_at(cell: Vector2i, include_floors: bool = true) -> void:
 	_remove_spawn_at(cell)
 	_remove_victory_at(cell)
 	_remove_label_at(cell)
+	_rebuild_blocked_tiles_list()
+
+
+## Editor: set terrain class / height on an existing object; syncs derived flags.
+func set_cell_terrain(
+	cell: Vector2i,
+	terrain: int = -1,
+	height: int = -1,
+) -> void:
+	if not is_in_bounds(cell) or not has_object(cell):
+		return
+	var meta: Dictionary = _object_meta.get(cell, {}).duplicate(true)
+	var source: Dictionary = {}
+	if meta.get("source", {}) is Dictionary:
+		source = (meta["source"] as Dictionary).duplicate(true)
+	var resolved_terrain := terrain if terrain >= 0 else parse_terrain_class(str(source.get("terrain", "")))
+	var resolved_height := height if height >= 0 else obstruction_height(cell)
+	resolved_height = clampi(resolved_height, 0, 2)
+	source["terrain"] = terrain_class_token(resolved_terrain)
+	source["terrain_height"] = resolved_height
+	## Derived gameplay bits so authors / JSON stay consistent with class+height.
+	## Movement follows terrain class; LOS follows height (Climb blocks move, not standing LOS).
+	var blocks_move := (
+		resolved_terrain == TerrainClass.NO_PASS
+		or (resolved_terrain == TerrainClass.CLIMB and not ALLOW_CLIMB_TRAVERSAL)
+	)
+	var blocks_sight := resolved_height >= 2
+	meta["source"] = source
+	meta["blocks_movement"] = blocks_move
+	meta["blocks_los"] = blocks_sight
+	if resolved_terrain == TerrainClass.CLIMB or resolved_height == 1:
+		meta["provides_cover"] = true
+		if int(meta.get("cover_type", 0)) == 0:
+			meta["cover_type"] = 1 ## CoverSystem.MODERATE
+	_object_meta[cell] = meta
+	## Keep visual_placements source in sync for save/display.
+	for i in range(visual_placements.size()):
+		var entry: Dictionary = visual_placements[i]
+		if int(entry.get("x", -1)) != cell.x or int(entry.get("y", -1)) != cell.y:
+			continue
+		if str(entry.get("layer", "object")) != "object":
+			continue
+		entry["source"] = source.duplicate(true)
+		entry["blocks_movement"] = blocks_move
+		entry["blocks_los"] = blocks_sight
+		if meta.has("provides_cover"):
+			entry["provides_cover"] = meta["provides_cover"]
+		if meta.has("cover_type"):
+			entry["cover_type"] = meta["cover_type"]
+		visual_placements[i] = entry
+		break
 	_rebuild_blocked_tiles_list()
 
 
@@ -761,8 +996,13 @@ func _load_objects_from_json(raw: Array) -> void:
 		}
 		visual_placements.append(placement)
 
+		## Always register for terrain/collision — never leave authored tiles as visuals-only.
 		if MapObjectRegistryClass.get_def(type_id) == null:
-			continue
+			if not type_id.begins_with("coc_"):
+				type_id = "coc_blocker"
+			## Ensure a def exists for unknown coc_* ids.
+			if MapObjectRegistryClass.get_def(type_id) == null:
+				type_id = "coc_blocker"
 		_object_lookup[cell] = type_id
 		## Ignore baked sprite_path/sprite — presentation always re-resolves via CocSpriteResolver.
 		source.erase("sprite")

@@ -360,6 +360,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			)
 			get_viewport().set_input_as_handled()
 			return
+		if event.keycode == KEY_F6:
+			_world.toggle_terrain_overlay()
+			_status.text = (
+				"Terrain overlay %s (green=Even yellow=Climb red=NoPass)"
+				% ("ON" if _world.is_terrain_overlay_enabled() else "OFF")
+			)
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_ESCAPE:
 			get_tree().change_scene_to_file(MODE_SELECT_SCENE)
 			get_viewport().set_input_as_handled()
@@ -675,6 +683,15 @@ func _rebuild_inspector() -> void:
 	_add_int_field("Direction", def.direction, func(v: int) -> void: _apply_inspector_direction(cell, v))
 	_add_field("Image1", def.image1, func(v: String) -> void: _apply_inspector_image1(cell, v))
 	_add_int_field("Z", def.z, func(v: int) -> void: _apply_inspector_z(cell, v))
+	_add_terrain_class_field(cell)
+	_add_terrain_height_field(cell)
+	var blocks_move := _map_data.is_blocked(cell)
+	var blocks_sight_standing := _map_data.blocks_vision(cell, false, false)
+	var blocks_sight_prone := _map_data.blocks_vision(cell, true, false)
+	_add_inspector_label(
+		"Derived: move_blocked=%s  los_standing=%s  los_prone=%s"
+		% [str(blocks_move), str(blocks_sight_standing), str(blocks_sight_prone)]
+	)
 	_add_field("Material", def.material, func(v: String) -> void: _set_source_field(cell, "material", v))
 	_add_field("Height", def.height_band, func(v: String) -> void: _set_source_field(cell, "height_band", v))
 	_add_field("LOS", def.los_mode, func(v: String) -> void: _set_source_field(cell, "los_mode", v))
@@ -725,6 +742,60 @@ func _add_field(title: String, value: String, setter: Callable) -> void:
 
 func _add_int_field(title: String, value: int, setter: Callable) -> void:
 	_add_field(title, str(value), func(t: String) -> void: setter.call(int(t)))
+
+
+func _add_terrain_class_field(cell: Vector2i) -> void:
+	var row := HBoxContainer.new()
+	var lab := Label.new()
+	lab.text = "Terrain"
+	lab.custom_minimum_size = Vector2(96, 0)
+	var opt := OptionButton.new()
+	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	opt.add_item("Even", MapData.TerrainClass.EVEN)
+	opt.add_item("NoPass", MapData.TerrainClass.NO_PASS)
+	opt.add_item("Climb", MapData.TerrainClass.CLIMB)
+	var current := _map_data.terrain_class(cell)
+	for i in range(opt.item_count):
+		if opt.get_item_id(i) == current:
+			opt.select(i)
+			break
+	opt.item_selected.connect(func(index: int) -> void:
+		if not _map_data.has_object(cell):
+			_status.text = "Select a cell with a map object to edit terrain"
+			return
+		_push_history()
+		_map_data.set_cell_terrain(cell, opt.get_item_id(index), -1)
+		_refresh_world()
+		_rebuild_inspector()
+	)
+	row.add_child(lab)
+	row.add_child(opt)
+	_inspector.add_child(row)
+
+
+func _add_terrain_height_field(cell: Vector2i) -> void:
+	var row := HBoxContainer.new()
+	var lab := Label.new()
+	lab.text = "Terrain Height"
+	lab.custom_minimum_size = Vector2(96, 0)
+	var spin := SpinBox.new()
+	spin.min_value = 0
+	spin.max_value = 2
+	spin.step = 1
+	spin.value = _map_data.obstruction_height(cell)
+	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spin.value_changed.connect(func(v: float) -> void:
+		if not _map_data.has_object(cell):
+			_status.text = "Select a cell with a map object to edit height"
+			return
+		_push_history()
+		_map_data.set_cell_terrain(cell, -1, int(v))
+		_refresh_world()
+		_rebuild_inspector()
+	)
+	row.add_child(lab)
+	row.add_child(spin)
+	_inspector.add_child(row)
 
 
 func _apply_inspector_family(cell: Vector2i, family: String) -> void:
