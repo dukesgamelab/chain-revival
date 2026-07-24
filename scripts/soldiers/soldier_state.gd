@@ -111,7 +111,11 @@ func _init(id: int = 1, start_cell: Vector2i = Vector2i.ZERO, team: int = Team.U
 
 
 func _apply_default_loadout() -> void:
-	var loadout_weapon_id := FireteamLoadoutClass.weapon_id_for_soldier(team_id, soldier_id)
+	## Deployment: faction rifle only with starting ammo; specials come from Assign Weapons.
+	var loadout_weapon_id := FireteamLoadoutClass.deployment_weapon_id_for_soldier(
+		team_id,
+		soldier_id,
+	)
 	if loadout_weapon_id.is_empty():
 		return
 	assign_weapon(loadout_weapon_id, true)
@@ -125,9 +129,21 @@ func assign_weapon(weapon_id_value: String, refill_ammo: bool = false) -> void:
 	weapon_id = weapon_id_value
 	weapon_type = weapon.weapon_type
 	weapon_name = weapon.weapon_name
+	## ammo_max stores the weapon's starting load (for box bonus size / UI), not a hard carry cap.
 	ammo_max = weapon.ammo_capacity
-	if refill_ammo or ammo_current <= 0 or ammo_current > ammo_max:
+	if refill_ammo or ammo_current <= 0:
 		ammo_current = ammo_max
+
+
+## Ammo added by one Ammunition Box for the currently held weapon (stackable, no hard cap).
+func ammo_box_bonus() -> int:
+	return maxi(1, ammo_max) if ammo_max > 0 else 70
+
+
+func add_ammo_from_box() -> int:
+	var bonus := ammo_box_bonus()
+	ammo_current += bonus
+	return bonus
 
 
 func get_weapon_data() -> WeaponDataClass:

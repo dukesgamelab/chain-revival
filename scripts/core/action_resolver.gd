@@ -157,7 +157,7 @@ static func load_saved_session(
 	game_state: GameStateClass,
 	file_path: String = GameSaveClass.DEFAULT_PATH,
 ) -> ActionResult:
-	if not GameSaveClass.load_game(game_state.session, file_path):
+	if not GameSaveClass.load_game_state(game_state, file_path):
 		return ActionResult.fail("Load failed.")
 	game_state.rebuild_object_registry()
 	_log_action("load saved session")
@@ -1297,6 +1297,12 @@ static func _assign_weapon_to_soldier(
 	if team_id < 0 and hierarchy != null:
 		team_id = hierarchy.get_team_id(from_player_id)
 	var owned := hierarchy.get_soldier_ids(from_player_id) if hierarchy != null else ([] as Array[int])
+	## Commander may also equip soldiers belonging to direct subordinate players/AI fireteams.
+	if hierarchy != null:
+		for sub_pid in hierarchy.get_subordinates(from_player_id):
+			for sid in hierarchy.get_soldier_ids(sub_pid):
+				if sid not in owned:
+					owned.append(sid)
 	if soldier_id <= 0 or soldier_id not in owned:
 		return ActionResult.fail("Choose a target for weapon assignment")
 	var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
@@ -1313,17 +1319,14 @@ static func _assign_weapon_to_soldier(
 		return ActionResult.fail("That weapon was already taken")
 
 	if is_equip:
-		## Ammunition boxes top off the soldier's current gun (original Add Ammo flow).
+		## Ammunition boxes add another starting-load of ammo (stackable — not capped at start).
 		if item_id == WeaponCacheClass.ITEM_AMMUNITION_BOX:
-			if soldier.ammo_current >= soldier.ammo_max and soldier.ammo_max > 0:
-				cache.add_to_pool(from_player_id, item_id, 1, WeaponCacheClass.Kind.EQUIPMENT)
-				return ActionResult.fail("Soldier already has full ammo")
-			soldier.ammo_current = soldier.ammo_max
+			var added := soldier.add_ammo_from_box()
 			var ammo_result := ActionResult.new()
 			ammo_result.refresh_views = true
 			return ammo_result.set_status(
-				"Added ammo to soldier%d (%s, %d)"
-				% [soldier_id, cache.display_name(str(soldier.weapon_id)), soldier.ammo_current]
+				"Added +%d ammo to soldier%d (%s, %d)"
+				% [added, soldier_id, cache.display_name(str(soldier.weapon_id)), soldier.ammo_current]
 			)
 		soldier.add_equipment(item_id)
 		var equip_result := ActionResult.new()
@@ -1332,10 +1335,14 @@ static func _assign_weapon_to_soldier(
 			"Assigned %s to soldier%d" % [cache.display_name(item_id), soldier_id]
 		)
 
-	## WeaponGetNew + WeaponRemoveOld: previous weapon returns to the pool.
+	## WeaponGetNew + WeaponRemoveOld: previous *special* returns to pool (never default rifles).
 	var old_weapon_id := str(soldier.weapon_id)
 	soldier.assign_weapon(item_id, true)
-	if not old_weapon_id.is_empty() and old_weapon_id != item_id:
+	if (
+		not old_weapon_id.is_empty()
+		and old_weapon_id != item_id
+		and not WeaponCacheClass.is_default_rifle(old_weapon_id)
+	):
 		cache.add_to_pool(from_player_id, old_weapon_id, 1, WeaponCacheClass.Kind.WEAPON)
 
 	var result := ActionResult.new()
@@ -1387,6 +1394,9 @@ static func execute_return_weapon(
 
 	if str(soldier.weapon_id) != item_id:
 		return ActionResult.fail("No weapon available")
+	## Default rifles are not assignable cache items — refuse returning them to the pool.
+	if WeaponCacheClass.is_default_rifle(item_id):
+		return ActionResult.fail("Default rifles are not returned to the weapons cache")
 	var default_rifle := WeaponCacheClass.default_rifle_for_team(team_id)
 	soldier.assign_weapon(default_rifle, true)
 	cache.add_to_pool(to_player_id, item_id, 1, WeaponCacheClass.Kind.WEAPON)
@@ -1404,17 +1414,16 @@ static func execute_adjust_ammo(
 	var soldier: SoldierState = game_state.get_soldier(cmd.team_id, cmd.soldier_id)
 	if soldier == null or soldier.is_dead:
 		return ActionResult.fail("Soldier unavailable.")
-	if soldier.ammo_max <= 0:
-		return ActionResult.fail("No ammo capacity on this weapon.")
-	var next := clampi(soldier.ammo_current + int(cmd.delta), 0, soldier.ammo_max)
+	## Starting load is not a hard cap — ▲ may go above ammo_max; ▼ floors at 0.
+	var next := soldier.ammo_current + int(cmd.delta)
+	if next < 0:
+		next = 0
 	if next == soldier.ammo_current:
-		return ActionResult.fail(
-			"Ammo already at %s." % ("max" if cmd.delta > 0 else "minimum")
-		)
+		return ActionResult.fail("Ammo already at minimum.")
 	soldier.ammo_current = next
 	var result := ActionResult.new()
 	result.refresh_views = true
 	return result.set_status(
-		"Soldier %d ammo: %d / %d" % [cmd.soldier_id, soldier.ammo_current, soldier.ammo_max]
+		"Soldier %d ammo: %d" % [cmd.soldier_id, soldier.ammo_current]
 	)
 

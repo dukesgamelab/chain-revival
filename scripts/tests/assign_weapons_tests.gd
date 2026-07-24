@@ -161,17 +161,25 @@ func _test_bar_swap_returns_garand_to_pool() -> void:
 	var result := _submit(gs, cmd)
 	_assert("BAR assign succeeds after strip", result.success)
 	_assert("soldier now has BAR", soldier.weapon_id == WeaponPolicyClass.ID_BAR)
-	_assert("BAR ammo is AmmoMax 900", soldier.ammo_current == 900)
+	_assert("BAR ammo is starting load 900", soldier.ammo_current == 900)
 	_assert("BAR left pool", cache.pool_count(1, WeaponPolicyClass.ID_BAR) == bar_before - 1)
 	_assert(
-		"Garand returned to pool",
-		cache.pool_count(1, WeaponPolicyClass.ID_M1_GARAND) == garand_before + 1,
+		"Garand never enters assignable cache",
+		cache.pool_count(1, WeaponPolicyClass.ID_M1_GARAND) == garand_before,
 	)
 
 
 func _test_squad_limit_refused() -> void:
 	var gs := _make_game_state()
-	## Default loadout already has 1 BAR on soldier 4 — assigning another must fail.
+	_strip_squad_specials(gs, Team.USA)
+	## Place one BAR on soldier 2 first — a second BAR for this squad must fail.
+	var first := AssignWeaponCommandClass.new()
+	first.from_player_id = 1
+	first.item_id = WeaponPolicyClass.ID_BAR
+	first.target_kind = WeaponCacheClass.TargetKind.SOLDIER
+	first.target_id = 2
+	first.target_team_id = Team.USA
+	_assert("first BAR ok", _submit(gs, first).success)
 	var cmd := AssignWeaponCommandClass.new()
 	cmd.from_player_id = 1
 	cmd.item_id = WeaponPolicyClass.ID_BAR
@@ -185,17 +193,16 @@ func _test_squad_limit_refused() -> void:
 	)
 	_assert(
 		"BAR still in pool after refuse",
-		gs.weapon_cache.pool_count(1, WeaponPolicyClass.ID_BAR) == 2,
+		gs.weapon_cache.pool_count(1, WeaponPolicyClass.ID_BAR) == 1,
 	)
 
 
 func _test_ammunition_box_as_equipment() -> void:
 	var gs := _make_game_state()
 	var soldier: SoldierState = gs.get_soldier(Team.USA, 1)
-	## Spend some ammo so Add Ammo has room to refill.
-	soldier.ammo_current = maxi(0, soldier.ammo_max - 20)
+	## Starting load is 70 for Garand — not a cap; boxes add another starting load each time.
+	_assert("deployment starts with rifle starting ammo", soldier.ammo_current == 70)
 	var prior_weapon := str(soldier.weapon_id)
-	var prior_ammo := int(soldier.ammo_current)
 	var before := gs.weapon_cache.pool_count(1, WeaponCacheClass.ITEM_AMMUNITION_BOX)
 	var cmd := AssignWeaponCommandClass.new()
 	cmd.from_player_id = 1
@@ -206,11 +213,14 @@ func _test_ammunition_box_as_equipment() -> void:
 	var result := _submit(gs, cmd)
 	_assert("ammo box assign succeeds", result.success)
 	_assert("weapon unchanged", soldier.weapon_id == prior_weapon)
-	_assert("ammo refilled to max", soldier.ammo_current == soldier.ammo_max)
-	_assert("ammo increased from prior", soldier.ammo_current > prior_ammo)
+	_assert("ammo stacked to 140", soldier.ammo_current == 140)
+	## Second box stacks again.
+	var result2 := _submit(gs, cmd)
+	_assert("second ammo box stacks", result2.success)
+	_assert("ammo stacked to 210", soldier.ammo_current == 210)
 	_assert(
-		"ammo box left pool",
-		gs.weapon_cache.pool_count(1, WeaponCacheClass.ITEM_AMMUNITION_BOX) == before - 1,
+		"ammo boxes left pool",
+		gs.weapon_cache.pool_count(1, WeaponCacheClass.ITEM_AMMUNITION_BOX) == before - 2,
 	)
 
 

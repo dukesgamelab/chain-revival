@@ -82,7 +82,8 @@ static func _coc_default_def(type_id: String) -> MapObjectDef:
 	## Fallback when family is unknown / not in map_asset_registry.json.
 	## Authoritative CoC family gameplay lives in MapAssetRegistry; MapData prefers that.
 	match type_id:
-		"coc_window", "coc_door_wood", "coc_bush", "coc_cw01", "coc_cw02", "coc_swin", "coc_wh11":
+		"coc_window", "coc_door_wood", "coc_bush", "coc_cw01", "coc_cw02", "coc_swin", "coc_wh11", "coc_swal":
+			## Low field walls (WH*) often save as coc_swal — climb/height-1 moderate, not opaque.
 			return MapObjectDef.new(
 				type_id, type_id, false, false, true, CoverSystem.CoverType.MODERATE, ""
 			)

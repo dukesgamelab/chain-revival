@@ -39,13 +39,20 @@ func refresh() -> void:
 	if _commanders_list == null or _game_state == null or _game_state.command_hierarchy == null:
 		return
 	var hierarchy := _game_state.command_hierarchy
+	## USA only links USA; Germany only links Germany.
+	var local_team := hierarchy.get_team_id(_game_state.local_player_id)
+
 	_commanders_list.clear()
 	for pid in hierarchy.commanders_with_openings():
+		if hierarchy.get_team_id(pid) != local_team:
+			continue
 		_commanders_list.add_item(hierarchy.list_label(pid))
 		_commanders_list.set_item_metadata(_commanders_list.item_count - 1, pid)
 
 	_unassigned_list.clear()
 	for pid in hierarchy.players_without_commanders():
+		if hierarchy.get_team_id(pid) != local_team:
+			continue
 		_unassigned_list.add_item(hierarchy.list_label(pid))
 		_unassigned_list.set_item_metadata(_unassigned_list.item_count - 1, pid)
 
@@ -53,6 +60,8 @@ func refresh() -> void:
 	for link in hierarchy.all_links():
 		var cmd_id := int(link.get("commander_id", -1))
 		var sub_id := int(link.get("subordinate_id", -1))
+		if hierarchy.get_team_id(cmd_id) != local_team:
+			continue
 		var text := "%s  →  %s" % [hierarchy.list_label(cmd_id), hierarchy.list_label(sub_id)]
 		_links_list.add_item(text)
 		_links_list.set_item_metadata(_links_list.item_count - 1, sub_id)
@@ -161,6 +170,17 @@ func _on_link_pressed() -> void:
 		return
 	var commander_id := _selected_meta(_commanders_list)
 	var subordinate_id := _selected_meta(_unassigned_list)
+	## If ranks are reversed, swap so higher rank commands lower.
+	var hierarchy := _game_state.command_hierarchy
+	if (
+		commander_id > 0
+		and subordinate_id > 0
+		and hierarchy != null
+		and hierarchy.get_rank(subordinate_id) > hierarchy.get_rank(commander_id)
+	):
+		var tmp := commander_id
+		commander_id = subordinate_id
+		subordinate_id = tmp
 	var cmd := AssignCommanderCommandClass.new()
 	cmd.commander_id = commander_id
 	cmd.subordinate_id = subordinate_id
@@ -182,7 +202,10 @@ func _on_break_pressed() -> void:
 
 func _on_briefing_pressed() -> void:
 	briefing_requested.emit()
-	_status_label.text = "Briefing: link players and whole AI fireteams into your chain of command."
+	_status_label.text = (
+		"Briefing: select a higher-rank commander and a lower-rank teammate, then Commanded by. "
+		+ "USA only commands USA; Germany only commands Germany. Visibility flows upward."
+	)
 
 
 func _show_result(result) -> void:

@@ -112,6 +112,11 @@ func display_name(item_id: String) -> String:
 	return item_id
 
 
+## Faction default rifles are never assignable cache items (Garand / Kar98k).
+static func is_default_rifle(item_id: String) -> bool:
+	return item_id == WeaponPolicyClass.ID_M1_GARAND or item_id == WeaponPolicyClass.ID_KAR98K
+
+
 func pool_line(item_id: String, count: int) -> String:
 	if count <= 1:
 		return display_name(item_id)
@@ -140,9 +145,11 @@ func take_from_pool(player_id: int, item_id: String) -> bool:
 	return false
 
 
-## Add count units to the pool (merge existing rows).
+## Add count units to the pool (merge existing rows). Default rifles are never cached.
 func add_to_pool(player_id: int, item_id: String, count: int = 1, kind: int = -1) -> void:
 	if count <= 0 or item_id.is_empty():
+		return
+	if is_default_rifle(item_id):
 		return
 	ensure_player(player_id)
 	var resolved_kind := kind if kind >= 0 else item_kind(item_id)

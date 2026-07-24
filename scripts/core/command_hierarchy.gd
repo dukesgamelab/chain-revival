@@ -83,9 +83,12 @@ func register_player(
 	for sid in soldier_ids:
 		owned.append(int(sid))
 	_players[id] = {
+		"player_id": id,
 		"rank": clamped_rank,
 		"commander_id": NO_COMMANDER,
+		## subordinate_ids (stored as subordinates for compatibility)
 		"subordinates": [] as Array[int],
+		"subordinate_ids": [] as Array[int],
 		"is_mission_commander": false,
 		"team_id": team_id,
 		"display_name": display_name,
@@ -167,17 +170,32 @@ func get_subordinates(player_id: int) -> Array[int]:
 	var out: Array[int] = []
 	if not _players.has(player_id):
 		return out
-	var raw: Variant = (_players[player_id] as Dictionary).get("subordinates", [])
+	var entry: Dictionary = _players[player_id]
+	## Prefer subordinate_ids when present (Phase 2 name); fall back to subordinates.
+	var raw: Variant = entry.get("subordinate_ids", entry.get("subordinates", []))
 	if raw is Array:
 		for sid in raw:
 			out.append(int(sid))
 	return out
 
 
+## Phase 2 alias for get_subordinates.
+func get_subordinate_ids(player_id: int) -> Array[int]:
+	return get_subordinates(player_id)
+
+
 func get_rank(player_id: int) -> int:
 	if not _players.has(player_id):
 		return MIN_JOIN_RANK
 	return int((_players[player_id] as Dictionary).get("rank", MIN_JOIN_RANK))
+
+
+func set_rank(player_id: int, rank: int) -> void:
+	if not _players.has(player_id):
+		return
+	var entry: Dictionary = _players[player_id]
+	entry["rank"] = clampi(rank, MIN_JOIN_RANK, MAX_JOIN_RANK)
+	_players[player_id] = entry
 
 
 func get_team_id(player_id: int) -> int:
@@ -314,6 +332,9 @@ func assign_link(commander_id: int, subordinate_id: int) -> void:
 	if subordinate_id not in subs:
 		subs.append(subordinate_id)
 	cmd["subordinates"] = subs
+	cmd["subordinate_ids"] = subs.duplicate()
+	sub["player_id"] = subordinate_id
+	cmd["player_id"] = commander_id
 	_players[subordinate_id] = sub
 	_players[commander_id] = cmd
 
@@ -333,6 +354,7 @@ func break_link(subordinate_id: int) -> void:
 		if int(sid) != subordinate_id:
 			subs.append(int(sid))
 	cmd["subordinates"] = subs
+	cmd["subordinate_ids"] = subs.duplicate()
 	_players[commander_id] = cmd
 
 
@@ -381,6 +403,7 @@ func pp_lost_on_killed(rank: int) -> int:
 
 
 func to_dict() -> Dictionary:
+	## Player IDs only — no scene/node refs. Safe for multiplayer / dedicated server.
 	return {"players": _players.duplicate(true), "next_player_id": _next_player_id}
 
 
@@ -389,5 +412,48 @@ func load_from_dict(data: Dictionary) -> void:
 	var raw: Variant = data.get("players", {})
 	if raw is Dictionary:
 		for key in raw.keys():
-			_players[int(key)] = (raw[key] as Dictionary).duplicate(true)
+			var entry: Dictionary = (raw[key] as Dictionary).duplicate(true)
+			var pid := int(key)
+			entry["player_id"] = int(entry.get("player_id", pid))
+			## Keep subordinates / subordinate_ids in sync.
+			var subs_raw: Variant = entry.get("subordinate_ids", entry.get("subordinates", []))
+			var subs: Array = []
+			if subs_raw is Array:
+				for sid in subs_raw:
+					subs.append(int(sid))
+			entry["subordinates"] = subs
+			entry["subordinate_ids"] = subs.duplicate()
+			_players[pid] = entry
 	_next_player_id = int(data.get("next_player_id", _players.size() + 1))
+
+
+## --- Future hooks (order issuing / AI planning) — stubs for Phase 2 ---
+
+## Reserved: downward order flow (attack/defend/move). Not implemented yet.
+func issue_order(_from_player_id: int, _to_player_id: int, _order: Dictionary = {}) -> Dictionary:
+	return {
+		"ok": false,
+		"error": "Order issuing not implemented yet",
+	}
+
+
+## Players in this player's command tree (self + recursive subordinates).
+func get_visible_players(player_id: int) -> Array[int]:
+	var out: Array[int] = []
+	if not has_player(player_id):
+		return out
+	out.append(player_id)
+	out.append_array(collect_subordinate_tree(player_id))
+	return out
+
+
+## Whether this player may issue orders down the chain (has subordinates).
+func can_issue_orders(player_id: int) -> bool:
+	if not has_player(player_id):
+		return false
+	return subordinate_count(player_id) > 0
+
+
+## Whether this player sits under a commander (can receive downward orders later).
+func can_receive_orders(player_id: int) -> bool:
+	return has_player(player_id) and get_commander(player_id) != NO_COMMANDER

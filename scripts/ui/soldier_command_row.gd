@@ -107,7 +107,11 @@ func set_weapon_info(state: SoldierState) -> void:
 		state.weapon_name if not state.weapon_name.is_empty() else "—",
 	]
 	_weapon_label.tooltip_text = status_line
-	_ammo_label.tooltip_text = "%s\nAmmo %d / %d" % [status_line, state.ammo_current, state.ammo_max]
+	_ammo_label.tooltip_text = "%s\nAmmo %d (start load %d)" % [
+		status_line,
+		state.ammo_current,
+		state.ammo_max,
+	]
 
 
 func set_ammo(ammo_current: int, _ammo_max: int) -> void:

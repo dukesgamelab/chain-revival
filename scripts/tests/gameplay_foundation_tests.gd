@@ -17,6 +17,8 @@ const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
 const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
 const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
 const CombatSystemClass := preload("res://scripts/combat/combat_system.gd")
+const PositionStateClass := preload("res://scripts/enums/position_state.gd")
+const MapAssetRegistryClass := preload("res://scripts/map/map_asset_registry.gd")
 
 var _failed: int = 0
 var _passed: int = 0
@@ -29,6 +31,7 @@ func _ready() -> void:
 	_test_firing()
 	_test_grenade_throwing()
 	_test_los_fixture()
+	_test_climb_short_wall_fire_over()
 	_test_wall_cover_fixture()
 	_test_directional_cover()
 	_test_rng_seed_reproducibility()
@@ -321,6 +324,99 @@ func _test_los_fixture() -> void:
 		"LOS fixture tree blocks line of fire",
 		blocked_los.status == LOSSystemClass.Status.BLOCKED,
 		"status=%s type=%s" % [LOSSystemClass.status_name(blocked_los.status), blocked_los.blocking_type],
+	)
+
+
+func _test_climb_short_wall_fire_over() -> void:
+	## Climb / height-1 short walls (WH00): standing shooters fire over them, even at prone targets.
+	_bootstrap()
+	MapAssetRegistryClass.ensure_loaded()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+
+	var wall := Vector2i(22, 30)
+	map_data.place_family_object(wall, "WH00", 0)
+	_assert("WH00 is climb terrain", map_data.is_climb(wall))
+	_assert("WH00 height is 1", map_data.obstruction_height(wall) == 1)
+	_assert(
+		"WH00 does not block standing vision",
+		not map_data.blocks_vision(wall, false, false),
+	)
+	_assert(
+		"WH00 does not block standing→prone vision",
+		not map_data.blocks_vision(wall, false, true),
+	)
+	_assert(
+		"WH00 blocks prone observer vision",
+		map_data.blocks_vision(wall, true, false),
+	)
+
+	var game_state := _make_game_state(map_data)
+	var shooter := game_state.get_soldier(Team.USA, 1)
+	var target := game_state.get_soldier(Team.GERMANY, 1)
+	## Shooter immediately behind the short wall; target beyond it (prone, as in Farm Fight).
+	shooter.grid_position = Vector2i(21, 30)
+	target.grid_position = Vector2i(24, 30)
+	target.position_state = PositionStateClass.DOWN
+	shooter.clear_path()
+	target.clear_path()
+	game_state.session.get_fireteam(Team.USA).face_toward_tile(1, target.grid_position)
+	CombatSystemClass.update_spotting(game_state)
+	shooter.record_last_seen_enemy(target)
+
+	var los := LOSSystemClass.evaluate(
+		shooter.grid_position,
+		target.grid_position,
+		map_data,
+		game_state,
+	)
+	_assert(
+		"Standing over WH00 at prone target is not BLOCKED",
+		los.status != LOSSystemClass.Status.BLOCKED,
+		"status=%s type=%s" % [LOSSystemClass.status_name(los.status), los.blocking_type],
+	)
+
+	var ammo_before := shooter.ammo_current
+	var fire_cmd := FireCommandClass.new()
+	fire_cmd.team_id = Team.USA
+	fire_cmd.soldier_id = 1
+	fire_cmd.target_team_id = Team.GERMANY
+	fire_cmd.target_soldier_id = 1
+	fire_cmd.aim_world = IsometricGrid.grid_to_world(target.grid_position)
+	fire_cmd.scope = FireCommandClass.Scope.SINGLE
+	var fire_ctx := CommandContextClass.new()
+	fire_ctx.shooter_ids = [1]
+	var fire_result := ActionResolverClass.execute_fire(game_state, fire_cmd, fire_ctx)
+	_assert("Fire At over short wall engages", fire_result.success, fire_result.status_message)
+
+	var fired := false
+	for _attempt in range(4):
+		SimulationClock.advance_msec(int(GameplayPolicies.hit.fire_prep_delay_sec * 1000.0) + 50)
+		var tick := ActionResolverClass.process_combat_tick(game_state)
+		if tick.combat_shots.size() >= 1 and shooter.ammo_current < ammo_before:
+			fired = true
+			break
+	_assert(
+		"Fire At over short wall discharges a shot",
+		fired,
+		"ammo %d -> %d status=%s"
+		% [ammo_before, shooter.ammo_current, fire_result.status_message],
+	)
+
+	## Prone shooter without adjacent peek cannot see over mid-line climb cover.
+	shooter.position_state = PositionStateClass.DOWN
+	shooter.grid_position = Vector2i(20, 30) ## wall at 22 is not adjacent
+	var prone_los := LOSSystemClass.evaluate(
+		shooter.grid_position,
+		target.grid_position,
+		map_data,
+		game_state,
+	)
+	_assert(
+		"Prone shooter mid-line WH00 is BLOCKED",
+		prone_los.status == LOSSystemClass.Status.BLOCKED,
+		"status=%s type=%s" % [LOSSystemClass.status_name(prone_los.status), prone_los.blocking_type],
 	)
 
 

@@ -1,7 +1,7 @@
 class_name MatchConfig
 extends RefCounted
 ## Serializable match setup (IDs only — no nodes). Consumed by GameSession / GameState.
-## Future: commander hierarchy, AI plans, multiplayer lobby, dedicated server.
+## Used by commander hierarchy bootstrap, AI plans, multiplayer lobby, dedicated server.
 
 enum GameModeKind { SINGLE_PLAYER, MULTIPLAYER }
 enum MatchType { ONE_V_ONE, TWO_V_TWO }

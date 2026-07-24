@@ -297,17 +297,20 @@ func _visual_family_at(cell: Vector2i) -> String:
 const ALLOW_CLIMB_TRAVERSAL := false
 
 
-## Vision obstruction from height. Full (2) always blocks; low (1) only when prone.
+## Vision obstruction from height.
+## Full (2) always blocks. Low (1) / climb short walls only block a *prone observer*
+## (cannot see over). Standing shooters can always shoot over height-1 climb cover;
+## a prone *target* does not make the wall opaque.
 func blocks_vision(
 	cell: Vector2i,
 	observer_prone: bool = false,
-	target_prone: bool = false,
+	_target_prone: bool = false,
 ) -> bool:
 	var height := obstruction_height(cell)
 	if height >= 2:
 		return true
 	if height == 1:
-		return observer_prone or target_prone
+		return observer_prone
 	return false
 
 
@@ -421,8 +424,9 @@ func place_family_object(
 		source["image1"] = image1.to_upper()
 	## Optional explicit overrides from caller (editor tools).
 	var overrides: Dictionary = {}
-	if gameplay.get("gameplay_overrides", {}) is Dictionary:
-		overrides = (gameplay["gameplay_overrides"] as Dictionary).duplicate(true)
+	var nested_overrides: Variant = gameplay.get("gameplay_overrides", null)
+	if nested_overrides is Dictionary:
+		overrides = (nested_overrides as Dictionary).duplicate(true)
 	for key in [
 		"terrain",
 		"terrain_height",

@@ -1952,7 +1952,7 @@ func _on_face_mode_changed(is_active: bool, soldier_id: int) -> void:
 
 
 func _on_save_requested() -> void:
-	if GameSaveClass.save_game(_session, _map_data):
+	if GameSaveClass.save_game_state(_game_state):
 		_command_bar.show_status("Game saved.")
 	else:
 		_command_bar.show_status("Save failed.")

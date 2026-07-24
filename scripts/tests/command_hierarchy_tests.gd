@@ -17,6 +17,7 @@ const EnemyVisibilityResultClass := preload("res://scripts/combat/enemy_visibili
 const FacingDirectionClass := preload("res://scripts/enums/facing_direction.gd")
 const ActionResultClass := preload("res://scripts/core/action_result.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
+const GameSaveClass := preload("res://scripts/core/game_save.gd")
 
 var _failed: int = 0
 var _passed: int = 0
@@ -30,6 +31,9 @@ func _ready() -> void:
 	_test_command_vis_transitive_and_break()
 	_test_command_vis_does_not_alter_los()
 	_test_works_with_ai_players()
+	_test_ai_commander_with_human_subordinate()
+	_test_hierarchy_serialization_round_trip()
+	_test_future_hook_apis()
 	print("")
 	print("Command hierarchy tests: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -448,3 +452,75 @@ func _test_works_with_ai_players() -> void:
 	cmd.commander_id = 3
 	cmd.subordinate_id = 4
 	_assert("AI commander link works offline", _submit(game_state, cmd).success)
+
+
+func _test_ai_commander_with_human_subordinate() -> void:
+	## Raise USA AI (player 2) above human (player 1) so AI can command human.
+	var game_state: GameStateClass = _make_game_state()
+	var hierarchy: CommandHierarchyClass = game_state.command_hierarchy
+	var human_entry: Dictionary = hierarchy.get_entry(1)
+	var ai_entry: Dictionary = hierarchy.get_entry(2)
+	_assert("human is not AI", not bool(human_entry.get("is_ai", true)))
+	_assert("ally is AI", bool(ai_entry.get("is_ai", false)))
+	hierarchy.set_rank(2, 5)
+	hierarchy.set_rank(1, 1)
+	var cmd := AssignCommanderCommandClass.new()
+	cmd.commander_id = 2 ## AI
+	cmd.subordinate_id = 1 ## Human
+	var result := _submit(game_state, cmd)
+	_assert("AI commander with Human subordinate", result.success, result.status_message)
+	_assert("human commanded by AI", game_state.get_commander(1) == 2)
+	_assert("AI can issue orders", game_state.can_issue_orders(2))
+	_assert("human can receive orders", game_state.can_receive_orders(1))
+
+
+func _test_hierarchy_serialization_round_trip() -> void:
+	var game_state: GameStateClass = _make_game_state()
+	var link := AssignCommanderCommandClass.new()
+	link.commander_id = 1
+	link.subordinate_id = 2
+	_assert("serialize setup link", _submit(game_state, link).success)
+	var mc := SetMissionCommanderCommandClass.new()
+	mc.player_id = 1
+	_assert("serialize setup MC", _submit(game_state, mc).success)
+
+	var path := "user://test_hierarchy_roundtrip.json"
+	_assert("save_game_state writes", GameSaveClass.save_game_state(game_state, path))
+
+	var restored: GameStateClass = _make_game_state()
+	_assert("load_game_state reads", GameSaveClass.load_game_state(restored, path))
+	_assert("restored link YOU→AI", restored.get_commander(2) == 1)
+	_assert(
+		"restored subordinate list",
+		2 in restored.get_subordinates(1),
+	)
+	_assert(
+		"restored mission commander",
+		restored.command_hierarchy.is_mission_commander(1),
+	)
+	_assert(
+		"entry has player_id",
+		int(restored.command_hierarchy.get_entry(1).get("player_id", -1)) == 1,
+	)
+	## Cleanup temp save.
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+
+
+func _test_future_hook_apis() -> void:
+	var game_state: GameStateClass = _make_game_state()
+	var link := AssignCommanderCommandClass.new()
+	link.commander_id = 1
+	link.subordinate_id = 2
+	_submit(game_state, link)
+	var order := game_state.issue_order(1, 2, {"type": "attack"})
+	_assert("issue_order stub refuses", not bool(order.get("ok", true)))
+	var visible_players := game_state.get_visible_players(1)
+	_assert("get_visible_players includes self", 1 in visible_players)
+	_assert("get_visible_players includes subordinate", 2 in visible_players)
+	var enemies := game_state.get_visible_enemies(1)
+	_assert("get_visible_enemies returns array", enemies is Array)
+	_assert("can_issue_orders after link", game_state.can_issue_orders(1))
+	_assert("can_receive_orders on subordinate", game_state.can_receive_orders(2))
+	_assert("get_commander API", game_state.get_commander(2) == 1)
+	_assert("get_subordinates API", 2 in game_state.get_subordinates(1))

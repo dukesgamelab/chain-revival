@@ -50,11 +50,13 @@ func refresh() -> void:
 	var hierarchy = _game_state.command_hierarchy
 
 	_pool_list.clear()
-	## List each physical item individually (4 ammo boxes → 4 rows).
+	## List each physical item individually (4 ammo boxes → 4 rows). Never list default rifles.
 	for entry in cache.get_cache(_player_id):
 		var item_id := str(entry.get("item_id", ""))
 		var count := int(entry.get("count", 0))
 		if item_id.is_empty() or count <= 0:
+			continue
+		if WeaponCacheClass.is_default_rifle(item_id):
 			continue
 		var label := cache.display_name(item_id)
 		for _i in count:
@@ -81,27 +83,38 @@ func _refresh_soldiers_list() -> void:
 		return
 	var cache: WeaponCacheClass = _game_state.weapon_cache
 	var hierarchy = _game_state.command_hierarchy
-	var owner_id := _player_id
-	var selected_sub := _selected_int_meta(_subordinates_list)
-	## Viewing a human subordinate's soldiers; AI fireteams receive gear via the player slot.
-	if selected_sub > 0 and hierarchy != null and not hierarchy.is_ai_player(selected_sub):
-		owner_id = selected_sub
-	var team_id := hierarchy.get_team_id(owner_id) if hierarchy != null else Team.USA
-	var soldier_ids: Array[int] = []
-	if hierarchy != null:
-		soldier_ids = hierarchy.get_soldier_ids(owner_id)
-	for sid in soldier_ids:
-		var soldier: SoldierState = _game_state.get_soldier(team_id, sid)
+	var team_id := hierarchy.get_team_id(_player_id) if hierarchy != null else Team.USA
+	## Show every soldier on this player's team (1v1: 4, 2v2: all side fireteams).
+	var fireteam: Fireteam = _game_state.session.get_fireteam(team_id)
+	if fireteam == null:
+		return
+	for state in fireteam.soldiers:
+		var soldier: SoldierState = state
 		if soldier == null:
 			continue
+		var owner_id := _owner_player_for_soldier(team_id, soldier.soldier_id)
 		var weapon_text := cache.display_name(str(soldier.weapon_id))
-		var line := "soldier%d   %s, %d" % [sid, weapon_text, soldier.ammo_current]
+		var line := "soldier%d   %s, %d" % [soldier.soldier_id, weapon_text, soldier.ammo_current]
+		if owner_id > 0 and owner_id != _player_id and hierarchy != null:
+			line += "  [%s]" % hierarchy.get_display_name(owner_id)
 		_soldiers_list.add_item(line)
 		_soldiers_list.set_item_metadata(_soldiers_list.item_count - 1, {
-			"soldier_id": sid,
-			"owner_player_id": owner_id,
+			"soldier_id": soldier.soldier_id,
+			"owner_player_id": owner_id if owner_id > 0 else _player_id,
 			"team_id": team_id,
 		})
+
+
+func _owner_player_for_soldier(team_id: int, soldier_id: int) -> int:
+	var hierarchy = _game_state.command_hierarchy if _game_state != null else null
+	if hierarchy == null:
+		return _player_id
+	for pid in hierarchy.all_player_ids():
+		if hierarchy.get_team_id(pid) != team_id:
+			continue
+		if soldier_id in hierarchy.get_soldier_ids(pid):
+			return pid
+	return _player_id
 
 
 func _build_layout() -> void:
@@ -125,9 +138,10 @@ func _build_layout() -> void:
 	_pool_list = left["list"]
 	body.add_child(left["root"])
 
-	## Center: Assign to + black square of subordinate player names (original layout).
+	## Center: assign / return / add ammo only (player box lives above soldiers on the right).
 	var mid := VBoxContainer.new()
-	mid.custom_minimum_size = Vector2(160, 0)
+	mid.alignment = BoxContainer.ALIGNMENT_CENTER
+	mid.custom_minimum_size = Vector2(140, 0)
 	mid.add_theme_constant_override("separation", 8)
 	_assign_button = Button.new()
 	_assign_button.text = "Assign to ▶▶▶"
@@ -139,25 +153,11 @@ func _build_layout() -> void:
 	mid.add_child(_return_button)
 	_add_ammo_button = Button.new()
 	_add_ammo_button.text = "Add Ammo ▶"
-	_add_ammo_button.tooltip_text = "Assign an Ammunition Box to the selected soldier's gun."
+	_add_ammo_button.tooltip_text = (
+		"Give an Ammunition Box to the selected soldier (adds another starting load; stackable)."
+	)
 	_add_ammo_button.pressed.connect(_on_add_ammo_pressed)
 	mid.add_child(_add_ammo_button)
-
-	var sub_hdr := Label.new()
-	sub_hdr.text = "Subordinate players"
-	sub_hdr.add_theme_font_size_override("font_size", 11)
-	mid.add_child(sub_hdr)
-	_subordinates_list = ItemList.new()
-	_subordinates_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_subordinates_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_subordinates_list.custom_minimum_size = Vector2(150, 120)
-	_subordinates_list.select_mode = ItemList.SELECT_SINGLE
-	_subordinates_list.item_selected.connect(_on_subordinate_selected)
-	## Dark panel look matching the original empty black square.
-	_subordinates_list.add_theme_color_override("font_color", Color(0.95, 0.9, 0.35))
-	_subordinates_list.add_theme_color_override("font_selected_color", Color(1, 1, 0.55))
-	_subordinates_list.add_theme_stylebox_override("panel", _dark_list_style())
-	mid.add_child(_subordinates_list)
 	body.add_child(mid)
 
 	var right := VBoxContainer.new()
@@ -170,10 +170,29 @@ func _build_layout() -> void:
 	right_header.text = "Assign to subordinate players/soldiers"
 	right.add_child(right_header)
 
+	## Player box ABOVE the fireteam/soldier list (original layout).
+	var players_hdr := Label.new()
+	players_hdr.text = "Players"
+	players_hdr.add_theme_font_size_override("font_size", 11)
+	right.add_child(players_hdr)
+	_subordinates_list = ItemList.new()
+	_subordinates_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_subordinates_list.custom_minimum_size = Vector2(220, 72)
+	_subordinates_list.select_mode = ItemList.SELECT_SINGLE
+	_subordinates_list.item_selected.connect(_on_subordinate_selected)
+	_subordinates_list.add_theme_color_override("font_color", Color(0.95, 0.9, 0.35))
+	_subordinates_list.add_theme_color_override("font_selected_color", Color(1, 1, 0.55))
+	_subordinates_list.add_theme_stylebox_override("panel", _dark_list_style())
+	right.add_child(_subordinates_list)
+
+	var soldiers_hdr := Label.new()
+	soldiers_hdr.text = "Fireteam"
+	soldiers_hdr.add_theme_font_size_override("font_size", 11)
+	right.add_child(soldiers_hdr)
 	_soldiers_list = ItemList.new()
 	_soldiers_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_soldiers_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_soldiers_list.custom_minimum_size = Vector2(220, 180)
+	_soldiers_list.custom_minimum_size = Vector2(220, 140)
 	_soldiers_list.select_mode = ItemList.SELECT_SINGLE
 	_soldiers_list.item_selected.connect(_on_soldier_selected)
 	right.add_child(_soldiers_list)
@@ -242,13 +261,13 @@ func _selected_soldier_meta() -> Dictionary:
 
 
 func _on_subordinate_selected(_index: int) -> void:
+	## Selecting a player targets that player's cache (clear soldier selection).
 	_soldiers_list.deselect_all()
-	_refresh_soldiers_list()
 
 
 func _on_soldier_selected(_index: int) -> void:
-	## Keep subordinate selection — soldier rows may belong to that player.
-	pass
+	## Selecting a soldier targets that soldier (clear player selection).
+	_subordinates_list.deselect_all()
 
 
 func _on_assign_pressed() -> void:
@@ -268,12 +287,15 @@ func _on_assign_pressed() -> void:
 		cmd.target_kind = WeaponCacheClass.TargetKind.SOLDIER
 		cmd.target_id = int(soldier_meta.get("soldier_id", -1))
 		cmd.target_team_id = int(soldier_meta.get("team_id", Team.USA))
-		## Assignments to another player's soldiers still come from our cache but must be ours.
+		## Own soldiers, or soldiers of a linked subordinate (commander equipping the fireteam).
 		var owner_id := int(soldier_meta.get("owner_player_id", _player_id))
 		if owner_id != _player_id:
-			_status_label.text = "Select your own soldiers, or Assign to the subordinate player."
-			_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
-			return
+			var hierarchy = _game_state.command_hierarchy
+			var subs: Array[int] = hierarchy.get_subordinates(_player_id) if hierarchy != null else []
+			if owner_id not in subs:
+				_status_label.text = "Link that AI fireteam/player as your subordinate first."
+				_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
+				return
 	else:
 		cmd.target_id = -1
 	var result = CommandRouter.submit_command(_game_state, cmd)
@@ -292,9 +314,12 @@ func _on_add_ammo_pressed() -> void:
 		return
 	var owner_id := int(soldier_meta.get("owner_player_id", _player_id))
 	if owner_id != _player_id:
-		_status_label.text = "You can only add ammo to your own soldiers' guns."
-		_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
-		return
+		var hierarchy = _game_state.command_hierarchy
+		var subs: Array[int] = hierarchy.get_subordinates(_player_id) if hierarchy != null else []
+		if owner_id not in subs:
+			_status_label.text = "Link that fireteam as your subordinate before adding ammo."
+			_status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2))
+			return
 	var item_id := _selected_string_meta(_pool_list)
 	if item_id.is_empty() or item_id != WeaponCacheClass.ITEM_AMMUNITION_BOX:
 		## Auto-select ammo box if any remain.

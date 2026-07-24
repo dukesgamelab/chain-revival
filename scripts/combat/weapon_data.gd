@@ -15,8 +15,8 @@ var hit_modifier: float = 0.0
 var close_range_bonus: float = 0.0
 var close_range_tiles: int = 0
 var rounds_per_attack: int = 1
-## Total rounds carried (recovered AmmoMax / ammo_pool). Not a magazine — there is no reload;
-## ammo depletes to zero and firing stops.
+## Starting carried ammo (ammo_pool / AmmoMax in original). NOT a hard cap —
+## Ammunition Boxes add another starting load on top and can be stacked.
 var ammo_capacity: int = 200
 ## Burst visual count; defaults to rounds_per_attack in _init.
 var tracer_count: int = 1

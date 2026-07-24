@@ -49,16 +49,8 @@ func _bootstrap_weapon_caches() -> void:
 		player_ids,
 		func(pid: int) -> int: return command_hierarchy.get_team_id(pid),
 	)
-	## AI players auto-distribute specials from their starting cache onto rifle-holders.
-	for pid in player_ids:
-		if not bool(command_hierarchy.get_entry(pid).get("is_ai", false)):
-			continue
-		weapon_cache.auto_distribute_to_soldiers(
-			self,
-			pid,
-			command_hierarchy.get_soldier_ids(pid),
-			command_hierarchy.get_team_id(pid),
-		)
+	## Do not auto-equip specials at match start — human (and AI) assign via Weapons dialog.
+	## AI auto-distribute still runs when a commander gives gear to an AI subordinate player.
 
 
 func rebuild_object_registry() -> void:
@@ -112,6 +104,10 @@ func get_subordinates(player_id: int) -> Array[int]:
 	return command_hierarchy.get_subordinates(player_id)
 
 
+func get_subordinate_ids(player_id: int) -> Array[int]:
+	return command_hierarchy.get_subordinate_ids(player_id)
+
+
 func commanders_with_openings() -> Array[int]:
 	return command_hierarchy.commanders_with_openings()
 
@@ -122,6 +118,47 @@ func players_without_commanders() -> Array[int]:
 
 func all_command_links() -> Array[Dictionary]:
 	return command_hierarchy.all_links()
+
+
+## --- Phase 2 future hooks (stubs / thin wrappers; no order issuing yet) ---
+
+func issue_order(from_player_id: int, to_player_id: int, order: Dictionary = {}) -> Dictionary:
+	return command_hierarchy.issue_order(from_player_id, to_player_id, order)
+
+
+func get_visible_players(player_id: int) -> Array[int]:
+	return command_hierarchy.get_visible_players(player_id)
+
+
+## Enemy soldier keys currently visible to this player (own FT ∪ subordinate LOS).
+func get_visible_enemies(player_id: int) -> Array[String]:
+	return CombatSystem.effective_visibility_keys(self, player_id)
+
+
+func can_issue_orders(player_id: int) -> bool:
+	return command_hierarchy.can_issue_orders(player_id)
+
+
+func can_receive_orders(player_id: int) -> bool:
+	return command_hierarchy.can_receive_orders(player_id)
+
+
+## --- Serialization (IDs only; no scene refs) ---
+
+func to_dict() -> Dictionary:
+	return {
+		"match_phase": match_phase,
+		"local_player_id": local_player_id,
+		"session": session.to_dict() if session != null else {},
+		"command_hierarchy": command_hierarchy.to_dict() if command_hierarchy != null else {},
+	}
+
+
+func load_hierarchy_from_dict(data: Dictionary) -> void:
+	if command_hierarchy == null:
+		command_hierarchy = CommandHierarchyClass.new()
+	command_hierarchy.load_from_dict(data)
+	CombatSystem.notify_command_hierarchy_changed(self)
 
 
 func begin_running_phase() -> void:
