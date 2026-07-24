@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://assignweaponstests01"]
+[gd_scene format=3 uid="uid://cndd62h6xmltk"]
 
 [ext_resource type="Script" path="res://scripts/tests/assign_weapons_tests.gd" id="1"]
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://assignweapons01"]
+[gd_scene format=3 uid="uid://ixsq6gnmo5ie"]
 
 [ext_resource type="Script" path="res://scripts/ui/assign_weapons_dialog.gd" id="1_aw"]
 

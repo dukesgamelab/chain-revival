@@ -52,6 +52,7 @@ var _map_edit_palette: int = MapEditorClass.Palette.WALL
 func _ready() -> void:
 	CocUiTheme.apply_to(self)
 	_apply_inset_wells()
+	_setup_chat_panel()
 	var ui := get_parent()
 	if ui != null:
 		_status_hud = ui.get_node_or_null("StatusHud") as StatusHud
@@ -87,6 +88,7 @@ func _ready() -> void:
 	%EraseButton.pressed.connect(func() -> void: _select_map_edit_palette(MapEditorClass.Palette.ERASE))
 
 	_select_soldier(1, false, false)
+	_refresh_deployment_stage_label(true)
 
 
 func set_active_team(team_id: int) -> void:
@@ -241,6 +243,46 @@ func set_map_edit_palette(palette: int) -> void:
 func show_status(text: String) -> void:
 	if _status_hud != null:
 		_status_hud.show_status(text)
+
+
+func append_chat_system(text: String) -> void:
+	_append_chat_system(text)
+
+
+func set_deployment_phase(is_deployment: bool, elapsed_sec: float = 0.0) -> void:
+	_refresh_deployment_stage_label(is_deployment, elapsed_sec)
+
+
+func _setup_chat_panel() -> void:
+	var chat_log := %ChatLog as RichTextLabel
+	if chat_log == null:
+		return
+	chat_log.add_theme_stylebox_override("normal", CocUiTheme.chat_panel_style())
+	chat_log.clear()
+	chat_log.append_text("[color=#CC0000]ATTENTION: Scenario Running[/color]\n")
+	chat_log.append_text("[color=#CC0000]Chat is a placeholder — multiplayer messaging TBD.[/color]\n")
+
+
+func _append_chat_system(text: String) -> void:
+	var chat_log := %ChatLog as RichTextLabel
+	if chat_log == null or text.is_empty():
+		return
+	## Keep the log short; status HUD already shows the live prompt.
+	if text.begins_with("USA ") or text.begins_with("Germany "):
+		return
+	chat_log.append_text("[color=#CC0000]%s[/color]\n" % text)
+
+
+func _refresh_deployment_stage_label(is_deployment: bool, elapsed_sec: float = 0.0) -> void:
+	var stage := %DeploymentStageLabel as Label
+	var timer := %DeploymentTimerLabel as Label
+	if stage != null:
+		stage.text = "Deployment Stage" if is_deployment else "Scenario Running"
+	if timer != null:
+		var total := int(maxi(0, int(elapsed_sec)))
+		var mins := total / 60
+		var secs := total % 60
+		timer.text = "%02d:%02d" % [mins, secs]
 
 
 func _on_squad_move_mode_toggled(movement_mode: int, is_pressed: bool) -> void:

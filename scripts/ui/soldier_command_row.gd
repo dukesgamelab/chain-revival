@@ -38,6 +38,7 @@ func _ready() -> void:
 		MovementMode.RUN: _run_to_button,
 		MovementMode.CRAWL: _crawl_to_button,
 	}
+	CocUiTheme.style_grenade_button(_grenade_button)
 	_fire_at_button.tooltip_text = "Enter targeting mode — click an enemy to shoot."
 	_run_to_button.tooltip_text = "Run to a tile — click the map."
 	_crawl_to_button.tooltip_text = "Crawl to a tile — click the map."
@@ -57,6 +58,7 @@ func _ready() -> void:
 	_position_button.toggled.connect(_on_position_toggled)
 	set_position_state(PositionState.UP)
 	set_fire_control_state(FireControlState.HOLD_FIRE)
+	set_grenade_count(5)
 
 
 func set_move_mode_pressed(movement_mode: int, is_pressed: bool) -> void:
@@ -105,7 +107,8 @@ func set_ammo(ammo_current: int, _ammo_max: int) -> void:
 
 
 func set_grenade_count(count: int, action_blocked: bool = false) -> void:
-	_grenade_button.text = "Grenade (%d)" % count
+	## White count on the recovered grenade chrome (right of the icon).
+	_grenade_button.text = str(maxi(0, count))
 	_grenade_button.disabled = not _row_enabled or count <= 0 or action_blocked
 
 
@@ -118,6 +121,7 @@ func set_grenade_pressed(is_pressed: bool) -> void:
 
 func set_activity_status(text: String) -> void:
 	_status_label.text = text
+	_status_label.add_theme_color_override("font_color", CocUiTheme.TEXT_STATUS_RED)
 
 
 func set_stress(stress: float) -> void:
@@ -168,7 +172,8 @@ func set_move_button_enabled(movement_mode: int, enabled: bool) -> void:
 func set_position_state(position_state: int) -> void:
 	var is_down := position_state == PositionState.DOWN
 	_position_button.set_pressed_no_signal(is_down)
-	_position_button.text = "Up" if is_down else "Down"
+	## Match original label: shows current stance (Up / Down).
+	_position_button.text = "Down" if is_down else "Up"
 	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
 
 
@@ -229,7 +234,7 @@ func _on_grenade_toggled(is_pressed: bool) -> void:
 func _on_position_toggled(is_down: bool) -> void:
 	if not _row_enabled:
 		return
-	_position_button.text = "Up" if is_down else "Down"
+	_position_button.text = "Down" if is_down else "Up"
 	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
 	position_toggled.emit(soldier_id, is_down)
 

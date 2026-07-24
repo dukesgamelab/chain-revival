@@ -27,6 +27,8 @@ func _ready() -> void:
 		MovementMode.RUN: _run_to_button,
 		MovementMode.CRAWL: _crawl_to_button,
 	}
+	CocUiTheme.style_grenade_button(_grenade_button)
+	_grenade_button.text = ""
 	_fire_at_button.tooltip_text = "Fireteam Fire At — click an enemy; all available soldiers engage."
 	_run_to_button.tooltip_text = "Fireteam Run To — click tiles to move the squad."
 	_crawl_to_button.tooltip_text = "Fireteam Crawl To — click tiles to crawl the squad."
@@ -77,7 +79,7 @@ func set_grenade_pressed(is_pressed: bool) -> void:
 func set_position_state(position_state: int) -> void:
 	var is_down := position_state == PositionState.DOWN
 	_position_button.set_pressed_no_signal(is_down)
-	_position_button.text = "Up" if is_down else "Down"
+	_position_button.text = "Down" if is_down else "Up"
 	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
 
 
@@ -108,7 +110,7 @@ func _on_grenade_toggled(is_pressed: bool) -> void:
 
 
 func _on_position_toggled(is_down: bool) -> void:
-	_position_button.text = "Up" if is_down else "Down"
+	_position_button.text = "Down" if is_down else "Up"
 	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
 	position_toggled.emit(is_down)
 

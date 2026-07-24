@@ -7,7 +7,7 @@ theme_override_constants/separation = 2
 script = ExtResource("1_row")
 
 [node name="DotPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(28, 18)
+custom_minimum_size = Vector2(28, 26)
 layout_mode = 2
 
 [node name="DotsLabel" type="Label" parent="DotPanel"]
@@ -19,22 +19,8 @@ text = "•"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="WeaponPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(78, 18)
-layout_mode = 2
-
-[node name="WeaponLabel" type="Label" parent="WeaponPanel"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 11
-text = "R M1 Garand"
-horizontal_alignment = 1
-vertical_alignment = 1
-clip_text = true
-
 [node name="AmmoPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(30, 18)
+custom_minimum_size = Vector2(30, 26)
 layout_mode = 2
 
 [node name="AmmoLabel" type="Label" parent="AmmoPanel"]
@@ -48,82 +34,103 @@ vertical_alignment = 1
 
 [node name="FireAtButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(46, 18)
+custom_minimum_size = Vector2(52, 26)
 layout_mode = 2
 toggle_mode = true
-text = "Fire At"
+text = "Fire at"
 
 [node name="RunToButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(46, 18)
+custom_minimum_size = Vector2(52, 26)
 layout_mode = 2
 toggle_mode = true
 text = "Run To"
 
 [node name="CrawlToButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 18)
+custom_minimum_size = Vector2(58, 26)
 layout_mode = 2
 toggle_mode = true
 text = "Crawl To"
 
 [node name="FaceButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(44, 18)
+custom_minimum_size = Vector2(50, 26)
 layout_mode = 2
 toggle_mode = true
 text = "Face..."
 
 [node name="PositionButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(40, 18)
+custom_minimum_size = Vector2(40, 26)
 layout_mode = 2
 toggle_mode = true
-text = "Down"
+text = "Up"
+
+[node name="WeaponPanel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(78, 26)
+layout_mode = 2
+
+[node name="WeaponLabel" type="Label" parent="WeaponPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 11
+text = "R M1 Garand"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
 
 [node name="GrenadeButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 18)
+custom_minimum_size = Vector2(60, 26)
 layout_mode = 2
 toggle_mode = true
-text = "Grenade (5)"
+text = "5"
 
 [node name="AssaultButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(50, 18)
+custom_minimum_size = Vector2(58, 26)
 layout_mode = 2
 disabled = true
-text = "Assault"
+text = "Assault!"
+
+[node name="WalkToButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(58, 26)
+layout_mode = 2
+disabled = true
+text = "Walk To"
 
 [node name="FireAtWillButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(68, 18)
+custom_minimum_size = Vector2(74, 26)
 layout_mode = 2
-text = "Fire At Will"
+text = "Fire at Will"
 
 [node name="HoldFireButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 18)
+custom_minimum_size = Vector2(64, 26)
 layout_mode = 2
 text = "Hold Fire"
 
 [node name="StatusPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(58, 18)
+custom_minimum_size = Vector2(58, 26)
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="StatusLabel" type="Label" parent="StatusPanel"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.75, 0, 0, 1)
 theme_override_font_sizes/font_size = 11
-text = "Idle"
+text = "Standing"
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
 
 [node name="StressPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(40, 18)
+custom_minimum_size = Vector2(42, 26)
 layout_mode = 2
 
 [node name="StressLabel" type="Label" parent="StressPanel"]
@@ -136,7 +143,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HitPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(40, 18)
+custom_minimum_size = Vector2(42, 26)
 layout_mode = 2
 
 [node name="HitLabel" type="Label" parent="HitPanel"]

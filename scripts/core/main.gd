@@ -89,6 +89,7 @@ func _ready() -> void:
 	_spawn_all_soldier_views()
 	_log_fireteam_loadouts()
 	_command_bar.set_active_team(_session.active_team_id)
+	_command_bar.set_deployment_phase(_game_state != null and _game_state.is_deployment_phase())
 	_refresh_all_views()
 	_show_startup_status()
 	_start_simple_ai()
@@ -638,6 +639,9 @@ func _on_assign_weapons_briefing_requested() -> void:
 func _on_command_dialog_closed() -> void:
 	if _game_state != null and _game_state.is_deployment_phase():
 		_game_state.begin_running_phase()
+	if _command_bar != null:
+		_command_bar.set_deployment_phase(false)
+		_command_bar.append_chat_system("ATTENTION: Scenario Running")
 	_command_bar.show_status("Deployment complete. Chain of command ready.")
 
 

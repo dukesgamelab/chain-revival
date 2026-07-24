@@ -7,7 +7,7 @@ theme_override_constants/separation = 2
 script = ExtResource("1_row")
 
 [node name="DotSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(28, 18)
+custom_minimum_size = Vector2(28, 26)
 layout_mode = 2
 
 [node name="AllLabel" type="Label" parent="DotSpacer"]
@@ -18,77 +18,84 @@ text = "All"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="WeaponSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(78, 18)
-layout_mode = 2
-
 [node name="AmmoSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(30, 18)
+custom_minimum_size = Vector2(30, 26)
 layout_mode = 2
 
 [node name="FireAtButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(46, 18)
+custom_minimum_size = Vector2(52, 26)
 layout_mode = 2
 toggle_mode = true
-text = "Fire At"
+text = "Fire at"
 
 [node name="RunToButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(46, 18)
+custom_minimum_size = Vector2(52, 26)
 layout_mode = 2
 toggle_mode = true
 text = "Run To"
 
 [node name="CrawlToButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 18)
+custom_minimum_size = Vector2(58, 26)
 layout_mode = 2
 toggle_mode = true
 text = "Crawl To"
 
 [node name="FaceButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(44, 18)
+custom_minimum_size = Vector2(50, 26)
 layout_mode = 2
 toggle_mode = true
 text = "Face..."
 
 [node name="PositionButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(40, 18)
+custom_minimum_size = Vector2(40, 26)
 layout_mode = 2
 toggle_mode = true
-text = "Down"
+text = "Up"
+
+[node name="WeaponSpacer" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(78, 26)
+layout_mode = 2
 
 [node name="GrenadeButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 18)
+custom_minimum_size = Vector2(60, 26)
 layout_mode = 2
 toggle_mode = true
-text = "Grenade"
+text = ""
 
 [node name="AssaultButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(50, 18)
+custom_minimum_size = Vector2(58, 26)
 layout_mode = 2
 disabled = true
-text = "Assault"
+text = "Assault!"
+
+[node name="WalkToButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(58, 26)
+layout_mode = 2
+disabled = true
+text = "Walk To"
 
 [node name="FireAtWillButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(68, 18)
+custom_minimum_size = Vector2(74, 26)
 layout_mode = 2
-text = "Fire At Will"
+text = "Fire at Will"
 
 [node name="HoldFireButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 18)
+custom_minimum_size = Vector2(64, 26)
 layout_mode = 2
 text = "Hold Fire"
 
 [node name="StatusHeader" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(58, 18)
+custom_minimum_size = Vector2(58, 26)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -96,12 +103,12 @@ size_flags_horizontal = 3
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 11
-text = "Status"
+text = "Center"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="StressHeader" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(40, 18)
+custom_minimum_size = Vector2(42, 26)
 layout_mode = 2
 
 [node name="StressHeaderLabel" type="Label" parent="StressHeader"]
@@ -113,7 +120,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HitHeader" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(40, 18)
+custom_minimum_size = Vector2(42, 26)
 layout_mode = 2
 
 [node name="HitHeaderLabel" type="Label" parent="HitHeader"]

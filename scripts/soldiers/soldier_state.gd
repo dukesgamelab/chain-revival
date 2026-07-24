@@ -273,7 +273,7 @@ func activity_status_label() -> String:
 		return StressLabelsClass.state_label(stress)
 	if position_state == PositionStateClass.DOWN:
 		return "Prone"
-	return "Idle"
+	return "Standing"
 
 
 func set_engaged_target(target_team_id: int, target_soldier_id: int) -> bool:
