@@ -198,15 +198,17 @@ func terrain_raw(cell: Vector2i) -> String:
 	var overrides := get_gameplay_overrides(cell)
 	if overrides.has("terrain"):
 		return str(overrides.get("terrain", ""))
+	## Prefer map-authored source terrain when present (preserves imported CoC data).
+	var source := get_object_source(cell)
+	if not source.is_empty():
+		var src_terrain := str(source.get("terrain", ""))
+		if not src_terrain.is_empty():
+			return src_terrain
 	var family := get_object_family(cell)
 	if family.is_empty():
 		family = _visual_family_at(cell)
 	if MapAssetRegistryClass.has_family(family):
 		return str(MapAssetRegistryClass.gameplay_for(family).get("terrain", "_HG_EVEN"))
-	## Legacy maps / families without registry entries.
-	var source := get_object_source(cell)
-	if not source.is_empty():
-		return str(source.get("terrain", ""))
 	for entry in visual_placements:
 		if int(entry.get("x", -1)) != cell.x or int(entry.get("y", -1)) != cell.y:
 			continue
@@ -238,13 +240,7 @@ func obstruction_height(cell: Vector2i) -> int:
 	var overrides := get_gameplay_overrides(cell)
 	if overrides.has("terrain_height"):
 		return clampi(int(float(overrides.get("terrain_height", 0))), 0, 2)
-	var family := get_object_family(cell)
-	if family.is_empty():
-		family = _visual_family_at(cell)
-	if MapAssetRegistryClass.has_family(family):
-		var gp := MapAssetRegistryClass.gameplay_for(family)
-		if gp.has("terrain_height"):
-			return clampi(int(float(gp.get("terrain_height", 0))), 0, 2)
+	## Prefer map-authored height when present.
 	var source := get_object_source(cell)
 	if source.is_empty():
 		for entry in visual_placements:
@@ -258,6 +254,13 @@ func obstruction_height(cell: Vector2i) -> int:
 			break
 	if source is Dictionary and source.has("terrain_height"):
 		return clampi(int(float(source.get("terrain_height", 0))), 0, 2)
+	var family := get_object_family(cell)
+	if family.is_empty():
+		family = _visual_family_at(cell)
+	if MapAssetRegistryClass.has_family(family):
+		var gp := MapAssetRegistryClass.gameplay_for(family)
+		if gp.has("terrain_height"):
+			return clampi(int(float(gp.get("terrain_height", 0))), 0, 2)
 	## Fallback from class when height missing in authored data.
 	match terrain_class(cell):
 		TerrainClass.NO_PASS:

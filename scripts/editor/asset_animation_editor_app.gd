@@ -146,7 +146,7 @@ func _set_mode(mode: int) -> void:
 	if anim_mode:
 		_status.text = "Soldier Animations — animation_database.json"
 	else:
-		_status.text = "Farm Fight Map Assets (FF) — 34 families in map_asset_registry.json"
+		_status.text = "Farm Fight Map Assets (FF) — map_asset_registry.json"
 
 
 func _process(delta: float) -> void:

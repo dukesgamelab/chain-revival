@@ -123,21 +123,12 @@ func _rebuild_original_sprites() -> void:
 		add_child(holder)
 
 		var hotspot: Vector2 = draw_info.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
-		var render_offset := Vector2.ZERO
-		var ro_raw: Variant = draw_info.get("render_offset", Vector2.ZERO)
-		if ro_raw is Vector2:
-			render_offset = ro_raw
-		elif ro_raw is Array and (ro_raw as Array).size() >= 2:
-			render_offset = Vector2(float(ro_raw[0]), float(ro_raw[1]))
 		var sprite := Sprite2D.new()
 		sprite.centered = false
 		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		sprite.texture = texture
 		sprite.scale = Vector2(scale, scale)
-		sprite.position = (hotspot + render_offset) * scale
-		var depth_off := int(draw_info.get("depth_offset", 0))
-		if depth_off != 0:
-			sprite.z_index = depth_off
+		sprite.position = hotspot * scale
 		holder.add_child(sprite)
 
 

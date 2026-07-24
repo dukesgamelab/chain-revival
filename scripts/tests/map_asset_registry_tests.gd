@@ -155,7 +155,7 @@ func _blocked_snapshot(map_data: MapDataClass) -> String:
 
 
 func _test_legacy_baked_flags_are_not_overrides() -> void:
-	## Simulate legacy JSON with baked blocks_movement=false while registry says Climb/blocked.
+	## Top-level baked flags are not overrides. When source has no terrain, registry fills.
 	var map_data := MapDataClass.new()
 	map_data.width = 10
 	map_data.height = 10
@@ -181,14 +181,30 @@ func _test_legacy_baked_flags_are_not_overrides() -> void:
 				"blocks_los": false,
 				"provides_cover": false,
 				"cover_type": 0,
-				"source": {"image": "WH00", "direction": 0, "terrain": "_HG_EVEN", "terrain_height": 0},
+				"source": {"image": "WH00", "direction": 0},
 			}
 		]
 	)
 	var cell := Vector2i(3, 3)
-	_assert("legacy baked flags do not override registry terrain", map_data.terrain_class(cell) == MapDataClass.TerrainClass.CLIMB)
-	_assert("legacy baked flags do not override registry height", map_data.obstruction_height(cell) == 1)
-	_assert("legacy baked flags do not clear climb movement block", map_data.is_blocked(cell))
+	_assert("registry fills when source has no terrain", map_data.terrain_class(cell) == MapDataClass.TerrainClass.CLIMB)
+	_assert("registry fills when source has no height", map_data.obstruction_height(cell) == 1)
+	_assert("legacy top-level flags do not clear climb block", map_data.is_blocked(cell))
+
+	## Authored map terrain must win over registry defaults (keeps ff_farm correct).
+	map_data._load_objects_from_json(
+		[
+			{
+				"object_type": "coc_swal",
+				"x": 4,
+				"y": 4,
+				"source": {"image": "WH00", "direction": 0, "terrain": "_HG_EVEN", "terrain_height": 0},
+			}
+		]
+	)
+	var authored := Vector2i(4, 4)
+	_assert("map-authored terrain wins over registry", map_data.terrain_class(authored) == MapDataClass.TerrainClass.EVEN)
+	_assert("map-authored height wins over registry", map_data.obstruction_height(authored) == 0)
+	_assert("map-authored Even is not blocked", not map_data.is_blocked(authored))
 
 
 func _test_explicit_overrides() -> void:
