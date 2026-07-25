@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://scripts/map/coc_placement_preview_layer.gd" id="11_preview"]
 [ext_resource type="Script" path="res://scripts/map/handedness_debug_overlay.gd" id="12_handedness"]
 [ext_resource type="Script" path="res://scripts/map/terrain_debug_overlay.gd" id="13_terrain"]
+[ext_resource type="Script" path="res://scripts/map/victory_point_layer.gd" id="14_vp"]
 
 [node name="MapWorldView" type="Node2D"]
 script = ExtResource("1_world")
@@ -47,6 +48,11 @@ script = ExtResource("2_isomap")
 y_sort_enabled = true
 texture_filter = 0
 script = ExtResource("8_depth")
+
+[node name="VictoryPointLayer" type="Node2D" parent="."]
+z_index = 5
+texture_filter = 0
+script = ExtResource("14_vp")
 
 [node name="OriginalLabelLayer" type="Node2D" parent="."]
 z_index = 6

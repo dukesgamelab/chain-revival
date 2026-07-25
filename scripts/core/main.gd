@@ -294,6 +294,11 @@ func _step_simulation_tick(skip_ai: bool = false) -> void:
 		_present_movement_tick_result(move_result)
 	_perf_move_usec += Time.get_ticks_usec() - move_t0
 
+	## Capture GE→USA when a US soldier is within 5 squares of a victory tile.
+	if _game_state != null and VictoryPointSystem.update_capture(_game_state):
+		if _world != null and _world.victory_point_layer != null:
+			_world.victory_point_layer.queue_redraw()
+
 	## Warm dirty perception pairs every sim tick (budgeted; combat scan flushes).
 	if _game_state != null and not _game_state.is_deployment_phase():
 		CombatSystem.process_perception_tick(_game_state)
@@ -869,12 +874,27 @@ func _load_map_data() -> void:
 
 
 func _init_session_from_spawns() -> void:
-	var blue_spawns: Array[Vector2i] = _map_data.team_1_spawn_points
-	var red_spawns: Array[Vector2i] = _map_data.team_2_spawn_points
+	var blue_spawns: Array[Vector2i] = _map_data.team_1_spawn_points.duplicate()
+	var red_spawns: Array[Vector2i] = _map_data.team_2_spawn_points.duplicate()
 	if blue_spawns.is_empty():
 		blue_spawns = MapDataClass.default_usa_spawn_points()
 	if red_spawns.is_empty():
 		red_spawns = MapDataClass.default_germany_spawn_points()
+	## Germans stay on authored German lines; USA deploys behind USA lines.
+	var germany_anchor := Vector2i(0, 0)
+	if not red_spawns.is_empty():
+		var gx := 0
+		var gy := 0
+		for s in red_spawns:
+			gx += s.x
+			gy += s.y
+		germany_anchor = Vector2i(gx / red_spawns.size(), gy / red_spawns.size())
+	blue_spawns = MapDataClass.offset_spawns_behind_enemy(
+		blue_spawns,
+		germany_anchor,
+		_map_data,
+		MapDataClass.USA_DEPLOY_BEHIND_CELLS,
+	)
 	var match_cfg = MatchConfigStoreClass.consume_pending()
 	if match_cfg == null:
 		match_cfg = MatchConfigClass.default_offline_1v1()
@@ -887,6 +907,7 @@ func _init_session_from_spawns() -> void:
 		match_cfg = MatchConfigClass.default_offline_1v1()
 	_session = GameSessionClass.from_match_config(match_cfg, blue_spawns, red_spawns)
 	_game_state = _session.create_game_state(_map_data)
+	VictoryPointSystem.ensure_holders_initialized(_map_data)
 	ActionResolverClass.apply_match_start_setup(_game_state)
 
 

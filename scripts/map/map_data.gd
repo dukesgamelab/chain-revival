@@ -892,12 +892,67 @@ static func from_dict(data: Dictionary) -> MapData:
 	return map_data
 
 
+## USA starts this many cells behind authored USA lines (away from enemy).
+const USA_DEPLOY_BEHIND_CELLS := 10
+
+
 static func default_usa_spawn_points() -> Array[Vector2i]:
 	return _default_spawn_line(DEFAULT_USA_ANCHOR)
 
 
 static func default_germany_spawn_points() -> Array[Vector2i]:
 	return _default_spawn_line(DEFAULT_GERMANY_ANCHOR)
+
+
+## Shift spawn cells away from the enemy anchor (behind own lines). Keeps map
+## authored lines intact for markers/AI; only the session placement list moves.
+static func offset_spawns_behind_enemy(
+	spawns: Array[Vector2i],
+	enemy_anchor: Vector2i,
+	map_data: MapData,
+	behind_cells: int,
+) -> Array[Vector2i]:
+	if spawns.is_empty() or behind_cells <= 0 or map_data == null:
+		return spawns
+	var sx := 0
+	var sy := 0
+	for s in spawns:
+		sx += s.x
+		sy += s.y
+	var own := Vector2i(sx / spawns.size(), sy / spawns.size())
+	var delta := enemy_anchor - own
+	var step := Vector2i.ZERO
+	if absi(delta.y) >= absi(delta.x):
+		step = Vector2i(0, -signi(delta.y))
+	else:
+		step = Vector2i(-signi(delta.x), 0)
+	if step == Vector2i.ZERO:
+		step = Vector2i(0, 1)
+	var out: Array[Vector2i] = []
+	for s in spawns:
+		var cell := s + step * behind_cells
+		cell = Vector2i(
+			clampi(cell.x, 0, map_data.width - 1),
+			clampi(cell.y, 0, map_data.height - 1),
+		)
+		if not map_data.is_walkable(cell):
+			cell = _nearest_walkable_near(map_data, cell)
+		out.append(cell)
+	return out
+
+
+static func _nearest_walkable_near(map_data: MapData, cell: Vector2i) -> Vector2i:
+	if map_data.is_walkable(cell):
+		return cell
+	for radius in range(1, 12):
+		for dx in range(-radius, radius + 1):
+			for dy in range(-radius, radius + 1):
+				if maxi(absi(dx), absi(dy)) != radius:
+					continue
+				var n := cell + Vector2i(dx, dy)
+				if map_data.is_in_bounds(n) and map_data.is_walkable(n):
+					return n
+	return cell
 
 
 static func _default_spawn_line(anchor: Vector2i) -> Array[Vector2i]:

@@ -12,6 +12,7 @@ signal map_applied(map_data: MapData)
 @onready var underlay_layer: OriginalUnderlayLayer = $OriginalUnderlayLayer
 @onready var iso_map: IsometricMap = $IsometricMap
 @onready var depth_sorted: DepthSortedLayer = $DepthSorted
+@onready var victory_point_layer: VictoryPointLayer = $VictoryPointLayer
 @onready var label_layer: OriginalLabelLayer = $OriginalLabelLayer
 @onready var placement_preview: CocPlacementPreviewLayer = $CocPlacementPreviewLayer
 @onready var debug_overlay: CocTileDebugOverlay = $CocTileDebugOverlay
@@ -45,6 +46,8 @@ func apply_map_data(data: MapData) -> void:
 	floor_layer.apply_map_data(map_data)
 	underlay_layer.apply_map_data(map_data)
 	depth_sorted.apply_map_data(map_data)
+	if victory_point_layer != null:
+		victory_point_layer.apply_map_data(map_data)
 	label_layer.apply_map_data(map_data)
 	if debug_overlay != null:
 		debug_overlay.apply_map_data(map_data)
@@ -70,6 +73,8 @@ func refresh_view_rotation() -> void:
 	floor_layer.refresh_view_rotation()
 	underlay_layer.refresh_view_rotation()
 	depth_sorted.refresh_view_rotation()
+	if victory_point_layer != null:
+		victory_point_layer.refresh_view_rotation()
 	label_layer.refresh_view_rotation()
 	if placement_preview != null:
 		placement_preview.refresh_view_rotation()
