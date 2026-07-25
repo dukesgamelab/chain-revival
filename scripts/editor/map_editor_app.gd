@@ -43,6 +43,7 @@ const MAP_WORLD_SCENE := preload("res://scenes/map/map_world.tscn")
 @onready var _save_button: Button = %SaveButton
 @onready var _save_as_button: Button = %SaveAsButton
 @onready var _play_button: Button = %PlayButton
+@onready var _refresh_from_assets_button: Button = %RefreshFromAssetsButton
 
 var _world: MapWorldView
 var _map_data: MapData
@@ -77,6 +78,7 @@ func _ready() -> void:
 	_save_button.pressed.connect(_on_save_pressed)
 	_save_as_button.pressed.connect(_on_save_as_pressed)
 	_play_button.pressed.connect(_on_play_pressed)
+	_refresh_from_assets_button.pressed.connect(_on_refresh_from_assets_pressed)
 	_file_dialog.file_selected.connect(_on_file_selected)
 	_search.text_changed.connect(_on_search_changed)
 	_tool_option.item_selected.connect(_on_tool_selected)
@@ -1073,6 +1075,32 @@ func _on_play_pressed() -> void:
 	_save_map()
 	EditorPlaySession.request_play(_map_path)
 	get_tree().change_scene_to_file(MAIN_SCENE)
+
+
+func _on_refresh_from_assets_pressed() -> void:
+	if _map_data == null:
+		_status.text = "No map loaded."
+		return
+	_push_history()
+	var summary: Dictionary = _map_data.refresh_gameplay_from_asset_registry()
+	_refresh_world()
+	if _inspector_cell.x >= 0:
+		_rebuild_inspector()
+	## Persist cleanup so legacy source.* fields are not reloaded from disk.
+	var saved := MapData.save_to_file(_map_data, _map_path)
+	if saved:
+		_dirty = false
+	_status.text = (
+		"Inspected %d. Cleaned %d. Removed %d legacy fields. Overrides preserved: %d. Missing definitions: %d.%s"
+		% [
+			int(summary.get("inspected", 0)),
+			int(summary.get("cleaned", 0)),
+			int(summary.get("legacy_fields_removed", 0)),
+			int(summary.get("overrides_preserved", 0)),
+			int(summary.get("missing_definitions", 0)),
+			" Saved." if saved else " Save failed.",
+		]
+	)
 
 
 func _on_new_pressed() -> void:

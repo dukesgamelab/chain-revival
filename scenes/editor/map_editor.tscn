@@ -54,6 +54,12 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Play Current Map"
 
+[node name="RefreshFromAssetsButton" type="Button" parent="Root/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Refresh from Asset Registry"
+tooltip_text = "Strip legacy shared gameplay fields from placements (source.terrain, etc.) so the Asset Registry is used. Does not copy registry values into the map. Preserves gameplay_overrides."
+
 [node name="ToolOption" type="OptionButton" parent="Root/Toolbar"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 0)

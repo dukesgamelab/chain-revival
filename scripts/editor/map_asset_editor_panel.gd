@@ -73,7 +73,9 @@ func save_registry() -> Error:
 	var err := MapAssetRegistryClass.save()
 	if err == OK:
 		_set_dirty(false)
-		status_message.emit("Saved map_asset_registry.json")
+		status_message.emit(
+			"Saved map_asset_registry.json (shared gameplay). Map placements inherit on load; use Map Editor → Refresh from Asset Registry to strip legacy source fields."
+		)
 	else:
 		status_message.emit("Save failed for map_asset_registry.json")
 	return err

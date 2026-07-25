@@ -127,7 +127,7 @@
 						0.0,
 						0.0
 					]
-				}, 
+				},
 				"90": {
 					"depth_offset": 0.0,
 					"facet": "CW01_e",
@@ -318,11 +318,11 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2,
+				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"material": "wood",
 			"usage_ff_farm": 1.0
@@ -398,11 +398,11 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2,
+				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"material": "wood",
 			"usage_ff_farm": 1.0
@@ -960,11 +960,11 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2,
+				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
 				"terrain": "_HG_Climb",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"material": "stone",
 			"usage_ff_farm": 6.0
@@ -1040,11 +1040,11 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2,
+				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
-				"terrain": "_HG_Climb",
-				"terrain_height": 0
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0.0
 			},
 			"material": "stone",
 			"usage_ff_farm": 2.0
@@ -1440,11 +1440,11 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2,
+				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
 				"terrain": "_HG_Climb",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"material": "stone",
 			"usage_ff_farm": 2.0
@@ -1683,7 +1683,7 @@
 				"cover_type": 2,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
-				"terrain": "_HG_Climb",
+				"terrain": "_HG_NoPass",
 				"terrain_height": 2
 			},
 			"material": "wood",
@@ -2160,11 +2160,11 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2,
+				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
-				"terrain": "_HG_Climb",
-				"terrain_height": 0
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0.0
 			},
 			"material": "wood",
 			"usage_ff_farm": 16.0
@@ -2240,11 +2240,11 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2,
+				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
-				"terrain": "_HG_Climb",
-				"terrain_height": 0
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0.0
 			},
 			"material": "wood",
 			"usage_ff_farm": 3.0
@@ -2640,11 +2640,11 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2,
+				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
 				"terrain": "_HG_Climb",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"material": "wood",
 			"usage_ff_farm": 3.0
@@ -2720,11 +2720,11 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2,
+				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
 				"terrain": "_HG_Climb",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"material": "wood",
 			"usage_ff_farm": 3.0

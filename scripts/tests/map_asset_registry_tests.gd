@@ -21,6 +21,8 @@ func _ready() -> void:
 	_test_camera_rotation_does_not_change_gameplay()
 	_test_legacy_baked_flags_are_not_overrides()
 	_test_explicit_overrides()
+	_test_refresh_gameplay_from_asset_registry()
+	_test_save_strips_legacy_source_gameplay()
 	_test_legacy_map_loads()
 	_print_audit()
 	print("")
@@ -190,7 +192,7 @@ func _test_legacy_baked_flags_are_not_overrides() -> void:
 	_assert("registry fills when source has no height", map_data.obstruction_height(cell) == 1)
 	_assert("legacy top-level flags do not clear climb block", map_data.is_blocked(cell))
 
-	## Authored map terrain must win over registry defaults (keeps ff_farm correct).
+	## Legacy source.terrain is ignored — Asset Registry owns shared gameplay.
 	map_data._load_objects_from_json(
 		[
 			{
@@ -202,9 +204,15 @@ func _test_legacy_baked_flags_are_not_overrides() -> void:
 		]
 	)
 	var authored := Vector2i(4, 4)
-	_assert("map-authored terrain wins over registry", map_data.terrain_class(authored) == MapDataClass.TerrainClass.EVEN)
-	_assert("map-authored height wins over registry", map_data.obstruction_height(authored) == 0)
-	_assert("map-authored Even is not blocked", not map_data.is_blocked(authored))
+	_assert(
+		"legacy source.terrain does not override registry",
+		map_data.terrain_class(authored) == MapDataClass.TerrainClass.CLIMB,
+	)
+	_assert(
+		"legacy source.terrain_height does not override registry",
+		map_data.obstruction_height(authored) == 1,
+	)
+	_assert("registry Climb remains blocked", map_data.is_blocked(authored))
 
 
 func _test_explicit_overrides() -> void:
@@ -236,6 +244,152 @@ func _test_explicit_overrides() -> void:
 	_assert("explicit override can clear terrain to Even", map_data.terrain_class(cell) == MapDataClass.TerrainClass.EVEN)
 	_assert("explicit override height 0", map_data.obstruction_height(cell) == 0)
 	_assert("explicit override can clear movement block", not map_data.is_blocked(cell))
+
+
+func _test_refresh_gameplay_from_asset_registry() -> void:
+	## Refresh strips legacy source fields; runtime already ignores them for resolution.
+	var map_data := MapDataClass.new()
+	map_data.width = 10
+	map_data.height = 10
+	map_data.apply_terrain_gameplay = true
+	var original := MapAssetRegistryClass.gameplay_for("WH00")
+	MapAssetRegistryClass.set_gameplay(
+		"WH00",
+		{
+			"terrain": "_HG_Climb",
+			"terrain_height": 1,
+			"blocks_movement": true,
+			"blocks_los": false,
+			"provides_cover": true,
+			"cover_type": 1,
+		}
+	)
+	map_data._load_objects_from_json(
+		[
+			{
+				"object_type": "coc_swal",
+				"x": 2,
+				"y": 2,
+				"source": {
+					"image": "WH00",
+					"direction": 90,
+					"z": 200,
+					"terrain": "_HG_EVEN",
+					"terrain_height": 0,
+				},
+			},
+			{
+				"object_type": "coc_swal",
+				"x": 3,
+				"y": 3,
+				"source": {
+					"image": "WH00",
+					"direction": 0,
+					"terrain": "_HG_EVEN",
+					"terrain_height": 0,
+				},
+				"gameplay_overrides": {
+					"terrain": "_HG_NoPass",
+					"terrain_height": 2,
+				},
+			},
+			{
+				"object_type": "coc_blocker",
+				"x": 4,
+				"y": 4,
+				"source": {"image": "ZZ_MISSING_FAMILY_XYZ", "direction": 0, "terrain": "_HG_EVEN"},
+			},
+		]
+	)
+	var baked := Vector2i(2, 2)
+	var overridden := Vector2i(3, 3)
+	_assert(
+		"legacy source ignored before refresh (registry Climb)",
+		map_data.terrain_class(baked) == MapDataClass.TerrainClass.CLIMB,
+	)
+	_assert("legacy source still present on disk shape", map_data.get_object_source(baked).has("terrain"))
+	var summary: Dictionary = map_data.refresh_gameplay_from_asset_registry()
+	_assert("refresh inspected all objects", int(summary.get("inspected", 0)) == 3)
+	_assert("refresh cleaned objects with legacy fields", int(summary.get("cleaned", 0)) == 2)
+	_assert("refresh removed legacy fields", int(summary.get("legacy_fields_removed", 0)) >= 4)
+	_assert("refresh preserved override count", int(summary.get("overrides_preserved", 0)) == 1)
+	_assert("refresh counts missing families", int(summary.get("missing_definitions", 0)) == 1)
+	_assert(
+		"after refresh registry Climb still applies",
+		map_data.terrain_class(baked) == MapDataClass.TerrainClass.CLIMB,
+	)
+	_assert(
+		"refresh preserves direction",
+		int(map_data.get_object_source(baked).get("direction", -1)) == 90,
+	)
+	_assert(
+		"refresh preserves z",
+		int(map_data.get_object_source(baked).get("z", -1)) == 200,
+	)
+	_assert(
+		"refresh strips baked terrain from source",
+		not map_data.get_object_source(baked).has("terrain"),
+	)
+	_assert(
+		"refresh preserves gameplay_overrides",
+		map_data.terrain_class(overridden) == MapDataClass.TerrainClass.NO_PASS,
+	)
+	_assert(
+		"refresh keeps override height",
+		map_data.obstruction_height(overridden) == 2,
+	)
+	MapAssetRegistryClass.set_gameplay("WH00", original)
+
+
+func _test_save_strips_legacy_source_gameplay() -> void:
+	## Serialization must not reintroduce source.terrain / terrain_height.
+	var temp_path := "res://maps/_tmp_registry_strip_test.json"
+	var original := MapAssetRegistryClass.gameplay_for("WH00")
+	MapAssetRegistryClass.set_gameplay(
+		"WH00",
+		{"terrain": "_HG_NoPass", "terrain_height": 2, "blocks_movement": true},
+	)
+	var seed_map := MapDataClass.new()
+	seed_map.width = 8
+	seed_map.height = 8
+	seed_map.map_name = "_tmp_registry_strip_test"
+	seed_map.apply_terrain_gameplay = true
+	seed_map.uses_original_projection = true
+	seed_map._load_objects_from_json(
+		[
+			{
+				"object_type": "coc_swal",
+				"x": 1,
+				"y": 1,
+				"source": {
+					"image": "WH00",
+					"direction": 0,
+					"terrain": "_HG_EVEN",
+					"terrain_height": 0,
+				},
+			}
+		]
+	)
+	_assert("seed strip-test map writes", MapDataClass.save_to_file(seed_map, temp_path))
+	var reloaded := MapLoaderClass.load_path(temp_path)
+	_assert(
+		"saved map follows registry NoPass",
+		reloaded != null and reloaded.terrain_class(Vector2i(1, 1)) == MapDataClass.TerrainClass.NO_PASS,
+	)
+	_assert(
+		"save stripped legacy source.terrain",
+		reloaded != null and not reloaded.get_object_source(Vector2i(1, 1)).has("terrain"),
+	)
+	_assert(
+		"save stripped legacy source.terrain_height",
+		reloaded != null and not reloaded.get_object_source(Vector2i(1, 1)).has("terrain_height"),
+	)
+	MapAssetRegistryClass.set_gameplay("WH00", original)
+	if FileAccess.file_exists(temp_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(temp_path))
+	var import_path := temp_path + ".import"
+	if FileAccess.file_exists(import_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(import_path))
 
 
 func _test_legacy_map_loads() -> void:

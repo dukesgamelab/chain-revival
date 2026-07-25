@@ -332,14 +332,24 @@
 			"animations": {
 				"corpse": {
 					"directions": {
-						"w": {
+						"e": {
 							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS1A.png"
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS5A.png"
 							]
 						},
-						"sw": {
+						"n": {
 							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS2A.png"
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS8A.png"
 							]
 						},
 						"s": {
@@ -352,24 +362,14 @@
 								"res://assets/sprites/german_soldier/dead_fallen/GDFUS4A.png"
 							]
 						},
-						"e": {
+						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS5A.png"
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS2A.png"
 							]
 						},
-						"ne": {
+						"w": {
 							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS6A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS7A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS8A.png"
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS1A.png"
 							]
 						}
 					},
@@ -377,13 +377,13 @@
 					"label": "German Dead (legacy corpse alias)",
 					"loop": false,
 					"metadata": {
-						"semantic_state": "dead_static",
 						"faction": "German",
+						"note": "Legacy alias; prefer dead_static_<family> variants",
+						"priority": "dead",
+						"semantic_state": "dead_static",
 						"source_family": "GDFUS",
 						"static": true,
-						"verified": true,
-						"priority": "dead",
-						"note": "Legacy alias; prefer dead_static_<family> variants"
+						"verified": true
 					}
 				},
 				"crawl": {
@@ -422,6 +422,116 @@
 						"muzzle_flash_frame": -1.0,
 						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
+					}
+				},
+				"dead_static_GDFUS": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDFUS1A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "German Dead Static GDFUS",
+					"loop": false,
+					"metadata": {
+						"faction": "German",
+						"priority": "dead",
+						"semantic_state": "dead_static",
+						"source_family": "GDFUS",
+						"static": true,
+						"verified": true
+					}
+				},
+				"dead_static_GDLYS": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/dead_fallen/GDLYS1A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "German Dead Static GDLYS",
+					"loop": false,
+					"metadata": {
+						"faction": "German",
+						"priority": "dead",
+						"semantic_state": "dead_static",
+						"source_family": "GDLYS",
+						"static": true,
+						"verified": true
 					}
 				},
 				"death": {
@@ -690,6 +800,160 @@
 						"muzzle_flash_frame": -1.0,
 						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
+					}
+				},
+				"fire_corner_left": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA5A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA5B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA7A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA7B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA6A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA6B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA8A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA8B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA3A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA3B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA4A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA4B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA2A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA2B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA1A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA1B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA1C.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Left Corner Rifle Fire",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/rifle_fire",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": 1.0,
+						"notes": "Corner peek fire oneshot (A-C).",
+						"sound_effect": "",
+						"source_family": "GLCFA",
+						"verification": "wired from sprite browser LC/RC fire families",
+						"verified": true,
+						"visual_shot_frame": 1.0,
+						"visual_shot_frame_letter": "B"
+					}
+				},
+				"fire_corner_right": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA5A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA5B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA7A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA7B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA6A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA6B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA8A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA8B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA3A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA3B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA4A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA4B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA2A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA2B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA1A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA1B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA1C.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Right Corner Rifle Fire",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/rifle_fire",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": 1.0,
+						"notes": "Corner peek fire oneshot (A-C).",
+						"sound_effect": "",
+						"source_family": "GRCFA",
+						"verification": "wired from sprite browser LC/RC fire families",
+						"verified": true,
+						"visual_shot_frame": 1.0,
+						"visual_shot_frame_letter": "B"
 					}
 				},
 				"fire_prone": {
@@ -1128,6 +1392,124 @@
 						"muzzle_flash_frame": -1.0,
 						"notes": "Idle uses first walk frame until dedicated idle pack is assigned",
 						"sound_effect": ""
+					}
+				},
+				"idle_corner_left": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS1A.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Left Corner Idle",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/corner_idle",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Static corner wall-end idle (single frame A).",
+						"sound_effect": "",
+						"source_family": "GLCAS",
+						"verification": "wired from sprite browser LC/RC AS families",
+						"verified": true
+					}
+				},
+				"idle_corner_right": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS1A.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Right Corner Idle",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/corner_idle",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Static corner wall-end idle (single frame A).",
+						"sound_effect": "",
+						"source_family": "GRCAS",
+						"verification": "wired from sprite browser LC/RC AS families",
+						"verified": true
 					}
 				},
 				"idle_prone": {
@@ -2095,401 +2477,19 @@
 						"notes": "",
 						"sound_effect": ""
 					}
-				},
-				"dead_static_GDLYS": {
-					"directions": {
-						"w": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDLYS1A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDLYS2A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDLYS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDLYS4A.png"
-							]
-						},
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDLYS5A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDLYS6A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDLYS7A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDLYS8A.png"
-							]
-						}
-					},
-					"fps": 1.0,
-					"label": "German Dead Static GDLYS",
-					"loop": false,
-					"metadata": {
-						"semantic_state": "dead_static",
-						"faction": "German",
-						"source_family": "GDLYS",
-						"static": true,
-						"verified": true,
-						"priority": "dead"
-					}
-				},
-				"dead_static_GDFUS": {
-					"directions": {
-						"w": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS1A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS2A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS4A.png"
-							]
-						},
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS5A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS6A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS7A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/dead_fallen/GDFUS8A.png"
-							]
-						}
-					},
-					"fps": 1.0,
-					"label": "German Dead Static GDFUS",
-					"loop": false,
-					"metadata": {
-						"semantic_state": "dead_static",
-						"faction": "German",
-						"source_family": "GDFUS",
-						"static": true,
-						"verified": true,
-						"priority": "dead"
-					}
-				},
-				"fire_corner_left": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCFA5A.png",
-								"res://assets/sprites/coc_soldiers/GLCFA5B.png",
-								"res://assets/sprites/coc_soldiers/GLCFA5C.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCFA7A.png",
-								"res://assets/sprites/coc_soldiers/GLCFA7B.png",
-								"res://assets/sprites/coc_soldiers/GLCFA7C.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCFA6A.png",
-								"res://assets/sprites/coc_soldiers/GLCFA6B.png",
-								"res://assets/sprites/coc_soldiers/GLCFA6C.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCFA8A.png",
-								"res://assets/sprites/coc_soldiers/GLCFA8B.png",
-								"res://assets/sprites/coc_soldiers/GLCFA8C.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCFA3A.png",
-								"res://assets/sprites/coc_soldiers/GLCFA3B.png",
-								"res://assets/sprites/coc_soldiers/GLCFA3C.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCFA4A.png",
-								"res://assets/sprites/coc_soldiers/GLCFA4B.png",
-								"res://assets/sprites/coc_soldiers/GLCFA4C.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCFA2A.png",
-								"res://assets/sprites/coc_soldiers/GLCFA2B.png",
-								"res://assets/sprites/coc_soldiers/GLCFA2C.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCFA1A.png",
-								"res://assets/sprites/coc_soldiers/GLCFA1B.png",
-								"res://assets/sprites/coc_soldiers/GLCFA1C.png"
-							]
-						}
-					},
-					"fps": 8.0,
-					"label": "German Left Corner Rifle Fire",
-					"loop": false,
-					"metadata": {
-						"category": "soldier/rifle_fire",
-						"faction": "German",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 1.0,
-						"notes": "Corner peek fire oneshot (A-C).",
-						"sound_effect": "",
-						"source_family": "GLCFA",
-						"verification": "wired from sprite browser LC/RC fire families",
-						"verified": true,
-						"visual_shot_frame": 1.0,
-						"visual_shot_frame_letter": "B"
-					}
-				},
-				"fire_corner_right": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCFA5A.png",
-								"res://assets/sprites/coc_soldiers/GRCFA5B.png",
-								"res://assets/sprites/coc_soldiers/GRCFA5C.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCFA7A.png",
-								"res://assets/sprites/coc_soldiers/GRCFA7B.png",
-								"res://assets/sprites/coc_soldiers/GRCFA7C.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCFA6A.png",
-								"res://assets/sprites/coc_soldiers/GRCFA6B.png",
-								"res://assets/sprites/coc_soldiers/GRCFA6C.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCFA8A.png",
-								"res://assets/sprites/coc_soldiers/GRCFA8B.png",
-								"res://assets/sprites/coc_soldiers/GRCFA8C.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCFA3A.png",
-								"res://assets/sprites/coc_soldiers/GRCFA3B.png",
-								"res://assets/sprites/coc_soldiers/GRCFA3C.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCFA4A.png",
-								"res://assets/sprites/coc_soldiers/GRCFA4B.png",
-								"res://assets/sprites/coc_soldiers/GRCFA4C.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCFA2A.png",
-								"res://assets/sprites/coc_soldiers/GRCFA2B.png",
-								"res://assets/sprites/coc_soldiers/GRCFA2C.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCFA1A.png",
-								"res://assets/sprites/coc_soldiers/GRCFA1B.png",
-								"res://assets/sprites/coc_soldiers/GRCFA1C.png"
-							]
-						}
-					},
-					"fps": 8.0,
-					"label": "German Right Corner Rifle Fire",
-					"loop": false,
-					"metadata": {
-						"category": "soldier/rifle_fire",
-						"faction": "German",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 1.0,
-						"notes": "Corner peek fire oneshot (A-C).",
-						"sound_effect": "",
-						"source_family": "GRCFA",
-						"verification": "wired from sprite browser LC/RC fire families",
-						"verified": true,
-						"visual_shot_frame": 1.0,
-						"visual_shot_frame_letter": "B"
-					}
-				},
-				"idle_corner_left": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCAS5A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCAS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCAS6A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCAS8A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCAS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCAS4A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCAS2A.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GLCAS1A.png"
-							]
-						}
-					},
-					"fps": 8.0,
-					"label": "German Left Corner Idle",
-					"loop": true,
-					"metadata": {
-						"category": "soldier/corner_idle",
-						"faction": "German",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Static corner wall-end idle (single frame A).",
-						"sound_effect": "",
-						"source_family": "GLCAS",
-						"verification": "wired from sprite browser LC/RC AS families",
-						"verified": true
-					}
-				},
-				"idle_corner_right": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCAS5A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCAS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCAS6A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCAS8A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCAS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCAS4A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCAS2A.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/GRCAS1A.png"
-							]
-						}
-					},
-					"fps": 8.0,
-					"label": "German Right Corner Idle",
-					"loop": true,
-					"metadata": {
-						"category": "soldier/corner_idle",
-						"faction": "German",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Static corner wall-end idle (single frame A).",
-						"sound_effect": "",
-						"source_family": "GRCAS",
-						"verification": "wired from sprite browser LC/RC AS families",
-						"verified": true
-					}
 				}
 			},
 			"category": "soldiers",
 			"faction": "germany",
 			"id": "german_rifle",
 			"label": "German Rifle Soldier",
-			"weapon": "rifle",
 			"metadata": {
 				"dead_static_variants": [
 					"GDLYS",
 					"GDFUS"
 				]
-			}
+			},
+			"weapon": "rifle"
 		},
 		"german_smg": {
 			"animations": {
@@ -3045,14 +3045,24 @@
 			"animations": {
 				"corpse": {
 					"directions": {
-						"w": {
+						"e": {
 							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS1A.png"
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS5A.png"
 							]
 						},
-						"sw": {
+						"n": {
 							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS2A.png"
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS8A.png"
 							]
 						},
 						"s": {
@@ -3065,24 +3075,14 @@
 								"res://assets/sprites/us_soldier/dead_fallen/ADDSS4A.png"
 							]
 						},
-						"e": {
+						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS5A.png"
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS2A.png"
 							]
 						},
-						"ne": {
+						"w": {
 							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS6A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS7A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS8A.png"
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS1A.png"
 							]
 						}
 					},
@@ -3090,13 +3090,13 @@
 					"label": "US Dead (legacy corpse alias)",
 					"loop": false,
 					"metadata": {
-						"semantic_state": "dead_static",
 						"faction": "American",
+						"note": "Legacy alias; prefer dead_static_<family> variants",
+						"priority": "dead",
+						"semantic_state": "dead_static",
 						"source_family": "ADDSS",
 						"static": true,
-						"verified": true,
-						"priority": "dead",
-						"note": "Legacy alias; prefer dead_static_<family> variants"
+						"verified": true
 					}
 				},
 				"crawl": {
@@ -3135,6 +3135,226 @@
 						"muzzle_flash_frame": -1.0,
 						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
+					}
+				},
+				"dead_static_ADDSS": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADDSS1A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "US Dead Static ADDSS",
+					"loop": false,
+					"metadata": {
+						"faction": "American",
+						"priority": "dead",
+						"semantic_state": "dead_static",
+						"source_family": "ADDSS",
+						"static": true,
+						"verified": true
+					}
+				},
+				"dead_static_ADFUS": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADFUS1A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "US Dead Static ADFUS",
+					"loop": false,
+					"metadata": {
+						"faction": "American",
+						"priority": "dead",
+						"semantic_state": "dead_static",
+						"source_family": "ADFUS",
+						"static": true,
+						"verified": true
+					}
+				},
+				"dead_static_ADLYS": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADLYS1A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "US Dead Static ADLYS",
+					"loop": false,
+					"metadata": {
+						"faction": "American",
+						"priority": "dead",
+						"semantic_state": "dead_static",
+						"source_family": "ADLYS",
+						"static": true,
+						"verified": true
+					}
+				},
+				"dead_static_ADOAS": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/dead_fallen/ADOAS1A.png"
+							]
+						}
+					},
+					"fps": 1.0,
+					"label": "US Dead Static ADOAS",
+					"loop": false,
+					"metadata": {
+						"faction": "American",
+						"priority": "dead",
+						"semantic_state": "dead_static",
+						"source_family": "ADOAS",
+						"static": true,
+						"verified": true
 					}
 				},
 				"death": {
@@ -3403,6 +3623,160 @@
 						"muzzle_flash_frame": -1.0,
 						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
+					}
+				},
+				"fire_corner_left": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA5A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA5B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA7A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA7B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA6A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA6B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA8A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA8B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA3A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA3B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA4A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA4B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA2A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA2B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA1A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA1B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA1C.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "US Left Corner Rifle Fire",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/rifle_fire",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": 1.0,
+						"notes": "Corner peek fire oneshot (A-C).",
+						"sound_effect": "",
+						"source_family": "ALCFA",
+						"verification": "wired from sprite browser LC/RC fire families",
+						"verified": true,
+						"visual_shot_frame": 1.0,
+						"visual_shot_frame_letter": "B"
+					}
+				},
+				"fire_corner_right": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA5A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA5B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA7A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA7B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA6A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA6B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA8A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA8B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA3A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA3B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA4A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA4B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA2A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA2B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA1A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA1B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA1C.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "US Right Corner Rifle Fire",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/rifle_fire",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": 1.0,
+						"notes": "Corner peek fire oneshot (A-C).",
+						"sound_effect": "",
+						"source_family": "ARCFA",
+						"verification": "wired from sprite browser LC/RC fire families",
+						"verified": true,
+						"visual_shot_frame": 1.0,
+						"visual_shot_frame_letter": "B"
 					}
 				},
 				"fire_prone": {
@@ -4283,6 +4657,124 @@
 						"sound_effect": ""
 					}
 				},
+				"idle_corner_left": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS1A.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "US Left Corner Idle",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/corner_idle",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Static corner wall-end idle (single frame A).",
+						"sound_effect": "",
+						"source_family": "ALCAS",
+						"verification": "wired from sprite browser LC/RC AS families",
+						"verified": true
+					}
+				},
+				"idle_corner_right": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS1A.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "US Right Corner Idle",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/corner_idle",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Static corner wall-end idle (single frame A).",
+						"sound_effect": "",
+						"source_family": "ARCAS",
+						"verification": "wired from sprite browser LC/RC AS families",
+						"verified": true
+					}
+				},
 				"idle_standing": {
 					"directions": {
 						"e": {
@@ -4480,9 +4972,9 @@
 					"metadata": {
 						"category": "soldier/idle_standing",
 						"faction": "American",
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
+						"muzzle_flash_frame": -1.0,
 						"notes": "Standing/upright idle A-U x 8 directions. Not walking (ASMOA/GSMOA).",
 						"sound_effect": "",
 						"source_family": "ABRLA",
@@ -4741,8 +5233,7 @@
 								"res://assets/sprites/us_soldier/walk/ASMOA5D.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA5E.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA5F.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA5G.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA5H.png"
+								"res://assets/sprites/us_soldier/walk/ASMOA5G.png"
 							]
 						},
 						"n": {
@@ -4764,8 +5255,7 @@
 								"res://assets/sprites/us_soldier/walk/ASMOA6D.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA6E.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA6F.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA6G.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA6H.png"
+								"res://assets/sprites/us_soldier/walk/ASMOA6G.png"
 							]
 						},
 						"nw": {
@@ -4776,8 +5266,7 @@
 								"res://assets/sprites/us_soldier/walk/ASMOA8D.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA8E.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA8F.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA8G.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA8H.png"
+								"res://assets/sprites/us_soldier/walk/ASMOA8G.png"
 							]
 						},
 						"s": {
@@ -4788,8 +5277,7 @@
 								"res://assets/sprites/us_soldier/walk/ASMOA3D.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA3E.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA3F.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA3G.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA3H.png"
+								"res://assets/sprites/us_soldier/walk/ASMOA3G.png"
 							]
 						},
 						"se": {
@@ -4800,8 +5288,7 @@
 								"res://assets/sprites/us_soldier/walk/ASMOA4D.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA4E.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA4F.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA4G.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA4H.png"
+								"res://assets/sprites/us_soldier/walk/ASMOA4G.png"
 							]
 						},
 						"sw": {
@@ -4812,8 +5299,7 @@
 								"res://assets/sprites/us_soldier/walk/ASMOA2D.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA2E.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA2F.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA2G.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA2H.png"
+								"res://assets/sprites/us_soldier/walk/ASMOA2G.png"
 							]
 						},
 						"w": {
@@ -4824,8 +5310,7 @@
 								"res://assets/sprites/us_soldier/walk/ASMOA1D.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA1E.png",
 								"res://assets/sprites/us_soldier/walk/ASMOA1F.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA1G.png",
-								"res://assets/sprites/us_soldier/walk/ASMOA1H.png"
+								"res://assets/sprites/us_soldier/walk/ASMOA1G.png"
 							]
 						}
 					},
@@ -4833,503 +5318,11 @@
 					"label": "Walk",
 					"loop": true,
 					"metadata": {
-						"footstep_frame": 0.0,
+						"footstep_frame": 0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
+						"muzzle_flash_frame": -1,
 						"notes": "",
 						"sound_effect": ""
-					}
-				},
-				"dead_static_ADDSS": {
-					"directions": {
-						"w": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS1A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS2A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS4A.png"
-							]
-						},
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS5A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS6A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS7A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADDSS8A.png"
-							]
-						}
-					},
-					"fps": 1.0,
-					"label": "US Dead Static ADDSS",
-					"loop": false,
-					"metadata": {
-						"semantic_state": "dead_static",
-						"faction": "American",
-						"source_family": "ADDSS",
-						"static": true,
-						"verified": true,
-						"priority": "dead"
-					}
-				},
-				"dead_static_ADOAS": {
-					"directions": {
-						"w": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADOAS1A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADOAS2A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADOAS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADOAS4A.png"
-							]
-						},
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADOAS5A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADOAS6A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADOAS7A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADOAS8A.png"
-							]
-						}
-					},
-					"fps": 1.0,
-					"label": "US Dead Static ADOAS",
-					"loop": false,
-					"metadata": {
-						"semantic_state": "dead_static",
-						"faction": "American",
-						"source_family": "ADOAS",
-						"static": true,
-						"verified": true,
-						"priority": "dead"
-					}
-				},
-				"dead_static_ADFUS": {
-					"directions": {
-						"w": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADFUS1A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADFUS2A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADFUS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADFUS4A.png"
-							]
-						},
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADFUS5A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADFUS6A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADFUS7A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADFUS8A.png"
-							]
-						}
-					},
-					"fps": 1.0,
-					"label": "US Dead Static ADFUS",
-					"loop": false,
-					"metadata": {
-						"semantic_state": "dead_static",
-						"faction": "American",
-						"source_family": "ADFUS",
-						"static": true,
-						"verified": true,
-						"priority": "dead"
-					}
-				},
-				"dead_static_ADLYS": {
-					"directions": {
-						"w": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADLYS1A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADLYS2A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADLYS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADLYS4A.png"
-							]
-						},
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADLYS5A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADLYS6A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADLYS7A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/dead_fallen/ADLYS8A.png"
-							]
-						}
-					},
-					"fps": 1.0,
-					"label": "US Dead Static ADLYS",
-					"loop": false,
-					"metadata": {
-						"semantic_state": "dead_static",
-						"faction": "American",
-						"source_family": "ADLYS",
-						"static": true,
-						"verified": true,
-						"priority": "dead"
-					}
-				},
-				"fire_corner_left": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCFA5A.png",
-								"res://assets/sprites/coc_soldiers/ALCFA5B.png",
-								"res://assets/sprites/coc_soldiers/ALCFA5C.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCFA7A.png",
-								"res://assets/sprites/coc_soldiers/ALCFA7B.png",
-								"res://assets/sprites/coc_soldiers/ALCFA7C.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCFA6A.png",
-								"res://assets/sprites/coc_soldiers/ALCFA6B.png",
-								"res://assets/sprites/coc_soldiers/ALCFA6C.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCFA8A.png",
-								"res://assets/sprites/coc_soldiers/ALCFA8B.png",
-								"res://assets/sprites/coc_soldiers/ALCFA8C.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCFA3A.png",
-								"res://assets/sprites/coc_soldiers/ALCFA3B.png",
-								"res://assets/sprites/coc_soldiers/ALCFA3C.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCFA4A.png",
-								"res://assets/sprites/coc_soldiers/ALCFA4B.png",
-								"res://assets/sprites/coc_soldiers/ALCFA4C.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCFA2A.png",
-								"res://assets/sprites/coc_soldiers/ALCFA2B.png",
-								"res://assets/sprites/coc_soldiers/ALCFA2C.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCFA1A.png",
-								"res://assets/sprites/coc_soldiers/ALCFA1B.png",
-								"res://assets/sprites/coc_soldiers/ALCFA1C.png"
-							]
-						}
-					},
-					"fps": 8.0,
-					"label": "US Left Corner Rifle Fire",
-					"loop": false,
-					"metadata": {
-						"category": "soldier/rifle_fire",
-						"faction": "American",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 1.0,
-						"notes": "Corner peek fire oneshot (A-C).",
-						"sound_effect": "",
-						"source_family": "ALCFA",
-						"verification": "wired from sprite browser LC/RC fire families",
-						"verified": true,
-						"visual_shot_frame": 1.0,
-						"visual_shot_frame_letter": "B"
-					}
-				},
-				"fire_corner_right": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCFA5A.png",
-								"res://assets/sprites/coc_soldiers/ARCFA5B.png",
-								"res://assets/sprites/coc_soldiers/ARCFA5C.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCFA7A.png",
-								"res://assets/sprites/coc_soldiers/ARCFA7B.png",
-								"res://assets/sprites/coc_soldiers/ARCFA7C.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCFA6A.png",
-								"res://assets/sprites/coc_soldiers/ARCFA6B.png",
-								"res://assets/sprites/coc_soldiers/ARCFA6C.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCFA8A.png",
-								"res://assets/sprites/coc_soldiers/ARCFA8B.png",
-								"res://assets/sprites/coc_soldiers/ARCFA8C.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCFA3A.png",
-								"res://assets/sprites/coc_soldiers/ARCFA3B.png",
-								"res://assets/sprites/coc_soldiers/ARCFA3C.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCFA4A.png",
-								"res://assets/sprites/coc_soldiers/ARCFA4B.png",
-								"res://assets/sprites/coc_soldiers/ARCFA4C.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCFA2A.png",
-								"res://assets/sprites/coc_soldiers/ARCFA2B.png",
-								"res://assets/sprites/coc_soldiers/ARCFA2C.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCFA1A.png",
-								"res://assets/sprites/coc_soldiers/ARCFA1B.png",
-								"res://assets/sprites/coc_soldiers/ARCFA1C.png"
-							]
-						}
-					},
-					"fps": 8.0,
-					"label": "US Right Corner Rifle Fire",
-					"loop": false,
-					"metadata": {
-						"category": "soldier/rifle_fire",
-						"faction": "American",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 1.0,
-						"notes": "Corner peek fire oneshot (A-C).",
-						"sound_effect": "",
-						"source_family": "ARCFA",
-						"verification": "wired from sprite browser LC/RC fire families",
-						"verified": true,
-						"visual_shot_frame": 1.0,
-						"visual_shot_frame_letter": "B"
-					}
-				},
-				"idle_corner_left": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCAS5A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCAS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCAS6A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCAS8A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCAS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCAS4A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCAS2A.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ALCAS1A.png"
-							]
-						}
-					},
-					"fps": 8.0,
-					"label": "US Left Corner Idle",
-					"loop": true,
-					"metadata": {
-						"category": "soldier/corner_idle",
-						"faction": "American",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Static corner wall-end idle (single frame A).",
-						"sound_effect": "",
-						"source_family": "ALCAS",
-						"verification": "wired from sprite browser LC/RC AS families",
-						"verified": true
-					}
-				},
-				"idle_corner_right": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCAS5A.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCAS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCAS6A.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCAS8A.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCAS3A.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCAS4A.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCAS2A.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/coc_soldiers/ARCAS1A.png"
-							]
-						}
-					},
-					"fps": 8.0,
-					"label": "US Right Corner Idle",
-					"loop": true,
-					"metadata": {
-						"category": "soldier/corner_idle",
-						"faction": "American",
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Static corner wall-end idle (single frame A).",
-						"sound_effect": "",
-						"source_family": "ARCAS",
-						"verification": "wired from sprite browser LC/RC AS families",
-						"verified": true
 					}
 				}
 			},
@@ -5337,7 +5330,6 @@
 			"faction": "usa",
 			"id": "us_rifle",
 			"label": "US Rifle Soldier",
-			"weapon": "rifle",
 			"metadata": {
 				"dead_static_variants": [
 					"ADDSS",
@@ -5345,7 +5337,8 @@
 					"ADFUS",
 					"ADLYS"
 				]
-			}
+			},
+			"weapon": "rifle"
 		},
 		"us_smg": {
 			"animations": {

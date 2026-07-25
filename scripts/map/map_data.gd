@@ -20,6 +20,20 @@ const DEFAULT_HEIGHT := 60
 const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
 const MapAssetRegistryClass := preload("res://scripts/map/map_asset_registry.gd")
 
+## Shared gameplay keys that belong in the Asset Registry (not per-placement source).
+## Stripped by refresh_gameplay_from_asset_registry(); identity keys stay on source.
+const SHARED_GAMEPLAY_SOURCE_KEYS: Array[String] = [
+	"terrain",
+	"terrain_height",
+	"blocks_movement",
+	"blocks_los",
+	"blocks_bullets",
+	"provides_cover",
+	"cover_type",
+	"concealment",
+	"suppression_modifier",
+]
+
 ## Default deployment: vertical columns facing each other, paired by row (same y).
 const DEFAULT_TEAM_SEPARATION := 10
 const DEFAULT_USA_ANCHOR := Vector2i(26, 28)
@@ -252,22 +266,12 @@ func terrain_raw(cell: Vector2i) -> String:
 	var overrides := get_gameplay_overrides(cell)
 	if overrides.has("terrain"):
 		return str(overrides.get("terrain", ""))
-	## Prefer map-authored source terrain when present (preserves imported CoC data).
-	var source := get_object_source(cell)
-	if not source.is_empty():
-		var src_terrain := str(source.get("terrain", ""))
-		if not src_terrain.is_empty():
-			return src_terrain
+	## Asset Registry owns shared terrain. Legacy source.terrain is ignored (strip via Refresh).
 	var family := get_object_family(cell)
 	if family.is_empty():
 		family = _visual_family_at(cell)
 	if MapAssetRegistryClass.has_family(family):
 		return str(MapAssetRegistryClass.gameplay_for(family).get("terrain", "_HG_EVEN"))
-	var visual := _visual_object_entry(cell)
-	if not visual.is_empty():
-		var src: Variant = visual.get("source", {})
-		if src is Dictionary:
-			return str(src.get("terrain", ""))
 	return ""
 
 
@@ -300,16 +304,7 @@ func _compute_obstruction_height(cell: Vector2i) -> int:
 	var overrides := get_gameplay_overrides(cell)
 	if overrides.has("terrain_height"):
 		return clampi(int(float(overrides.get("terrain_height", 0))), 0, 2)
-	## Prefer map-authored height when present.
-	var source: Variant = get_object_source(cell)
-	if source is Dictionary and (source as Dictionary).is_empty():
-		var visual := _visual_object_entry(cell)
-		if not visual.is_empty():
-			var src: Variant = visual.get("source", {})
-			if src is Dictionary:
-				source = src
-	if source is Dictionary and (source as Dictionary).has("terrain_height"):
-		return clampi(int(float(source.get("terrain_height", 0))), 0, 2)
+	## Asset Registry owns shared height. Legacy source.terrain_height is ignored.
 	var family := get_object_family(cell)
 	if family.is_empty():
 		family = _visual_family_at(cell)
@@ -614,7 +609,64 @@ func erase_all_at(cell: Vector2i, include_floors: bool = true) -> void:
 	_rebuild_blocked_tiles_list()
 
 
-## Editor: set terrain class / height as an explicit per-placement override.
+## Migration/cleanup: strip legacy shared gameplay from placements so Asset Registry wins.
+## Does NOT copy registry values into the map — only removes stale source.* fields.
+## Preserves identity (image/direction/z/image1) and gameplay_overrides.
+func refresh_gameplay_from_asset_registry() -> Dictionary:
+	MapAssetRegistryClass.reload()
+	var inspected := 0
+	var cleaned := 0
+	var legacy_fields_removed := 0
+	var overrides_preserved := 0
+	var missing_definitions := 0
+	var cells := get_object_cells()
+	cells.sort_custom(
+		func(a: Vector2i, b: Vector2i) -> bool:
+			return a.y < b.y or (a.y == b.y and a.x < b.x)
+	)
+	for cell in cells:
+		inspected += 1
+		var family := get_object_family(cell)
+		if family.is_empty() or not MapAssetRegistryClass.has_family(family):
+			missing_definitions += 1
+			continue
+		if not get_gameplay_overrides(cell).is_empty():
+			overrides_preserved += 1
+		var removed_here := 0
+		var source := get_object_source(cell)
+		if source is Dictionary:
+			removed_here += _strip_legacy_shared_gameplay_keys(source)
+		var visual := _visual_object_entry(cell)
+		if not visual.is_empty():
+			var vs: Variant = visual.get("source", null)
+			if vs is Dictionary and vs != source:
+				removed_here += _strip_legacy_shared_gameplay_keys(vs as Dictionary)
+		if removed_here > 0:
+			cleaned += 1
+			legacy_fields_removed += removed_here
+	_mark_visual_caches_dirty()
+	_rebuild_blocked_tiles_list()
+	return {
+		"inspected": inspected,
+		"cleaned": cleaned,
+		"legacy_fields_removed": legacy_fields_removed,
+		"overrides_preserved": overrides_preserved,
+		"missing_definitions": missing_definitions,
+		## Back-compat aliases for older status strings / tests.
+		"updated": cleaned,
+		"skipped_overrides": overrides_preserved,
+	}
+
+
+static func _strip_legacy_shared_gameplay_keys(source: Dictionary) -> int:
+	var removed := 0
+	for key in SHARED_GAMEPLAY_SOURCE_KEYS:
+		if source.has(key):
+			source.erase(key)
+			removed += 1
+	return removed
+
+
 func set_cell_terrain(
 	cell: Vector2i,
 	terrain: int = -1,
@@ -1180,11 +1232,16 @@ func _objects_to_json() -> Array:
 			continue
 		var entry := _object_entry_to_dict(cell, object_def)
 		var meta: Dictionary = _object_meta.get(cell, {})
-		if meta.has("source"):
-			entry["source"] = meta["source"]
+		## Persist identity only — never write legacy shared gameplay back into source.
+		var source_raw: Variant = meta.get("source", null)
+		if source_raw is Dictionary:
+			var source: Dictionary = (source_raw as Dictionary).duplicate(true)
+			_strip_legacy_shared_gameplay_keys(source)
+			entry["source"] = source
 		## Persist explicit overrides only — family registry owns shared gameplay.
-		if meta.get("gameplay_overrides", {}) is Dictionary:
-			var ov: Dictionary = meta["gameplay_overrides"]
+		var ov_raw: Variant = meta.get("gameplay_overrides", null)
+		if ov_raw is Dictionary:
+			var ov: Dictionary = ov_raw
 			if not ov.is_empty():
 				entry["gameplay_overrides"] = ov.duplicate(true)
 		result.append(entry)

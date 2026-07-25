@@ -2413,8 +2413,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2437,8 +2435,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2461,8 +2457,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2485,8 +2479,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2509,8 +2501,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2533,8 +2523,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2557,8 +2545,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2581,8 +2567,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2605,8 +2589,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2629,8 +2611,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2653,8 +2633,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2677,8 +2655,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2701,8 +2677,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2725,8 +2699,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2749,8 +2721,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2773,8 +2743,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2797,8 +2765,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2821,8 +2787,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2845,8 +2809,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2869,8 +2831,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2893,8 +2853,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2917,8 +2875,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2941,8 +2897,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2965,8 +2919,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -2989,8 +2941,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3013,8 +2963,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3037,8 +2985,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3061,8 +3007,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3085,8 +3029,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3109,8 +3051,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3133,8 +3073,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3157,8 +3095,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3181,8 +3117,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3205,8 +3139,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3229,8 +3161,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3253,8 +3183,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3277,8 +3205,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3301,8 +3227,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3325,8 +3249,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3349,8 +3271,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3373,8 +3293,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3397,8 +3315,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3421,8 +3337,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3445,8 +3359,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3469,8 +3381,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3493,8 +3403,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3517,8 +3425,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3541,8 +3447,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3565,8 +3469,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3589,8 +3491,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3613,8 +3513,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3637,8 +3535,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3661,8 +3557,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3685,8 +3579,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3709,8 +3601,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3733,8 +3623,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3757,8 +3645,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3781,8 +3667,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3805,8 +3689,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3829,8 +3711,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3853,8 +3733,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3877,8 +3755,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3901,8 +3777,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3925,8 +3799,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3949,8 +3821,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3973,8 +3843,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -3997,8 +3865,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4021,8 +3887,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4045,8 +3909,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4069,8 +3931,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4093,8 +3953,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4117,8 +3975,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4141,8 +3997,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4165,8 +4019,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4189,8 +4041,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4213,8 +4063,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4237,8 +4085,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4261,8 +4107,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4285,8 +4129,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4309,8 +4151,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4333,8 +4173,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4357,8 +4195,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4381,8 +4217,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4405,8 +4239,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4429,8 +4261,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4453,8 +4283,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4477,8 +4305,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4501,8 +4327,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4525,8 +4349,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4549,8 +4371,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4573,8 +4393,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4597,8 +4415,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4621,8 +4437,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4645,8 +4459,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4669,8 +4481,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4693,8 +4503,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4717,8 +4525,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4741,8 +4547,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4765,8 +4569,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4789,8 +4591,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4813,8 +4613,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4837,8 +4635,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4861,8 +4657,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4885,8 +4679,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4909,8 +4701,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4933,8 +4723,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4957,8 +4745,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -4981,8 +4767,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5005,8 +4789,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5029,8 +4811,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5053,8 +4833,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5077,8 +4855,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5101,8 +4877,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5125,8 +4899,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5149,8 +4921,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5173,8 +4943,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5197,8 +4965,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5221,8 +4987,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5245,8 +5009,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5269,8 +5031,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5293,8 +5053,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5317,8 +5075,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5341,8 +5097,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5365,8 +5119,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5389,8 +5141,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5413,8 +5163,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5437,8 +5185,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5461,8 +5207,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5485,8 +5229,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5509,8 +5251,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5533,8 +5273,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5557,8 +5295,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5581,8 +5317,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5605,8 +5339,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5629,8 +5361,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5653,8 +5383,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5677,8 +5405,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5701,8 +5427,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5725,8 +5449,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5749,8 +5471,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5773,8 +5493,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5797,8 +5515,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5821,8 +5537,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5845,8 +5559,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5869,8 +5581,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5893,8 +5603,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5917,8 +5625,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5941,8 +5647,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5965,8 +5669,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -5989,8 +5691,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6013,8 +5713,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6037,8 +5735,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6061,8 +5757,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6085,8 +5779,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6109,8 +5801,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6133,8 +5823,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6157,8 +5845,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6181,8 +5867,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6205,8 +5889,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6229,8 +5911,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6253,8 +5933,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH11",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6277,8 +5955,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6301,8 +5977,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6325,8 +5999,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6349,8 +6021,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6373,8 +6043,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6397,8 +6065,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6421,8 +6087,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6445,8 +6109,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6469,8 +6131,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6493,8 +6153,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6517,8 +6175,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6541,8 +6197,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6565,8 +6219,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6589,8 +6241,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6613,8 +6263,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6637,8 +6285,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6661,8 +6307,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WH02",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6685,8 +6329,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6709,8 +6351,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6733,8 +6373,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6757,8 +6395,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6781,8 +6417,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6805,8 +6439,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6829,8 +6461,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6853,8 +6483,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6877,8 +6505,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6901,8 +6527,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6925,8 +6549,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6949,8 +6571,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6973,8 +6593,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -6997,8 +6615,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7021,8 +6637,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7045,8 +6659,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7069,8 +6681,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7093,8 +6703,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7117,8 +6725,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7141,8 +6747,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR01",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7165,8 +6769,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "TR02",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7189,8 +6791,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7213,8 +6813,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7237,8 +6835,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7261,8 +6857,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7285,8 +6879,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7309,8 +6901,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7333,8 +6923,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7357,8 +6945,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7381,8 +6967,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7405,8 +6989,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7429,8 +7011,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7453,8 +7033,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7477,8 +7055,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7501,8 +7077,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7525,8 +7099,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SICR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7549,8 +7121,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7573,8 +7143,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7597,8 +7165,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7621,8 +7187,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7645,8 +7209,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7669,8 +7231,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7693,8 +7253,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7717,8 +7275,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SICR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7741,8 +7297,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7765,8 +7319,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7789,8 +7341,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7813,8 +7363,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7837,8 +7385,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7861,8 +7407,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7885,8 +7429,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7909,8 +7451,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7933,8 +7473,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7957,8 +7495,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -7981,8 +7517,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8005,8 +7539,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8029,8 +7561,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8053,8 +7583,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8077,8 +7605,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SICR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8101,8 +7627,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8125,8 +7649,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8149,8 +7671,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8173,8 +7693,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8197,8 +7715,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8221,8 +7737,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8245,8 +7759,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8269,8 +7781,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8293,8 +7803,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8317,8 +7825,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8341,8 +7847,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8365,8 +7869,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8389,8 +7891,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8413,8 +7913,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8437,8 +7935,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8461,8 +7957,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8485,8 +7979,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8509,8 +8001,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAQ",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8533,8 +8023,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8557,8 +8045,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8581,8 +8067,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8605,8 +8089,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8629,8 +8111,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8653,8 +8133,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8677,8 +8155,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8701,8 +8177,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8725,8 +8199,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAI",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8749,8 +8221,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8773,8 +8243,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8797,8 +8265,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8821,8 +8287,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8845,8 +8309,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8869,8 +8331,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8893,8 +8353,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8917,8 +8375,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8941,8 +8397,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8965,8 +8419,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -8989,8 +8441,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9013,8 +8463,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9037,8 +8485,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9061,8 +8507,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9085,8 +8529,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9109,8 +8551,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9133,8 +8573,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9157,8 +8595,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9181,8 +8617,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9205,8 +8639,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9229,8 +8661,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9253,8 +8683,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9277,8 +8705,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9301,8 +8727,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9325,8 +8749,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9349,8 +8771,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WICR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9373,8 +8793,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9397,8 +8815,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9421,8 +8837,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9445,8 +8859,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9469,8 +8881,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9493,8 +8903,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAQ",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9517,8 +8925,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9541,8 +8947,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9565,8 +8969,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9589,8 +8991,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9613,8 +9013,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9637,8 +9035,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9661,8 +9057,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9685,8 +9079,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9709,8 +9101,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "SCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9733,8 +9123,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9757,8 +9145,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9781,8 +9167,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9805,8 +9189,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9829,8 +9211,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9853,8 +9233,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9877,8 +9255,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9901,8 +9277,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9925,8 +9299,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9949,8 +9321,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SICR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9973,8 +9343,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -9997,8 +9365,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10021,8 +9387,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10045,8 +9409,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10069,8 +9431,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10093,8 +9453,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SICR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10117,8 +9475,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10141,8 +9497,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10165,8 +9519,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "SWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10189,8 +9541,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10213,8 +9563,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10237,8 +9585,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10261,8 +9607,6 @@
 			"source": {
 				"direction": 270.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10285,8 +9629,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10309,8 +9651,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10333,8 +9673,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10357,8 +9695,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAQ",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10381,8 +9717,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10405,8 +9739,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10429,8 +9761,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10453,8 +9783,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WCOR",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10477,8 +9805,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10501,8 +9827,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10525,8 +9849,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "WWAL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10549,8 +9871,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "LIHW",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10573,8 +9893,6 @@
 			"source": {
 				"direction": 180.0,
 				"image": "LIHW",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10597,8 +9915,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWCL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10621,8 +9937,6 @@
 			"source": {
 				"direction": 90.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10645,8 +9959,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10669,8 +9981,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_NoPass",
-				"terrain_height": 2.0,
 				"z": 200.0
 			},
 			"sprite_path": "",
@@ -10693,8 +10003,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10717,8 +10025,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10741,8 +10047,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10765,8 +10069,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10789,8 +10091,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10813,8 +10113,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10837,8 +10135,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10861,8 +10157,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10885,8 +10179,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10909,8 +10201,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10933,8 +10223,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10957,8 +10245,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -10981,8 +10267,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11005,8 +10289,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11029,8 +10311,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11053,8 +10333,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11077,8 +10355,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11101,8 +10377,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11125,8 +10399,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11149,8 +10421,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11173,8 +10443,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11197,8 +10465,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11221,8 +10487,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11245,8 +10509,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11269,8 +10531,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11293,8 +10553,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11317,8 +10575,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11341,8 +10597,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11365,8 +10619,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11389,8 +10641,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11413,8 +10663,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11437,8 +10685,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11461,8 +10707,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11485,8 +10729,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11509,8 +10751,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11533,8 +10773,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11557,8 +10795,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11581,8 +10817,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11605,8 +10839,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11629,8 +10861,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11653,8 +10883,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11677,8 +10905,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11701,8 +10927,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11725,8 +10949,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11749,8 +10971,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11773,8 +10993,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11797,8 +11015,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11821,8 +11037,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11845,8 +11059,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11869,8 +11081,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11893,8 +11103,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11917,8 +11125,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11941,8 +11147,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11965,8 +11169,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -11989,8 +11191,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12013,8 +11213,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12037,8 +11235,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12061,8 +11257,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12085,8 +11279,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12109,8 +11301,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12133,8 +11323,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12157,8 +11345,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12181,8 +11367,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12205,8 +11389,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12229,8 +11411,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12253,8 +11433,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12277,8 +11455,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12301,8 +11477,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12325,8 +11499,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12349,8 +11521,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12373,8 +11543,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12397,8 +11565,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12421,8 +11587,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12445,8 +11609,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12469,8 +11631,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12493,8 +11653,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12517,8 +11675,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12541,8 +11697,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12565,8 +11719,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12589,8 +11741,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12613,8 +11763,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12637,8 +11785,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12661,8 +11807,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12685,8 +11829,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12709,8 +11851,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12733,8 +11873,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12757,8 +11895,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12781,8 +11917,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12805,8 +11939,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12829,8 +11961,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12853,8 +11983,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12877,8 +12005,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12901,8 +12027,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12925,8 +12049,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12949,8 +12071,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12973,8 +12093,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -12997,8 +12115,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13021,8 +12137,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13045,8 +12159,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "CW01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13069,8 +12181,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "CW01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13093,8 +12203,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13117,8 +12225,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13141,8 +12247,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13165,8 +12269,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13189,8 +12291,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13213,8 +12313,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13237,8 +12335,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13261,8 +12357,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13285,8 +12379,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13309,8 +12401,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13333,8 +12423,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13357,8 +12445,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13381,8 +12467,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13405,8 +12489,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13429,8 +12511,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13453,8 +12533,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13477,8 +12555,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13501,8 +12577,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13525,8 +12599,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13549,8 +12621,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13573,8 +12643,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13597,8 +12665,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13621,8 +12687,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13645,8 +12709,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13669,8 +12731,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13693,8 +12753,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13717,8 +12775,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH00",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13741,8 +12797,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13765,8 +12819,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "CW01",
-				"terrain": "_HG_Climb",
-				"terrain_height": 1,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13789,8 +12841,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWIN",
-				"terrain": "_HG_Climb",
-				"terrain_height": 0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13813,8 +12863,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13837,8 +12885,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "BH01",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13861,8 +12907,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWCR",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13885,8 +12929,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13909,8 +12951,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13933,8 +12973,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAQ",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13957,8 +12995,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -13981,8 +13017,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14005,8 +13039,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14029,8 +13061,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14053,8 +13083,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14077,8 +13105,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14101,8 +13127,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14125,8 +13149,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14149,8 +13171,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14173,8 +13193,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14197,8 +13215,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14221,8 +13237,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14245,8 +13259,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14269,8 +13281,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14293,8 +13303,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWINS17A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14317,8 +13325,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWINS17A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14341,8 +13347,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWINS27A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14365,8 +13369,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWINS27A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14389,8 +13391,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWINS27A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14413,8 +13413,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWINS17A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14437,8 +13435,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14461,8 +13457,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14485,8 +13479,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWINS27A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14509,8 +13501,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWINS27A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14533,8 +13523,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAIS3A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14557,8 +13545,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAL",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14581,8 +13567,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14605,8 +13589,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAIS3A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14629,8 +13611,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAIS3A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14653,8 +13633,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAIS3A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14677,8 +13655,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWCLS3A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14701,8 +13677,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWDRS7A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14725,8 +13699,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWL",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14749,8 +13721,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWDRS7A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14773,8 +13743,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWDRS7A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14797,8 +13765,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14821,8 +13787,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14845,8 +13809,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "WWAI",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14869,8 +13831,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWLS1C",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14893,8 +13853,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWLS1C",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14917,8 +13875,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWLS1C",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14941,8 +13897,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "IWWLS1C",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -14965,8 +13919,6 @@
 			"source": {
 				"direction": 0.0,
 				"image": "SWAIS3A",
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0,
 				"z": 0.0
 			},
 			"sprite_path": "",
