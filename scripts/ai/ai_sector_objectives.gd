@@ -42,18 +42,129 @@ static func objectives_for_plan(
 			else:
 				out.append(_pick("flank_right", "Flank Right", sectors.right, claimed_cells, "sector", 12))
 		AiPlanClass.ID_DEFEND:
-			var cover := _nearest_cover_cell(game_state, own_anchor, enemy_anchor, claimed_cells)
-			out.append(
-				AiObjectiveClass.make("defend_cover", "Defend Cover", cover, "cover", 10)
+			out.append_array(
+				_defend_objectives(game_state, team_id, own_anchor, enemy_anchor, claimed_cells)
 			)
 		_:
 			out.append(_pick("attack_center", "Attack Center", sectors.center, claimed_cells, "sector", 5))
 
 	## Optional victory-point objective if authored on the map.
-	var vp := _nearest_victory_point(game_state.map_data, enemy_anchor)
-	if vp.x > -900:
-		out.append(AiObjectiveClass.make("victory_point", "Victory Point", vp, "sector", 8))
+	## DEFEND handles VP itself (only seize if not already held).
+	if plan != AiPlanClass.ID_DEFEND:
+		var vp := _nearest_victory_point(game_state.map_data, enemy_anchor)
+		if vp.x > -900:
+			out.append(AiObjectiveClass.make("victory_point", "Victory Point", vp, "sector", 8))
 	return out
+
+
+## Pick the best option for this fireteam.
+## Avoids already-claimed cells first, then prefers higher priority (center over flanks).
+static func select_for_claims(options: Array, claimed_cells: Array[Vector2i] = []):
+	if options.is_empty():
+		return null
+	var best = null
+	var best_score := 999999999
+	for opt in options:
+		if opt == null or not opt.is_valid():
+			continue
+		var claim := _claim_penalty(opt.cell, claimed_cells)
+		## Claim dominates so DEFEND lanes spread; priority breaks ties (center=14).
+		var score := claim * 100 - int(opt.priority)
+		if best == null or score < best_score:
+			best = opt
+			best_score = score
+	return best if best != null else options[0]
+
+
+## Enemy spawn/approach anchor for facing while holding a defensive post.
+static func enemy_approach_cell(game_state, player_id: int) -> Vector2i:
+	if game_state == null or game_state.command_hierarchy == null:
+		return Vector2i(-999, -999)
+	var team_id: int = game_state.command_hierarchy.get_team_id(player_id)
+	var enemy_team: int = Team.GERMANY if team_id == Team.USA else Team.USA
+	return _team_anchor(game_state, enemy_team)
+
+
+## DEFEND: split left/center/right approach holds with cover overlooking each lane.
+static func _defend_objectives(
+	game_state,
+	team_id: int,
+	own_anchor: Vector2i,
+	enemy_anchor: Vector2i,
+	claimed_cells: Array[Vector2i],
+) -> Array:
+	var out: Array = []
+	var map_data = game_state.map_data
+	var defended := _defended_point(game_state, team_id, own_anchor)
+	## Approaches between the defended point and the enemy (same sector math as ATTACK).
+	var sectors := _sector_cells(map_data, defended, enemy_anchor)
+	## Center is the most direct approach — highest priority for a lone fireteam.
+	var lanes: Array = [
+		{"id": "defend_center", "label": "Defend Center", "cells": sectors.center, "prio": 14},
+		{"id": "defend_left", "label": "Defend Left", "cells": sectors.left, "prio": 12},
+		{"id": "defend_right", "label": "Defend Right", "cells": sectors.right, "prio": 12},
+	]
+	## Soft-claim within this emit so left/center/right don't collapse to one stand.
+	var lane_claims: Array[Vector2i] = claimed_cells.duplicate()
+	for lane in lanes:
+		var lane_cells: Array = lane.cells
+		if lane_cells.is_empty():
+			continue
+		var lane_cell: Vector2i = lane_cells[0]
+		## Cover near the approach lane, facing the enemy (directional via cover task).
+		## Hard-exclude already-emitted stands so lanes don't collapse to one tile.
+		var cover := nearest_cover_within(
+			game_state, lane_cell, enemy_anchor, 24, lane_claims, true
+		)
+		if cover.x <= -900:
+			cover = _clamp_walkable(map_data, lane_cell)
+			## Keep lane posts distinct even without cover objects.
+			if cover in lane_claims:
+				cover = _offset_unclaimed(map_data, cover, lane_claims)
+		out.append(
+			AiObjectiveClass.make(
+				str(lane.id), str(lane.label), cover, "hold", int(lane.prio)
+			)
+		)
+		if cover.x > -900:
+			lane_claims.append(cover)
+	## Only chase a VP we do not already control — never abandon cover for a held flag.
+	if not _team_controls_victory_point(game_state, team_id):
+		var vp := _nearest_victory_point(map_data, defended)
+		if vp.x > -900:
+			out.append(
+				AiObjectiveClass.make("victory_point", "Victory Point", vp, "sector", 6)
+			)
+	return out
+
+
+## Point being defended: owned/contested VP if present, else own spawn anchor.
+static func _defended_point(game_state, team_id: int, own_anchor: Vector2i) -> Vector2i:
+	var vp := _nearest_victory_point(game_state.map_data, own_anchor)
+	if vp.x > -900:
+		return vp
+	return own_anchor
+
+
+## True when map VP holder (runtime `holder` or `initial_holder`) is this team.
+static func _team_controls_victory_point(game_state, team_id: int) -> bool:
+	if game_state == null or game_state.map_data == null:
+		return false
+	var team_names: Array[String] = []
+	if team_id == Team.USA:
+		team_names = ["usa", "us", "american", "americans"]
+	else:
+		team_names = ["germany", "german", "axis"]
+	for entry in game_state.map_data.victory_points:
+		if not entry is Dictionary:
+			continue
+		var holder := str(entry.get("holder", entry.get("initial_holder", ""))).strip_edges().to_lower()
+		if holder.is_empty():
+			continue
+		for name in team_names:
+			if holder == name or holder.contains(name):
+				return true
+	return false
 
 
 static func retreat_objective(game_state, player_id: int) -> AiObjectiveClass:
@@ -105,8 +216,8 @@ static func _claim_penalty(cell: Vector2i, claimed: Array[Vector2i]) -> int:
 		## Soft-avoid exact duplicates.
 		if cell == other:
 			penalty += 40
-	## Slight GameRandom jitter so coordination is imperfect.
-	penalty += GameRandom.randi_range(0, 3)
+	## Deterministic micro tie-break (never RNG — keeps MP/AI replays stable).
+	penalty += absi(cell.x * 3 + cell.y * 7) % 4
 	return penalty
 
 
@@ -188,36 +299,115 @@ static func _nearest_cover_cell(
 	return nearest_cover_within(game_state, near_cell, _face_toward, 24, claimed)
 
 
+## True when standing at `stand` puts cover BETWEEN that cell and `threat`
+## (same CoverPolicy geometry combat uses: threat = shooter, stand = target).
+static func stand_covered_vs_threat(stand: Vector2i, threat: Vector2i, map_data) -> bool:
+	if map_data == null or threat.x <= -900 or stand == threat:
+		return false
+	var check = GameplayPolicies.cover.cover_check(threat, stand, map_data)
+	return check != null and bool(check.in_cover)
+
+
+## Cover_check calls in the current AI think (reset by AiCommander.tick).
+static var cover_checks_this_think: int = 0
+## Hard cap — even with O(1) height lookups, unbounded directional scans are wasteful.
+const MAX_COVER_CHECKS_PER_QUERY := 96
+
 ## Cover stand-tile within max_dist of near_cell. Returns (-999,-999) if none.
+## When face_toward is a real threat (≠ near_cell), only stands that pass
+## CoverPolicy.cover_check vs that threat are eligible.
+## reject_claimed: skip exact claimed cells (DEFEND lane emit).
+##
+## IMPORTANT: evaluate nearest distance bands first and return early. Checking every
+## cover stand on ff_farm (~500 cover objects) with cover_check was an AI hitch.
 static func nearest_cover_within(
 	game_state,
 	near_cell: Vector2i,
 	face_toward: Vector2i,
 	max_dist: int,
 	claimed: Array[Vector2i] = [],
+	reject_claimed: bool = false,
 ) -> Vector2i:
 	var map_data = game_state.map_data
-	var best := Vector2i(-999, -999)
-	var best_score := 999999
-	## Cached stand tiles — avoids scanning every map object on each AI contact.
+	var none := Vector2i(-999, -999)
+	if map_data == null or max_dist < 0:
+		return none
+	## Directional filter when we have a distinct threat axis (not retreat/any-cover).
+	var require_dir := (
+		face_toward.x > -900
+		and face_toward != near_cell
+	)
+	## Bucket candidates by Manhattan distance, then scan nearest→farthest.
+	var by_dist: Dictionary = {} ## dist -> Array[Vector2i]
 	for stand in map_data.get_cover_stand_cells():
 		var dist: int = absi(stand.x - near_cell.x) + absi(stand.y - near_cell.y)
-		if dist > max_dist:
+		if dist > max_dist or dist <= 0:
 			continue
-		var score := dist
-		score += _claim_penalty(stand, claimed)
-		if face_toward.x > -900:
-			## Prefer stands closer to the threat axis (simple heuristic).
-			var threat_dist := (
-				absi(face_toward.x - stand.x) + absi(face_toward.y - stand.y)
-			)
-			score += threat_dist / 4
-		if score < best_score:
-			best_score = score
-			best = stand
+		if reject_claimed and stand in claimed:
+			continue
+		if not by_dist.has(dist):
+			by_dist[dist] = [] as Array[Vector2i]
+		(by_dist[dist] as Array).append(stand)
+	if by_dist.is_empty():
+		return none
+	var distances: Array = by_dist.keys()
+	distances.sort()
+	var best := none
+	var best_score := 999999
+	var checks_this_query := 0
+	for i in range(distances.size()):
+		var dist: int = int(distances[i])
+		var stands: Array = by_dist[dist]
+		stands.sort_custom(func(a, b) -> bool:
+			if a.x != b.x:
+				return a.x < b.x
+			return a.y < b.y
+		)
+		for stand in stands:
+			if require_dir:
+				if checks_this_query >= MAX_COVER_CHECKS_PER_QUERY:
+					break
+				checks_this_query += 1
+				cover_checks_this_think += 1
+				if not stand_covered_vs_threat(stand, face_toward, map_data):
+					continue
+			var score: int = dist + _claim_penalty(stand, claimed)
+			if score < best_score:
+				best_score = score
+				best = stand
+		## Farther bands have dist >= next_min; with non-negative claim penalty they
+		## cannot beat a current best whose score <= next_min.
+		if best.x > -900:
+			var next_min := 999999
+			if i + 1 < distances.size():
+				next_min = int(distances[i + 1])
+			if best_score <= next_min:
+				return _clamp_walkable(map_data, best)
+		if checks_this_query >= MAX_COVER_CHECKS_PER_QUERY:
+			break
 	if best.x <= -900:
-		return best
+		return none
 	return _clamp_walkable(map_data, best)
+
+
+static func _offset_unclaimed(
+	map_data,
+	cell: Vector2i,
+	claimed: Array[Vector2i],
+) -> Vector2i:
+	if cell not in claimed:
+		return cell
+	for radius in range(1, 8):
+		for dx in range(-radius, radius + 1):
+			for dy in range(-radius, radius + 1):
+				if maxi(absi(dx), absi(dy)) != radius:
+					continue
+				var n := cell + Vector2i(dx, dy)
+				if n in claimed:
+					continue
+				if map_data.is_in_bounds(n) and map_data.is_walkable(n):
+					return n
+	return cell
 
 
 static func _nearest_victory_point(map_data, near_cell: Vector2i) -> Vector2i:

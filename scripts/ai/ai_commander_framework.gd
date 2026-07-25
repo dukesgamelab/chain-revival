@@ -12,6 +12,7 @@ const AiOrderClass := preload("res://scripts/ai/ai_order.gd")
 const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 const AiCommanderStateClass := preload("res://scripts/ai/ai_commander_state.gd")
 const CommandContextClass := preload("res://scripts/core/command_context.gd")
+const PerceptionCacheClass := preload("res://scripts/combat/perception_cache.gd")
 
 ## TUNED — think every N simulation ticks (movement still runs every tick).
 ## 8 @ 20 Hz ≈ 2.5 Hz per commander; commanders are staggered across slots.
@@ -19,6 +20,7 @@ const THINK_EVERY_N_TICKS := 8
 ## Cap A* calls from all AI MoveCommands in one sim tick.
 ## One staggered thinker ≈ one squad order: lead A* + a couple formation fallbacks.
 const MAX_AI_PATHFINDS_PER_TICK := 4
+const PATH_MEMO_MAX := 96
 
 var _commanders: Dictionary = {} ## player_id -> AiCommander
 var _coordinator: AiTeamCoordinatorClass = AiTeamCoordinatorClass.new()
@@ -33,6 +35,15 @@ var _pathfinds_remaining: int = 0
 var _logged_simple_rush: bool = false
 ## ActionResults from the last tick() — Main presents these so movement_halts reach views.
 var _last_tick_results: Array = []
+## Deterministic path memo — identical from→to reuses prior A* within the match.
+var _path_memo: Dictionary = {} ## "x,y>x,y" -> Array[Vector2i]
+var _path_memo_order: Array[String] = []
+## Rolling pathfind cost (usec) — reset by Main profiler each second.
+var pathfind_usec: int = 0
+var pathfind_calls: int = 0
+var last_tick_breakdown: String = ""
+## Log wall-clock spikes above this (msec).
+const SPIKE_LOG_MSEC := 50.0
 
 
 func setup(game_state, find_path: Callable) -> void:
@@ -40,6 +51,11 @@ func setup(game_state, find_path: Callable) -> void:
 	_commanders.clear()
 	_coordinator.clear()
 	_tick_counter = 0
+	_path_memo.clear()
+	_path_memo_order.clear()
+	pathfind_usec = 0
+	pathfind_calls = 0
+	last_tick_breakdown = ""
 	if game_state == null or game_state.command_hierarchy == null:
 		return
 	for pid in game_state.command_hierarchy.all_player_ids():
@@ -135,15 +151,20 @@ func notify_visibility_changed() -> void:
 
 
 ## Returns ActionResults produced this tick (move/fire/face/grenade) for presentation.
-func tick(game_state) -> Array:
+## skip_think: still advances stagger counter but does not run commanders (sim catch-up).
+func tick(game_state, skip_think: bool = false) -> Array:
 	_last_tick_results.clear()
+	last_tick_breakdown = ""
 	## Clients never execute AI — authority gate for dedicated-server readiness.
 	if not _authority or not _enabled or game_state == null:
 		return _last_tick_results
 	if game_state.is_deployment_phase():
 		return _last_tick_results
 	_tick_counter += 1
+	if skip_think:
+		return _last_tick_results
 
+	var tick_t0 := Time.get_ticks_usec()
 	var now_msec: int = SimulationClock.get_ticks_msec()
 	var commanders: Array = all_commanders()
 	if commanders.is_empty():
@@ -169,33 +190,70 @@ func tick(game_state) -> Array:
 	var thinker_ids: Array = []
 	for commander in thinkers:
 		thinker_ids.append(commander.player_id)
+	var snap_t0 := Time.get_ticks_usec()
 	## Simple rush skips visibility/LOS cache warm — movement roster only.
 	var snapshot: AiBattlefieldSnapshotClass = AiBattlefieldSnapshotClass.build(
 		game_state, thinker_ids, AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH
 	)
+	var snap_usec := Time.get_ticks_usec() - snap_t0
 
 	## Shared A* budget for this tick (all MoveCommands from these thinkers).
 	_pathfinds_remaining = MAX_AI_PATHFINDS_PER_TICK
+	var path_usec_before := pathfind_usec
+	var path_calls_before := pathfind_calls
 	var budgeted_find := func(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
 		return _budgeted_find_path(from_cell, to_cell)
 
+	var think_usec := 0
+	## Array so the submit lambda can mutate (GDScript lambdas don't write outer ints).
+	var submit_bucket: Array = [0]
 	for commander in thinkers:
 		var claimed: Array[Vector2i] = []
 		if not AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH:
 			claimed = _coordinator.claimed_cells_for(commander.player_id)
+		var cmd_t0 := Time.get_ticks_usec()
 		var cell: Vector2i = commander.tick(
 			game_state,
 			budgeted_find,
 			func(command: RefCounted, context: CommandContextClass):
-				return _submit(game_state, command, context),
+				var s0 := Time.get_ticks_usec()
+				var result = _submit(game_state, command, context)
+				submit_bucket[0] = int(submit_bucket[0]) + (Time.get_ticks_usec() - s0)
+				return result,
 			claimed,
 			now_msec,
 			snapshot,
 		)
+		think_usec += Time.get_ticks_usec() - cmd_t0
 		if not AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH:
 			_coordinator.set_claim(commander.player_id, cell)
+	var coord_t0 := Time.get_ticks_usec()
 	if not AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH:
 		_coordinator.resolve_duplicate_claims(commanders)
+	var coord_usec := Time.get_ticks_usec() - coord_t0
+
+	var total_usec := Time.get_ticks_usec() - tick_t0
+	var path_usec_delta := pathfind_usec - path_usec_before
+	var path_calls_delta := pathfind_calls - path_calls_before
+	var submit_usec: int = int(submit_bucket[0])
+	## pathfind runs inside submit (MoveCommand → ActionResolver → find_path).
+	last_tick_breakdown = (
+		"thinkers=%d snap_ms=%.2f brain_ms=%.2f resolve_ms=%.2f path_ms=%.2f path_n=%d coord_ms=%.2f total_ms=%.2f"
+		% [
+			thinkers.size(),
+			float(snap_usec) / 1000.0,
+			float(maxi(think_usec - submit_usec, 0)) / 1000.0,
+			float(maxi(submit_usec - path_usec_delta, 0)) / 1000.0,
+			float(path_usec_delta) / 1000.0,
+			path_calls_delta,
+			float(coord_usec) / 1000.0,
+			float(total_usec) / 1000.0,
+		]
+	)
+	## Wall-clock spike — log immediately so hitch source is obvious in the console.
+	var total_msec := float(total_usec) / 1000.0
+	if total_msec >= SPIKE_LOG_MSEC:
+		GameLog.log_system("[AI-SPIKE] %s" % last_tick_breakdown)
 	return _last_tick_results
 
 
@@ -209,16 +267,47 @@ func _budgeted_find_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector
 	var empty: Array[Vector2i] = []
 	if not _find_path.is_valid():
 		return empty
+	var memo_key := "%d,%d>%d,%d" % [from_cell.x, from_cell.y, to_cell.x, to_cell.y]
+	if _path_memo.has(memo_key):
+		PerceptionCacheClass.path_cache_hits += 1
+		PerceptionCacheClass.path_requests += 1
+		var cached: Array = _path_memo[memo_key]
+		var hit: Array[Vector2i] = []
+		for cell in cached:
+			hit.append(Vector2i(cell))
+		return hit
 	if _pathfinds_remaining <= 0:
 		return empty
 	_pathfinds_remaining -= 1
+	PerceptionCacheClass.path_requests += 1
+	var t0 := Time.get_ticks_usec()
 	var path: Variant = _find_path.call(from_cell, to_cell)
+	var elapsed := Time.get_ticks_usec() - t0
+	pathfind_usec += elapsed
+	pathfind_calls += 1
+	if float(elapsed) / 1000.0 >= SPIKE_LOG_MSEC:
+		GameLog.log_system(
+			"[PATH-SPIKE] ms=%.2f from=%s to=%s"
+			% [float(elapsed) / 1000.0, from_cell, to_cell]
+		)
 	if path is Array:
 		var typed: Array[Vector2i] = []
 		for cell in path:
 			typed.append(Vector2i(cell))
+		_store_path_memo(memo_key, typed)
 		return typed
 	return empty
+
+
+func _store_path_memo(key: String, path: Array[Vector2i]) -> void:
+	if _path_memo.has(key):
+		_path_memo[key] = path.duplicate()
+		return
+	if _path_memo_order.size() >= PATH_MEMO_MAX:
+		var oldest: String = _path_memo_order.pop_front()
+		_path_memo.erase(oldest)
+	_path_memo_order.append(key)
+	_path_memo[key] = path.duplicate()
 
 
 ## Advance one full stagger cycle so every commander gets exactly one think slot.

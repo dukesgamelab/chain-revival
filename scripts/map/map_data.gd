@@ -54,10 +54,61 @@ var _object_meta: Dictionary = {}
 ## Cached walkable stand tiles adjacent to cover objects (AI / cover queries).
 var _cover_stand_cache: Array[Vector2i] = []
 var _cover_stand_cache_dirty: bool = true
+## O(1) object-layer visual lookup — NEVER linear-scan visual_placements in hot paths
+## (cover_check / LOS / AI). A full scan per cell × hundreds of cover stands hitchs for seconds.
+var _visual_object_index: Dictionary = {} ## Vector2i -> Dictionary
+var _visual_index_dirty: bool = true
+## Cached obstruction heights (255 = unset). Invalidated with visual/object edits.
+var _height_cache: PackedByteArray = PackedByteArray()
+var _height_cache_valid: bool = false
 
 
 func _init() -> void:
 	_rebuild_blocked_tiles_list()
+
+
+func _mark_visual_caches_dirty() -> void:
+	_visual_index_dirty = true
+	_height_cache_valid = false
+	_mark_cover_cache_dirty()
+
+
+func _ensure_visual_object_index() -> void:
+	if not _visual_index_dirty:
+		return
+	_visual_object_index.clear()
+	for entry in visual_placements:
+		if str(entry.get("layer", "object")) != "object":
+			continue
+		var cell := Vector2i(int(entry.get("x", -1)), int(entry.get("y", -1)))
+		if cell.x < 0:
+			continue
+		_visual_object_index[cell] = entry
+	_visual_index_dirty = false
+
+
+func _visual_object_entry(cell: Vector2i) -> Dictionary:
+	_ensure_visual_object_index()
+	var entry: Variant = _visual_object_index.get(cell, null)
+	return entry if entry is Dictionary else {}
+
+
+func _ensure_height_cache() -> void:
+	if _height_cache_valid and _height_cache.size() == width * height:
+		return
+	_height_cache.resize(width * height)
+	_height_cache.fill(255)
+	_height_cache_valid = true
+
+
+func _height_cache_get(cell: Vector2i) -> int:
+	_ensure_height_cache()
+	return int(_height_cache[cell.y * width + cell.x])
+
+
+func _height_cache_set(cell: Vector2i, height: int) -> void:
+	_ensure_height_cache()
+	_height_cache[cell.y * width + cell.x] = clampi(height, 0, 2)
 
 
 func is_in_bounds(cell: Vector2i) -> bool:
@@ -212,12 +263,9 @@ func terrain_raw(cell: Vector2i) -> String:
 		family = _visual_family_at(cell)
 	if MapAssetRegistryClass.has_family(family):
 		return str(MapAssetRegistryClass.gameplay_for(family).get("terrain", "_HG_EVEN"))
-	for entry in visual_placements:
-		if int(entry.get("x", -1)) != cell.x or int(entry.get("y", -1)) != cell.y:
-			continue
-		if str(entry.get("layer", "object")) != "object":
-			continue
-		var src: Variant = entry.get("source", {})
+	var visual := _visual_object_entry(cell)
+	if not visual.is_empty():
+		var src: Variant = visual.get("source", {})
 		if src is Dictionary:
 			return str(src.get("terrain", ""))
 	return ""
@@ -240,22 +288,27 @@ func is_climb(cell: Vector2i) -> bool:
 func obstruction_height(cell: Vector2i) -> int:
 	if not is_in_bounds(cell):
 		return 0
+	var cached := _height_cache_get(cell)
+	if cached != 255:
+		return cached
+	var height := _compute_obstruction_height(cell)
+	_height_cache_set(cell, height)
+	return height
+
+
+func _compute_obstruction_height(cell: Vector2i) -> int:
 	var overrides := get_gameplay_overrides(cell)
 	if overrides.has("terrain_height"):
 		return clampi(int(float(overrides.get("terrain_height", 0))), 0, 2)
 	## Prefer map-authored height when present.
-	var source := get_object_source(cell)
-	if source.is_empty():
-		for entry in visual_placements:
-			if int(entry.get("x", -1)) != cell.x or int(entry.get("y", -1)) != cell.y:
-				continue
-			if str(entry.get("layer", "object")) != "object":
-				continue
-			var src: Variant = entry.get("source", {})
+	var source: Variant = get_object_source(cell)
+	if source is Dictionary and (source as Dictionary).is_empty():
+		var visual := _visual_object_entry(cell)
+		if not visual.is_empty():
+			var src: Variant = visual.get("source", {})
 			if src is Dictionary:
 				source = src
-			break
-	if source is Dictionary and source.has("terrain_height"):
+	if source is Dictionary and (source as Dictionary).has("terrain_height"):
 		return clampi(int(float(source.get("terrain_height", 0))), 0, 2)
 	var family := get_object_family(cell)
 	if family.is_empty():
@@ -282,18 +335,15 @@ func obstruction_height(cell: Vector2i) -> int:
 
 
 func _visual_family_at(cell: Vector2i) -> String:
-	for entry in visual_placements:
-		if int(entry.get("x", -1)) != cell.x or int(entry.get("y", -1)) != cell.y:
-			continue
-		if str(entry.get("layer", "object")) != "object":
-			continue
-		var fam := str(entry.get("family", "")).to_upper()
-		if fam.is_empty():
-			var src: Variant = entry.get("source", {})
-			if src is Dictionary:
-				fam = str(src.get("image", "")).to_upper()
-		return fam
-	return ""
+	var entry := _visual_object_entry(cell)
+	if entry.is_empty():
+		return ""
+	var fam := str(entry.get("family", "")).to_upper()
+	if fam.is_empty():
+		var src: Variant = entry.get("source", {})
+		if src is Dictionary:
+			fam = str(src.get("image", "")).to_upper()
+	return fam
 
 
 ## Optional future vaulting — NOT confirmed OG behavior. Default OFF.
@@ -354,6 +404,8 @@ func get_cover_stand_cells() -> Array[Vector2i]:
 
 func _mark_cover_cache_dirty() -> void:
 	_cover_stand_cache_dirty = true
+	## Height depends on objects / visuals — any cover rebuild also drops height memo.
+	_height_cache_valid = false
 
 
 func is_blocked(cell: Vector2i) -> bool:
@@ -381,7 +433,7 @@ func is_walkable(cell: Vector2i) -> bool:
 
 
 func set_object(cell: Vector2i, type_id: String) -> void:
-	_mark_cover_cache_dirty()
+	_mark_visual_caches_dirty()
 
 	if not is_in_bounds(cell):
 		return
@@ -419,7 +471,7 @@ func clear_object(cell: Vector2i) -> void:
 	_object_lookup.erase(cell)
 	_object_meta.erase(cell)
 	_remove_visual_at(cell, "object")
-	_mark_cover_cache_dirty()
+	_mark_visual_caches_dirty()
 	_rebuild_blocked_tiles_list()
 
 
@@ -623,6 +675,7 @@ func set_cell_terrain(
 			entry["cover_type"] = overrides["cover_type"]
 		visual_placements[i] = entry
 		break
+	_mark_visual_caches_dirty()
 	_rebuild_blocked_tiles_list()
 
 
@@ -697,6 +750,7 @@ func restore_snapshot(data: Dictionary) -> void:
 	visual_placements = restored.visual_placements
 	_object_lookup = restored._object_lookup
 	_object_meta = restored._object_meta
+	_mark_visual_caches_dirty()
 	_rebuild_blocked_tiles_list()
 
 
@@ -704,6 +758,7 @@ func _upsert_visual_placement(entry: Dictionary) -> void:
 	var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
 	_remove_visual_at(cell, str(entry.get("layer", "object")))
 	visual_placements.append(entry)
+	_mark_visual_caches_dirty()
 
 
 func _remove_visual_at(cell: Vector2i, layer: String) -> void:
@@ -714,6 +769,7 @@ func _remove_visual_at(cell: Vector2i, layer: String) -> void:
 				continue
 		kept.append(entry)
 	visual_placements = kept
+	_mark_visual_caches_dirty()
 
 
 func _remove_floor_at(cell: Vector2i) -> void:
@@ -1103,6 +1159,7 @@ func _load_objects_from_json(raw: Array) -> void:
 	_object_lookup.clear()
 	_object_meta.clear()
 	visual_placements.clear()
+	_mark_visual_caches_dirty()
 	for entry in raw:
 		if not entry is Dictionary:
 			continue
@@ -1166,6 +1223,7 @@ func _load_objects_from_json(raw: Array) -> void:
 		if not overrides.is_empty():
 			meta["gameplay_overrides"] = overrides
 		_object_meta[cell] = meta
+	_mark_visual_caches_dirty()
 
 
 func _append_decoration_visuals() -> void:
@@ -1190,6 +1248,8 @@ func _append_decoration_visuals() -> void:
 				"z": 0,
 			}
 		)
+	## Decoration are non-object layer (excluded from index) but still mutate the array.
+	_visual_index_dirty = true
 
 
 static func _cell_from_object_entry(entry: Dictionary) -> Vector2i:

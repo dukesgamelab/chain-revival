@@ -2,13 +2,13 @@ class_name IsometricPathOverlay
 extends Node2D
 ## Draws movement path and destination highlight without redrawing the full map.
 ## Drawing is gated by debug_visible for the yellow path only (test overlay; toggle with T).
-## Red destination markers always draw when targets are set (flashing, with OG DOT sprites).
+## Red destination markers always draw when targets are set (flashing, with roster DOT icons).
 
 const DOT_TEXTURE_PATHS := [
-	"res://assets/sprites/coc_soldiers/DOT1S3A.png",
-	"res://assets/sprites/coc_soldiers/DOT2S3A.png",
-	"res://assets/sprites/coc_soldiers/DOT3S3A.png",
-	"res://assets/sprites/coc_soldiers/DOT4S3A.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DOT1.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DOT2.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DOT3.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DOT4.png",
 ]
 
 @export var path_color := Color(0.95, 0.85, 0.20, 0.55)
@@ -19,8 +19,7 @@ var debug_visible: bool = false
 
 ## Flash period for destination diamonds (matches OG blink cadence).
 const FLASH_HZ := 2.5
-## DOT sprites are 100×100 OG canvases — keep in sync with Soldier.OG_SPRITE_SCALE.
-const DOT_DRAW_SCALE := 1.0
+const DOT_DRAW_SCALE := 2.0
 
 var _path_cells: Array[Vector2i] = []
 ## Each entry: {"cell": Vector2i, "soldier_id": int}
@@ -60,7 +59,7 @@ func set_path(cells: Array[Vector2i], target: Vector2i, markers: Array = []) -> 
 			if entry is Dictionary and entry.has("cell"):
 				_markers.append({
 					"cell": Vector2i(entry.cell),
-					"soldier_id": clampi(int(entry.get("soldier_id", 1)), 1, 4),
+					"soldier_id": int(entry.get("soldier_id", 1)),
 				})
 	elif target != Vector2i(-999, -999):
 		_markers.append({"cell": target, "soldier_id": 1})
@@ -99,7 +98,7 @@ func _draw() -> void:
 	if _markers.is_empty():
 		return
 
-	## Square-wave flash: bright ↔ dim (OG-style blink).
+	## Square-wave flash: bright ↔ dim (OG-style blink) — red tile only, not overhead icons.
 	var flash_on := int(floor(_flash_t * FLASH_HZ * 2.0)) % 2 == 0
 	var fill := target_color
 	if flash_on:
@@ -142,7 +141,7 @@ func _draw() -> void:
 func _draw_soldier_dot_sprite(center: Vector2, soldier_id: int, scale: float = 1.0) -> void:
 	if _dot_textures.is_empty():
 		_load_dot_textures()
-	var idx := clampi(soldier_id, 1, 4) - 1
+	var idx := Soldier.roster_marker_index(soldier_id)
 	if idx < 0 or idx >= _dot_textures.size():
 		return
 	var tex: Texture2D = _dot_textures[idx]

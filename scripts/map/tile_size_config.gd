@@ -55,6 +55,13 @@ static func facing_arrow_y() -> float:
 	return -TILE_HEIGHT * 0.9375
 
 
+## Yellow DOT/DTT roster marker sits just above the soldier's head.
+static func id_marker_y(is_crouched: bool = false) -> float:
+	if is_crouched:
+		return -TILE_HEIGHT * 0.85
+	return -TILE_HEIGHT * 1.45
+
+
 static func prone_marker_y() -> float:
 	return -TILE_HEIGHT * 0.1875
 

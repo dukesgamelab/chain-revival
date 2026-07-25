@@ -93,9 +93,13 @@ var _ai_hud_refresh_counter: int = 0
 ## Perception / AI / combat profiler (rolling 1s window).
 var _perf_ai_think_usec: int = 0
 var _perf_combat_usec: int = 0
+var _perf_present_usec: int = 0
+var _perf_move_usec: int = 0
 var _perf_max_frame_msec: float = 0.0
 var _stuck_mismatch_since: Dictionary = {} ## "team:sid" -> msec when mismatch began
+var _stuck_logged: Dictionary = {} ## "team:sid" -> true once per stuck episode
 const PerceptionCacheClass := preload("res://scripts/combat/perception_cache.gd")
+const _FRAME_SPIKE_LOG_MSEC := 50.0
 
 
 func _ready() -> void:
@@ -223,6 +227,18 @@ func _process(delta: float) -> void:
 	var frame_msec := float(Time.get_ticks_usec() - frame_t0) / 1000.0
 	if frame_msec > _perf_max_frame_msec:
 		_perf_max_frame_msec = frame_msec
+	if frame_msec >= _FRAME_SPIKE_LOG_MSEC:
+		GameLog.log_system(
+			"[FRAME-SPIKE] ms=%.2f ai_ms=%.2f combat_ms=%.2f move_ms=%.2f present_ms=%.2f perc_ms=%.2f"
+			% [
+				frame_msec,
+				float(_perf_ai_think_usec) / 1000.0,
+				float(_perf_combat_usec) / 1000.0,
+				float(_perf_move_usec) / 1000.0,
+				float(_perf_present_usec) / 1000.0,
+				float(PerceptionCacheClass.perception_usec) / 1000.0,
+			]
+		)
 
 func _update_los_preview_throttled(delta: float) -> void:
 	if not _fire_at_mode and not _grenade_mode:
@@ -250,27 +266,33 @@ func _step_fixed_simulation(frame_delta: float) -> void:
 		return
 	_sim_accum_sec += frame_delta
 	var tick_sec := SimulationClock.tick_sec()
+	## How many ticks are already queued? >1 means we're catching up after a hitch —
+	## skip AI on catch-up ticks so one slow think cannot multiply into a death spiral.
+	var queued := int(_sim_accum_sec / tick_sec)
 	var steps := 0
 	while _sim_accum_sec >= tick_sec and steps < SimulationClock.max_catchup_ticks:
 		_sim_accum_sec -= tick_sec
-		_step_simulation_tick()
+		var catching_up := queued > 1 and steps < queued - 1
+		_step_simulation_tick(catching_up)
 		steps += 1
 	## Drop excess accumulator after catch-up cap so a long hitch does not spiral.
 	if steps >= SimulationClock.max_catchup_ticks and _sim_accum_sec >= tick_sec:
 		_sim_accum_sec = fmod(_sim_accum_sec, tick_sec)
 
 
-func _step_simulation_tick() -> void:
+func _step_simulation_tick(skip_ai: bool = false) -> void:
 	var stepped := SimulationClock.advance_tick()
 	if _map_edit_mode:
 		return
 
+	var move_t0 := Time.get_ticks_usec()
 	var move_result: ActionResultClass = ActionResolverClass.process_movement_tick(_game_state)
 	if (
 		not move_result.movement_steps.is_empty()
 		or not move_result.movement_completions.is_empty()
 	):
 		_present_movement_tick_result(move_result)
+	_perf_move_usec += Time.get_ticks_usec() - move_t0
 
 	## Warm dirty perception pairs every sim tick (budgeted; combat scan flushes).
 	if _game_state != null and not _game_state.is_deployment_phase():
@@ -285,10 +307,12 @@ func _step_simulation_tick() -> void:
 		and not _game_state.is_deployment_phase()
 	):
 		var ai_t0 := Time.get_ticks_usec()
-		var ai_results: Array = _ai_framework.tick(_game_state)
+		var ai_results: Array = _ai_framework.tick(_game_state, skip_ai)
 		_perf_ai_think_usec += Time.get_ticks_usec() - ai_t0
+		var present_t0 := Time.get_ticks_usec()
 		for ai_result in ai_results:
 			_present_action_result(ai_result, false)
+		_perf_present_usec += Time.get_ticks_usec() - present_t0
 
 	_combat_scan_accum_msec += stepped
 	var scan_msec := _combat_scan_interval_msec()
@@ -298,7 +322,9 @@ func _step_simulation_tick() -> void:
 	var combat_t0 := Time.get_ticks_usec()
 	var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
 	_perf_combat_usec += Time.get_ticks_usec() - combat_t0
+	var present_c0 := Time.get_ticks_usec()
 	_present_action_result(tick_result, true)
+	_perf_present_usec += Time.get_ticks_usec() - present_c0
 	## Debug HUD — every 4th combat scan (~2s) is enough while AI is active.
 	_ai_hud_refresh_counter += 1
 	if _ai_hud_refresh_counter >= 4:
@@ -379,24 +405,52 @@ func _log_presentation_perf_if_moving() -> void:
 func _log_perception_profiler() -> void:
 	var fps := Performance.get_monitor(Performance.TIME_FPS)
 	var process_msec := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	var ai_ms := float(_perf_ai_think_usec) / 1000.0
+	var combat_ms := float(_perf_combat_usec) / 1000.0
+	var perc_ms := float(PerceptionCacheClass.perception_usec) / 1000.0
+	var move_ms := float(_perf_move_usec) / 1000.0
+	var present_ms := float(_perf_present_usec) / 1000.0
+	var path_ms := 0.0
+	var path_n := 0
+	var last_ai := ""
+	if _ai_framework != null:
+		path_ms = float(_ai_framework.pathfind_usec) / 1000.0
+		path_n = int(_ai_framework.pathfind_calls)
+		last_ai = str(_ai_framework.last_tick_breakdown)
 	GameLog.log_system(
-		"[Profiler] %s ai_ms=%.2f combat_ms=%.2f max_frame_ms=%.2f fps=%.0f process_ms=%.2f"
+		(
+			"[Profiler] %s ai_ms=%.2f path_ms=%.2f path_n=%d combat_ms=%.2f "
+			+ "move_ms=%.2f present_ms=%.2f perc_ms=%.2f max_frame_ms=%.2f fps=%.0f process_ms=%.2f"
+		)
 		% [
 			PerceptionCacheClass.debug_summary(),
-			float(_perf_ai_think_usec) / 1000.0,
-			float(_perf_combat_usec) / 1000.0,
+			ai_ms,
+			path_ms,
+			path_n,
+			combat_ms,
+			move_ms,
+			present_ms,
+			perc_ms,
 			_perf_max_frame_msec,
 			fps,
 			process_msec,
 		]
 	)
+	if not last_ai.is_empty() and ai_ms >= 20.0:
+		GameLog.log_system("[Profiler] last_ai_tick %s" % last_ai)
 	PerceptionCacheClass.reset_counters()
 	_perf_ai_think_usec = 0
 	_perf_combat_usec = 0
+	_perf_present_usec = 0
+	_perf_move_usec = 0
 	_perf_max_frame_msec = 0.0
+	if _ai_framework != null:
+		_ai_framework.pathfind_usec = 0
+		_ai_framework.pathfind_calls = 0
 
 
-## Detect view/sim is_moving desync (running-in-place fingerprint).
+## Detect presentation desync: view still "moving" after sim halted (~0.5s).
+## Do NOT treat normal inter-step waits as stuck — that spammed logs and crashed FPS.
 func _scan_stuck_movement_mismatches() -> void:
 	if _game_state == null or _session == null:
 		return
@@ -409,9 +463,15 @@ func _scan_stuck_movement_mismatches() -> void:
 			if view == null:
 				continue
 			var key := "%d:%d" % [state.team_id, state.soldier_id]
-			var mismatch := view.is_moving() and not state.is_moving
-			if not mismatch:
-				_stuck_mismatch_since.erase(key)
+			var chase: Dictionary = view.debug_chase_fingerprint()
+			var view_moving := bool(chase.get("view_moving", false))
+			var dist := float(chase.get("dist_to_target", 0.0))
+			## Only true desync: presentation moving while sim has stopped.
+			var view_desync := view_moving and not state.is_moving and dist <= 0.5
+			if not view_desync:
+				if _stuck_mismatch_since.has(key):
+					_stuck_mismatch_since.erase(key)
+					_clear_stuck_overlay(view)
 				continue
 			if not _stuck_mismatch_since.has(key):
 				_stuck_mismatch_since[key] = now
@@ -419,23 +479,93 @@ func _scan_stuck_movement_mismatches() -> void:
 			var age: int = now - int(_stuck_mismatch_since[key])
 			if age < 500:
 				continue
-			PerceptionCacheClass.stuck_events += 1
-			GameLog.log_system(
-				"[StuckMove] team=%d sid=%d view_moving=%s sim_moving=%s cell=%s age_ms=%d path_len=%d"
-				% [
-					state.team_id,
-					state.soldier_id,
-					view.is_moving(),
-					state.is_moving,
-					state.grid_position,
-					age,
-					state.current_path.size(),
-				]
-			)
-			## Self-heal: snap view to sim halt.
+			## Log once per stuck episode (not every profiler second).
+			if not _stuck_logged.has(key):
+				_stuck_logged[key] = true
+				PerceptionCacheClass.stuck_events += 1
+				var cmd_info := _stuck_commander_info(state.team_id, state.soldier_id)
+				GameLog.log_system(
+					(
+						"[StuckMove] id=%s cmd=%s view_moving=%s sim_moving=%s cell=%s "
+						+ "path_len=%d age_ms=%d last_cmd=%s chase=%s"
+					)
+					% [
+						key,
+						str(cmd_info.get("state", "—")),
+						view_moving,
+						state.is_moving,
+						state.grid_position,
+						state.current_path.size(),
+						age,
+						str(cmd_info.get("last_command", "—")),
+						chase,
+					]
+				)
+				_show_stuck_overlay(view)
+			## Self-heal presentation desync (sim already halted).
 			view.stop_movement()
 			view.position = IsometricGrid.grid_to_world(state.grid_position)
 			_stuck_mismatch_since.erase(key)
+			_stuck_logged.erase(key)
+			_clear_stuck_overlay(view)
+
+
+func _stuck_commander_info(team_id: int, soldier_id: int) -> Dictionary:
+	var out := {
+		"state": "—",
+		"objective": "—",
+		"last_command": "—",
+		"last_path_request_msec": -1,
+		"waiting_commander": false,
+	}
+	if _ai_framework == null or _game_state == null or _game_state.command_hierarchy == null:
+		return out
+	var hierarchy = _game_state.command_hierarchy
+	var pid := -1
+	for raw_pid in hierarchy.all_player_ids():
+		if hierarchy.get_team_id(int(raw_pid)) != team_id:
+			continue
+		if soldier_id in hierarchy.get_soldier_ids(int(raw_pid)):
+			pid = int(raw_pid)
+			break
+	if pid <= 0:
+		return out
+	var commander = _ai_framework.get_commander(pid)
+	if commander == null:
+		return out
+	var snap: Dictionary = commander.debug_snapshot(_game_state)
+	out["state"] = str(snap.get("state", "—"))
+	out["objective"] = str(snap.get("objective", "—"))
+	out["last_command"] = str(snap.get("last_command", snap.get("last_action", "—")))
+	out["last_path_request_msec"] = int(snap.get("last_path_request_msec", -1))
+	out["waiting_commander"] = hierarchy.is_ai_player(pid)
+	return out
+
+
+func _show_stuck_overlay(view: Soldier) -> void:
+	if view == null:
+		return
+	var marker: Node = view.get_node_or_null("StuckMoveDebug")
+	if marker == null:
+		var label := Label.new()
+		label.name = "StuckMoveDebug"
+		label.text = "STUCK"
+		label.position = Vector2(-18, -48)
+		label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.15, 1.0))
+		label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+		label.add_theme_constant_override("shadow_offset_x", 1)
+		label.add_theme_constant_override("shadow_offset_y", 1)
+		view.add_child(label)
+	else:
+		(marker as CanvasItem).visible = true
+
+
+func _clear_stuck_overlay(view: Soldier) -> void:
+	if view == null:
+		return
+	var marker: Node = view.get_node_or_null("StuckMoveDebug")
+	if marker != null:
+		marker.queue_free()
 
 
 func _combat_scan_interval_msec() -> int:

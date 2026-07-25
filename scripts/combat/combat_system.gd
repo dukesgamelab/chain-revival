@@ -398,15 +398,17 @@ static func can_spot_enemy(
 	target: SoldierStateClass,
 	game_state: GameStateClass,
 ) -> bool:
-	return _spot_score_once(observer, target, game_state) >= 0.0
+	return _spot_score_once(observer, target, game_state, true) >= 0.0
 
 
 ## Single LOS + facing/range pass. Returns visibility score, or -1 if not spotted.
 ## Uses PerceptionCache — unchanged pairs reuse prior scores.
+## force_immediate: skip far-defer (fire / close threats / combat flush warm).
 static func _spot_score_once(
 	observer: SoldierStateClass,
 	target: SoldierStateClass,
 	game_state: GameStateClass,
+	force_immediate: bool = false,
 ) -> float:
 	if observer == null or target == null or target.is_dead or observer.is_dead:
 		return -1.0
@@ -416,6 +418,7 @@ static func _spot_score_once(
 		observer,
 		target,
 		func() -> float: return _spot_score_compute(observer, target, game_state),
+		force_immediate,
 	)
 
 
@@ -493,7 +496,7 @@ static func process_perception_tick(game_state: GameStateClass) -> void:
 		return
 	PerceptionCacheClass.process_dirty_budget(
 		game_state,
-		PerceptionCacheClass.PAIRS_PER_TICK,
+		PerceptionCacheClass.tick_budget(),
 		func(obs_team: int, obs_id: int, tgt_team: int, tgt_id: int):
 			var observer := game_state.get_soldier(obs_team, obs_id)
 			var target := game_state.get_soldier(tgt_team, tgt_id)
@@ -517,7 +520,7 @@ static func _passes_spotting_checks(
 	target: SoldierStateClass,
 	game_state: GameStateClass,
 ) -> bool:
-	return _spot_score_once(observer, target, game_state) >= 0.0
+	return _spot_score_once(observer, target, game_state, true) >= 0.0
 
 
 static func get_visibility_score(
@@ -525,7 +528,8 @@ static func get_visibility_score(
 	target: SoldierStateClass,
 	game_state: GameStateClass,
 ) -> float:
-	return _spot_score_once(observer, target, game_state)
+	## Callers (AI / fire eligibility) need a definitive answer — never defer.
+	return _spot_score_once(observer, target, game_state, true)
 
 
 static func get_cover_visibility_modifier(
@@ -959,7 +963,14 @@ static func _build_team_visibility_map(
 			var observer: SoldierStateClass = observer_state
 			if observer.is_dead:
 				continue
-			var score := _spot_score_once(observer, enemy, game_state)
+			var dist := _manhattan_distance(observer.grid_position, enemy.grid_position)
+			## Close pairs always resolve now; far misses defer into the dirty budget.
+			var score := _spot_score_once(
+				observer,
+				enemy,
+				game_state,
+				dist <= PerceptionCacheClass.CLOSE_FORCE_DIST,
+			)
 			if score < 0.0:
 				continue
 			var observer_key := ObjectId.team_soldier_key(observer.team_id, observer.soldier_id)

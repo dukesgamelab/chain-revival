@@ -46,6 +46,9 @@ var move_accum_msec: int = 0
 var move_step_cost_msec: int = 0
 ## Effective speed multiplier for the active path (mode × stress).
 var move_speed_mult: float = 1.0
+## Diagnostics — when the current path was assigned / last tile advance (sim clock).
+var path_assigned_msec: int = 0
+var last_successful_move_msec: int = 0
 var ammo_current: int = 0
 var ammo_max: int = 0
 var is_dead: bool = false
@@ -358,6 +361,7 @@ func clear_path() -> void:
 	move_accum_msec = 0
 	move_step_cost_msec = 0
 	move_speed_mult = 1.0
+	path_assigned_msec = 0
 
 
 func assign_path(path: Array[Vector2i], speed_mult: float = 1.0) -> void:
@@ -369,6 +373,7 @@ func assign_path(path: Array[Vector2i], speed_mult: float = 1.0) -> void:
 	path_index = 1
 	is_moving = current_path.size() > 1
 	if is_moving:
+		path_assigned_msec = SimulationClock.get_ticks_msec()
 		move_step_cost_msec = MovementPolicyClass.step_cost_msec(
 			current_path[0],
 			current_path[1],
@@ -380,6 +385,7 @@ func assign_path(path: Array[Vector2i], speed_mult: float = 1.0) -> void:
 	else:
 		move_step_cost_msec = 0
 		path_index = 0
+		path_assigned_msec = 0
 
 
 func to_dict() -> Dictionary:

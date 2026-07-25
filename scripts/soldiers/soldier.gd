@@ -77,20 +77,20 @@ const DEBUG_FACING := false
 const DEBUG_DEAD_STATIC := false
 
 
+## Cropped roster icons — index 0 = soldier 1 (1 mark), …, index 3 = soldier 4 (4 marks).
 const DOT_TEXTURE_PATHS := [
-	"res://assets/sprites/coc_soldiers/DOT1S3A.png",
-	"res://assets/sprites/coc_soldiers/DOT2S3A.png",
-	"res://assets/sprites/coc_soldiers/DOT3S3A.png",
-	"res://assets/sprites/coc_soldiers/DOT4S3A.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DOT1.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DOT2.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DOT3.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DOT4.png",
 ]
 const DTT_TEXTURE_PATHS := [
-	"res://assets/sprites/coc_soldiers/DTT1S3A.png",
-	"res://assets/sprites/coc_soldiers/DTT2S3A.png",
-	"res://assets/sprites/coc_soldiers/DTT3S3A.png",
-	"res://assets/sprites/coc_soldiers/DTT4S3A.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DTT1.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DTT2.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DTT3.png",
+	"res://assets/sprites/coc_soldiers/id_markers/DTT4.png",
 ]
-## OG id-marker flash rate (matches destination diamond blink).
-const ID_MARKER_FLASH_HZ := 2.5
+const ID_MARKER_SCALE := Vector2(2.0, 2.0)
 
 @onready var _anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var _selection_marker: Polygon2D = $SelectionMarker
@@ -100,7 +100,6 @@ const ID_MARKER_FLASH_HZ := 2.5
 @onready var _prone_marker: Line2D = $ProneMarker
 
 var _show_id_marker: bool = false
-var _id_marker_flash_t: float = 0.0
 var _dot_textures: Array[Texture2D] = []
 var _dtt_textures: Array[Texture2D] = []
 
@@ -133,8 +132,17 @@ func _configure_id_marker_node() -> void:
 		return
 	_id_marker.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_id_marker.centered = true
-	_id_marker.scale = OG_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
+	_id_marker.offset = Vector2.ZERO
+	_id_marker.scale = ID_MARKER_SCALE
+	_id_marker.modulate = Color.WHITE
 	_id_marker.visible = false
+
+
+## Map soldier_id (1–4) or roster index (0–3) → texture slot 0–3 (1–4 marks).
+static func roster_marker_index(soldier_id: int) -> int:
+	if soldier_id >= 1 and soldier_id <= 4:
+		return soldier_id - 1
+	return clampi(soldier_id, 0, 3)
 
 
 
@@ -196,9 +204,8 @@ func sync_from_state(
 	_apply_spotted_visual(is_selected, is_spotted)
 	set_selected(is_selected)
 	_refresh_id_marker(state)
-	if _is_moving and _uses_og_frames() and state.is_moving and state.path_index < state.current_path.size():
-		var step_delta := state.current_path[state.path_index] - state.grid_position
-		_update_locomotion_visual(step_delta, true)
+	## Do not force walk=true here — sync_movement_chase_from_state already chose
+	## walk vs idle based on remaining distance (avoids run-in-place on full sync).
 
 
 func _refresh_id_marker(state: SoldierState) -> void:
@@ -209,21 +216,18 @@ func _refresh_id_marker(state: SoldierState) -> void:
 		return
 	if _dot_textures.is_empty() or _dtt_textures.is_empty():
 		_load_id_marker_textures()
-	var idx := clampi(state.soldier_id, 1, 4) - 1
+	var idx := roster_marker_index(state.soldier_id)
 	var crouched := state.position_state == PositionState.DOWN
 	var textures: Array[Texture2D] = _dtt_textures if crouched else _dot_textures
 	if idx < 0 or idx >= textures.size() or textures[idx] == null:
 		_id_marker.visible = false
 		return
 	_id_marker.texture = textures[idx]
-	## Same 100×100 OG canvas alignment as the soldier body — DOT sits high, DTT lower.
-	_id_marker.scale = OG_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
-	if crouched:
-		_id_marker.offset = TileSizeConfig.soldier_prone_sprite_offset()
-	else:
-		_id_marker.offset = TileSizeConfig.soldier_standing_sprite_offset()
+	_id_marker.scale = ID_MARKER_SCALE
+	_id_marker.offset = Vector2.ZERO
+	_id_marker.modulate = Color.WHITE
+	_id_marker.position = Vector2(0.0, TileSizeConfig.id_marker_y(crouched))
 	_id_marker.visible = true
-	set_process(true)
 
 
 
@@ -300,6 +304,23 @@ func is_moving() -> bool:
 	return _is_moving
 
 
+## Presentation chase fingerprint for stuck-movement diagnostics.
+func debug_chase_fingerprint() -> Dictionary:
+	var dest := Vector2i(-999, -999)
+	if _has_active_chase():
+		dest = _path[_path_index]
+	return {
+		"view_moving": _is_moving,
+		"path_len": _path.size(),
+		"path_index": _path_index,
+		"dest_cell": dest,
+		"chase_active": _has_active_chase(),
+		"dist_to_target": position.distance_to(_move_target_world),
+		"fire_active": _fire_active,
+		"stance_transition": _stance_transition_active,
+	}
+
+
 ## Recompute world positions after a presentation-only view rotation.
 func refresh_movement_visual() -> void:
 	if not _is_moving or _path.is_empty():
@@ -315,21 +336,9 @@ func stop_movement() -> void:
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
-	set_process(_id_marker_needs_process())
+	set_process(false)
 	if was_moving and _uses_og_frames() and not _blocks_action_override():
 		_play_locomotion(_locomotion_direction, false)
-
-
-func _id_marker_needs_process() -> bool:
-	return _show_id_marker and _id_marker != null and _id_marker.visible and not _is_dead
-
-
-func _update_id_marker_flash(delta: float) -> void:
-	if not _id_marker_needs_process():
-		return
-	_id_marker_flash_t += delta
-	var flash_on := int(floor(_id_marker_flash_t * ID_MARKER_FLASH_HZ * 2.0)) % 2 == 0
-	_id_marker.modulate = Color.WHITE if flash_on else Color(1.0, 1.0, 1.0, 0.2)
 
 
 func _finish_presentation_move() -> void:
@@ -339,7 +348,7 @@ func _finish_presentation_move() -> void:
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
-	set_process(_id_marker_needs_process())
+	set_process(false)
 	if _uses_og_frames() and not _blocks_action_override():
 		_update_locomotion_visual(_last_applied_facing, false)
 
@@ -366,10 +375,7 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 
 func _process(delta: float) -> void:
 	## Interpolates Node2D.position only — never mutates SoldierState or emits gameplay steps.
-	_update_id_marker_flash(delta)
 	if not _is_moving or _is_dead or _blocks_action_override():
-		if not _id_marker_needs_process():
-			set_process(false)
 		return
 
 	var to_target := _move_target_world - position
@@ -418,7 +424,9 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 		_is_moving = true
 		var step_delta := state.current_path[state.path_index] - state.grid_position
 		_apply_facing(FacingDirection.from_step(step_delta), state.grid_position)
-		_update_locomotion_visual(step_delta, true)
+		## Only play run while actually translating — early arrivals stay idle (no run-in-place).
+		var need_translate := position.distance_to(_move_target_world) > 0.5
+		_update_locomotion_visual(step_delta, need_translate)
 		## Depth via parent y_sort; z_index mirrors world-Y for stable ties.
 		z_index = int(position.y)
 		set_process(true)
@@ -432,8 +440,14 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 		position = _move_target_world
 		_finish_presentation_move()
 	else:
+		## Settle lerp — never leave the run loop playing while sliding to the cell.
 		_is_moving = true
+		_update_locomotion_visual(_last_applied_facing, false)
 		set_process(true)
+
+
+func _has_active_chase() -> bool:
+	return not _path.is_empty() and _path_index < _path.size()
 
 
 func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:
@@ -837,6 +851,10 @@ func play_fire(
 		_log_fire_anim("queued", "RESTART_QUEUED")
 		return
 
+	## Fire blocks _process — must clear presentation move first. Otherwise a settle/chase
+	## left _is_moving true, sustained fire froze the sprite, and _finish_fire_idle replayed
+	## the run anim in place for the whole engagement (the running-in-place bug).
+	stop_movement()
 	_cancel_stance_transition_visual(false)
 	_begin_fire_sequence(position_state, facing_direction)
 
@@ -1239,10 +1257,18 @@ func _finish_fire(anim_name: String) -> void:
 
 
 func _finish_fire_idle() -> void:
-	if _is_moving:
+	## Never resume a run loop unless we still have a chase cell to cover.
+	## Settling (empty path) or waiting at a cell must stay idle — not run-in-place.
+	if _is_moving and _has_active_chase() and position.distance_to(_move_target_world) > 0.5:
 		_locomotion_walking = false
 		var move_dir := _fire_world_direction if not _fire_world_direction.is_empty() else _locomotion_direction
 		_play_locomotion(move_dir if not move_dir.is_empty() else "n", true)
+		_sync_facing_arrow_visibility()
+		return
+	if _is_moving and not _has_active_chase():
+		## Snap settle after fire blocked _process; do not restart walk.
+		position = _move_target_world
+		_finish_presentation_move()
 		_sync_facing_arrow_visibility()
 		return
 	if _fire_return_prone:

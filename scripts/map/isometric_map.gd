@@ -104,7 +104,9 @@ func find_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
 	if _astar.is_point_solid(to_cell):
 		return []
 
+	var t0 := Time.get_ticks_usec()
 	var raw_path := _astar.get_id_path(from_cell, to_cell)
+	var elapsed_ms := float(Time.get_ticks_usec() - t0) / 1000.0
 	var path: Array[Vector2i] = []
 	for cell in raw_path:
 		var step := Vector2i(cell)
@@ -112,6 +114,12 @@ func find_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
 		if step != from_cell and map_data.is_blocked(step):
 			return []
 		path.append(step)
+	## Human + AI share this pathfinder — log expensive searches (UI freezes too).
+	if elapsed_ms >= 50.0:
+		GameLog.log_system(
+			"[PATH-SPIKE] map_ms=%.2f from=%s to=%s len=%d"
+			% [elapsed_ms, from_cell, to_cell, path.size()]
+		)
 	return path
 
 

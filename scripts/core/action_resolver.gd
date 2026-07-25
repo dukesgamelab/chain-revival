@@ -13,6 +13,7 @@ const FaceCommandClass := preload("res://scripts/commands/face_command.gd")
 const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
 const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
 const FireControlCommandClass := preload("res://scripts/commands/fire_control_command.gd")
+const HaltCommandClass := preload("res://scripts/commands/halt_command.gd")
 const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd")
 const AssignCommanderCommandClass := preload("res://scripts/commands/assign_commander_command.gd")
 const BreakCommandLinkCommandClass := preload("res://scripts/commands/break_command_link_command.gd")
@@ -54,6 +55,8 @@ static func execute(
 		return execute_position(game_state, command as PositionCommandClass)
 	if command is FireControlCommandClass:
 		return execute_fire_control(game_state, command as FireControlCommandClass)
+	if command is HaltCommandClass:
+		return execute_halt(game_state, command as HaltCommandClass, context)
 	if command is GrenadeCommandClass:
 		return execute_grenade(game_state, command as GrenadeCommandClass, context)
 	if command is AssignCommanderCommandClass:
@@ -297,6 +300,7 @@ static func _advance_soldier_movement(
 			return
 		var step_delta := to_cell - from_cell
 		on_movement_step(game_state, soldier.team_id, soldier.soldier_id, to_cell, step_delta)
+		soldier.last_successful_move_msec = SimulationClock.get_ticks_msec()
 		result.movement_steps.append({
 			"team_id": soldier.team_id,
 			"soldier_id": soldier.soldier_id,
@@ -447,6 +451,10 @@ static func execute_move(
 			return ActionResult.fail("No soldiers could %s to that tile." % squad_mode_label)
 		var anchor: SoldierState = orderable[0]
 		var anchor_pos := anchor.grid_position
+		## Cap full A* fallbacks after the lead path — translated followers are free;
+		## each failed translation used to A* again and hitch the frame (esp. AI × many FTs).
+		var full_pathfinds := 0
+		const MAX_SQUAD_FULL_PATHFINDS := 2
 		for squad_soldier in orderable:
 			var squad_move_result := _resolve_move_order(squad_soldier, cmd.movement_mode)
 			var member_target := _squad_relative_formation_cell(
@@ -468,7 +476,7 @@ static func execute_move(
 					lead_start,
 					member_target,
 				)
-			if not assigned:
+			if not assigned and full_pathfinds < MAX_SQUAD_FULL_PATHFINDS:
 				assigned = _assign_move_path(
 					game_state,
 					context,
@@ -480,6 +488,8 @@ static func execute_move(
 					squad_move_result.message,
 					member_target,
 				)
+				if assigned:
+					full_pathfinds += 1
 				if assigned and lead_path.is_empty() and not result.move_orders.is_empty():
 					var last: Dictionary = result.move_orders[result.move_orders.size() - 1]
 					if int(last.get("soldier_id", -1)) == squad_soldier.soldier_id:
@@ -931,6 +941,37 @@ static func commit_stance_transition(
 		"Soldier %d changed to %s"
 		% [soldier.soldier_id, PositionStateClass.display_name(target_position_state)],
 	)
+
+
+## Stop in-progress paths for a soldier or owned fireteam (AI contact cancel, etc.).
+static func execute_halt(
+	game_state: GameStateClass,
+	cmd: HaltCommandClass,
+	context: CommandContext,
+) -> ActionResult:
+	var fireteam := _order_fireteam(game_state, cmd.team_id, context)
+	var result := ActionResult.new()
+	var halted_any := false
+	var ids: Array[int] = []
+	if cmd.scope == HaltCommandClass.Scope.SQUAD:
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if soldier_state != null and soldier_state.is_alive():
+				ids.append(soldier_state.soldier_id)
+	else:
+		ids.append(cmd.soldier_id)
+	for soldier_id in ids:
+		var soldier: SoldierState = fireteam.get_soldier(soldier_id)
+		if soldier == null or soldier.is_dead:
+			continue
+		if _halt_soldier_for_combat(game_state, soldier, result):
+			halted_any = true
+	if not halted_any:
+		return ActionResult.fail("No soldiers were moving.")
+	result.clear_path_overlay = true
+	result.success = true
+	result.status_message = "Fireteam halted."
+	return result
 
 
 static func execute_fire_control(
@@ -1391,6 +1432,8 @@ static func _command_type_name(command: RefCounted) -> String:
 		return "PositionCommand"
 	if command is FireControlCommandClass:
 		return "FireControlCommand"
+	if command is HaltCommandClass:
+		return "HaltCommand"
 	if command is GrenadeCommandClass:
 		return "GrenadeCommand"
 	if command is AssignCommanderCommandClass:

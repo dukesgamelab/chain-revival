@@ -48,6 +48,7 @@ func _ready() -> void:
 	_test_map_object_registry()
 	_test_grenade_object_registry()
 	_test_team_soldier_key_consistent()
+	_test_perception_cache_incremental()
 
 	print("")
 	print("Gameplay foundation tests: %d passed, %d failed" % [_passed, _failed])
@@ -1043,4 +1044,63 @@ func _test_team_soldier_key_consistent() -> void:
 		and ObjectId.team_soldier_key(Team.USA, 2) == "1:2"
 		and SoldierState.enemy_tracking_key(Team.GERMANY, 3) == "2:3",
 		"keys diverge",
+	)
+
+
+func _test_perception_cache_incremental() -> void:
+	_bootstrap()
+	const PerceptionCacheClass := preload("res://scripts/combat/perception_cache.gd")
+	PerceptionCacheClass.clear_all()
+	PerceptionCacheClass.reset_counters()
+	var game_state := _make_game_state()
+	var usa := game_state.get_soldier(Team.USA, 1)
+	var ger := game_state.get_soldier(Team.GERMANY, 1)
+	## Place within close-force distance on open ground.
+	usa.grid_position = Vector2i(20, 30)
+	ger.grid_position = Vector2i(24, 30)
+	usa.facing_direction = Vector2i(1, 0)
+	ger.facing_direction = Vector2i(-1, 0)
+
+	var score1 := CombatSystemClass.get_visibility_score(usa, ger, game_state)
+	var misses_after_first := PerceptionCacheClass.spot_cache_misses
+	var los_after_first := PerceptionCacheClass.los_evals
+	var score2 := CombatSystemClass.get_visibility_score(usa, ger, game_state)
+	_assert(
+		"Perception cache hit on unchanged pair",
+		score1 == score2 and PerceptionCacheClass.spot_cache_hits >= 1,
+		"score1=%s score2=%s hits=%d" % [score1, score2, PerceptionCacheClass.spot_cache_hits],
+	)
+	_assert(
+		"Perception cache avoids second LOS",
+		PerceptionCacheClass.los_evals == los_after_first,
+		"los grew from %d to %d" % [los_after_first, PerceptionCacheClass.los_evals],
+	)
+
+	## Moving one soldier dirties only pairs involving that soldier.
+	PerceptionCacheClass.reset_counters()
+	usa.grid_position = Vector2i(21, 30)
+	CombatSystemClass.notify_soldier_perception_dirty(game_state, usa)
+	var dirty_after_move := PerceptionCacheClass.dirty_count()
+	_assert(
+		"Dirty queue enqueues affected pairs only",
+		dirty_after_move > 0 and dirty_after_move <= 64,
+		"dirty=%d misses_first=%d" % [dirty_after_move, misses_after_first],
+	)
+	CombatSystemClass.process_perception_tick(game_state)
+	_assert(
+		"Dirty budget processes pairs",
+		PerceptionCacheClass.dirty_processed > 0,
+		"processed=%d remaining=%d" % [
+			PerceptionCacheClass.dirty_processed,
+			PerceptionCacheClass.dirty_count(),
+		],
+	)
+	print(
+		"[Profiler baseline] perception incremental: dirty_enqueued=%d dirty_done=%d los=%d spotHit=%d"
+		% [
+			PerceptionCacheClass.dirty_enqueued,
+			PerceptionCacheClass.dirty_processed,
+			PerceptionCacheClass.los_evals,
+			PerceptionCacheClass.spot_cache_hits,
+		]
 	)

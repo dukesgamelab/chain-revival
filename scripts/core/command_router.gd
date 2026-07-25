@@ -15,6 +15,7 @@ const FaceCommandClass := preload("res://scripts/commands/face_command.gd")
 const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
 const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
 const FireControlCommandClass := preload("res://scripts/commands/fire_control_command.gd")
+const HaltCommandClass := preload("res://scripts/commands/halt_command.gd")
 const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd")
 const AssignCommanderCommandClass := preload("res://scripts/commands/assign_commander_command.gd")
 const BreakCommandLinkCommandClass := preload("res://scripts/commands/break_command_link_command.gd")
@@ -120,6 +121,8 @@ func _command_label(command: RefCounted) -> String:
 		return "PositionCommand"
 	if command is FireControlCommandClass:
 		return "FireControlCommand"
+	if command is HaltCommandClass:
+		return "HaltCommand"
 	if command is GrenadeCommandClass:
 		return "GrenadeCommand"
 	if command is AssignCommanderCommandClass:

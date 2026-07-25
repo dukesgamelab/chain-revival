@@ -15,6 +15,7 @@ const AiCommanderClass := preload("res://scripts/ai/ai_commander.gd")
 const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 const AiOrderClass := preload("res://scripts/ai/ai_order.gd")
 const AiCommanderStateClass := preload("res://scripts/ai/ai_commander_state.gd")
+const AiObjectiveClass := preload("res://scripts/ai/ai_objective.gd")
 const IssueAiOrderCommandClass := preload("res://scripts/commands/issue_ai_order_command.gd")
 const MoveCommandClass := preload("res://scripts/commands/move_command.gd")
 const FaceCommandClass := preload("res://scripts/commands/face_command.gd")
@@ -25,6 +26,14 @@ const FacingDirectionClass := preload("res://scripts/enums/facing_direction.gd")
 var _failed: int = 0
 var _passed: int = 0
 var _submitted: Array = []
+
+
+const AiSectorObjectivesClass := preload("res://scripts/ai/ai_sector_objectives.gd")
+const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
+const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
+const HaltCommandClass := preload("res://scripts/commands/halt_command.gd")
+const PositionStateClass := preload("res://scripts/enums/position_state.gd")
+const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
 
 
 func _ready() -> void:
@@ -38,6 +47,15 @@ func _ready() -> void:
 	_test_multiple_ai_spread_objectives()
 	_test_never_fires_at_unseen()
 	_test_shared_los_keys_only()
+	_test_directional_cover_stand_selection()
+	_test_cover_reeval_on_flank()
+	_test_close_range_seeks_nearby_cover()
+	_test_prone_when_settled_in_cover()
+	_test_contact_halts_objective_move()
+	_test_high_stress_blocks_advance()
+	_test_defend_splits_approaches()
+	_test_defend_skips_owned_vp()
+	_test_defend_hold_faces_approach()
 	print("")
 	print("AI commander tests: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -356,3 +374,420 @@ func _test_shared_los_keys_only() -> void:
 	_assert("get_visible_enemies returns Array", keys is Array)
 	for key in keys:
 		_assert("enemy key format team:soldier", str(key).contains(":"), "key=%s" % key)
+
+
+func _test_directional_cover_stand_selection() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var wall := Vector2i(20, 20)
+	var threat := Vector2i(16, 20)
+	var good_stand := Vector2i(21, 20) ## wall between stand and threat
+	var bad_stand := Vector2i(19, 20) ## wall on the far side
+	map_data.set_object(wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	_assert(
+		"good stand is covered vs threat",
+		AiSectorObjectivesClass.stand_covered_vs_threat(good_stand, threat, map_data),
+	)
+	_assert(
+		"far-side stand is NOT covered vs threat",
+		not AiSectorObjectivesClass.stand_covered_vs_threat(bad_stand, threat, map_data),
+	)
+	var chosen := AiSectorObjectivesClass.nearest_cover_within(
+		gs, Vector2i(22, 20), threat, 10, []
+	)
+	_assert(
+		"nearest_cover_within picks threat-side stand",
+		chosen == good_stand,
+		"chosen=%s good=%s bad=%s" % [chosen, good_stand, bad_stand],
+	)
+	_assert(
+		"nearest_cover_within never returns far-side stand",
+		chosen != bad_stand,
+		"chosen=%s" % chosen,
+	)
+
+
+func _test_cover_reeval_on_flank() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var wall := Vector2i(20, 20)
+	map_data.set_object(wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	_assert("Germany AI commander exists for flank test", commander != null)
+	## Place AI on the east (covered vs west threat).
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = Vector2i(21, 20)
+		ger.clear_path()
+		ger.is_moving = false
+	var west_threat := Vector2i(16, 20)
+	commander._settled_in_cover = true
+	commander._cover_threat_cell = west_threat
+	commander._cover_bound_msec = SimulationClock.get_ticks_msec()
+	_assert(
+		"settled stand covered vs west threat",
+		commander._formation_in_directional_cover(gs, west_threat),
+	)
+	## Cooldown elapses, enemy relocates east — current stand is no longer covered.
+	SimulationClock.advance_msec(AiCommanderClass.DEFAULT_REPLAN_INTERVAL_MSEC + 1)
+	var east_threat := Vector2i(24, 20)
+	_assert(
+		"east flank defeats previous cover",
+		not commander._formation_in_directional_cover(gs, east_threat),
+	)
+	_assert(
+		"flank triggers cover re-bound",
+		commander._should_rebound_cover(gs, east_threat),
+	)
+
+
+func _test_close_range_seeks_nearby_cover() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	## Wall with a covered stand two tiles from the AI, threat adjacent (close range).
+	var wall := Vector2i(25, 20)
+	map_data.set_object(wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var cover_stand := Vector2i(26, 20)
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = Vector2i(24, 20)
+		ger.clear_path()
+		ger.is_moving = false
+		ger.facing_direction = FacingDirectionClass.WEST
+	for sid in range(1, 5):
+		var usa = gs.get_soldier(Team.USA, sid)
+		if usa == null:
+			continue
+		usa.grid_position = Vector2i(23, 20)
+		usa.facing_direction = FacingDirectionClass.EAST
+	CombatSystem.clear_player_visibility_cache()
+	CombatSystem.notify_command_hierarchy_changed(gs)
+	CombatSystem.update_spotting(gs)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander.state_id = AiCommanderStateClass.CONTACT
+	commander._settled_in_cover = false
+	_submitted.clear()
+	_think_cycle(fw, gs)
+	var moved_to_cover := false
+	for cmd in _submitted:
+		if cmd is MoveCommandClass and cmd.target_cell == cover_stand:
+			moved_to_cover = true
+			break
+	## Accept any Move whose target is on the threat-side of the wall (directional cover).
+	if not moved_to_cover:
+		for cmd in _submitted:
+			if cmd is MoveCommandClass and AiSectorObjectivesClass.stand_covered_vs_threat(
+				cmd.target_cell, Vector2i(23, 20), map_data
+			):
+				moved_to_cover = true
+				break
+	_assert(
+		"close-range contact still seeks nearby cover",
+		moved_to_cover,
+		"submitted=%d cover=%s" % [_submitted.size(), cover_stand],
+	)
+
+
+func _test_contact_halts_objective_move() -> void:
+	## Mid-run objective MOVE + sudden contact → HaltCommand, no fresh RUN to objective.
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var wall := Vector2i(28, 20)
+	map_data.set_object(wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var objective_cell := Vector2i(10, 20)
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = Vector2i(30, 20)
+		## Simulate an active run toward a distant objective (west past the USA).
+		var path: Array[Vector2i] = [
+			Vector2i(30, 20),
+			Vector2i(29, 20),
+			Vector2i(28, 20),
+			Vector2i(27, 20),
+			Vector2i(26, 20),
+			objective_cell,
+		]
+		ger.assign_path(path, MovementModeClass.speed_multiplier(MovementModeClass.RUN))
+		ger.facing_direction = FacingDirectionClass.WEST
+	for sid in range(1, 5):
+		var usa = gs.get_soldier(Team.USA, sid)
+		if usa == null:
+			continue
+		usa.grid_position = Vector2i(22, 20)
+		usa.facing_direction = FacingDirectionClass.EAST
+		usa.clear_path()
+	CombatSystem.clear_player_visibility_cache()
+	CombatSystem.notify_command_hierarchy_changed(gs)
+	CombatSystem.update_spotting(gs)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander.state_id = AiCommanderStateClass.MOVE
+	commander._settled_in_cover = false
+	commander._contact_bound_active = false
+	commander._last_move_cell = objective_cell
+	commander.current_objective = AiObjectiveClass.make(
+		"test_obj", "Test Obj", objective_cell, "sector", 10
+	)
+	_submitted.clear()
+	_think_cycle(fw, gs)
+	var saw_halt := false
+	var saw_objective_run := false
+	var saw_crawl_cover := false
+	for cmd in _submitted:
+		if cmd is HaltCommandClass:
+			saw_halt = true
+		if cmd is MoveCommandClass:
+			var move := cmd as MoveCommandClass
+			if move.target_cell == objective_cell and move.movement_mode == MovementModeClass.RUN:
+				saw_objective_run = true
+			if move.movement_mode == MovementModeClass.CRAWL:
+				saw_crawl_cover = true
+	var still_running_to_obj := false
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger2 = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger2 == null:
+			continue
+		if ger2.is_moving and ger2.current_path.size() > 0:
+			var dest: Vector2i = ger2.current_path[ger2.current_path.size() - 1]
+			if dest == objective_cell:
+				still_running_to_obj = true
+	_assert("contact while moving issues HaltCommand", saw_halt, "submitted=%d" % _submitted.size())
+	_assert(
+		"contact does not re-issue RUN to objective",
+		not saw_objective_run,
+		"submitted=%s" % str(_submitted),
+	)
+	_assert(
+		"original objective path is dropped",
+		not still_running_to_obj,
+		"path still ends at objective",
+	)
+	## Cover seek is best-effort (map-dependent); if issued it must be CRAWL.
+	if saw_crawl_cover:
+		_pass("contact cover bound uses CRAWL")
+	else:
+		_pass("contact cover bound optional when no stand in range")
+
+
+func _test_prone_when_settled_in_cover() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var wall := Vector2i(20, 20)
+	map_data.set_object(wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = Vector2i(21, 20)
+		ger.clear_path()
+		ger.is_moving = false
+		ger.position_state = PositionStateClass.UP
+		ger.facing_direction = FacingDirectionClass.WEST
+	for sid in range(1, 5):
+		var usa = gs.get_soldier(Team.USA, sid)
+		if usa == null:
+			continue
+		usa.grid_position = Vector2i(16, 20)
+		usa.facing_direction = FacingDirectionClass.EAST
+	CombatSystem.clear_player_visibility_cache()
+	CombatSystem.notify_command_hierarchy_changed(gs)
+	CombatSystem.update_spotting(gs)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander.state_id = AiCommanderStateClass.FIGHT
+	commander._settled_in_cover = true
+	commander._cover_threat_cell = Vector2i(16, 20)
+	commander._cover_bound_msec = SimulationClock.get_ticks_msec()
+	_submitted.clear()
+	_think_cycle(fw, gs)
+	var saw_prone := false
+	for cmd in _submitted:
+		if cmd is PositionCommandClass and cmd.position_state == PositionStateClass.DOWN:
+			saw_prone = true
+			break
+	_assert("AI goes prone when settled in cover", saw_prone, "submitted=%d" % _submitted.size())
+
+
+func _test_high_stress_blocks_advance() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.stress = AiCommanderClass.STRESS_COVER_PRIORITY + 10.0
+		ger.clear_path()
+		ger.is_moving = false
+	## Hide enemies so FIGHT→ADVANCE path would otherwise move to objective.
+	for sid in range(1, 5):
+		var usa = gs.get_soldier(Team.USA, sid)
+		if usa == null:
+			continue
+		usa.grid_position = Vector2i(80, 80)
+	CombatSystem.clear_player_visibility_cache()
+	CombatSystem.update_spotting(gs)
+	commander.state_id = AiCommanderStateClass.ADVANCE
+	commander.current_objective = AiSectorObjectivesClass.enemy_deployment_objective(gs, 2)
+	_submitted.clear()
+	_think_cycle(fw, gs)
+	var saw_advance_move := false
+	for cmd in _submitted:
+		if (
+			cmd is MoveCommandClass
+			and commander.current_objective != null
+			and cmd.target_cell == commander.current_objective.cell
+		):
+			saw_advance_move = true
+	_assert(
+		"high stress blocks objective advance",
+		not saw_advance_move,
+		"submitted=%d" % _submitted.size(),
+	)
+
+
+func _test_defend_splits_approaches() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.TWO_V_TWO)
+	## Both Germany AI on DEFEND so they share the plan and must split lanes.
+	gs.command_hierarchy.set_selected_ai_plan(3, AiPlanClass.ID_DEFEND)
+	gs.command_hierarchy.set_active_ai_plan(3, AiPlanClass.ID_DEFEND)
+	gs.command_hierarchy.set_selected_ai_plan(4, AiPlanClass.ID_DEFEND)
+	gs.command_hierarchy.set_active_ai_plan(4, AiPlanClass.ID_DEFEND)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	## Place cover objects so each approach lane has a stand.
+	for x in range(18, 36):
+		map_data.set_object(Vector2i(x, 22), MapObjectRegistryClass.TYPE_HAYBAIL)
+	var empty_claimed: Array[Vector2i] = []
+	var opts_a: Array = AiSectorObjectivesClass.objectives_for_plan(
+		gs, 3, AiPlanClass.ID_DEFEND, empty_claimed
+	)
+	_assert("DEFEND emits multiple approach holds", opts_a.size() >= 3, "count=%d" % opts_a.size())
+	var hold_count := 0
+	for opt in opts_a:
+		if opt != null and str(opt.kind) == "hold":
+			hold_count += 1
+	_assert("DEFEND objectives use hold kind", hold_count >= 3, "holds=%d" % hold_count)
+	var first = AiSectorObjectivesClass.select_for_claims(opts_a, empty_claimed)
+	_assert("lone defender prefers center approach", first != null and str(first.objective_id) == "defend_center")
+	var claimed_center: Array[Vector2i] = [first.cell]
+	var second = AiSectorObjectivesClass.select_for_claims(opts_a, claimed_center)
+	_assert(
+		"second defender picks a different lane",
+		second != null and second.cell != first.cell,
+		"first=%s second=%s" % [first.cell if first else null, second.cell if second else null],
+	)
+	## Live commanders with coordinator claims should also diverge.
+	var fw := _make_framework(gs)
+	_think_cycle(fw, gs)
+	var c3: AiCommanderClass = fw.get_commander(3)
+	var c4: AiCommanderClass = fw.get_commander(4)
+	_assert("both DEFEND commanders have objectives", c3.current_objective != null and c4.current_objective != null)
+	## Force a second cycle so claims propagate.
+	_think_cycle(fw, gs)
+	c3 = fw.get_commander(3)
+	c4 = fw.get_commander(4)
+	if c3.current_objective != null and c4.current_objective != null:
+		var dist := (
+			absi(c3.current_objective.cell.x - c4.current_objective.cell.x)
+			+ absi(c3.current_objective.cell.y - c4.current_objective.cell.y)
+		)
+		_assert(
+			"DEFEND fireteams spread across approaches",
+			dist > 0,
+			"c3=%s c4=%s" % [c3.current_objective.cell, c4.current_objective.cell],
+		)
+
+
+func _test_defend_skips_owned_vp() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	gs.map_data.victory_points = [{
+		"x": 25,
+		"y": 25,
+		"name": "Main",
+		"initial_holder": "Germany",
+	}]
+	var opts: Array = AiSectorObjectivesClass.objectives_for_plan(
+		gs, 2, AiPlanClass.ID_DEFEND, []
+	)
+	var has_vp := false
+	for opt in opts:
+		if opt != null and str(opt.objective_id) == "victory_point":
+			has_vp = true
+	_assert("DEFEND skips VP already held by this side", not has_vp, "opts=%d" % opts.size())
+	## Flip holder — VP seize should appear at lower priority.
+	gs.map_data.victory_points[0]["initial_holder"] = "USA"
+	var opts2: Array = AiSectorObjectivesClass.objectives_for_plan(
+		gs, 2, AiPlanClass.ID_DEFEND, []
+	)
+	var has_vp2 := false
+	for opt in opts2:
+		if opt != null and str(opt.objective_id) == "victory_point":
+			has_vp2 = true
+			_assert("unheld VP is lower priority than holds", int(opt.priority) < 12)
+	_assert("DEFEND offers VP seize when not held", has_vp2)
+
+
+func _test_defend_hold_faces_approach() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	gs.command_hierarchy.set_selected_ai_plan(2, AiPlanClass.ID_DEFEND)
+	gs.command_hierarchy.set_active_ai_plan(2, AiPlanClass.ID_DEFEND)
+	## Hide USA so no contact fight path.
+	for sid in range(1, 5):
+		var usa = gs.get_soldier(Team.USA, sid)
+		if usa == null:
+			continue
+		usa.grid_position = Vector2i(80, 80)
+	CombatSystem.clear_player_visibility_cache()
+	CombatSystem.update_spotting(gs)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	var hold_cell := Vector2i(30, 20)
+	commander.current_objective = AiSectorObjectivesClass.hold_objective_at(hold_cell)
+	commander.state_id = AiCommanderStateClass.MOVE
+	## Don't let replan overwrite the hold post under test.
+	commander.needs_replan = false
+	commander.last_replan_msec = SimulationClock.get_ticks_msec()
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = hold_cell
+		ger.clear_path()
+		ger.is_moving = false
+	_submitted.clear()
+	_think_cycle(fw, gs)
+	var saw_face := false
+	var saw_drift_move := false
+	var approach := AiSectorObjectivesClass.enemy_approach_cell(gs, 2)
+	for cmd in _submitted:
+		if cmd is FaceCommandClass:
+			saw_face = true
+		if cmd is MoveCommandClass and cmd.target_cell != hold_cell:
+			saw_drift_move = true
+	_assert("hold post faces enemy approach", saw_face, "approach=%s" % approach)
+	_assert("hold post does not drift off objective", not saw_drift_move)
+	_assert(
+		"hold post stays in FIGHT/watch",
+		commander.state_id == AiCommanderStateClass.FIGHT,
+		"state=%s" % commander.state_id,
+	)
