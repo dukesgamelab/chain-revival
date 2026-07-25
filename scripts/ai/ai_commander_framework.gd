@@ -31,6 +31,8 @@ var _authority: bool = true
 var submit_override: Callable = Callable()
 var _pathfinds_remaining: int = 0
 var _logged_simple_rush: bool = false
+## ActionResults from the last tick() — Main presents these so movement_halts reach views.
+var _last_tick_results: Array = []
 
 
 func setup(game_state, find_path: Callable) -> void:
@@ -132,18 +134,20 @@ func notify_visibility_changed() -> void:
 		commander.request_replan("visibility")
 
 
-func tick(game_state) -> void:
+## Returns ActionResults produced this tick (move/fire/face/grenade) for presentation.
+func tick(game_state) -> Array:
+	_last_tick_results.clear()
 	## Clients never execute AI — authority gate for dedicated-server readiness.
 	if not _authority or not _enabled or game_state == null:
-		return
+		return _last_tick_results
 	if game_state.is_deployment_phase():
-		return
+		return _last_tick_results
 	_tick_counter += 1
 
 	var now_msec: int = SimulationClock.get_ticks_msec()
 	var commanders: Array = all_commanders()
 	if commanders.is_empty():
-		return
+		return _last_tick_results
 
 	## Who thinks this sim tick?
 	var thinkers: Array = []
@@ -153,7 +157,7 @@ func tick(game_state) -> void:
 			thinkers.append(commander)
 		slot += 1
 	if thinkers.is_empty():
-		return
+		return _last_tick_results
 
 	if AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH and not _logged_simple_rush:
 		_logged_simple_rush = true
@@ -192,6 +196,13 @@ func tick(game_state) -> void:
 			_coordinator.set_claim(commander.player_id, cell)
 	if not AiCommanderClass.DIAGNOSTIC_SIMPLE_RUSH:
 		_coordinator.resolve_duplicate_claims(commanders)
+	return _last_tick_results
+
+
+func take_last_tick_results() -> Array:
+	var out: Array = _last_tick_results.duplicate()
+	_last_tick_results.clear()
+	return out
 
 
 func _budgeted_find_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
@@ -257,7 +268,12 @@ func debug_lines(game_state) -> PackedStringArray:
 
 
 func _submit(game_state, command: RefCounted, context: CommandContextClass):
+	var result = null
 	if submit_override.is_valid():
-		return submit_override.call(command, context)
-	## Runtime: go through CommandRouter so MP can later intercept.
-	return CommandRouter.submit_command(game_state, command, context)
+		result = submit_override.call(command, context)
+	else:
+		## Runtime: go through CommandRouter so MP can later intercept.
+		result = CommandRouter.submit_command(game_state, command, context)
+	if result != null:
+		_last_tick_results.append(result)
+	return result

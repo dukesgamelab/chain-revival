@@ -24,6 +24,16 @@ visible = false
 
 
 
+[node name="IdMarker" type="Sprite2D" parent="."]
+
+visible = false
+
+centered = true
+
+z_index = 8
+
+
+
 [node name="FacingArrow" type="Line2D" parent="."]
 
 position = Vector2(0, -30)

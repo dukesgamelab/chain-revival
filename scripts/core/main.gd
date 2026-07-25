@@ -90,6 +90,12 @@ var _debug_full_refresh_calls: int = 0
 var _debug_perf_accum_sec: float = 0.0
 const _DEBUG_PERF_INTERVAL_SEC := 1.0
 var _ai_hud_refresh_counter: int = 0
+## Perception / AI / combat profiler (rolling 1s window).
+var _perf_ai_think_usec: int = 0
+var _perf_combat_usec: int = 0
+var _perf_max_frame_msec: float = 0.0
+var _stuck_mismatch_since: Dictionary = {} ## "team:sid" -> msec when mismatch began
+const PerceptionCacheClass := preload("res://scripts/combat/perception_cache.gd")
 
 
 func _ready() -> void:
@@ -198,6 +204,7 @@ func _log_fireteam_loadouts() -> void:
 
 func _process(delta: float) -> void:
 	## Sim first (authoritative), then presentation so views reflect the latest tick.
+	var frame_t0 := Time.get_ticks_usec()
 	_step_fixed_simulation(delta)
 
 	if not _map_edit_mode:
@@ -208,6 +215,14 @@ func _process(delta: float) -> void:
 			if _fire_at_hit_accum_sec >= _FIRE_AT_PREVIEW_INTERVAL_SEC:
 				_fire_at_hit_accum_sec = 0.0
 				_update_command_bar_hit_columns()
+		_debug_perf_accum_sec += delta
+		if _debug_perf_accum_sec >= _DEBUG_PERF_INTERVAL_SEC:
+			_debug_perf_accum_sec = 0.0
+			_log_perception_profiler()
+			_scan_stuck_movement_mismatches()
+	var frame_msec := float(Time.get_ticks_usec() - frame_t0) / 1000.0
+	if frame_msec > _perf_max_frame_msec:
+		_perf_max_frame_msec = frame_msec
 
 func _update_los_preview_throttled(delta: float) -> void:
 	if not _fire_at_mode and not _grenade_mode:
@@ -257,21 +272,32 @@ func _step_simulation_tick() -> void:
 	):
 		_present_movement_tick_result(move_result)
 
+	## Warm dirty perception pairs every sim tick (budgeted; combat scan flushes).
+	if _game_state != null and not _game_state.is_deployment_phase():
+		CombatSystem.process_perception_tick(_game_state)
+
 	## AI Commanders think on the authoritative host/server only (never on thin clients).
+	## Present move/fire results so movement_halts stop run anims (was the stuck-run bug).
 	if (
 		GameModeManager.is_ai_authority()
 		and _ai_framework != null
 		and _game_state != null
 		and not _game_state.is_deployment_phase()
 	):
-		_ai_framework.tick(_game_state)
+		var ai_t0 := Time.get_ticks_usec()
+		var ai_results: Array = _ai_framework.tick(_game_state)
+		_perf_ai_think_usec += Time.get_ticks_usec() - ai_t0
+		for ai_result in ai_results:
+			_present_action_result(ai_result, false)
 
 	_combat_scan_accum_msec += stepped
 	var scan_msec := _combat_scan_interval_msec()
 	if _combat_scan_accum_msec < scan_msec:
 		return
 	_combat_scan_accum_msec -= scan_msec
+	var combat_t0 := Time.get_ticks_usec()
 	var tick_result: ActionResultClass = ActionResolverClass.process_combat_tick(_game_state)
+	_perf_combat_usec += Time.get_ticks_usec() - combat_t0
 	_present_action_result(tick_result, true)
 	## Debug HUD — every 4th combat scan (~2s) is enough while AI is active.
 	_ai_hud_refresh_counter += 1
@@ -348,6 +374,68 @@ func _log_presentation_perf_if_moving() -> void:
 			process_msec,
 		]
 	)
+
+
+func _log_perception_profiler() -> void:
+	var fps := Performance.get_monitor(Performance.TIME_FPS)
+	var process_msec := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	GameLog.log_system(
+		"[Profiler] %s ai_ms=%.2f combat_ms=%.2f max_frame_ms=%.2f fps=%.0f process_ms=%.2f"
+		% [
+			PerceptionCacheClass.debug_summary(),
+			float(_perf_ai_think_usec) / 1000.0,
+			float(_perf_combat_usec) / 1000.0,
+			_perf_max_frame_msec,
+			fps,
+			process_msec,
+		]
+	)
+	PerceptionCacheClass.reset_counters()
+	_perf_ai_think_usec = 0
+	_perf_combat_usec = 0
+	_perf_max_frame_msec = 0.0
+
+
+## Detect view/sim is_moving desync (running-in-place fingerprint).
+func _scan_stuck_movement_mismatches() -> void:
+	if _game_state == null or _session == null:
+		return
+	var now := SimulationClock.get_ticks_msec()
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			if state == null or state.is_dead:
+				continue
+			var view: Soldier = _get_view(state.team_id, state.soldier_id)
+			if view == null:
+				continue
+			var key := "%d:%d" % [state.team_id, state.soldier_id]
+			var mismatch := view.is_moving() and not state.is_moving
+			if not mismatch:
+				_stuck_mismatch_since.erase(key)
+				continue
+			if not _stuck_mismatch_since.has(key):
+				_stuck_mismatch_since[key] = now
+				continue
+			var age: int = now - int(_stuck_mismatch_since[key])
+			if age < 500:
+				continue
+			PerceptionCacheClass.stuck_events += 1
+			GameLog.log_system(
+				"[StuckMove] team=%d sid=%d view_moving=%s sim_moving=%s cell=%s age_ms=%d path_len=%d"
+				% [
+					state.team_id,
+					state.soldier_id,
+					view.is_moving(),
+					state.is_moving,
+					state.grid_position,
+					age,
+					state.current_path.size(),
+				]
+			)
+			## Self-heal: snap view to sim halt.
+			view.stop_movement()
+			view.position = IsometricGrid.grid_to_world(state.grid_position)
+			_stuck_mismatch_since.erase(key)
 
 
 func _combat_scan_interval_msec() -> int:
@@ -1139,7 +1227,11 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 	var is_spotted := true
 	if soldier_state.team_id != _session.active_team_id and soldier_state.is_alive():
 		is_spotted = _cached_enemy_spotted(soldier_state)
-	view.sync_from_state(soldier_state, is_selected, is_spotted)
+	var show_id := (
+		soldier_state.is_alive()
+		and _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id)
+	)
+	view.sync_from_state(soldier_state, is_selected, is_spotted, show_id)
 
 
 func _invalidate_fog_cache() -> void:
@@ -1449,15 +1541,20 @@ func _on_soldier_selected(soldier_id: int) -> void:
 func _present_action_result(result: ActionResultClass, combat_tick: bool = false) -> void:
 	if result == null:
 		return
-	if not result.success:
-		if not result.status_message.is_empty():
-			_command_bar.show_status(result.status_message)
-		return
 
+	## Halts must apply even when success=false (failed fire/move after clear_path).
 	for halt in result.movement_halts:
 		var halt_view: Soldier = _get_view(halt.team_id, halt.soldier_id)
 		if halt_view != null:
 			halt_view.stop_movement()
+			var snap: Variant = halt.get("snap_cell", null)
+			if snap is Vector2i:
+				halt_view.position = IsometricGrid.grid_to_world(snap as Vector2i)
+
+	if not result.success:
+		if not result.status_message.is_empty():
+			_command_bar.show_status(result.status_message)
+		return
 
 	for order in result.move_orders:
 		var order_view: Soldier = _get_view(order.team_id, order.soldier_id)
@@ -1469,10 +1566,15 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 
 	if result.clear_path_overlay:
 		_iso_map.clear_path()
-	if result.path_overlay.has("target"):
+	## Red run-to diamonds are human-only — AI fireteams never emit path_overlay.
+	if (
+		(result.path_overlay.has("target") or result.path_overlay.has("markers"))
+		and _path_overlay_is_for_local_human(result)
+	):
 		_iso_map.show_path(
 			result.path_overlay.get("cells", []),
-			result.path_overlay.target,
+			result.path_overlay.get("target", Vector2i(-999, -999)),
+			result.path_overlay.get("markers", []),
 		)
 
 	if result.clear_move_targeting:
@@ -1631,6 +1733,23 @@ func _control_fireteam() -> Fireteam:
 	if _session == null:
 		return null
 	return _session.get_local_control_fireteam()
+
+
+## True when path overlay markers belong to the local human's owned soldiers.
+func _path_overlay_is_for_local_human(result: ActionResultClass) -> bool:
+	if _session == null or result == null:
+		return false
+	var markers: Array = result.path_overlay.get("markers", [])
+	var team_id := int(result.path_overlay.get("team_id", _session.active_team_id))
+	if markers.is_empty():
+		## Single-target overlay without markers — only accept local active team moves.
+		return PlayerSides.can_control_team(team_id)
+	for entry in markers:
+		if entry is Dictionary:
+			var sid := int(entry.get("soldier_id", -1))
+			if sid > 0 and _session.can_local_control_soldier(team_id, sid):
+				return true
+	return false
 
 
 func _apply_grenade_command(target_cell: Vector2i) -> void:
@@ -2157,7 +2276,13 @@ func _sync_views_after_load() -> void:
 				soldier_state.team_id == _session.active_team_id
 				and soldier_state.soldier_id == _control_fireteam().selected_soldier_id
 			)
-			view.sync_from_state(soldier_state, is_selected)
+			var show_id := (
+				soldier_state.is_alive()
+				and _session.can_local_control_soldier(
+					soldier_state.team_id, soldier_state.soldier_id
+				)
+			)
+			view.sync_from_state(soldier_state, is_selected, true, show_id)
 
 	_iso_map.clear_path()
 	_command_bar.clear_move_targeting()

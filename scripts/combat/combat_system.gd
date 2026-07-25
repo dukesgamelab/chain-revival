@@ -19,6 +19,7 @@ const EnemyVisibilityResultClass := preload("res://scripts/combat/enemy_visibili
 const FireAtPreviewResultClass := preload("res://scripts/combat/fire_at_preview_result.gd")
 const StressLabelsClass := preload("res://scripts/combat/stress_labels.gd")
 const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
+const PerceptionCacheClass := preload("res://scripts/combat/perception_cache.gd")
 const HitChancePolicyClass := preload("res://scripts/gameplay_policies/hit_chance_policy.gd")
 const GrenadePolicyClass := preload("res://scripts/gameplay_policies/grenade_policy.gd")
 const SuppressionPolicyClass := preload("res://scripts/gameplay_policies/suppression_policy.gd")
@@ -374,6 +375,7 @@ static func resolve_shot(
 		result.hit = true
 		result.messages.append("%s hit" % weapon.weapon_name)
 		target.mark_killed()
+		notify_soldier_perception_dirty(game_state, target)
 		result.killed = true
 		result.messages.append(
 			"%s Soldier %d killed" % [Team.display_name(target.team_id), target.soldier_id],
@@ -400,7 +402,7 @@ static func can_spot_enemy(
 
 
 ## Single LOS + facing/range pass. Returns visibility score, or -1 if not spotted.
-## Prefer this over can_spot_enemy + get_visibility_score (which used to double LOS).
+## Uses PerceptionCache — unchanged pairs reuse prior scores.
 static func _spot_score_once(
 	observer: SoldierStateClass,
 	target: SoldierStateClass,
@@ -410,7 +412,18 @@ static func _spot_score_once(
 		return -1.0
 	if observer.team_id == target.team_id:
 		return -1.0
+	return PerceptionCacheClass.get_or_compute_spot(
+		observer,
+		target,
+		func() -> float: return _spot_score_compute(observer, target, game_state),
+	)
 
+
+static func _spot_score_compute(
+	observer: SoldierStateClass,
+	target: SoldierStateClass,
+	game_state: GameStateClass,
+) -> float:
 	var observer_cell := spotting_cell_for(observer)
 	var target_cell := spotting_cell_for(target)
 	var weapon := observer.get_weapon_data()
@@ -472,6 +485,31 @@ static func _spot_score_once(
 		score -= hit_p.vis_score_moderate_cover_penalty
 	score *= get_cover_visibility_modifier(observer, target, game_state, los)
 	return score if score >= 0.0 else -1.0
+
+
+## Budgeted dirty-pair warm (called every sim tick). Combat scan flushes the rest.
+static func process_perception_tick(game_state: GameStateClass) -> void:
+	if game_state == null:
+		return
+	PerceptionCacheClass.process_dirty_budget(
+		game_state,
+		PerceptionCacheClass.PAIRS_PER_TICK,
+		func(obs_team: int, obs_id: int, tgt_team: int, tgt_id: int):
+			var observer := game_state.get_soldier(obs_team, obs_id)
+			var target := game_state.get_soldier(tgt_team, tgt_id)
+			if observer == null or target == null:
+				return null
+			return {"observer": observer, "target": target},
+		func(observer, target) -> float:
+			return _spot_score_compute(observer, target, game_state),
+	)
+
+
+static func notify_soldier_perception_dirty(
+	game_state: GameStateClass,
+	soldier: SoldierStateClass,
+) -> void:
+	PerceptionCacheClass.mark_soldier_dirty(game_state, soldier)
 
 
 static func _passes_spotting_checks(
@@ -579,7 +617,19 @@ static func ensure_visibility_readable(game_state: GameStateClass) -> void:
 
 
 static func update_spotting(game_state: GameStateClass) -> void:
-	## Combat scan owns authoritative spotting — force a fresh LOS pass here.
+	## Flush remaining dirty pairs, then rebuild team aggregates from the pair cache.
+	## last_seen stays combat-scan-only for deterministic FAW track windows.
+	PerceptionCacheClass.flush_dirty(
+		game_state,
+		func(obs_team: int, obs_id: int, tgt_team: int, tgt_id: int):
+			var observer := game_state.get_soldier(obs_team, obs_id)
+			var target := game_state.get_soldier(tgt_team, tgt_id)
+			if observer == null or target == null:
+				return null
+			return {"observer": observer, "target": target},
+		func(observer, target) -> float:
+			return _spot_score_compute(observer, target, game_state),
+	)
 	_force_team_vis_rebuild = true
 	## One pass per team from the shared visibility cache (no per-observer re-query loop).
 	for fireteam in game_state.session.all_fireteams():
@@ -711,6 +761,7 @@ static func clear_player_visibility_cache() -> void:
 	_visibility_cache_by_team.clear()
 	_last_team_vis_rebuild_msec = -999999
 	_force_team_vis_rebuild = false
+	PerceptionCacheClass.clear_all()
 
 
 static func _ensure_player_visibility_cache(game_state: GameStateClass) -> void:
@@ -1101,24 +1152,36 @@ static func score_auto_target(
 	if shooter == null or target == null or target.is_dead:
 		return -1.0
 
-	var los := LOSSystemClass.evaluate(
-		shooter.grid_position,
-		target.grid_position,
-		game_state.map_data,
-		game_state,
+	var shot: Dictionary = PerceptionCacheClass.get_or_compute_shot(
+		shooter,
+		target,
+		func() -> Dictionary:
+			var los := LOSSystemClass.evaluate(
+				shooter.grid_position,
+				target.grid_position,
+				game_state.map_data,
+				game_state,
+			)
+			return {
+				"blocked": los.status == LOSSystemClass.Status.BLOCKED,
+				"status": los.status,
+				"cover_type": los.cover_type,
+				"target_using_wall_cover": los.target_using_wall_cover,
+			},
 	)
-	if los.status == LOSSystemClass.Status.BLOCKED:
+	if bool(shot.get("blocked", true)):
 		return -1.0
-	if los.target_using_wall_cover:
+	if bool(shot.get("target_using_wall_cover", false)):
 		return -1.0
 
 	var dist := _manhattan_distance(shooter.grid_position, target.grid_position)
 	var hit_p := GameplayPolicies.hit
 	var score := hit_p.auto_score_base - float(dist) * hit_p.auto_score_dist_penalty
+	var cover_type: int = int(shot.get("cover_type", CoverSystemClass.CoverType.NONE))
 
-	if los.cover_type == CoverSystemClass.CoverType.NONE:
+	if cover_type == CoverSystemClass.CoverType.NONE:
 		score += hit_p.auto_score_clear_bonus
-	elif los.cover_type == CoverSystemClass.CoverType.MODERATE:
+	elif cover_type == CoverSystemClass.CoverType.MODERATE:
 		score -= hit_p.auto_score_moderate_penalty
 	else:
 		score -= hit_p.auto_score_complete_penalty
@@ -1958,6 +2021,7 @@ static func resolve_grenade(
 			if distance <= GameplayPolicies.grenade.kill_radius:
 				if GameRandom.chance(GameplayPolicies.grenade.kill_chance):
 					soldier.mark_killed()
+					notify_soldier_perception_dirty(game_state, soldier)
 					result.killed.append({
 						"team_id": soldier.team_id,
 						"soldier_id": soldier.soldier_id,

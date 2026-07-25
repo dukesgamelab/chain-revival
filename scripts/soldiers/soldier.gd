@@ -77,11 +77,32 @@ const DEBUG_FACING := false
 const DEBUG_DEAD_STATIC := false
 
 
+const DOT_TEXTURE_PATHS := [
+	"res://assets/sprites/coc_soldiers/DOT1S3A.png",
+	"res://assets/sprites/coc_soldiers/DOT2S3A.png",
+	"res://assets/sprites/coc_soldiers/DOT3S3A.png",
+	"res://assets/sprites/coc_soldiers/DOT4S3A.png",
+]
+const DTT_TEXTURE_PATHS := [
+	"res://assets/sprites/coc_soldiers/DTT1S3A.png",
+	"res://assets/sprites/coc_soldiers/DTT2S3A.png",
+	"res://assets/sprites/coc_soldiers/DTT3S3A.png",
+	"res://assets/sprites/coc_soldiers/DTT4S3A.png",
+]
+## OG id-marker flash rate (matches destination diamond blink).
+const ID_MARKER_FLASH_HZ := 2.5
+
 @onready var _anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var _selection_marker: Polygon2D = $SelectionMarker
+@onready var _id_marker: Sprite2D = $IdMarker
 @onready var _facing_arrow: Line2D = $FacingArrow
 @onready var _dead_marker: Line2D = $DeadMarker
 @onready var _prone_marker: Line2D = $ProneMarker
+
+var _show_id_marker: bool = false
+var _id_marker_flash_t: float = 0.0
+var _dot_textures: Array[Texture2D] = []
+var _dtt_textures: Array[Texture2D] = []
 
 
 func _ready() -> void:
@@ -92,8 +113,29 @@ func _ready() -> void:
 	_prone_marker.position.y = TileSizeConfig.prone_marker_y()
 	_dead_marker.position.y = TileSizeConfig.dead_marker_y()
 	_configure_team_visual()
+	_load_id_marker_textures()
+	_configure_id_marker_node()
 	_anim.animation_finished.connect(_on_anim_animation_finished)
 	_anim.frame_changed.connect(_on_anim_frame_changed)
+
+
+func _load_id_marker_textures() -> void:
+	_dot_textures.clear()
+	_dtt_textures.clear()
+	for path in DOT_TEXTURE_PATHS:
+		_dot_textures.append(load(path) as Texture2D)
+	for path in DTT_TEXTURE_PATHS:
+		_dtt_textures.append(load(path) as Texture2D)
+
+
+func _configure_id_marker_node() -> void:
+	if _id_marker == null:
+		return
+	_id_marker.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_id_marker.centered = true
+	_id_marker.scale = OG_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
+	_id_marker.visible = false
+
 
 
 func _blocks_action_override() -> bool:
@@ -108,10 +150,16 @@ func _blocks_action_override() -> bool:
 
 
 ## Apply authoritative gameplay state to this sprite (position, facing, selection).
-func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = true) -> void:
+func sync_from_state(
+	state: SoldierState,
+	is_selected: bool,
+	is_spotted: bool = true,
+	show_id_marker: bool = false,
+) -> void:
 	var previous_team := team_id
 	soldier_id = state.soldier_id
 	team_id = state.team_id
+	_show_id_marker = show_id_marker
 	if previous_team != team_id or _anim.sprite_frames == null:
 		_configure_team_visual()
 	_is_dead = state.is_dead
@@ -123,6 +171,7 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 		soldier_id = state.soldier_id
 		team_id = state.team_id
 		position = IsometricGrid.grid_to_world(state.grid_position)
+		_refresh_id_marker(state)
 		return
 
 	if state.is_dead:
@@ -132,6 +181,7 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 		_apply_facing(state.facing_direction, _facing_from_cell)
 		_corpse_world_direction = UsSoldierSpriteFrames.direction_from_step(state.facing_direction)
 		_show_dead_static(_corpse_world_direction)
+		_refresh_id_marker(state)
 		return
 
 	_dead_marker.visible = false
@@ -145,9 +195,36 @@ func sync_from_state(state: SoldierState, is_selected: bool, is_spotted: bool = 
 	_apply_position_visual(state)
 	_apply_spotted_visual(is_selected, is_spotted)
 	set_selected(is_selected)
+	_refresh_id_marker(state)
 	if _is_moving and _uses_og_frames() and state.is_moving and state.path_index < state.current_path.size():
 		var step_delta := state.current_path[state.path_index] - state.grid_position
 		_update_locomotion_visual(step_delta, true)
+
+
+func _refresh_id_marker(state: SoldierState) -> void:
+	if _id_marker == null:
+		return
+	if not _show_id_marker or state == null or state.is_dead:
+		_id_marker.visible = false
+		return
+	if _dot_textures.is_empty() or _dtt_textures.is_empty():
+		_load_id_marker_textures()
+	var idx := clampi(state.soldier_id, 1, 4) - 1
+	var crouched := state.position_state == PositionState.DOWN
+	var textures: Array[Texture2D] = _dtt_textures if crouched else _dot_textures
+	if idx < 0 or idx >= textures.size() or textures[idx] == null:
+		_id_marker.visible = false
+		return
+	_id_marker.texture = textures[idx]
+	## Same 100×100 OG canvas alignment as the soldier body — DOT sits high, DTT lower.
+	_id_marker.scale = OG_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
+	if crouched:
+		_id_marker.offset = TileSizeConfig.soldier_prone_sprite_offset()
+	else:
+		_id_marker.offset = TileSizeConfig.soldier_standing_sprite_offset()
+	_id_marker.visible = true
+	set_process(true)
+
 
 
 func _apply_spotted_visual(is_selected: bool, is_spotted: bool) -> void:
@@ -182,6 +259,8 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 	_prone_marker.visible = false
 	_dead_marker.visible = false
 	_selection_marker.visible = false
+	if _id_marker != null:
+		_id_marker.visible = false
 	_anim.scale = _prone_sprite_scale()
 	_anim.position = Vector2.ZERO
 	_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
@@ -236,9 +315,21 @@ func stop_movement() -> void:
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
-	set_process(false)
+	set_process(_id_marker_needs_process())
 	if was_moving and _uses_og_frames() and not _blocks_action_override():
 		_play_locomotion(_locomotion_direction, false)
+
+
+func _id_marker_needs_process() -> bool:
+	return _show_id_marker and _id_marker != null and _id_marker.visible and not _is_dead
+
+
+func _update_id_marker_flash(delta: float) -> void:
+	if not _id_marker_needs_process():
+		return
+	_id_marker_flash_t += delta
+	var flash_on := int(floor(_id_marker_flash_t * ID_MARKER_FLASH_HZ * 2.0)) % 2 == 0
+	_id_marker.modulate = Color.WHITE if flash_on else Color(1.0, 1.0, 1.0, 0.2)
 
 
 func _finish_presentation_move() -> void:
@@ -248,7 +339,7 @@ func _finish_presentation_move() -> void:
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
-	set_process(false)
+	set_process(_id_marker_needs_process())
 	if _uses_og_frames() and not _blocks_action_override():
 		_update_locomotion_visual(_last_applied_facing, false)
 
@@ -275,7 +366,10 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 
 func _process(delta: float) -> void:
 	## Interpolates Node2D.position only — never mutates SoldierState or emits gameplay steps.
+	_update_id_marker_flash(delta)
 	if not _is_moving or _is_dead or _blocks_action_override():
+		if not _id_marker_needs_process():
+			set_process(false)
 		return
 
 	var to_target := _move_target_world - position
@@ -283,16 +377,22 @@ func _process(delta: float) -> void:
 	## Only play walk while still chasing a sim path cell. After sim finishes we clear
 	## _path and settle to the final cell — do not keep looping the run anim in place.
 	var chasing_path := _path_index < _path.size() and not _path.is_empty()
-	if chasing_path:
-		var step_delta := _path[_path_index] - _previous_grid_pos
-		_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
-		_update_locomotion_visual(step_delta, true)
 
 	if distance <= 0.001:
 		position = _move_target_world
 		if not chasing_path:
 			_finish_presentation_move()
+		else:
+			## Arrived early at the next sim cell — pause run anim (no run-in-place).
+			var step_delta := _path[_path_index] - _previous_grid_pos
+			_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
+			_update_locomotion_visual(step_delta, false)
 		return
+
+	if chasing_path:
+		var step_delta := _path[_path_index] - _previous_grid_pos
+		_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
+		_update_locomotion_visual(step_delta, true)
 
 	var move_amount := move_speed * _speed_multiplier * delta
 	if move_amount >= distance:
