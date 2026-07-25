@@ -3,7 +3,7 @@ extends Node
 ##
 ## Access:
 ##   GameplayPolicies.hit / .grenade / .suppression / .movement
-##   GameplayPolicies.weapons / .vision / .cover / .los / .fire_anim
+##   GameplayPolicies.weapons / .vision / .cover / .los / .fire_anim / .idle_anim
 ##
 ## Defaults preserve current CombatSystem / MovementMode numbers.
 ## Optional overrides: res://assets/data/gameplay_policies.json
@@ -15,6 +15,7 @@ const GrenadePolicyClass := preload("res://scripts/gameplay_policies/grenade_pol
 const SuppressionPolicyClass := preload("res://scripts/gameplay_policies/suppression_policy.gd")
 const MovementPolicyClass := preload("res://scripts/gameplay_policies/movement_policy.gd")
 const FireAnimPolicyClass := preload("res://scripts/gameplay_policies/fire_anim_policy.gd")
+const IdleAnimPolicyClass := preload("res://scripts/gameplay_policies/idle_anim_policy.gd")
 const WeaponPolicyClass := preload("res://scripts/gameplay_policies/weapon_policy.gd")
 const VisionPolicyClass := preload("res://scripts/gameplay_policies/vision_policy.gd")
 const CoverPolicyClass := preload("res://scripts/gameplay_policies/cover_policy.gd")
@@ -25,6 +26,7 @@ var grenade: GrenadePolicyClass = GrenadePolicyClass.new()
 var suppression: SuppressionPolicyClass = SuppressionPolicyClass.new()
 var movement: MovementPolicyClass = MovementPolicyClass.new()
 var fire_anim: FireAnimPolicyClass = FireAnimPolicyClass.new()
+var idle_anim: IdleAnimPolicyClass = IdleAnimPolicyClass.new()
 var weapons: WeaponPolicyClass = WeaponPolicyClass.new()
 var vision: VisionPolicyClass = VisionPolicyClass.new()
 var cover: CoverPolicyClass = CoverPolicyClass.new()
@@ -41,6 +43,7 @@ func reset_all_to_defaults() -> void:
 	suppression.reset_to_defaults()
 	movement.reset_to_defaults()
 	fire_anim.reset_to_defaults()
+	idle_anim.reset_to_defaults()
 	weapons.reset_to_defaults()
 	vision.reset_to_defaults()
 	cover.reset_to_defaults()

@@ -1382,7 +1382,18 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		soldier_state.is_alive()
 		and _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id)
 	)
-	view.sync_from_state(soldier_state, is_selected, is_spotted, show_id)
+	var idle_peek := CoverSystem.PeekSide.NONE
+	if (
+		soldier_state.is_alive()
+		and soldier_state.position_state != PositionState.DOWN
+		and _map_data != null
+	):
+		idle_peek = CoverSystem.corner_idle_at_cell(
+			soldier_state.grid_position,
+			soldier_state.facing_direction,
+			_map_data,
+		).peek_side
+	view.sync_from_state(soldier_state, is_selected, is_spotted, show_id, idle_peek)
 
 
 func _invalidate_fog_cache() -> void:
@@ -2175,7 +2186,11 @@ func _finalize_shot_result(
 		if shooter != null:
 			var shooter_view: Soldier = _get_view(shooter.team_id, shooter.soldier_id)
 			if shooter_view != null:
-				shooter_view.play_fire(shooter.position_state, shooter.facing_direction)
+				shooter_view.play_fire(
+					shooter.position_state,
+					shooter.facing_direction,
+					result.peek_side,
+				)
 		if target != null:
 			_spawn_shot_tracers(shooter, target, maxi(result.tracer_count, 1))
 			result.messages.append("Tracer created")

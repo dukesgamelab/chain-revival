@@ -297,6 +297,10 @@ static func resolve_shot(
 			result.messages.append("Shot blocked by %s" % blocker_name)
 		return result
 
+	## Automatic corner peek — no command; expose lean side for presentation.
+	result.corner_peek = los.corner_peek
+	result.peek_side = los.peek_side
+
 	if not _can_fire_yet(shooter, weapon):
 		result.on_cooldown = true
 		if not auto_engagement:
@@ -311,6 +315,10 @@ static func resolve_shot(
 			"%s Soldier %d firing %s"
 			% [Team.display_name(shooter.team_id), shooter.soldier_id, weapon.weapon_name],
 		)
+		if los.corner_peek:
+			result.messages.append(
+				"Corner peek (%s)" % CoverSystemClass.peek_side_name(los.peek_side)
+			)
 		if los.cover_type == CoverSystemClass.CoverType.MODERATE:
 			result.had_cover = true
 			result.cover_type = los.cover_type

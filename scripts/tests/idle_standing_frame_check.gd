@@ -15,14 +15,21 @@ func _ready() -> void:
 
 	failures.append_array(_validate_db("us_rifle", "ABRLA", "USA"))
 	failures.append_array(_validate_db("german_rifle", "GBRLA", "Germany"))
+	failures.append_array(_validate_corner_db("us_rifle", "idle_corner_left", "ALCAS", "USA corner L"))
+	failures.append_array(_validate_corner_db("us_rifle", "idle_corner_right", "ARCAS", "USA corner R"))
+	failures.append_array(_validate_corner_db("german_rifle", "idle_corner_left", "GLCAS", "Germany corner L"))
+	failures.append_array(_validate_corner_db("german_rifle", "idle_corner_right", "GRCAS", "Germany corner R"))
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_germany_sprite_frames(), "Germany"))
+	failures.append_array(_validate_corner_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
+	failures.append_array(_validate_corner_runtime(UsSoldierSpriteFrames.get_germany_sprite_frames(), "Germany"))
 	failures.append_array(_validate_camera_maps())
 	failures.append_array(_validate_walk_untouched())
+	failures.append_array(_validate_idle_policy())
 
 	print("=== idle_standing_frame_check ===")
 	if failures.is_empty():
-		print("PASS: ABRLA/GBRLA idle_standing OK (168+168 frames, 8 FPS, loop)")
+		print("PASS: ABRLA/GBRLA + corner idle (ALCAS/ARCAS/GLCAS/GRCAS) OK")
 		get_tree().quit(0)
 	else:
 		print("FAIL count=%d" % failures.size())
@@ -104,6 +111,71 @@ func _validate_camera_maps() -> Array[String]:
 		fails.append("camera 0° should leave ne as ne")
 	if AnimationDatabase.display_direction("w", 180) != "e":
 		fails.append("camera 180° should map w → e")
+	return fails
+
+
+func _validate_corner_db(
+	family_id: String,
+	anim_id: String,
+	expected_source: String,
+	label: String,
+) -> Array[String]:
+	var fails: Array[String] = []
+	var anim := AnimationDatabase.get_animation(family_id, anim_id)
+	if anim.is_empty():
+		fails.append("%s: %s missing from AnimationDatabase" % [label, anim_id])
+		return fails
+	var meta: Dictionary = anim.get("metadata", {}) if anim.get("metadata", {}) is Dictionary else {}
+	if str(meta.get("source_family", "")) != expected_source:
+		fails.append(
+			"%s: source_family=%s expected %s" % [label, meta.get("source_family", ""), expected_source]
+		)
+	if not bool(anim.get("loop", false)):
+		fails.append("%s: %s must loop" % [label, anim_id])
+	for direction in DIRS:
+		var frames := AnimationDatabase.get_direction_frames(family_id, anim_id, direction)
+		if frames.size() != 1:
+			fails.append("%s %s: frame count %d expected 1" % [label, direction, frames.size()])
+			continue
+		var path := str(frames[0])
+		if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
+			fails.append("%s missing: %s" % [label, path])
+		var expected_name := "%s%dA.png" % [expected_source, _digit_for_direction(direction)]
+		if path.get_file() != expected_name:
+			fails.append("%s %s: got %s expected %s" % [label, direction, path.get_file(), expected_name])
+	return fails
+
+
+func _validate_corner_runtime(sf: SpriteFrames, label: String) -> Array[String]:
+	var fails: Array[String] = []
+	for semantic in ["idle_corner_left", "idle_corner_right"]:
+		for direction in DIRS:
+			var anim_name := "%s_%s" % [semantic, direction]
+			if not sf.has_animation(anim_name):
+				fails.append("%s runtime missing %s" % [label, anim_name])
+				continue
+			if sf.get_frame_count(anim_name) != 1:
+				fails.append("%s %s frames=%d expected 1" % [label, anim_name, sf.get_frame_count(anim_name)])
+			if not sf.get_animation_loop(anim_name):
+				fails.append("%s %s must loop" % [label, anim_name])
+	return fails
+
+
+func _validate_idle_policy() -> Array[String]:
+	var fails: Array[String] = []
+	var policy := GameplayPolicies.idle_anim
+	if policy.source_family_for(Team.USA) != "ABRLA":
+		fails.append("policy USA open idle → ABRLA")
+	if policy.source_family_for(Team.USA, CoverSystem.PeekSide.LEFT) != "ALCAS":
+		fails.append("policy USA corner L → ALCAS")
+	if policy.source_family_for(Team.USA, CoverSystem.PeekSide.RIGHT) != "ARCAS":
+		fails.append("policy USA corner R → ARCAS")
+	if policy.source_family_for(Team.GERMANY, CoverSystem.PeekSide.LEFT) != "GLCAS":
+		fails.append("policy Germany corner L → GLCAS")
+	if policy.source_family_for(Team.GERMANY, CoverSystem.PeekSide.RIGHT) != "GRCAS":
+		fails.append("policy Germany corner R → GRCAS")
+	if policy.semantic_for(CoverSystem.PeekSide.LEFT) != "idle_corner_left":
+		fails.append("semantic corner L")
 	return fails
 
 

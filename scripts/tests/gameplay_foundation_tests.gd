@@ -33,6 +33,8 @@ func _ready() -> void:
 	_test_los_fixture()
 	_test_climb_short_wall_fire_over()
 	_test_wall_cover_fixture()
+	_test_corner_peek_around_wall_end()
+	_test_corner_idle_at_wall_end()
 	_test_directional_cover()
 	_test_rng_seed_reproducibility()
 	_test_firing_sequence_reproducibility()
@@ -452,8 +454,8 @@ func _test_wall_cover_fixture() -> void:
 		],
 	)
 
-	## Mid-line wall: current behavior applies wall cover (COVER), not hard BLOCKED.
-	## Trees hard-block; walls on the fire line without adjacent peek become cover modifiers.
+	## Mid-line wall (neither side adjacent): hard BLOCKED — cannot shoot through a solid wall.
+	## Adjacent wall-end peek is allowed separately (corner peek / adjacent fixture above).
 	var far_shooter := Vector2i(8, 10)
 	var far_target := Vector2i(14, 10)
 	var mid_wall := Vector2i(11, 10)
@@ -461,11 +463,96 @@ func _test_wall_cover_fixture() -> void:
 	map_data.set_object(mid_wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
 	var mid_line := LOSSystemClass.evaluate(far_shooter, far_target, map_data, null)
 	_assert(
-		"Wall cover fixture mid-line wall yields cover status",
-		mid_line.status == LOSSystemClass.Status.COVER
-		and mid_line.cover_type != CoverSystemClass.CoverType.NONE,
-		"status=%s cover=%s"
-		% [LOSSystemClass.status_name(mid_line.status), mid_line.cover_type],
+		"Wall cover fixture mid-line wall is BLOCKED",
+		mid_line.status == LOSSystemClass.Status.BLOCKED,
+		"status=%s type=%s"
+		% [LOSSystemClass.status_name(mid_line.status), mid_line.blocking_type],
+	)
+
+
+func _test_corner_peek_around_wall_end() -> void:
+	## Offensive corner peek: shooter adjacent to a wall END can fire around it.
+	## A second hard wall further down the Bresenham line still hard-blocks.
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+
+	## Wall end adjacent to shooter; target around the corner (line hits only that end).
+	##   S # .
+	##   . . T
+	var shooter := Vector2i(10, 10)
+	var wall_end := Vector2i(11, 10)
+	var target_around := Vector2i(12, 11)
+	map_data.set_object(wall_end, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+
+	var peek_los := LOSSystemClass.evaluate(shooter, target_around, map_data, null)
+	_assert(
+		"Corner peek allows shot around wall end",
+		peek_los.status != LOSSystemClass.Status.BLOCKED,
+		"status=%s peek=%s side=%s"
+		% [
+			LOSSystemClass.status_name(peek_los.status),
+			peek_los.corner_peek,
+			CoverSystemClass.peek_side_name(peek_los.peek_side),
+		],
+	)
+	_assert(
+		"Corner peek sets peek_side for animation",
+		peek_los.corner_peek and peek_los.peek_side != CoverSystemClass.PeekSide.NONE,
+		"peek=%s side=%s" % [peek_los.corner_peek, peek_los.peek_side],
+	)
+
+	## Second wall further along the line — not adjacent to shooter or target.
+	## Line (10,10)->(14,12) visits (11,10)/(12,11)/(13,11); deeper wall at (12,11) blocks.
+	var wall_deeper := Vector2i(12, 11)
+	var target_behind := Vector2i(14, 12)
+	map_data.set_object(wall_deeper, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var blocked_los := LOSSystemClass.evaluate(shooter, target_behind, map_data, null)
+	_assert(
+		"Corner peek does not pierce continuous wall",
+		blocked_los.status == LOSSystemClass.Status.BLOCKED,
+		"status=%s type=%s"
+		% [LOSSystemClass.status_name(blocked_los.status), blocked_los.blocking_type],
+	)
+
+	## Target of a peek shot still receives cover eval (PseudoCover / corner when geometry fits).
+	var cover := CoverSystemClass.evaluate_target_cover(shooter, target_around, map_data)
+	_assert(
+		"Peek target cover eval still runs",
+		cover != null,
+		"cover_type=%s qualifier=%s" % [cover.cover_type, cover.qualifier],
+	)
+
+
+func _test_corner_idle_at_wall_end() -> void:
+	## Standing idle at a wall-end uses facing as synthetic aim (no shot target).
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+
+	var soldier := Vector2i(10, 10)
+	var wall_end := Vector2i(11, 10)
+	map_data.set_object(wall_end, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+
+	var idle := CoverSystemClass.corner_idle_at_cell(soldier, Vector2i(1, 0), map_data)
+	_assert(
+		"Corner idle detects wall-end from facing",
+		idle.is_corner and idle.peek_side != CoverSystemClass.PeekSide.NONE,
+		"corner=%s side=%s cell=%s" % [idle.is_corner, idle.peek_side, idle.corner_cell],
+	)
+
+	var open := CoverSystemClass.corner_idle_at_cell(soldier, Vector2i(-1, 0), map_data)
+	## Facing away may still find the adjacent end; require at least no crash / valid enum.
+	_assert(
+		"Corner idle returns a defined peek side enum",
+		(
+			open.peek_side == CoverSystemClass.PeekSide.NONE
+			or open.peek_side == CoverSystemClass.PeekSide.LEFT
+			or open.peek_side == CoverSystemClass.PeekSide.RIGHT
+		),
+		"side=%s" % open.peek_side,
 	)
 
 

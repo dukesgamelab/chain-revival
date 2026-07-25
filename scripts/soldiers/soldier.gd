@@ -59,6 +59,9 @@ var _fire_active: bool = false
 var _fire_world_direction: String = "n"
 var _fire_return_prone: bool = false
 var _fire_semantic: String = "fire_standing"
+var _fire_peek_side: int = CoverSystem.PeekSide.NONE
+var _idle_peek_side: int = CoverSystem.PeekSide.NONE
+var _played_idle_peek_side: int = CoverSystem.PeekSide.NONE
 var _fire_visual_shot_logged: bool = false
 ## At most one queued restart if a new shot arrives mid-sequence.
 var _fire_restart_pending: bool = false
@@ -163,11 +166,13 @@ func sync_from_state(
 	is_selected: bool,
 	is_spotted: bool = true,
 	show_id_marker: bool = false,
+	idle_peek_side: int = CoverSystem.PeekSide.NONE,
 ) -> void:
 	var previous_team := team_id
 	soldier_id = state.soldier_id
 	team_id = state.team_id
 	_show_id_marker = show_id_marker
+	_idle_peek_side = idle_peek_side
 	if previous_team != team_id or _anim.sprite_frames == null:
 		_configure_team_visual()
 	_is_dead = state.is_dead
@@ -547,11 +552,14 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		return
 	if not walking and _locomotion_direction == direction and not _locomotion_walking:
 		## Already stationary in this world facing — keep current idle pose
-		## unless we still need to start the correct idle animation.
+		## unless peek side changed or we still need to start the correct idle.
+		var idle_semantic := _idle_standing_semantic()
+		var idle_anim_name := "%s_%s" % [idle_semantic, _idle_display_direction(direction)]
 		if (
 			_applied_position_state != PositionState.DOWN
-			and _anim.sprite_frames.has_animation("idle_standing_%s" % _idle_display_direction(direction))
-			and str(_anim.animation).begins_with("idle_standing_")
+			and _idle_peek_side == _played_idle_peek_side
+			and _anim.sprite_frames.has_animation(idle_anim_name)
+			and str(_anim.animation).begins_with("%s_" % idle_semantic)
 		):
 			return
 		if (
@@ -579,7 +587,7 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		_anim.play(walk_name)
 		return
 
-	## Stationary: standing → idle_standing; prone → idle_prone (or legacy paused walk).
+	## Stationary: standing → open/corner idle; prone → idle_prone (or legacy paused walk).
 	if _applied_position_state == PositionState.DOWN:
 		_play_idle_prone(direction)
 		return
@@ -594,8 +602,15 @@ func _idle_display_direction(world_direction: String) -> String:
 	)
 
 
+func _idle_standing_semantic() -> String:
+	## Prone has no corner-idle families wired yet.
+	if _applied_position_state == PositionState.DOWN:
+		return "idle_standing"
+	return GameplayPolicies.idle_anim.semantic_for(_idle_peek_side)
+
+
 func _idle_source_family() -> String:
-	return "GBRLA" if team_id == Team.GERMANY else "ABRLA"
+	return GameplayPolicies.idle_anim.source_family_for(team_id, _idle_peek_side)
 
 
 func _prone_idle_source_family() -> String:
@@ -604,22 +619,30 @@ func _prone_idle_source_family() -> String:
 
 func _play_idle_standing(world_direction: String) -> void:
 	var display_dir := _idle_display_direction(world_direction)
-	var anim_name := "idle_standing_%s" % display_dir
+	var semantic := _idle_standing_semantic()
+	var anim_name := "%s_%s" % [semantic, display_dir]
+	if not _anim.sprite_frames.has_animation(anim_name):
+		## Fall back to open standing idle if corner frames are missing.
+		if semantic != "idle_standing":
+			semantic = "idle_standing"
+			anim_name = "%s_%s" % [semantic, display_dir]
 	if not _anim.sprite_frames.has_animation(anim_name):
 		push_error(
-			"Soldier: missing idle_standing animation %s (team=%d soldier=%d family=%s)"
+			"Soldier: missing idle animation %s (team=%d soldier=%d family=%s)"
 			% [anim_name, team_id, soldier_id, _idle_source_family()]
 		)
 		_log_idle_standing(anim_name, "MISSING_ANIMATION")
 		return
 	var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
 	if frame_count <= 0:
-		push_error("Soldier: idle_standing animation %s has zero frames" % anim_name)
+		push_error("Soldier: idle animation %s has zero frames" % anim_name)
 		_log_idle_standing(anim_name, "EMPTY_FRAMES")
 		return
 	if str(_anim.animation) == anim_name and _anim.is_playing():
+		_played_idle_peek_side = _idle_peek_side
 		return
 	_anim.play(anim_name)
+	_played_idle_peek_side = _idle_peek_side
 	_log_idle_standing(anim_name, "PLAY")
 
 
@@ -676,15 +699,20 @@ func _remap_idle_standing_for_camera() -> void:
 	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
 	var saved_frame := _anim.frame
 	var display_dir := _idle_display_direction(world_dir)
-	var anim_name := "idle_standing_%s" % display_dir
+	var semantic := _idle_standing_semantic()
+	var anim_name := "%s_%s" % [semantic, display_dir]
+	if not _anim.sprite_frames.has_animation(anim_name) and semantic != "idle_standing":
+		semantic = "idle_standing"
+		anim_name = "%s_%s" % [semantic, display_dir]
 	if not _anim.sprite_frames.has_animation(anim_name):
-		push_error("Soldier: missing idle_standing on camera rotate: %s" % anim_name)
+		push_error("Soldier: missing idle on camera rotate: %s" % anim_name)
 		return
 	if str(_anim.animation) == anim_name:
 		return
 	var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
 	_anim.play(anim_name)
 	_anim.frame = mini(saved_frame, max_frame)
+	_played_idle_peek_side = _idle_peek_side
 	_log_idle_standing(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
 
 
@@ -836,10 +864,11 @@ func play_throw_grenade(
 		_throw_release_fired = true
 
 
-## Presentation-only rifle fire (ASFIA/APRFA/GLCFA/GPRFA). One sequence per accepted shot.
+## Presentation-only rifle fire (standing / prone / corner peek). One sequence per accepted shot.
 func play_fire(
 	position_state: int = PositionState.UP,
 	facing_direction: Vector2i = Vector2i.ZERO,
+	peek_side: int = CoverSystem.PeekSide.NONE,
 ) -> void:
 	if not _uses_og_frames() or _is_dead or _death_sequence_active or _corpse_direction_locked:
 		return
@@ -848,6 +877,10 @@ func play_fire(
 	## Mid-sequence shot: queue at most one restart (no unbounded queue).
 	if _fire_active:
 		_fire_restart_pending = true
+		_fire_return_prone = position_state == PositionState.DOWN
+		_fire_peek_side = peek_side
+		if facing_direction != Vector2i.ZERO:
+			_last_applied_facing = facing_direction
 		_log_fire_anim("queued", "RESTART_QUEUED")
 		return
 
@@ -856,7 +889,7 @@ func play_fire(
 	## the run anim in place for the whole engagement (the running-in-place bug).
 	stop_movement()
 	_cancel_stance_transition_visual(false)
-	_begin_fire_sequence(position_state, facing_direction)
+	_begin_fire_sequence(position_state, facing_direction, peek_side)
 
 
 ## Stand↔prone transition. Gameplay stance commits when animation_finished fires.
@@ -918,12 +951,17 @@ func play_stance_transition(
 	_log_stance_transition(anim_name, "PLAY")
 
 
-func _begin_fire_sequence(position_state: int, facing_direction: Vector2i) -> void:
+func _begin_fire_sequence(
+	position_state: int,
+	facing_direction: Vector2i,
+	peek_side: int = CoverSystem.PeekSide.NONE,
+) -> void:
 	_fire_active = true
 	_fire_restart_pending = false
 	_fire_visual_shot_logged = false
 	_fire_return_prone = position_state == PositionState.DOWN
-	_fire_semantic = GameplayPolicies.fire_anim.semantic_for(position_state)
+	_fire_peek_side = peek_side
+	_fire_semantic = GameplayPolicies.fire_anim.semantic_for(position_state, peek_side)
 	if facing_direction != Vector2i.ZERO:
 		_last_applied_facing = facing_direction
 	_fire_world_direction = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
@@ -1045,7 +1083,7 @@ func _fire_display_direction() -> String:
 
 func _fire_source_family() -> String:
 	var stance := PositionState.DOWN if _fire_return_prone else PositionState.UP
-	return GameplayPolicies.fire_anim.source_family_for(team_id, stance)
+	return GameplayPolicies.fire_anim.source_family_for(team_id, stance, _fire_peek_side)
 
 
 func _cancel_fire_visual(resume_idle: bool) -> void:
@@ -1053,6 +1091,7 @@ func _cancel_fire_visual(resume_idle: bool) -> void:
 		return
 	_fire_active = false
 	_fire_restart_pending = false
+	_fire_peek_side = CoverSystem.PeekSide.NONE
 	if resume_idle and not _is_dead and not _death_sequence_active:
 		_finish_fire_idle()
 
@@ -1105,7 +1144,11 @@ func _finish_stance_transition(anim_name: String) -> void:
 ## Developer validation snapshot for rifle fire presentation.
 func dump_fire_validation() -> Dictionary:
 	var stance := PositionState.DOWN if _fire_return_prone else PositionState.UP
-	var semantic := _fire_semantic if not _fire_semantic.is_empty() else GameplayPolicies.fire_anim.semantic_for(stance)
+	var semantic := (
+		_fire_semantic
+		if not _fire_semantic.is_empty()
+		else GameplayPolicies.fire_anim.semantic_for(stance, _fire_peek_side)
+	)
 	var display_dir := _fire_display_direction() if _fire_active else AnimationDatabase.display_direction(
 		_fire_world_direction if not _fire_world_direction.is_empty() else "n",
 		IsometricGrid.camera_direction_degrees(),
@@ -1138,7 +1181,10 @@ func dump_fire_validation() -> Dictionary:
 		"ordered_frames": frame_paths,
 		"fps": fps,
 		"fire_active": _fire_active,
-		"visual_shot_frame": GameplayPolicies.fire_anim.visual_shot_frame_for(team_id, stance),
+		"peek_side": CoverSystem.peek_side_name(_fire_peek_side),
+		"visual_shot_frame": GameplayPolicies.fire_anim.visual_shot_frame_for(
+			team_id, stance, _fire_peek_side
+		),
 		"authoritative_shot_event_count": GameplayPolicies.fire_anim.authoritative_shot_event_count,
 		"visual_firing_trigger_count": GameplayPolicies.fire_anim.visual_firing_trigger_count,
 	}
@@ -1247,11 +1293,13 @@ func _finish_fire(anim_name: String) -> void:
 	if _fire_restart_pending and not _hit_reaction_active and not _throw_grenade_active:
 		_log_fire_anim(anim_name, "COMPLETE → restart queued shot")
 		var stance := PositionState.DOWN if _fire_return_prone else PositionState.UP
+		var peek := _fire_peek_side
 		_fire_active = false
-		_begin_fire_sequence(stance, _last_applied_facing)
+		_begin_fire_sequence(stance, _last_applied_facing, peek)
 		return
 	_fire_active = false
 	_fire_restart_pending = false
+	_fire_peek_side = CoverSystem.PeekSide.NONE
 	_log_fire_anim(anim_name, "COMPLETE → idle")
 	_finish_fire_idle()
 
@@ -1447,9 +1495,9 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return "GHTLA" if team_id == Team.GERMANY else "AHTLA"
 		"throw_grenade":
 			return _throw_source_family()
-		"fire_standing", "fire_prone":
+		"fire_standing", "fire_prone", "fire_corner_left", "fire_corner_right":
 			return _fire_source_family()
-		"idle_standing":
+		"idle_standing", "idle_corner_left", "idle_corner_right":
 			return _idle_source_family()
 		"idle_prone":
 			return _prone_idle_source_family()

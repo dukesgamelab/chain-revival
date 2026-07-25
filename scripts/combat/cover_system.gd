@@ -13,8 +13,14 @@ enum CoverType { NONE, MODERATE, COMPLETE }
 
 enum WallSkipReason { NONE, SHOOTER_PEEK, TARGET_COVER }
 
+## Offensive corner peek lean direction (presentation: PeekLeft / PeekRight).
+enum PeekSide { NONE, LEFT, RIGHT }
+
 ## Frozen alias of CoverPolicy default for existing call sites.
 const MODERATE_HIT_MULTIPLIER := CoverPolicyClass.DEFAULT_MODERATE_HIT_MULT
+
+## When false, prone shooters cannot lean around a tall wall end.
+const CORNER_PEEK_WHILE_PRONE := true
 
 
 const ADJACENT_OFFSETS: Array[Vector2i] = [
@@ -36,6 +42,16 @@ class BlockResult extends RefCounted:
 	var blocked: bool = false
 	var blocking_cell: Vector2i = Vector2i(-999, -999)
 	var blocking_type_id: String = ""
+	## Set when an adjacent wall-end was exempted for offensive corner peek.
+	var corner_peek: bool = false
+	var peek_side: int = PeekSide.NONE
+	var corner_cell: Vector2i = Vector2i(-999, -999)
+
+
+class CornerPeekResult extends RefCounted:
+	var is_corner: bool = false
+	var peek_side: int = PeekSide.NONE
+	var corner_cell: Vector2i = Vector2i(-999, -999)
 
 
 class WallCoverUsage extends RefCounted:
@@ -164,6 +180,11 @@ static func evaluate_wall_cover_usage(
 ## Tile on the line of fire that completely blocks the shot.
 ## Set block_soldiers false for spotting visibility (soldiers do not hide each other).
 ## Optional `line` shares Bresenham with wall-cover evaluation.
+##
+## Tall / NO_PASS / complete-cover walls hard-block the SHOT unless:
+## - climb/moderate "shoot OVER" peek (existing), or
+## - offensive corner peek around an adjacent wall END (new), or
+## - the target is adjacent to that wall (using it as cover — shot reaches).
 static func find_blocking_tile(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
@@ -182,6 +203,7 @@ static func find_blocking_tile(
 
 	var cells: Array[Vector2i] = line if not line.is_empty() else line_cells_between(from_cell, to_cell)
 	var skipped_shooter_side_blocker := false
+	var skipped_corner_peek := false
 	for cell in cells:
 		if block_soldiers and living_standing_soldier_blocks_line(cell, game_state):
 			result.blocked = true
@@ -193,17 +215,41 @@ static func find_blocking_tile(
 		if object_def == null and not map_data.has_object(cell):
 			continue
 
-		if _is_complete_cover_wall(object_def):
+		var is_complete_wall := _is_complete_cover_wall(object_def)
+		var vision_blocks := tile_blocks_vision(
+			map_data, cell, object_def, observer_prone, target_prone
+		)
+		## Complete walls are soft in tile_blocks_vision — treat them as hard shot blockers.
+		var hard_blocks := is_complete_wall or vision_blocks
+		if not hard_blocks:
 			continue
 
-		if not tile_blocks_vision(map_data, cell, object_def, observer_prone, target_prone):
-			continue
+		## Height/climb peek OVER a low adjacent wall (separate from corner lean).
 		if (
-			not skipped_shooter_side_blocker
+			not is_complete_wall
+			and not skipped_shooter_side_blocker
 			and can_peek_and_shoot_over(from_cell, to_cell, cell, object_def)
 		):
 			skipped_shooter_side_blocker = true
 			continue
+
+		## Offensive corner peek AROUND an adjacent wall end (one cell only).
+		if (
+			not skipped_corner_peek
+			and (CORNER_PEEK_WHILE_PRONE or not observer_prone)
+		):
+			var corner := corner_peek_at_cell(from_cell, to_cell, cell, map_data)
+			if corner.is_corner:
+				skipped_corner_peek = true
+				result.corner_peek = true
+				result.peek_side = corner.peek_side
+				result.corner_cell = corner.corner_cell
+				continue
+
+		## Target hugging this hard wall — shot reaches; cover eval applies after.
+		if is_complete_wall and _is_adjacent(to_cell, cell):
+			continue
+
 		result.blocked = true
 		result.blocking_cell = cell
 		result.blocking_type_id = object_def.type_id if object_def != null else "terrain"
@@ -395,6 +441,141 @@ static func can_peek_and_shoot_over(
 	if not _is_adjacent(from_cell, cover_cell):
 		return false
 	return is_shooter_side_cover_on_line(from_cell, to_cell, cover_cell)
+
+
+## Geometry: shooter adjacent to a tall/NO_PASS wall END on the fire line with an open
+## perpendicular edge to lean past. Not a tile property — computed per shot query.
+static func shooter_at_corner(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	map_data: MapData,
+	line: Array[Vector2i] = [],
+) -> CornerPeekResult:
+	var result := CornerPeekResult.new()
+	if map_data == null or from_cell == to_cell:
+		return result
+	var cells: Array[Vector2i] = line if not line.is_empty() else line_cells_between(from_cell, to_cell)
+	for cell in cells:
+		var at := corner_peek_at_cell(from_cell, to_cell, cell, map_data)
+		if at.is_corner:
+			return at
+	return result
+
+
+## True when `wall_cell` on the shot line is an adjacent wall-end the shooter can lean around.
+static func corner_peek_at_cell(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	wall_cell: Vector2i,
+	map_data: MapData,
+) -> CornerPeekResult:
+	var result := CornerPeekResult.new()
+	if map_data == null or not _is_adjacent(from_cell, wall_cell):
+		return result
+	if not _is_corner_peek_blocker(map_data, wall_cell):
+		return result
+	var side := _wall_end_peek_side(from_cell, to_cell, wall_cell, map_data)
+	if side == PeekSide.NONE:
+		return result
+	result.is_corner = true
+	result.peek_side = side
+	result.corner_cell = wall_cell
+	return result
+
+
+## Presentation helper: standing idle at a wall-end uses facing as synthetic aim.
+## Prefers adjacent wall-ends beside/ahead of facing (not strictly behind).
+static func corner_idle_at_cell(
+	from_cell: Vector2i,
+	facing: Vector2i,
+	map_data: MapData,
+) -> CornerPeekResult:
+	var result := CornerPeekResult.new()
+	if map_data == null:
+		return result
+	var aim := FacingDirection.normalize(facing)
+	if aim == Vector2i.ZERO:
+		return result
+	var to_cell := from_cell + aim
+	var best_forward := -999
+	for offset in ADJACENT_OFFSETS:
+		var wall_cell := from_cell + offset
+		var at := corner_peek_at_cell(from_cell, to_cell, wall_cell, map_data)
+		if not at.is_corner:
+			continue
+		var to_wall := wall_cell - from_cell
+		var forward := to_wall.x * aim.x + to_wall.y * aim.y
+		if forward < 0 and result.is_corner:
+			continue
+		if not result.is_corner or forward > best_forward:
+			result = at
+			best_forward = forward
+	return result
+
+
+## Tall / NO_PASS / complete-cover wall cells eligible for corner-peek geometry.
+static func _is_corner_peek_blocker(map_data: MapData, cell: Vector2i) -> bool:
+	if map_data == null or not map_data.is_in_bounds(cell):
+		return false
+	if map_data.terrain_class(cell) == MapData.TerrainClass.NO_PASS:
+		return true
+	var object_def := map_data.get_object_def(cell)
+	if _is_complete_cover_wall(object_def):
+		return true
+	return map_data.obstruction_height(cell) >= 2
+
+
+## LEFT/RIGHT relative to the shot direction when at least one perpendicular neighbor
+## of the wall tile is open (wall does not continue across the line of fire).
+static func _wall_end_peek_side(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	wall_cell: Vector2i,
+	map_data: MapData,
+) -> int:
+	var shot := to_cell - from_cell
+	var dx := signi(shot.x)
+	var dy := signi(shot.y)
+	if dx == 0 and dy == 0:
+		return PeekSide.NONE
+	## Looking along the shot: left = (-dy, dx), right = (dy, -dx) in y-down grid space.
+	var left_off := Vector2i(-dy, dx)
+	var right_off := Vector2i(dy, -dx)
+	if left_off == Vector2i.ZERO and right_off == Vector2i.ZERO:
+		return PeekSide.NONE
+	var left_open := _perp_neighbor_open(map_data, wall_cell + left_off)
+	var right_open := _perp_neighbor_open(map_data, wall_cell + right_off)
+	if not left_open and not right_open:
+		## Wall continues across the fire line — no open edge to lean past.
+		return PeekSide.NONE
+	if left_open and not right_open:
+		return PeekSide.LEFT
+	if right_open and not left_open:
+		return PeekSide.RIGHT
+	## Both open (pillar / single-tile end) — pick side from target relative to wall.
+	var to_wall := wall_cell - from_cell
+	var cross := to_wall.x * shot.y - to_wall.y * shot.x
+	if cross > 0:
+		return PeekSide.LEFT
+	if cross < 0:
+		return PeekSide.RIGHT
+	return PeekSide.LEFT
+
+
+static func _perp_neighbor_open(map_data: MapData, cell: Vector2i) -> bool:
+	if not map_data.is_in_bounds(cell):
+		return true
+	return not _is_corner_peek_blocker(map_data, cell)
+
+
+static func peek_side_name(side: int) -> String:
+	match side:
+		PeekSide.LEFT:
+			return "left"
+		PeekSide.RIGHT:
+			return "right"
+		_:
+			return "none"
 
 
 static func get_wall_skip_reason(

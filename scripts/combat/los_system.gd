@@ -40,6 +40,10 @@ class LossResult extends RefCounted:
 	var blocking_type: String = ""
 	var shooter_using_wall_cover: bool = false
 	var target_using_wall_cover: bool = false
+	## Offensive corner peek (shot LOS only) — drives PeekLeft / PeekRight presentation.
+	var corner_peek: bool = false
+	var peek_side: int = CoverSystem.PeekSide.NONE
+	var corner_cell: Vector2i = Vector2i(-999, -999)
 
 
 static func evaluate(
@@ -67,6 +71,10 @@ static func evaluate(
 	var block := CoverSystem.find_blocking_tile(
 		from_cell, to_cell, map_data, game_state, true, line,
 	)
+	if block.corner_peek:
+		result.corner_peek = true
+		result.peek_side = block.peek_side
+		result.corner_cell = block.corner_cell
 	if block.blocked:
 		result.status = Status.BLOCKED
 		result.blocking_cell = block.blocking_cell
@@ -76,6 +84,7 @@ static func evaluate(
 		_log_evaluation(from_cell, to_cell, map_data, result, game_state)
 		return result
 
+	## Cover still runs on peek shots — target keeps PseudoCover / corner benefit.
 	var cover := CoverSystem.evaluate_target_cover(from_cell, to_cell, map_data)
 	result.cover_type = cover.cover_type
 	result.cover_source_type = cover.source_type_id

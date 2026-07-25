@@ -10,8 +10,12 @@ const DEFAULT_FIRE_ANIM_FPS := 8.0
 ## Per-family visual shot markers (presentation sync only; gameplay shots stay authoritative).
 var visual_shot_frame_asfia: int = DEFAULT_VISUAL_SHOT_FRAME
 var visual_shot_frame_aprfa: int = DEFAULT_VISUAL_SHOT_FRAME
-var visual_shot_frame_glcfa: int = DEFAULT_VISUAL_SHOT_FRAME
+var visual_shot_frame_gsfia: int = DEFAULT_VISUAL_SHOT_FRAME
 var visual_shot_frame_gprfa: int = DEFAULT_VISUAL_SHOT_FRAME
+var visual_shot_frame_alcfa: int = DEFAULT_VISUAL_SHOT_FRAME
+var visual_shot_frame_arcfa: int = DEFAULT_VISUAL_SHOT_FRAME
+var visual_shot_frame_glcfa: int = DEFAULT_VISUAL_SHOT_FRAME
+var visual_shot_frame_grcfa: int = DEFAULT_VISUAL_SHOT_FRAME
 var fire_anim_fps: float = DEFAULT_FIRE_ANIM_FPS
 
 ## Dev counters: authoritative shot events vs visual fire triggers.
@@ -22,21 +26,43 @@ var visual_firing_trigger_count: int = 0
 func reset_to_defaults() -> void:
 	visual_shot_frame_asfia = DEFAULT_VISUAL_SHOT_FRAME
 	visual_shot_frame_aprfa = DEFAULT_VISUAL_SHOT_FRAME
-	visual_shot_frame_glcfa = DEFAULT_VISUAL_SHOT_FRAME
+	visual_shot_frame_gsfia = DEFAULT_VISUAL_SHOT_FRAME
 	visual_shot_frame_gprfa = DEFAULT_VISUAL_SHOT_FRAME
+	visual_shot_frame_alcfa = DEFAULT_VISUAL_SHOT_FRAME
+	visual_shot_frame_arcfa = DEFAULT_VISUAL_SHOT_FRAME
+	visual_shot_frame_glcfa = DEFAULT_VISUAL_SHOT_FRAME
+	visual_shot_frame_grcfa = DEFAULT_VISUAL_SHOT_FRAME
 	fire_anim_fps = DEFAULT_FIRE_ANIM_FPS
 	authoritative_shot_event_count = 0
 	visual_firing_trigger_count = 0
 
 
-func source_family_for(team_id: int, position_state: int) -> String:
+func source_family_for(
+	team_id: int,
+	position_state: int,
+	peek_side: int = CoverSystem.PeekSide.NONE,
+) -> String:
 	var prone := position_state == PositionState.DOWN
+	## Standing corner-peek lean only; prone peeks keep prone fire art.
+	if not prone:
+		if peek_side == CoverSystem.PeekSide.LEFT:
+			return "GLCFA" if team_id == Team.GERMANY else "ALCFA"
+		if peek_side == CoverSystem.PeekSide.RIGHT:
+			return "GRCFA" if team_id == Team.GERMANY else "ARCFA"
 	if team_id == Team.GERMANY:
-		return "GPRFA" if prone else "GLCFA"
+		return "GPRFA" if prone else "GSFIA"
 	return "APRFA" if prone else "ASFIA"
 
 
-func semantic_for(position_state: int) -> String:
+func semantic_for(
+	position_state: int,
+	peek_side: int = CoverSystem.PeekSide.NONE,
+) -> String:
+	if position_state != PositionState.DOWN:
+		if peek_side == CoverSystem.PeekSide.LEFT:
+			return "fire_corner_left"
+		if peek_side == CoverSystem.PeekSide.RIGHT:
+			return "fire_corner_right"
 	return "fire_prone" if position_state == PositionState.DOWN else "fire_standing"
 
 
@@ -46,16 +72,28 @@ func visual_shot_frame_for_family(source_family: String) -> int:
 			return visual_shot_frame_asfia
 		"APRFA":
 			return visual_shot_frame_aprfa
-		"GLCFA":
-			return visual_shot_frame_glcfa
+		"GSFIA":
+			return visual_shot_frame_gsfia
 		"GPRFA":
 			return visual_shot_frame_gprfa
+		"ALCFA":
+			return visual_shot_frame_alcfa
+		"ARCFA":
+			return visual_shot_frame_arcfa
+		"GLCFA":
+			return visual_shot_frame_glcfa
+		"GRCFA":
+			return visual_shot_frame_grcfa
 		_:
 			return DEFAULT_VISUAL_SHOT_FRAME
 
 
-func visual_shot_frame_for(team_id: int, position_state: int) -> int:
-	return visual_shot_frame_for_family(source_family_for(team_id, position_state))
+func visual_shot_frame_for(
+	team_id: int,
+	position_state: int,
+	peek_side: int = CoverSystem.PeekSide.NONE,
+) -> int:
+	return visual_shot_frame_for_family(source_family_for(team_id, position_state, peek_side))
 
 
 func note_authoritative_shot() -> void:

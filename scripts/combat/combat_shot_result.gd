@@ -18,3 +18,7 @@ var shooter_id: int = 1
 var target_team_id: int = Team.GERMANY
 var target_id: int = 1
 var messages: Array[String] = []
+## Offensive corner peek lean (CoverSystem.PeekSide). Presentation: PeekLeft / PeekRight.
+## CoverSystem.PeekSide — drives fire_corner_left / fire_corner_right presentation.
+var corner_peek: bool = false
+var peek_side: int = 0

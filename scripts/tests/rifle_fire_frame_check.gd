@@ -1,11 +1,17 @@
 extends Node
-## Headless validation for ASFIA / APRFA / GLCFA / GPRFA rifle fire registration.
+## Headless validation for standing / prone / corner rifle fire registration.
 ## Run: Godot --headless --path <project> res://scripts/tests/rifle_fire_frame_check.tscn
 
 
 const DIRS: Array[String] = ["n", "ne", "e", "se", "s", "sw", "w", "nw"]
 const CAM_ROTATIONS: Array[int] = [0, 90, 180, 270]
 const EXPECTED_FPS := 8.0
+const FIRE_SEMANTICS: Array[String] = [
+	"fire_standing",
+	"fire_prone",
+	"fire_corner_left",
+	"fire_corner_right",
+]
 
 
 func _ready() -> void:
@@ -15,8 +21,12 @@ func _ready() -> void:
 
 	failures.append_array(_validate_db("us_rifle", "fire_standing", "ASFIA", "USA standing", {8: 2}))
 	failures.append_array(_validate_db("us_rifle", "fire_prone", "APRFA", "USA prone", {}))
-	failures.append_array(_validate_db("german_rifle", "fire_standing", "GLCFA", "Germany standing", {}))
+	failures.append_array(_validate_db("us_rifle", "fire_corner_left", "ALCFA", "USA corner L", {}))
+	failures.append_array(_validate_db("us_rifle", "fire_corner_right", "ARCFA", "USA corner R", {}))
+	failures.append_array(_validate_db("german_rifle", "fire_standing", "GSFIA", "Germany standing", {}))
 	failures.append_array(_validate_db("german_rifle", "fire_prone", "GPRFA", "Germany prone", {}))
+	failures.append_array(_validate_db("german_rifle", "fire_corner_left", "GLCFA", "Germany corner L", {}))
+	failures.append_array(_validate_db("german_rifle", "fire_corner_right", "GRCFA", "Germany corner R", {}))
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_germany_sprite_frames(), "Germany"))
 	failures.append_array(_validate_camera_maps())
@@ -25,7 +35,7 @@ func _ready() -> void:
 
 	print("=== rifle_fire_frame_check ===")
 	if failures.is_empty():
-		print("PASS: ASFIA/APRFA/GLCFA/GPRFA fire anims OK (ASFIA nw=A-B only)")
+		print("PASS: standing/prone/corner fire anims OK (ASFIA nw=A-B only)")
 		get_tree().quit(0)
 	else:
 		print("FAIL count=%d" % failures.size())
@@ -88,7 +98,7 @@ func _validate_db(
 
 func _validate_runtime(sf: SpriteFrames, label: String) -> Array[String]:
 	var fails: Array[String] = []
-	for semantic in ["fire_standing", "fire_prone"]:
+	for semantic in FIRE_SEMANTICS:
 		for direction in DIRS:
 			var anim_name := "%s_%s" % [semantic, direction]
 			if not sf.has_animation(anim_name):
@@ -120,15 +130,31 @@ func _validate_camera_maps() -> Array[String]:
 
 func _validate_policy() -> Array[String]:
 	var fails: Array[String] = []
-	if GameplayPolicies.fire_anim.source_family_for(Team.USA, PositionState.UP) != "ASFIA":
+	var policy := GameplayPolicies.fire_anim
+	if policy.source_family_for(Team.USA, PositionState.UP) != "ASFIA":
 		fails.append("policy USA standing → ASFIA")
-	if GameplayPolicies.fire_anim.source_family_for(Team.USA, PositionState.DOWN) != "APRFA":
+	if policy.source_family_for(Team.USA, PositionState.DOWN) != "APRFA":
 		fails.append("policy USA prone → APRFA")
-	if GameplayPolicies.fire_anim.source_family_for(Team.GERMANY, PositionState.UP) != "GLCFA":
-		fails.append("policy Germany standing → GLCFA")
-	if GameplayPolicies.fire_anim.source_family_for(Team.GERMANY, PositionState.DOWN) != "GPRFA":
+	if policy.source_family_for(Team.GERMANY, PositionState.UP) != "GSFIA":
+		fails.append("policy Germany standing → GSFIA")
+	if policy.source_family_for(Team.GERMANY, PositionState.DOWN) != "GPRFA":
 		fails.append("policy Germany prone → GPRFA")
-	if GameplayPolicies.fire_anim.visual_shot_frame_asfia != 1:
+	if policy.source_family_for(Team.USA, PositionState.UP, CoverSystem.PeekSide.LEFT) != "ALCFA":
+		fails.append("policy USA corner L → ALCFA")
+	if policy.source_family_for(Team.USA, PositionState.UP, CoverSystem.PeekSide.RIGHT) != "ARCFA":
+		fails.append("policy USA corner R → ARCFA")
+	if policy.source_family_for(Team.GERMANY, PositionState.UP, CoverSystem.PeekSide.LEFT) != "GLCFA":
+		fails.append("policy Germany corner L → GLCFA")
+	if policy.source_family_for(Team.GERMANY, PositionState.UP, CoverSystem.PeekSide.RIGHT) != "GRCFA":
+		fails.append("policy Germany corner R → GRCFA")
+	## Prone peeks keep prone fire art (no corner-prone families wired).
+	if policy.source_family_for(Team.USA, PositionState.DOWN, CoverSystem.PeekSide.LEFT) != "APRFA":
+		fails.append("policy USA prone+peek → APRFA")
+	if policy.semantic_for(PositionState.UP, CoverSystem.PeekSide.LEFT) != "fire_corner_left":
+		fails.append("semantic corner L")
+	if policy.semantic_for(PositionState.UP, CoverSystem.PeekSide.RIGHT) != "fire_corner_right":
+		fails.append("semantic corner R")
+	if policy.visual_shot_frame_asfia != 1:
 		fails.append("ASFIA visual shot frame should be B (1)")
 	return fails
 

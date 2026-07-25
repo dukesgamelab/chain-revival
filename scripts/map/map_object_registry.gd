@@ -12,7 +12,7 @@ const TYPE_WALL := "wall"
 const TYPE_WALL_STRAIGHT_LONG_NE := "wall_straight_long_ne"
 const TYPE_BUILDING := "building"
 
-const DEFAULT_BLOCKED_TYPE := TYPE_TREE
+const DEFAULT_BLOCKED_TYPE := TYPE_TREE 
 
 const SPRITE_TREE := "res://assets/sprites/tree-1-transparent-game-sized.png"
 const SPRITE_HAYBAIL := "res://assets/sprites/haybail-1-transparent-game-sized.png"

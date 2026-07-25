@@ -773,58 +773,58 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA5A.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA5B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA5C.png"
+								"res://assets/sprites/coc_soldiers/GSFIA5A.png",
+								"res://assets/sprites/coc_soldiers/GSFIA5B.png",
+								"res://assets/sprites/coc_soldiers/GSFIA5C.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA7A.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA7B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA7C.png"
+								"res://assets/sprites/coc_soldiers/GSFIA7A.png",
+								"res://assets/sprites/coc_soldiers/GSFIA7B.png",
+								"res://assets/sprites/coc_soldiers/GSFIA7C.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA6A.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA6B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA6C.png"
+								"res://assets/sprites/coc_soldiers/GSFIA6A.png",
+								"res://assets/sprites/coc_soldiers/GSFIA6B.png",
+								"res://assets/sprites/coc_soldiers/GSFIA6C.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA8A.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA8B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA8C.png"
+								"res://assets/sprites/coc_soldiers/GSFIA8A.png",
+								"res://assets/sprites/coc_soldiers/GSFIA8B.png",
+								"res://assets/sprites/coc_soldiers/GSFIA8C.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA3A.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA3B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA3C.png"
+								"res://assets/sprites/coc_soldiers/GSFIA3A.png",
+								"res://assets/sprites/coc_soldiers/GSFIA3B.png",
+								"res://assets/sprites/coc_soldiers/GSFIA3C.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA4A.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA4B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA4C.png"
+								"res://assets/sprites/coc_soldiers/GSFIA4A.png",
+								"res://assets/sprites/coc_soldiers/GSFIA4B.png",
+								"res://assets/sprites/coc_soldiers/GSFIA4C.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA2A.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA2B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA2C.png"
+								"res://assets/sprites/coc_soldiers/GSFIA2A.png",
+								"res://assets/sprites/coc_soldiers/GSFIA2B.png",
+								"res://assets/sprites/coc_soldiers/GSFIA2C.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA1A.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA1B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GLCFA1C.png"
+								"res://assets/sprites/coc_soldiers/GSFIA1A.png",
+								"res://assets/sprites/coc_soldiers/GSFIA1B.png",
+								"res://assets/sprites/coc_soldiers/GSFIA1C.png"
 							]
 						}
 					},
@@ -837,10 +837,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 1.0,
-						"notes": "Per-shot oneshot at 8 FPS.",
+						"notes": "Per-shot oneshot at 8 FPS. Corrected from GLCFA (left corner) to GSFIA.",
 						"sound_effect": "",
-						"source_family": "GLCFA",
-						"verification": "manually confirmed by user",
+						"source_family": "GSFIA",
+						"verification": "wired from sprite browser LC/RC fire families",
 						"verified": true,
 						"visual_shot_frame": 1.0,
 						"visual_shot_frame_letter": "B"
@@ -2204,6 +2204,278 @@
 						"static": true,
 						"verified": true,
 						"priority": "dead"
+					}
+				},
+				"fire_corner_left": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA5A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA5B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA7A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA7B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA6A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA6B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA8A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA8B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA3A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA3B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA4A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA4B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA2A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA2B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCFA1A.png",
+								"res://assets/sprites/coc_soldiers/GLCFA1B.png",
+								"res://assets/sprites/coc_soldiers/GLCFA1C.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Left Corner Rifle Fire",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/rifle_fire",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": 1.0,
+						"notes": "Corner peek fire oneshot (A-C).",
+						"sound_effect": "",
+						"source_family": "GLCFA",
+						"verification": "wired from sprite browser LC/RC fire families",
+						"verified": true,
+						"visual_shot_frame": 1.0,
+						"visual_shot_frame_letter": "B"
+					}
+				},
+				"fire_corner_right": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA5A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA5B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA7A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA7B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA6A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA6B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA8A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA8B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA3A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA3B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA4A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA4B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA2A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA2B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCFA1A.png",
+								"res://assets/sprites/coc_soldiers/GRCFA1B.png",
+								"res://assets/sprites/coc_soldiers/GRCFA1C.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Right Corner Rifle Fire",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/rifle_fire",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": 1.0,
+						"notes": "Corner peek fire oneshot (A-C).",
+						"sound_effect": "",
+						"source_family": "GRCFA",
+						"verification": "wired from sprite browser LC/RC fire families",
+						"verified": true,
+						"visual_shot_frame": 1.0,
+						"visual_shot_frame_letter": "B"
+					}
+				},
+				"idle_corner_left": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GLCAS1A.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Left Corner Idle",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/corner_idle",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Static corner wall-end idle (single frame A).",
+						"sound_effect": "",
+						"source_family": "GLCAS",
+						"verification": "wired from sprite browser LC/RC AS families",
+						"verified": true
+					}
+				},
+				"idle_corner_right": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GRCAS1A.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "German Right Corner Idle",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/corner_idle",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Static corner wall-end idle (single frame A).",
+						"sound_effect": "",
+						"source_family": "GRCAS",
+						"verification": "wired from sprite browser LC/RC AS families",
+						"verified": true
 					}
 				}
 			},
@@ -4786,6 +5058,278 @@
 						"static": true,
 						"verified": true,
 						"priority": "dead"
+					}
+				},
+				"fire_corner_left": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA5A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA5B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA7A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA7B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA6A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA6B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA8A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA8B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA3A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA3B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA4A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA4B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA2A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA2B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCFA1A.png",
+								"res://assets/sprites/coc_soldiers/ALCFA1B.png",
+								"res://assets/sprites/coc_soldiers/ALCFA1C.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "US Left Corner Rifle Fire",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/rifle_fire",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": 1.0,
+						"notes": "Corner peek fire oneshot (A-C).",
+						"sound_effect": "",
+						"source_family": "ALCFA",
+						"verification": "wired from sprite browser LC/RC fire families",
+						"verified": true,
+						"visual_shot_frame": 1.0,
+						"visual_shot_frame_letter": "B"
+					}
+				},
+				"fire_corner_right": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA5A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA5B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA7A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA7B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA6A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA6B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA8A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA8B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA3A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA3B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA4A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA4B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA2A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA2B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCFA1A.png",
+								"res://assets/sprites/coc_soldiers/ARCFA1B.png",
+								"res://assets/sprites/coc_soldiers/ARCFA1C.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "US Right Corner Rifle Fire",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/rifle_fire",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": 1.0,
+						"notes": "Corner peek fire oneshot (A-C).",
+						"sound_effect": "",
+						"source_family": "ARCFA",
+						"verification": "wired from sprite browser LC/RC fire families",
+						"verified": true,
+						"visual_shot_frame": 1.0,
+						"visual_shot_frame_letter": "B"
+					}
+				},
+				"idle_corner_left": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ALCAS1A.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "US Left Corner Idle",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/corner_idle",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Static corner wall-end idle (single frame A).",
+						"sound_effect": "",
+						"source_family": "ALCAS",
+						"verification": "wired from sprite browser LC/RC AS families",
+						"verified": true
+					}
+				},
+				"idle_corner_right": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ARCAS1A.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "US Right Corner Idle",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/corner_idle",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Static corner wall-end idle (single frame A).",
+						"sound_effect": "",
+						"source_family": "ARCAS",
+						"verification": "wired from sprite browser LC/RC AS families",
+						"verified": true
 					}
 				}
 			},
