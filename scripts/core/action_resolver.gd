@@ -38,6 +38,10 @@ const ConeOfFireClass := preload("res://scripts/combat/cone_of_fire.gd")
 const CombatShotResultClass := preload("res://scripts/combat/combat_shot_result.gd")
 const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
 
+## Max Chebyshev distance between any two living fireteam members after a move.
+const FIRETEAM_COHESION_RADIUS := 25
+const FIRETEAM_COHESION_FAIL_MSG := "Cannot move that far from fireteam"
+
 
 static func execute(
 	game_state: GameStateClass,
@@ -433,7 +437,6 @@ static func execute_move(
 		## others keep their offsets. Stacked soldiers all go to the click cell.
 		var lead_path: Array[Vector2i] = []
 		var lead_start := Vector2i(-999, -999)
-		var overlay_markers: Array = []
 		var orderable: Array[SoldierState] = []
 		for state in fireteam.soldiers:
 			var candidate: SoldierState = state
@@ -451,17 +454,25 @@ static func execute_move(
 			return ActionResult.fail("No soldiers could %s to that tile." % squad_mode_label)
 		var anchor: SoldierState = orderable[0]
 		var anchor_pos := anchor.grid_position
-		## Cap full A* fallbacks after the lead path — translated followers are free;
-		## each failed translation used to A* again and hitch the frame (esp. AI × many FTs).
+		var squad_target := cmd.target_cell
+		if _acting_is_ai(game_state, context):
+			squad_target = _clamp_cell_to_fireteam_cohesion(
+				squad_target, _living_fireteam_positions(fireteam, -1)
+			)
+		## Cap full A* after lead — translated / co-located reuse is free.
+		## Humans get a full FT budget so all 4 can Run To; AI stays lean.
 		var full_pathfinds := 0
-		const MAX_SQUAD_FULL_PATHFINDS := 2
+		var max_full_pathfinds := 2 if _acting_is_ai(game_state, context) else 4
 		for squad_soldier in orderable:
 			var squad_move_result := _resolve_move_order(squad_soldier, cmd.movement_mode)
 			var member_target := _squad_relative_formation_cell(
 				game_state.map_data,
-				cmd.target_cell,
+				squad_target,
 				squad_soldier.grid_position - anchor_pos,
 			)
+			if _acting_is_ai(game_state, context):
+				var peers := _living_fireteam_positions(fireteam, squad_soldier.soldier_id)
+				member_target = _clamp_cell_to_fireteam_cohesion(member_target, peers)
 			var assigned := false
 			if not lead_path.is_empty() and lead_start.x > -900:
 				assigned = _assign_translated_squad_path(
@@ -476,7 +487,7 @@ static func execute_move(
 					lead_start,
 					member_target,
 				)
-			if not assigned and full_pathfinds < MAX_SQUAD_FULL_PATHFINDS:
+			if not assigned and full_pathfinds < max_full_pathfinds:
 				assigned = _assign_move_path(
 					game_state,
 					context,
@@ -502,25 +513,29 @@ static func execute_move(
 							lead_start = lead_path[0]
 			if assigned:
 				ordered_count += 1
-				overlay_markers.append({
-					"cell": member_target,
-					"soldier_id": squad_soldier.soldier_id,
-				})
 				if not squad_move_result.message.is_empty():
 					notices.append(squad_move_result.message)
 		if ordered_count == 0:
 			if not notices.is_empty():
 				return ActionResult.fail(notices[0])
 			return ActionResult.fail("No soldiers could %s to that tile." % squad_mode_label)
+		## Planned ends must keep the fireteam within cohesion (incl. soldiers left behind).
+		if not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
+			_rollback_move_orders(fireteam, result)
+			if _acting_is_ai(game_state, context):
+				var quiet := ActionResult.new()
+				quiet.refresh_views = false
+				return quiet
+			return ActionResult.fail(FIRETEAM_COHESION_FAIL_MSG)
 		if _should_emit_human_path_overlay(game_state, context):
 			result.path_overlay = {
 				"cells": [] as Array[Vector2i],
-				"target": cmd.target_cell,
-				"markers": overlay_markers,
+				"target": squad_target,
+				"markers": _overlay_markers_from_move_orders(result.move_orders),
 				"team_id": cmd.team_id,
 			}
 		var squad_status := "%s fireteam %s to %s — click another tile to redirect." % [
-			Team.display_name(cmd.team_id), squad_mode_label, cmd.target_cell,
+			Team.display_name(cmd.team_id), squad_mode_label, squad_target,
 		]
 		if not notices.is_empty():
 			squad_status += "\n" + "\n".join(notices)
@@ -544,26 +559,46 @@ static func execute_move(
 	if not validation.is_empty():
 		return ActionResult.fail(validation)
 
+	var single_target := cmd.target_cell
+	var peer_positions := _living_fireteam_positions(fireteam, soldier_state.soldier_id)
+	if _acting_is_ai(game_state, context):
+		single_target = _clamp_cell_to_fireteam_cohesion(single_target, peer_positions)
+	elif (
+		_cell_within_fireteam_cohesion(soldier_state.grid_position, peer_positions)
+		and not _cell_within_fireteam_cohesion(single_target, peer_positions)
+	):
+		## Currently in cohesion — reject a destination that would leave the FT.
+		return ActionResult.fail(FIRETEAM_COHESION_FAIL_MSG)
+
 	if not _assign_move_path(
 		game_state, context, fireteam, soldier_state,
 		cmd, result, move_result.mode, move_result.message,
+		single_target,
 	):
-		if cmd.target_cell == _start_cell_for_soldier(context, soldier_state):
+		if single_target == _start_cell_for_soldier(context, soldier_state):
 			result.refresh_views = false
 			return result
 		return ActionResult.fail("No path to that tile.")
 
+	if not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
+		_rollback_move_orders(fireteam, result)
+		if _acting_is_ai(game_state, context):
+			var quiet := ActionResult.new()
+			quiet.refresh_views = false
+			return quiet
+		return ActionResult.fail(FIRETEAM_COHESION_FAIL_MSG)
+
 	if _should_emit_human_path_overlay(game_state, context):
 		result.path_overlay = {
 			"cells": soldier_state.current_path,
-			"target": cmd.target_cell,
-			"markers": [{"cell": cmd.target_cell, "soldier_id": cmd.soldier_id}],
+			"target": single_target,
+			"markers": _overlay_markers_from_move_orders(result.move_orders),
 			"team_id": cmd.team_id,
 		}
 	## Presentation: only this mover needs chase sync — not a full roster refresh.
 	result.refresh_views = false
 	var status := "%s Soldier %d %s to %s — click another tile to redirect." % [
-		Team.display_name(cmd.team_id), cmd.soldier_id, mode_label, cmd.target_cell,
+		Team.display_name(cmd.team_id), cmd.soldier_id, mode_label, single_target,
 	]
 	if not move_result.message.is_empty():
 		status = move_result.message + "\n" + status
@@ -1199,6 +1234,7 @@ static func _assign_move_path(
 
 
 ## Reuse lead A* by translating the path by (follower_start - lead_start). Falls back if blocked.
+## Co-located with the lead (common when stacked): reuse the identical path — no extra A*.
 static func _assign_translated_squad_path(
 	game_state: GameStateClass,
 	context: CommandContext,
@@ -1220,17 +1256,20 @@ static func _assign_translated_squad_path(
 		return false
 	## Validate translated path before clearing any active movement.
 	var start_cell := state.grid_position
-	if start_cell == lead_start:
-		return false
-	var delta := start_cell - lead_start
 	var path: Array[Vector2i] = []
-	for cell in lead_path:
-		var step: Vector2i = cell + delta
-		if step != start_cell and not game_state.map_data.is_walkable(step):
-			return false
-		if step != start_cell and game_state.map_data.is_blocked(step):
-			return false
-		path.append(step)
+	if start_cell == lead_start:
+		## Same tile as lead — copy the lead route (all 4 stacked Run To).
+		for cell in lead_path:
+			path.append(Vector2i(cell))
+	else:
+		var delta := start_cell - lead_start
+		for cell in lead_path:
+			var step: Vector2i = cell + delta
+			if step != start_cell and not game_state.map_data.is_walkable(step):
+				return false
+			if step != start_cell and game_state.map_data.is_blocked(step):
+				return false
+			path.append(step)
 	if path.is_empty() or path[0] != start_cell:
 		return false
 	if path[path.size() - 1] == start_cell:
@@ -1267,6 +1306,131 @@ static func _assign_translated_squad_path(
 		"speed_mult": speed_mult,
 	})
 	return true
+
+
+static func _acting_is_ai(game_state: GameStateClass, context: CommandContext) -> bool:
+	if game_state == null or game_state.command_hierarchy == null or context == null:
+		return false
+	var pid := int(context.acting_player_id)
+	if pid <= 0:
+		return false
+	return game_state.command_hierarchy.is_ai_player(pid)
+
+
+static func _chebyshev(a: Vector2i, b: Vector2i) -> int:
+	return maxi(absi(a.x - b.x), absi(a.y - b.y))
+
+
+static func _living_fireteam_positions(fireteam: Fireteam, exclude_soldier_id: int = -1) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if fireteam == null:
+		return out
+	for state in fireteam.soldiers:
+		var soldier: SoldierState = state
+		if soldier == null or soldier.is_dead:
+			continue
+		if exclude_soldier_id >= 0 and soldier.soldier_id == exclude_soldier_id:
+			continue
+		out.append(soldier.grid_position)
+	return out
+
+
+static func _cell_within_fireteam_cohesion(cell: Vector2i, peers: Array[Vector2i]) -> bool:
+	for peer in peers:
+		if _chebyshev(cell, peer) > FIRETEAM_COHESION_RADIUS:
+			return false
+	return true
+
+
+## Pull `cell` toward peers until it is within cohesion of every peer (AI auto).
+static func _clamp_cell_to_fireteam_cohesion(cell: Vector2i, peers: Array[Vector2i]) -> Vector2i:
+	if peers.is_empty() or _cell_within_fireteam_cohesion(cell, peers):
+		return cell
+	var out := cell
+	for _iter in 16:
+		var adjusted := false
+		for peer in peers:
+			var d := _chebyshev(out, peer)
+			if d <= FIRETEAM_COHESION_RADIUS:
+				continue
+			var over := d - FIRETEAM_COHESION_RADIUS
+			var dx := peer.x - out.x
+			var dy := peer.y - out.y
+			if dx != 0:
+				out.x += signi(dx) * mini(absi(dx), over)
+			if dy != 0:
+				out.y += signi(dy) * mini(absi(dy), over)
+			adjusted = true
+		if not adjusted:
+			break
+	return out
+
+
+static func _overlay_markers_from_move_orders(move_orders: Array) -> Array:
+	var markers: Array = []
+	for order in move_orders:
+		if not order is Dictionary:
+			continue
+		var raw_path: Variant = order.get("path", [])
+		if raw_path is Array and not (raw_path as Array).is_empty():
+			var end_cell: Vector2i = Vector2i((raw_path as Array)[(raw_path as Array).size() - 1])
+			markers.append({
+				"cell": end_cell,
+				"soldier_id": int(order.get("soldier_id", 1)),
+			})
+	return markers
+
+
+## Planned positions = movers at path ends, everyone else at current cell.
+## Allows orders that keep spread ≤ radius, or that do not worsen an already-broken spread.
+static func _fireteam_cohesion_holds_after_orders(fireteam: Fireteam, move_orders: Array) -> bool:
+	if fireteam == null:
+		return true
+	var before_cells: Array[Vector2i] = []
+	var planned: Dictionary = {} ## soldier_id -> Vector2i
+	for state in fireteam.soldiers:
+		var soldier: SoldierState = state
+		if soldier == null or soldier.is_dead:
+			continue
+		before_cells.append(soldier.grid_position)
+		planned[soldier.soldier_id] = soldier.grid_position
+	for order in move_orders:
+		if not order is Dictionary:
+			continue
+		var sid := int(order.get("soldier_id", -1))
+		var raw_path: Variant = order.get("path", [])
+		if sid < 0 or not (raw_path is Array) or (raw_path as Array).is_empty():
+			continue
+		planned[sid] = Vector2i((raw_path as Array)[(raw_path as Array).size() - 1])
+	var after_cells: Array[Vector2i] = []
+	for sid in planned.keys():
+		after_cells.append(planned[sid])
+	var after_span := _max_pairwise_chebyshev(after_cells)
+	if after_span <= FIRETEAM_COHESION_RADIUS:
+		return true
+	return after_span <= _max_pairwise_chebyshev(before_cells)
+
+
+static func _max_pairwise_chebyshev(cells: Array[Vector2i]) -> int:
+	var best := 0
+	for i in range(cells.size()):
+		for j in range(i + 1, cells.size()):
+			best = maxi(best, _chebyshev(cells[i], cells[j]))
+	return best
+
+
+static func _rollback_move_orders(fireteam: Fireteam, result: ActionResult) -> void:
+	if result == null:
+		return
+	for order in result.move_orders:
+		if not order is Dictionary or fireteam == null:
+			continue
+		var soldier: SoldierState = fireteam.get_soldier(int(order.get("soldier_id", -1)))
+		if soldier != null:
+			soldier.clear_path()
+	result.move_orders.clear()
+	result.movement_halts.clear()
+	result.path_overlay.clear()
 
 
 class MoveOrderResolution:
