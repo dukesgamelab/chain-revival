@@ -32,6 +32,7 @@ const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 const AiCommanderFrameworkClass := preload("res://scripts/ai/ai_commander_framework.gd")
 const IssueAiOrderCommandClass := preload("res://scripts/commands/issue_ai_order_command.gd")
+const PlayerSlotOwnershipClass := preload("res://scripts/core/player_slot_ownership.gd")
 
 @onready var _world: MapWorldView = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -1191,7 +1192,11 @@ func _switch_active_team(team_id: int) -> void:
 			"You control %s only." % PlayerSides.display_side_name()
 		)
 		return
-	if _session != null and not _session.local_owned_fireteams().is_empty():
+	## Offline / SP hotseat: 1=USA, 2=Germany swaps human control + AI opposite.
+	if GameModeManager.is_offline_dev():
+		if not _offline_dev_take_team_control(team_id):
+			return
+	elif _session != null and not _session.local_owned_fireteams().is_empty():
 		var owns_side := false
 		for ft in _session.local_owned_fireteams():
 			if ft.team_id == team_id:
@@ -1200,7 +1205,8 @@ func _switch_active_team(team_id: int) -> void:
 		if not owns_side:
 			_command_bar.show_status("You do not own a fireteam on that side.")
 			return
-	if team_id == _session.active_team_id:
+	if team_id == _session.active_team_id and _session.get_local_control_fireteam() != null \
+			and _session.get_local_control_fireteam().team_id == team_id:
 		return
 	_invalidate_fog_cache()
 	_session.set_active_team(team_id)
@@ -1222,6 +1228,37 @@ func _switch_active_team(team_id: int) -> void:
 	if GameModeManager.is_offline_dev():
 		status += " Press 1/2 to switch."
 	_command_bar.show_status(status)
+
+
+## Dev/SP hotseat: claim target side as human and hand the other side to AI.
+func _offline_dev_take_team_control(team_id: int) -> bool:
+	if _session == null or _game_state == null:
+		return false
+	if team_id != Team.USA and team_id != Team.GERMANY:
+		return false
+	var target_ft: Fireteam = null
+	for ft in _session.owned_fireteams:
+		if ft.team_id == team_id:
+			target_ft = ft
+			break
+	if target_ft == null:
+		_command_bar.show_status("No fireteam on that side.")
+		return false
+	var target_pid := target_ft.owner_player_id
+	var current_pid := _session.local_player_id
+	if current_pid == target_pid:
+		return true
+	var hierarchy = _game_state.command_hierarchy
+	if hierarchy != null and hierarchy.has_player(current_pid) and not hierarchy.is_ai_player(current_pid):
+		PlayerSlotOwnershipClass.release_slot_to_ai(_game_state, _ai_framework, current_pid)
+	if hierarchy != null and hierarchy.has_player(target_pid) and hierarchy.is_ai_player(target_pid):
+		PlayerSlotOwnershipClass.claim_slot_as_human(_game_state, _ai_framework, target_pid)
+	_session.local_player_id = target_pid
+	if _session.match_config != null:
+		_session.match_config.local_player_id = target_pid
+	if _game_state != null:
+		_game_state.local_player_id = target_pid
+	return true
 
 
 func _toggle_map_edit_mode() -> void:
