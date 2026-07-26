@@ -129,12 +129,15 @@ text = "Walk To"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(74, 26)
 layout_mode = 2
+toggle_mode = true
+button_pressed = true
 text = "Fire at Will"
 
 [node name="HoldFireButton" type="Button" parent="."]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 26)
 layout_mode = 2
+toggle_mode = true
 text = "Hold Fire"
 
 [node name="StatusPanel" type="PanelContainer" parent="."]

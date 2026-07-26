@@ -2322,6 +2322,8 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 	if soldier_id == CommandBar.SQUAD_ID:
 		var last_result: ActionResultClass = null
 		var combined_transitions: Array[Dictionary] = []
+		var combined_halts: Array[Dictionary] = []
+		var any_success := false
 		var fireteam: Fireteam = _control_fireteam()
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
@@ -2335,11 +2337,13 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 			cmd.position_state = position_state
 			last_result = CommandRouter.submit_command(_game_state, cmd)
 			if last_result != null and last_result.success:
+				any_success = true
 				for order in last_result.stance_transition_orders:
 					combined_transitions.append(order)
+				for halt in last_result.movement_halts:
+					combined_halts.append(halt)
 		if (
-			last_result != null
-			and last_result.success
+			any_success
 			and position_state == PositionStateClass.DOWN
 			and _move_targeting
 			and not MovementModeClass.is_allowed(PositionStateClass.DOWN, _active_movement_mode)
@@ -2347,10 +2351,12 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 			_command_bar.clear_move_targeting()
 			_move_targeting = false
 			_squad_move_targeting = false
-		## Don't force Up/Down UI to the target yet — gameplay stance commits after anims.
-		if last_result != null:
-			## Replay all deferred transitions (each submit only carries one soldier).
+		## Gameplay stance already committed; present all halts + drop/stand anims.
+		if last_result != null and any_success:
+			last_result.success = true
+			last_result.refresh_views = true
 			last_result.stance_transition_orders = combined_transitions
+			last_result.movement_halts = combined_halts
 			_present_action_result(last_result)
 		else:
 			_command_bar.show_status("No soldiers available.")

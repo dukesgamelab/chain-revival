@@ -36,8 +36,8 @@ var grenade_explosions: Array = []
 ## Presentation throw anims: {team_id, soldier_id, world_facing_dir optional}
 var throw_orders: Array[Dictionary] = []
 
-## Deferred stance transitions: {team_id, soldier_id, target_position_state}
-## Gameplay position_state commits when the presentation transition finishes.
+## Stance transition anims: {team_id, soldier_id, target_position_state}
+## Gameplay position_state is already applied; this is presentation-only.
 var stance_transition_orders: Array[Dictionary] = []
 
 

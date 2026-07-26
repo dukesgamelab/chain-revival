@@ -18,7 +18,7 @@ signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step
 signal movement_finished(team_id: int, soldier_id: int)
 ## Fired once when configured release frame is reached (presentation → gameplay hook).
 signal grenade_release_reached(team_id: int, soldier_id: int)
-## Fired when stand↔prone transition anim completes (presentation → gameplay commit).
+## Fired when stand↔prone transition anim completes (clears pending presentation gate).
 signal stance_transition_finished(team_id: int, soldier_id: int, target_position_state: int)
 ## Fired when a transition is interrupted; gameplay should drop pending_position_state.
 signal stance_transition_cancelled(team_id: int, soldier_id: int)
@@ -310,9 +310,11 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 
 
 func _apply_position_visual(state: SoldierState) -> void:
-	## Presentation transition owns applied stance until animation completes.
-	## Gameplay may still hold the prior position_state via pending_position_state.
+	## Transition anim owns applied stance until it finishes.
 	if _stance_transition_active:
+		return
+	## Pending means a stance order will play this frame / is in flight — don't snap past it.
+	if state != null and state.pending_position_state >= 0:
 		return
 	if not _is_dead and state.position_state == _applied_position_state:
 		return
@@ -986,25 +988,31 @@ func play_fire(
 	_begin_fire_sequence(position_state, facing_direction, peek_side)
 
 
-## Stand↔prone transition. Gameplay stance commits when animation_finished fires.
+## Stand↔prone transition. Gameplay stance is already committed; this is presentation only.
 func play_stance_transition(
 	target_position_state: int,
 	facing_direction: Vector2i = Vector2i.ZERO,
 ) -> void:
 	if not _uses_og_frames() or _is_dead or _death_sequence_active or _corpse_direction_locked:
+		## No anim — still clear the pending presentation gate.
+		stance_transition_finished.emit(team_id, soldier_id, target_position_state)
 		return
 	if _hit_reaction_active or _throw_grenade_active or _fire_active:
+		stance_transition_finished.emit(team_id, soldier_id, target_position_state)
 		return
 	if _stance_transition_active:
 		return
+	## Drop/stand even if we were chasing a path — sim already halted.
 	if _is_moving:
-		return
+		stop_movement()
 	if _corner_phase_blocks_locomotion():
 		_cancel_fire_visual(false)
 
 	var from_prone := _applied_position_state == PositionState.DOWN
 	var to_prone := target_position_state == PositionState.DOWN
 	if from_prone == to_prone:
+		## Already showing the destination stance (e.g. sync snapped) — clear pending.
+		stance_transition_finished.emit(team_id, soldier_id, target_position_state)
 		return
 
 	_stance_transition_active = true
@@ -1020,9 +1028,17 @@ func play_stance_transition(
 		_stance_transition_world_direction = (
 			_locomotion_direction if not _locomotion_direction.is_empty() else "n"
 		)
-	## Keep current stance scale until the transition finishes.
-	_apply_hit_reaction_scale(PositionState.DOWN if from_prone else PositionState.UP)
+	if to_prone:
+		## Go down immediately — play the drop anim from the prone footprint.
+		_applied_position_state = PositionState.DOWN
+		_anim.scale = _prone_sprite_scale()
+		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
+		_prone_marker.visible = false
+	else:
+		## Keep prone footprint until stand-up frames finish.
+		_apply_hit_reaction_scale(PositionState.DOWN)
 	_selection_marker.visible = false
+	_sync_facing_arrow_visibility()
 
 	var display_dir := _idle_display_direction(_stance_transition_world_direction)
 	var anim_name := "%s_%s" % [_stance_transition_semantic, display_dir]
@@ -1033,7 +1049,7 @@ func play_stance_transition(
 		)
 		_log_stance_transition(anim_name, "MISSING_ANIMATION")
 		_stance_transition_active = false
-		## Still notify gameplay so pending stance can be committed/cleared.
+		## Still notify gameplay so pending stance gate can clear.
 		stance_transition_finished.emit(team_id, soldier_id, target_position_state)
 		return
 	var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
@@ -1387,8 +1403,8 @@ func _finish_stance_transition(anim_name: String) -> void:
 	if world_dir.is_empty():
 		world_dir = "n"
 	_stance_transition_active = false
-	_log_stance_transition(anim_name, "COMPLETE → commit stance")
-	## Apply destination stance visuals, then notify gameplay to commit position_state.
+	_log_stance_transition(anim_name, "COMPLETE → clear pending gate")
+	## Destination stance visuals (go-down already applied at PLAY).
 	if target == PositionState.DOWN:
 		_applied_position_state = PositionState.DOWN
 		_anim.scale = _prone_sprite_scale()

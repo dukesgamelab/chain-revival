@@ -195,9 +195,10 @@ func set_position_state(position_state: int) -> void:
 
 
 func set_fire_control_state(fire_control_state: int) -> void:
+	## Sunken/raised chrome via toggle pressed state (OG Hold Fire / Fire At Will).
 	var is_hold := fire_control_state == FireControlState.HOLD_FIRE
-	_hold_fire_button.modulate = CocUiTheme.selected_modulate(is_hold)
-	_fire_at_will_button.modulate = CocUiTheme.selected_modulate(not is_hold)
+	_hold_fire_button.set_pressed_no_signal(is_hold)
+	_fire_at_will_button.set_pressed_no_signal(not is_hold)
 
 
 func is_interactive() -> bool:
@@ -259,12 +260,15 @@ func _on_position_toggled(is_down: bool) -> void:
 func _on_hold_fire_pressed() -> void:
 	if not _row_enabled:
 		return
+	## Keep one depressed (re-clicking the active button must not raise both).
+	set_fire_control_state(FireControlState.HOLD_FIRE)
 	fire_control_selected.emit(soldier_id, FireControlState.HOLD_FIRE)
 
 
 func _on_fire_at_will_pressed() -> void:
 	if not _row_enabled:
 		return
+	set_fire_control_state(FireControlState.FIRE_AT_WILL)
 	fire_control_selected.emit(soldier_id, FireControlState.FIRE_AT_WILL)
 
 

@@ -932,30 +932,36 @@ static func execute_position(
 			% [soldier.soldier_id, PositionStateClass.display_name(cmd.position_state)],
 		)
 
-	## German (and any family with transition anims): defer gameplay stance until anim ends.
+	var result := ActionResult.new()
+	## Going prone (or standing) while moving: stop immediately so stance can apply now.
+	_halt_soldier_for_combat(game_state, soldier, result)
+
+	## Gameplay stance commits immediately — presentation may still play a drop/stand anim.
+	soldier.position_state = cmd.position_state
+	CombatSystem.notify_soldier_perception_dirty(game_state, soldier)
+	result.refresh_views = true
+
 	var family_id := _animation_family_for_soldier(soldier)
 	if _has_stance_transitions(family_id):
+		## pending tracks the in-flight presentation anim (blocks crawl spam mid-transition).
 		soldier.pending_position_state = cmd.position_state
-		var deferred := ActionResult.new()
-		deferred.stance_transition_orders.append({
+		result.stance_transition_orders.append({
 			"team_id": cmd.team_id,
 			"soldier_id": cmd.soldier_id,
 			"target_position_state": cmd.position_state,
 		})
-		return deferred.set_status(
-			"Soldier %d changing to %s..."
+		return result.set_status(
+			"Soldier %d changed to %s"
 			% [soldier.soldier_id, PositionStateClass.display_name(cmd.position_state)],
 		)
 
-	soldier.position_state = cmd.position_state
-	CombatSystem.notify_soldier_perception_dirty(game_state, soldier)
-	return ActionResult.new().set_status(
+	return result.set_status(
 		"Soldier %d changed to %s"
 		% [soldier.soldier_id, PositionStateClass.display_name(cmd.position_state)],
 	)
 
 
-## Called when a stance-transition animation finishes (presentation → gameplay commit).
+## Called when a stance-transition animation finishes (clears pending presentation gate).
 static func commit_stance_transition(
 	game_state: GameStateClass,
 	team_id: int,
@@ -965,17 +971,21 @@ static func commit_stance_transition(
 	var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
 	if soldier == null or soldier.is_dead:
 		return ActionResult.fail("Soldier unavailable.")
-	if soldier.pending_position_state != target_position_state:
-		## Cancelled (e.g. Run forced stand) — do not apply a stale target.
+	if soldier.pending_position_state >= 0 and soldier.pending_position_state != target_position_state:
+		## Cancelled (e.g. Run forced stand) — do not clear a newer pending target.
 		return ActionResult.new().set_status(
 			"Soldier %d stance transition cancelled." % soldier_id
 		)
-	soldier.position_state = target_position_state
+	## position_state was already applied in execute_position; just release the anim gate.
 	soldier.clear_pending_position()
-	CombatSystem.notify_soldier_perception_dirty(game_state, soldier)
-	return ActionResult.new().set_status(
+	if soldier.position_state != target_position_state:
+		soldier.position_state = target_position_state
+		CombatSystem.notify_soldier_perception_dirty(game_state, soldier)
+	var done := ActionResult.new()
+	done.refresh_views = true
+	return done.set_status(
 		"Soldier %d changed to %s"
-		% [soldier.soldier_id, PositionStateClass.display_name(target_position_state)],
+		% [soldier.soldier_id, PositionStateClass.display_name(soldier.position_state)],
 	)
 
 
@@ -1468,9 +1478,8 @@ static func validate_move(soldier: SoldierState, mode: int) -> String:
 static func _validate_move(soldier: SoldierState, mode: int) -> String:
 	if soldier == null or soldier.is_dead:
 		return "Soldier unavailable."
-	## Run may cancel a deferred stance (force stand). Other moves pause until transition ends.
-	## Gameplay position_state commits only in commit_stance_transition; pending_* is the
-	## presentation-transition gate so visuals can finish once without sim movement.
+	## Run may cancel an in-flight stance anim (force stand). Other moves wait for it.
+	## pending_* is presentation-only; position_state is already authoritative.
 	if soldier.pending_position_state >= 0 and mode != MovementModeClass.RUN:
 		return "Soldier is changing stance."
 	_stand_up_for_run(soldier, mode)

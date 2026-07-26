@@ -54,7 +54,7 @@ var ammo_max: int = 0
 var is_dead: bool = false
 var position_state: int = PositionStateClass.UP
 ## Target stance while a stand↔prone transition anim plays (−1 = none).
-## Authoritative position_state stays at the old value until the anim completes.
+## Authoritative position_state is applied immediately; pending only gates presentation.
 var pending_position_state: int = -1
 var movement_mode: int = MovementModeClass.RUN
 var fire_control_state: int = FireControlStateClass.FIRE_AT_WILL
