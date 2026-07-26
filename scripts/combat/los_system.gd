@@ -75,10 +75,12 @@ static func evaluate(
 		result.corner_peek = true
 		result.peek_side = block.peek_side
 		result.corner_cell = block.corner_cell
-		## Offensive lean around a wall end flanks that cell — it is not hard cover for the target.
+		## Offensive lean flanks the corner and nearby wall-run tiles on the fire line.
 		if (
 			result.target_using_wall_cover
-			and wall_usage.target_cover_cell == result.corner_cell
+			and CoverSystem.corner_peek_flanks_cover_cell(
+				result.corner_cell, wall_usage.target_cover_cell
+			)
 		):
 			result.target_using_wall_cover = false
 	if block.blocked:

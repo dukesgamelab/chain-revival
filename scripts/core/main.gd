@@ -1896,6 +1896,7 @@ func _spawn_grenade_explosions(explosions: Array) -> void:
 
 
 func _trigger_grenade_death_animations(explosions: Array) -> void:
+	var any_killed := false
 	for explosion in explosions:
 		var blast_cell: Vector2i = explosion.explosion_cell
 		for entry in explosion.killed:
@@ -1904,12 +1905,16 @@ func _trigger_grenade_death_animations(explosions: Array) -> void:
 			var victim: SoldierState = _game_state.get_soldier(team_id, soldier_id)
 			if victim == null:
 				continue
+			any_killed = true
 			# Vector from victim toward blast; fall plays away from the explosion.
 			var threat_step := blast_cell - victim.grid_position
 			AudioManager.play_death(team_id)
 			var view: Soldier = _get_view(team_id, soldier_id)
 			if view != null:
 				view.play_death_sequence(threat_step, victim.stance_at_death, victim.death_sprite_family)
+	## mark_killed clears paths; drop red run-to diamonds for dead movers.
+	if any_killed:
+		_sync_run_to_destination_overlay()
 
 
 func _snap_cell_for_soldier(state: SoldierState) -> Vector2i:
@@ -2296,6 +2301,8 @@ func _finalize_shot_result(
 		if target_view != null:
 			## Use stance_at_death — mark_killed already forced position_state DOWN.
 			target_view.play_death_sequence(threat_step, target.stance_at_death, target.death_sprite_family)
+		## mark_killed clears the path; drop that soldier's red run-to diamond.
+		_sync_run_to_destination_overlay()
 	elif result.hit and target != null and not result.killed:
 		var threat_step := shooter.grid_position - target.grid_position
 		var target_view: Soldier = _get_view(target.team_id, target.soldier_id)

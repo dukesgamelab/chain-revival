@@ -239,12 +239,24 @@ static func find_blocking_tile(
 			and (CORNER_PEEK_WHILE_PRONE or not observer_prone)
 		):
 			var corner := corner_peek_at_cell(from_cell, to_cell, cell, map_data)
+			## Bresenham often cuts past the corner tile the shooter is leaning on.
+			if not corner.is_corner:
+				corner = _remote_corner_peek_for_blocker(from_cell, to_cell, cell, map_data)
 			if corner.is_corner:
 				skipped_corner_peek = true
 				result.corner_peek = true
 				result.peek_side = corner.peek_side
 				result.corner_cell = corner.corner_cell
 				continue
+
+		## Next tile of the same wall run after a corner lean (orthogonal graze only).
+		if (
+			skipped_corner_peek
+			and result.corner_cell.x != -999
+			and _is_orthogonal_adjacent(result.corner_cell, cell)
+			and _wall_end_peek_side(from_cell, to_cell, cell, map_data) != PeekSide.NONE
+		):
+			continue
 
 		## Target hugging this hard wall — shot reaches; cover eval applies after.
 		if is_complete_wall and _is_adjacent(to_cell, cell):
@@ -480,6 +492,30 @@ static func corner_peek_at_cell(
 	result.is_corner = true
 	result.peek_side = side
 	result.corner_cell = wall_cell
+	return result
+
+
+## When Bresenham misses the corner tile, the first hard hit is often the next wall cell.
+## Allow a lean if the shooter is on an adjacent wall-end and this blocker is not a mid-wall.
+static func _remote_corner_peek_for_blocker(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	blocking_cell: Vector2i,
+	map_data: MapData,
+) -> CornerPeekResult:
+	var result := CornerPeekResult.new()
+	if map_data == null or not _is_corner_peek_blocker(map_data, blocking_cell):
+		return result
+	## Solid mid-wall (both perps closed) — shooting through, not around.
+	if _wall_end_peek_side(from_cell, to_cell, blocking_cell, map_data) == PeekSide.NONE:
+		return result
+	for offset in ADJACENT_OFFSETS:
+		var wall_cell := from_cell + offset
+		if wall_cell == blocking_cell or not _is_adjacent(wall_cell, blocking_cell):
+			continue
+		var at := corner_peek_at_cell(from_cell, to_cell, wall_cell, map_data)
+		if at.is_corner:
+			return at
 	return result
 
 
@@ -745,6 +781,22 @@ static func _is_complete_cover_wall(object_def: MapObjectDef) -> bool:
 
 static func _is_adjacent(from_cell: Vector2i, to_cell: Vector2i) -> bool:
 	return GameplayPolicies.los.is_adjacent(from_cell, to_cell)
+
+
+static func _is_orthogonal_adjacent(a: Vector2i, b: Vector2i) -> bool:
+	return absi(a.x - b.x) + absi(a.y - b.y) == 1
+
+
+## Hard wall cover defeated by an offensive corner lean (corner + nearby wall-run graze).
+static func corner_peek_flanks_cover_cell(corner_cell: Vector2i, cover_cell: Vector2i) -> bool:
+	if cover_cell.x == -999 or corner_cell.x == -999:
+		return false
+	if cover_cell == corner_cell:
+		return true
+	if _is_orthogonal_adjacent(corner_cell, cover_cell):
+		return true
+	## Bresenham may credit hard cover on the next tile of the same wall run.
+	return maxi(absi(corner_cell.x - cover_cell.x), absi(corner_cell.y - cover_cell.y)) <= 2
 
 
 static func _manhattan_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:

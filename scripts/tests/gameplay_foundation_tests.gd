@@ -526,6 +526,36 @@ func _test_corner_peek_around_wall_end() -> void:
 		% [LOSSystemClass.status_name(blocked_los.status), blocked_los.blocking_type],
 	)
 
+	## Bresenham diagonal cut: line misses the corner cell the shooter leans on, then
+	## hits the next tiles of the wall run — still a corner peek, not a mid-wall block.
+	## Mirrors ff_farm Stables SW: S(42,50)→T(46,48) past WCOR(43,49).
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var cut_shooter := Vector2i(10, 11)
+	var cut_corner := Vector2i(11, 10)
+	var cut_run_a := Vector2i(12, 10)
+	var cut_run_b := Vector2i(13, 10)
+	var cut_target := Vector2i(14, 9)
+	map_data.set_object(cut_corner, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	map_data.set_object(cut_run_a, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	map_data.set_object(cut_run_b, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var cut_los := LOSSystemClass.evaluate(cut_shooter, cut_target, map_data, null)
+	_assert(
+		"Corner peek survives Bresenham diagonal cut past wall end",
+		cut_los.status != LOSSystemClass.Status.BLOCKED,
+		"status=%s peek=%s block_line=%s"
+		% [
+			LOSSystemClass.status_name(cut_los.status),
+			cut_los.corner_peek,
+			CoverSystemClass.line_cells_between(cut_shooter, cut_target),
+		],
+	)
+	_assert(
+		"Diagonal-cut corner peek sets lean side",
+		cut_los.corner_peek and cut_los.peek_side != CoverSystemClass.PeekSide.NONE,
+		"peek=%s side=%s" % [cut_los.corner_peek, cut_los.peek_side],
+	)
+
 	## Target of a peek shot still receives cover eval (PseudoCover / corner when geometry fits).
 	var cover := CoverSystemClass.evaluate_target_cover(shooter, target_around, map_data)
 	_assert(

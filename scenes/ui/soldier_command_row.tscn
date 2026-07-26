@@ -7,7 +7,7 @@ theme_override_constants/separation = 2
 script = ExtResource("1_row")
 
 [node name="DotPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(28, 26)
+custom_minimum_size = Vector2(56, 26)
 layout_mode = 2
 
 [node name="DotsLabel" type="Label" parent="DotPanel"]
@@ -19,30 +19,41 @@ text = "•"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="AmmoPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(52, 26)
+[node name="WeaponAmmoPanel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(120, 26)
 layout_mode = 2
+size_flags_horizontal = 3
 
-[node name="AmmoRow" type="HBoxContainer" parent="AmmoPanel"]
+[node name="WeaponAmmoRow" type="HBoxContainer" parent="WeaponAmmoPanel"]
 layout_mode = 2
-theme_override_constants/separation = 0
+theme_override_constants/separation = 4
 
-[node name="AmmoLabel" type="Label" parent="AmmoPanel/AmmoRow"]
+[node name="WeaponLabel" type="Label" parent="WeaponAmmoPanel/WeaponAmmoRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 11
+text = "R M1 Garand"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="AmmoLabel" type="Label" parent="WeaponAmmoPanel/WeaponAmmoRow"]
+unique_name_in_owner = true
+layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 11
 text = "80"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="AmmoAdjustCol" type="VBoxContainer" parent="AmmoPanel/AmmoRow"]
+[node name="AmmoAdjustCol" type="VBoxContainer" parent="WeaponAmmoPanel/WeaponAmmoRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="AmmoUpButton" type="Button" parent="AmmoPanel/AmmoRow/AmmoAdjustCol"]
+[node name="AmmoUpButton" type="Button" parent="WeaponAmmoPanel/WeaponAmmoRow/AmmoAdjustCol"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(16, 12)
 layout_mode = 2
@@ -50,7 +61,7 @@ flat = true
 text = "▲"
 theme_override_font_sizes/font_size = 8
 
-[node name="AmmoDownButton" type="Button" parent="AmmoPanel/AmmoRow/AmmoAdjustCol"]
+[node name="AmmoDownButton" type="Button" parent="WeaponAmmoPanel/WeaponAmmoRow/AmmoAdjustCol"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(16, 12)
 layout_mode = 2
@@ -91,21 +102,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(40, 26)
 layout_mode = 2
 toggle_mode = true
-text = "Up"
-
-[node name="WeaponPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(78, 26)
-layout_mode = 2
-
-[node name="WeaponLabel" type="Label" parent="WeaponPanel"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 11
-text = "R M1 Garand"
-horizontal_alignment = 1
-vertical_alignment = 1
-clip_text = true
+text = "Down"
 
 [node name="GrenadeButton" type="Button" parent="."]
 unique_name_in_owner = true

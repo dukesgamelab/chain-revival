@@ -46,7 +46,7 @@ func _ready() -> void:
 	_run_to_button.tooltip_text = "Run to a tile — click the map."
 	_crawl_to_button.tooltip_text = "Crawl to a tile — click the map."
 	_face_button.tooltip_text = "Face a direction — click a tile or enemy (no firing)."
-	_position_button.tooltip_text = "Toggle standing (Up) or prone (Down)."
+	_position_button.tooltip_text = "Go prone (Down) or stand up (Up)."
 	_grenade_button.tooltip_text = "Throw a grenade — click a tile within 7 tiles."
 	_assault_button.tooltip_text = "Assault — coming soon."
 	_hold_fire_button.tooltip_text = "Hold Fire — move and face freely, manual Fire At only."
@@ -171,7 +171,7 @@ func set_row_enabled(enabled: bool) -> void:
 
 
 func apply_coc_inset_wells(inset: StyleBox) -> void:
-	for panel_name in ["DotPanel", "WeaponPanel", "AmmoPanel", "StatusPanel", "StressPanel", "HitPanel"]:
+	for panel_name in ["DotPanel", "WeaponAmmoPanel", "StatusPanel", "StressPanel", "HitPanel"]:
 		var panel := get_node_or_null(panel_name) as PanelContainer
 		if panel != null:
 			panel.add_theme_stylebox_override("panel", inset)
@@ -189,8 +189,8 @@ func set_move_button_enabled(movement_mode: int, enabled: bool) -> void:
 func set_position_state(position_state: int) -> void:
 	var is_down := position_state == PositionState.DOWN
 	_position_button.set_pressed_no_signal(is_down)
-	## Match original label: shows current stance (Up / Down).
-	_position_button.text = "Down" if is_down else "Up"
+	## Label shows the action you'll take next (opposite of current stance).
+	_position_button.text = "Up" if is_down else "Down"
 	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
 
 
@@ -251,7 +251,7 @@ func _on_grenade_toggled(is_pressed: bool) -> void:
 func _on_position_toggled(is_down: bool) -> void:
 	if not _row_enabled:
 		return
-	_position_button.text = "Down" if is_down else "Up"
+	_position_button.text = "Up" if is_down else "Down"
 	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
 	position_toggled.emit(soldier_id, is_down)
 

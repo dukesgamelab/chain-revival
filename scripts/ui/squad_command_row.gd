@@ -33,7 +33,7 @@ func _ready() -> void:
 	_run_to_button.tooltip_text = "Fireteam Run To — click tiles to move the squad."
 	_crawl_to_button.tooltip_text = "Fireteam Crawl To — click tiles to crawl the squad."
 	_face_button.tooltip_text = "Fireteam Face — click a tile or enemy; all soldiers face that way."
-	_position_button.tooltip_text = "Set the whole fireteam standing (Up) or prone (Down)."
+	_position_button.tooltip_text = "Set the whole fireteam prone (Down) or standing (Up)."
 	_grenade_button.tooltip_text = "Fireteam Grenade — click a tile; all soldiers with grenades throw."
 	_assault_button.tooltip_text = "Assault — coming soon."
 	_hold_fire_button.tooltip_text = "Hold Fire for the whole fireteam."
@@ -79,12 +79,13 @@ func set_grenade_pressed(is_pressed: bool) -> void:
 func set_position_state(position_state: int) -> void:
 	var is_down := position_state == PositionState.DOWN
 	_position_button.set_pressed_no_signal(is_down)
-	_position_button.text = "Down" if is_down else "Up"
+	## Label shows the action you'll take next (opposite of current stance).
+	_position_button.text = "Up" if is_down else "Down"
 	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
 
 
 func apply_coc_inset_wells(inset: StyleBox) -> void:
-	for panel_name in ["DotSpacer", "WeaponSpacer", "AmmoSpacer", "StatusHeader", "StressHeader", "HitHeader"]:
+	for panel_name in ["DotSpacer", "WeaponAmmoSpacer", "StatusHeader", "StressHeader", "HitHeader"]:
 		var panel := get_node_or_null(panel_name) as PanelContainer
 		if panel != null:
 			panel.add_theme_stylebox_override("panel", inset)
@@ -110,7 +111,7 @@ func _on_grenade_toggled(is_pressed: bool) -> void:
 
 
 func _on_position_toggled(is_down: bool) -> void:
-	_position_button.text = "Down" if is_down else "Up"
+	_position_button.text = "Up" if is_down else "Down"
 	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
 	position_toggled.emit(is_down)
 
