@@ -15,10 +15,32 @@ func _ready() -> void:
 
 	failures.append_array(_validate_db("us_rifle", "ABRLA", "USA"))
 	failures.append_array(_validate_db("german_rifle", "GBRLA", "Germany"))
-	failures.append_array(_validate_corner_db("us_rifle", "idle_corner_left", "ALCAS", "USA corner L"))
-	failures.append_array(_validate_corner_db("us_rifle", "idle_corner_right", "ARCAS", "USA corner R"))
-	failures.append_array(_validate_corner_db("german_rifle", "idle_corner_left", "GLCAS", "Germany corner L"))
-	failures.append_array(_validate_corner_db("german_rifle", "idle_corner_right", "GRCAS", "Germany corner R"))
+	failures.append_array(_validate_corner_db("us_rifle", "idle_corner_left", "ALCAS", "USA legacy corner L"))
+	failures.append_array(_validate_corner_db("us_rifle", "idle_corner_right", "ARCAS", "USA legacy corner R"))
+	failures.append_array(
+		_validate_corner_db("german_rifle", "idle_corner_left", "GLCAS", "Germany legacy corner L")
+	)
+	failures.append_array(
+		_validate_corner_db("german_rifle", "idle_corner_right", "GRCAS", "Germany legacy corner R")
+	)
+	failures.append_array(
+		_validate_peek_idle_db("us_rifle", "corner_idle_left", "ALPKA", "USA peek L", "A", 4)
+	)
+	failures.append_array(
+		_validate_peek_idle_db("us_rifle", "corner_idle_right", "ARPKA", "USA peek R", "A", 4)
+	)
+	failures.append_array(
+		_validate_peek_idle_db("us_rifle", "corner_idle_kneel", "APKNA", "USA peek kneel", "A", 2)
+	)
+	failures.append_array(
+		_validate_peek_idle_db("german_rifle", "corner_idle_left", "GLPKA", "Germany peek L", "A", 4)
+	)
+	failures.append_array(
+		_validate_peek_idle_db("german_rifle", "corner_idle_right", "GRPKA", "Germany peek R", "A", 4)
+	)
+	failures.append_array(
+		_validate_peek_idle_db("german_rifle", "corner_idle_kneel", "GPKNA", "Germany peek kneel", "A", 2)
+	)
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_germany_sprite_frames(), "Germany"))
 	failures.append_array(_validate_corner_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
@@ -29,7 +51,7 @@ func _ready() -> void:
 
 	print("=== idle_standing_frame_check ===")
 	if failures.is_empty():
-		print("PASS: ABRLA/GBRLA + corner idle (ALCAS/ARCAS/GLCAS/GRCAS) OK")
+		print("PASS: ABRLA/GBRLA + corner peek idle (ALPKA/ARPKA/APKNA + German) OK")
 		get_tree().quit(0)
 	else:
 		print("FAIL count=%d" % failures.size())
@@ -146,16 +168,65 @@ func _validate_corner_db(
 	return fails
 
 
+func _validate_peek_idle_db(
+	family_id: String,
+	anim_id: String,
+	expected_source: String,
+	label: String,
+	start_letter: String,
+	expected_count: int,
+) -> Array[String]:
+	var fails: Array[String] = []
+	var anim := AnimationDatabase.get_animation(family_id, anim_id)
+	if anim.is_empty():
+		fails.append("%s: %s missing from AnimationDatabase" % [label, anim_id])
+		return fails
+	var meta: Dictionary = anim.get("metadata", {}) if anim.get("metadata", {}) is Dictionary else {}
+	if str(meta.get("source_family", "")) != expected_source:
+		fails.append(
+			"%s: source_family=%s expected %s" % [label, meta.get("source_family", ""), expected_source]
+		)
+	if not bool(anim.get("loop", false)):
+		fails.append("%s: %s must loop" % [label, anim_id])
+	var fps := float(anim.get("fps", 0.0))
+	if not is_equal_approx(fps, 4.0):
+		fails.append("%s: fps=%.1f expected 4.0" % [label, fps])
+	var start_ord := ord(start_letter)
+	for direction in DIRS:
+		var frames := AnimationDatabase.get_direction_frames(family_id, anim_id, direction)
+		if frames.size() != expected_count:
+			fails.append(
+				"%s %s: frame count %d expected %d" % [label, direction, frames.size(), expected_count]
+			)
+			continue
+		var digit := _digit_for_direction(direction)
+		for i in frames.size():
+			var path := str(frames[i])
+			if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
+				fails.append("%s missing: %s" % [label, path])
+			var expected_name := "%s%d%s.png" % [expected_source, digit, String.chr(start_ord + i)]
+			if path.get_file() != expected_name:
+				fails.append(
+					"%s %s[%d]: got %s expected %s"
+					% [label, direction, i, path.get_file(), expected_name]
+				)
+	return fails
+
+
 func _validate_corner_runtime(sf: SpriteFrames, label: String) -> Array[String]:
 	var fails: Array[String] = []
-	for semantic in ["idle_corner_left", "idle_corner_right"]:
+	for semantic in ["corner_idle_left", "corner_idle_right", "corner_idle_kneel"]:
 		for direction in DIRS:
 			var anim_name := "%s_%s" % [semantic, direction]
 			if not sf.has_animation(anim_name):
 				fails.append("%s runtime missing %s" % [label, anim_name])
 				continue
-			if sf.get_frame_count(anim_name) != 1:
-				fails.append("%s %s frames=%d expected 1" % [label, anim_name, sf.get_frame_count(anim_name)])
+			var expected := 2 if semantic == "corner_idle_kneel" else 4
+			if sf.get_frame_count(anim_name) != expected:
+				fails.append(
+					"%s %s frames=%d expected %d"
+					% [label, anim_name, sf.get_frame_count(anim_name), expected]
+				)
 			if not sf.get_animation_loop(anim_name):
 				fails.append("%s %s must loop" % [label, anim_name])
 	return fails
@@ -166,16 +237,26 @@ func _validate_idle_policy() -> Array[String]:
 	var policy := GameplayPolicies.idle_anim
 	if policy.source_family_for(Team.USA) != "ABRLA":
 		fails.append("policy USA open idle → ABRLA")
-	if policy.source_family_for(Team.USA, CoverSystem.PeekSide.LEFT) != "ALCAS":
-		fails.append("policy USA corner L → ALCAS")
-	if policy.source_family_for(Team.USA, CoverSystem.PeekSide.RIGHT) != "ARCAS":
-		fails.append("policy USA corner R → ARCAS")
-	if policy.source_family_for(Team.GERMANY, CoverSystem.PeekSide.LEFT) != "GLCAS":
-		fails.append("policy Germany corner L → GLCAS")
-	if policy.source_family_for(Team.GERMANY, CoverSystem.PeekSide.RIGHT) != "GRCAS":
-		fails.append("policy Germany corner R → GRCAS")
-	if policy.semantic_for(CoverSystem.PeekSide.LEFT) != "idle_corner_left":
+	if policy.source_family_for(Team.USA, CoverSystem.PeekSide.LEFT) != "ALPKA":
+		fails.append("policy USA corner L → ALPKA")
+	if policy.source_family_for(Team.USA, CoverSystem.PeekSide.RIGHT) != "ARPKA":
+		fails.append("policy USA corner R → ARPKA")
+	if policy.source_family_for(Team.GERMANY, CoverSystem.PeekSide.LEFT) != "GLPKA":
+		fails.append("policy Germany corner L → GLPKA")
+	if policy.source_family_for(Team.GERMANY, CoverSystem.PeekSide.RIGHT) != "GRPKA":
+		fails.append("policy Germany corner R → GRPKA")
+	if (
+		policy.source_family_for(Team.USA, CoverSystem.PeekSide.LEFT, PositionState.DOWN)
+		!= "APKNA"
+	):
+		fails.append("policy USA corner kneel → APKNA")
+	if policy.semantic_for(CoverSystem.PeekSide.LEFT) != "corner_idle_left":
 		fails.append("semantic corner L")
+	if (
+		policy.semantic_for(CoverSystem.PeekSide.RIGHT, PositionState.DOWN)
+		!= "corner_idle_kneel"
+	):
+		fails.append("semantic corner kneel")
 	return fails
 
 

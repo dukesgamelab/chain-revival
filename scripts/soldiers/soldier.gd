@@ -556,14 +556,14 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		var idle_semantic := _idle_standing_semantic()
 		var idle_anim_name := "%s_%s" % [idle_semantic, _idle_display_direction(direction)]
 		if (
-			_applied_position_state != PositionState.DOWN
-			and _idle_peek_side == _played_idle_peek_side
+			_idle_peek_side == _played_idle_peek_side
 			and _anim.sprite_frames.has_animation(idle_anim_name)
 			and str(_anim.animation).begins_with("%s_" % idle_semantic)
 		):
 			return
 		if (
 			_applied_position_state == PositionState.DOWN
+			and _idle_peek_side == CoverSystem.PeekSide.NONE
 			and (
 				str(_anim.animation).begins_with("idle_prone_")
 				or (
@@ -587,8 +587,11 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		_anim.play(walk_name)
 		return
 
-	## Stationary: standing → open/corner idle; prone → idle_prone (or legacy paused walk).
-	if _applied_position_state == PositionState.DOWN:
+	## Stationary: open/corner idle (standing or crouched corner kneel); else prone idle.
+	if (
+		_applied_position_state == PositionState.DOWN
+		and _idle_peek_side == CoverSystem.PeekSide.NONE
+	):
 		_play_idle_prone(direction)
 		return
 
@@ -603,14 +606,13 @@ func _idle_display_direction(world_direction: String) -> String:
 
 
 func _idle_standing_semantic() -> String:
-	## Prone has no corner-idle families wired yet.
-	if _applied_position_state == PositionState.DOWN:
-		return "idle_standing"
-	return GameplayPolicies.idle_anim.semantic_for(_idle_peek_side)
+	return GameplayPolicies.idle_anim.semantic_for(_idle_peek_side, _applied_position_state)
 
 
 func _idle_source_family() -> String:
-	return GameplayPolicies.idle_anim.source_family_for(team_id, _idle_peek_side)
+	return GameplayPolicies.idle_anim.source_family_for(
+		team_id, _idle_peek_side, _applied_position_state
+	)
 
 
 func _prone_idle_source_family() -> String:
@@ -1495,9 +1497,9 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return "GHTLA" if team_id == Team.GERMANY else "AHTLA"
 		"throw_grenade":
 			return _throw_source_family()
-		"fire_standing", "fire_prone", "fire_corner_left", "fire_corner_right":
+		"fire_standing", "fire_prone", "fire_corner_left", "fire_corner_right", "corner_fire_left", "corner_fire_right", "corner_fire_kneel":
 			return _fire_source_family()
-		"idle_standing", "idle_corner_left", "idle_corner_right":
+		"idle_standing", "idle_corner_left", "idle_corner_right", "corner_idle_left", "corner_idle_right", "corner_idle_kneel":
 			return _idle_source_family()
 		"idle_prone":
 			return _prone_idle_source_family()

@@ -1,24 +1,34 @@
 class_name IdleAnimPolicy
 extends RefCounted
-## Presentation-only standing idle family selection (open / corner wall-end).
+## Presentation-only standing idle family selection (open / corner peek).
 
 
 func source_family_for(
 	team_id: int,
 	peek_side: int = CoverSystem.PeekSide.NONE,
+	position_state: int = PositionState.UP,
 ) -> String:
+	var crouched := position_state == PositionState.DOWN
+	if peek_side != CoverSystem.PeekSide.NONE and crouched:
+		return "GPKNA" if team_id == Team.GERMANY else "APKNA"
 	if peek_side == CoverSystem.PeekSide.LEFT:
-		return "GLCAS" if team_id == Team.GERMANY else "ALCAS"
+		return "GLPKA" if team_id == Team.GERMANY else "ALPKA"
 	if peek_side == CoverSystem.PeekSide.RIGHT:
-		return "GRCAS" if team_id == Team.GERMANY else "ARCAS"
+		return "GRPKA" if team_id == Team.GERMANY else "ARPKA"
 	return "GBRLA" if team_id == Team.GERMANY else "ABRLA"
 
 
-func semantic_for(peek_side: int = CoverSystem.PeekSide.NONE) -> String:
+func semantic_for(
+	peek_side: int = CoverSystem.PeekSide.NONE,
+	position_state: int = PositionState.UP,
+) -> String:
+	var crouched := position_state == PositionState.DOWN
+	if peek_side != CoverSystem.PeekSide.NONE and crouched:
+		return "corner_idle_kneel"
 	if peek_side == CoverSystem.PeekSide.LEFT:
-		return "idle_corner_left"
+		return "corner_idle_left"
 	if peek_side == CoverSystem.PeekSide.RIGHT:
-		return "idle_corner_right"
+		return "corner_idle_right"
 	return "idle_standing"
 
 
