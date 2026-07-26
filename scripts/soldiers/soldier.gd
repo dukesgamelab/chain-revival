@@ -563,7 +563,6 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			return
 		if (
 			_applied_position_state == PositionState.DOWN
-			and _idle_peek_side == CoverSystem.PeekSide.NONE
 			and (
 				str(_anim.animation).begins_with("idle_prone_")
 				or (
@@ -587,11 +586,8 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		_anim.play(walk_name)
 		return
 
-	## Stationary: open/corner idle (standing or crouched corner kneel); else prone idle.
-	if (
-		_applied_position_state == PositionState.DOWN
-		and _idle_peek_side == CoverSystem.PeekSide.NONE
-	):
+	## Stationary: prone idle, or standing open/corner CIS idle.
+	if _applied_position_state == PositionState.DOWN:
 		_play_idle_prone(direction)
 		return
 
@@ -1497,9 +1493,9 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return "GHTLA" if team_id == Team.GERMANY else "AHTLA"
 		"throw_grenade":
 			return _throw_source_family()
-		"fire_standing", "fire_prone", "fire_corner_left", "fire_corner_right", "corner_fire_left", "corner_fire_right", "corner_fire_kneel":
+		"fire_standing", "fire_prone", "corner_fire_left", "corner_fire_right":
 			return _fire_source_family()
-		"idle_standing", "idle_corner_left", "idle_corner_right", "corner_idle_left", "corner_idle_right", "corner_idle_kneel":
+		"idle_standing", "corner_idle_left", "corner_idle_right":
 			return _idle_source_family()
 		"idle_prone":
 			return _prone_idle_source_family()

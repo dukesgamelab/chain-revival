@@ -363,6 +363,7 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 			_debug_sync_calls_this_tick += 1
 
 	var had_completion := false
+	var local_completion := false
 	for done in result.movement_completions:
 		had_completion = true
 		var team_id := int(done.team_id)
@@ -378,12 +379,19 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 			_sync_soldier_view(team_id, soldier_id, is_selected)
 			_debug_sync_calls_this_tick += 1
 		_log_move_complete(soldier_id, state, view)
-		if team_id == _session.active_team_id and not _any_active_team_soldier_moving():
-			_iso_map.clear_path()
+		if (
+			_session != null
+			and _session.can_local_control_soldier(team_id, soldier_id)
+		):
+			local_completion = true
 		_ensure_active_selection_alive()
 		_command_bar.show_status(
 			"%s Soldier %d move complete." % [Team.display_name(team_id), soldier_id]
 		)
+
+	if local_completion:
+		## Keep flashing destinations for everyone still en route.
+		_sync_run_to_destination_overlay()
 
 	if had_completion:
 		## Fog at completion cadence (combat scan also refreshes) — not every step.
@@ -1779,18 +1787,18 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 	if result.refresh_map_data:
 		_apply_map_presentation()
 
-	if result.clear_path_overlay:
-		_iso_map.clear_path()
-	## Red run-to diamonds are human-only — AI fireteams never emit path_overlay.
+	## Red run-to diamonds: rebuild from every local soldier still moving (never replace
+	## one mover's tile with only the latest order).
+	var refresh_dest_overlay := result.clear_path_overlay
 	if (
 		(result.path_overlay.has("target") or result.path_overlay.has("markers"))
 		and _path_overlay_is_for_local_human(result)
 	):
-		_iso_map.show_path(
-			result.path_overlay.get("cells", []),
-			result.path_overlay.get("target", Vector2i(-999, -999)),
-			result.path_overlay.get("markers", []),
-		)
+		refresh_dest_overlay = true
+	elif not result.move_orders.is_empty() and _path_overlay_is_for_local_human(result):
+		refresh_dest_overlay = true
+	if refresh_dest_overlay:
+		_sync_run_to_destination_overlay()
 
 	if result.clear_move_targeting:
 		_command_bar.clear_move_targeting()
@@ -1950,21 +1958,55 @@ func _control_fireteam() -> Fireteam:
 	return _session.get_local_control_fireteam()
 
 
-## True when path overlay markers belong to the local human's owned soldiers.
+## True when path overlay / move orders belong to the local human's owned soldiers.
 func _path_overlay_is_for_local_human(result: ActionResultClass) -> bool:
 	if _session == null or result == null:
 		return false
 	var markers: Array = result.path_overlay.get("markers", [])
 	var team_id := int(result.path_overlay.get("team_id", _session.active_team_id))
-	if markers.is_empty():
-		## Single-target overlay without markers — only accept local active team moves.
-		return PlayerSides.can_control_team(team_id)
 	for entry in markers:
 		if entry is Dictionary:
 			var sid := int(entry.get("soldier_id", -1))
 			if sid > 0 and _session.can_local_control_soldier(team_id, sid):
 				return true
+	## Fall back to move_orders when overlay payload omitted markers.
+	for order in result.move_orders:
+		if order is Dictionary:
+			var sid := int(order.get("soldier_id", -1))
+			var oid := int(order.get("team_id", team_id))
+			if sid > 0 and _session.can_local_control_soldier(oid, sid):
+				return true
+	if markers.is_empty() and result.move_orders.is_empty():
+		## Single-target overlay without markers — only accept local active team moves.
+		return (
+			result.path_overlay.has("target")
+			and PlayerSides.can_control_team(team_id)
+		)
 	return false
+
+
+## Flash red destination tiles for every locally owned soldier still moving.
+func _sync_run_to_destination_overlay() -> void:
+	if _iso_map == null or _session == null:
+		return
+	var markers: Array = []
+	for fireteam in _session.local_owned_fireteams():
+		for state_v in fireteam.soldiers:
+			var state: SoldierState = state_v
+			if state == null or state.is_dead or not state.is_moving:
+				continue
+			if state.current_path.is_empty():
+				continue
+			if not _session.can_local_control_soldier(state.team_id, state.soldier_id):
+				continue
+			markers.append({
+				"cell": state.current_path[state.current_path.size() - 1],
+				"soldier_id": state.soldier_id,
+			})
+	if markers.is_empty():
+		_iso_map.clear_path()
+		return
+	_iso_map.show_path([] as Array[Vector2i], Vector2i(-999, -999), markers)
 
 
 func _apply_grenade_command(target_cell: Vector2i) -> void:

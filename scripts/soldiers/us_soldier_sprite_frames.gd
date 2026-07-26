@@ -8,13 +8,12 @@ extends RefCounted
 ##   Hit (German):      GHTLA          (A–W)  → hit_*
 ##   Throw grenade:     ASTGA / GSPRA  (A–X)  → throw_grenade_*
 ##   Fire standing:     ASFIA / GSFIA  (A–C; ASFIA NW A–B) → fire_standing_*
-##   Fire corner L/R:   ALPKA·ARPKA / GLPKA·GRPKA (E–P) → corner_fire_left_* / corner_fire_right_*
-##   Fire corner kneel: APKNA / GPKNA (C–H) → corner_fire_kneel_*
+##   Fire corner L/R:   ALCFA·ARCFA / GLCFA·GRCFA (A–C) → corner_fire_left_* / corner_fire_right_*
 ##   Fire prone:        APRFA / GPRFA  (A–C)  → fire_prone_*
 ##   Idle standing:     ABRLA / GBRLA  (A–U)  → idle_standing_*
-##   Idle corner L/R:   ALPKA·ARPKA / GLPKA·GRPKA (A–D) → corner_idle_left_* / corner_idle_right_*
-##   Idle corner kneel: APKNA / GPKNA (A–B) → corner_idle_kneel_*
-##   Legacy static corner: ALCAS·ARCAS / ALCFA·ARCFA still in DB as idle_corner_* / fire_corner_*
+##   Idle corner L/R:   ALCIS·ARCIS / GLCIS·GRCIS (A) → corner_idle_left_* / corner_idle_right_*
+##   Aim corner L/R:    ALCAS·ARCAS / GLCAS·GRCAS (A) → corner_aim_left_* / corner_aim_right_*
+##   Peek corner L/R:   ALCPA·ARCPA / GLCPA·GRCPA (A–C) → corner_peek_left_* / corner_peek_right_*
 ##   Idle prone (Ger):  GPRIS          (A)    → idle_prone_*
 ##   Stand→prone (Ger): GSUPA          (A–X)  → transition_standing_to_prone_*
 ##   Prone→stand (Ger): GPRNA          (A–E)  → transition_prone_to_standing_*
