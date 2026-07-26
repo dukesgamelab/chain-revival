@@ -57,7 +57,7 @@ var position_state: int = PositionStateClass.UP
 ## Authoritative position_state stays at the old value until the anim completes.
 var pending_position_state: int = -1
 var movement_mode: int = MovementModeClass.RUN
-var fire_control_state: int = FireControlStateClass.HOLD_FIRE
+var fire_control_state: int = FireControlStateClass.FIRE_AT_WILL
 var stress: float = 0.0
 ## Set when suppressed this combat tick; skips stress recovery until next tick.
 var received_suppression_this_tick: bool = false
@@ -439,7 +439,7 @@ static func from_dict(data: Dictionary) -> SoldierState:
 	state.is_dead = bool(data.get("is_dead", false))
 	state.position_state = int(data.get("position_state", PositionStateClass.UP))
 	state.movement_mode = int(data.get("movement_mode", MovementModeClass.RUN))
-	state.fire_control_state = int(data.get("fire_control_state", FireControlStateClass.HOLD_FIRE))
+	state.fire_control_state = int(data.get("fire_control_state", FireControlStateClass.FIRE_AT_WILL))
 	state.stress = float(data.get("stress", 0.0))
 	state.grenade_count = int(data.get("grenade_count", GrenadePolicyClass.DEFAULT_STARTING_COUNT))
 	state.stunned_until_msec = int(data.get("stunned_until_msec", 0))

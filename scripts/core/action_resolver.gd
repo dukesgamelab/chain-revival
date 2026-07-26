@@ -85,7 +85,7 @@ static func execute(
 	return ActionResult.fail("Unknown command type.")
 
 
-## One-time match bootstrap: face teams toward each other, Hold Fire on all soldiers,
+## One-time match bootstrap: face teams toward each other, Fire At Will on all soldiers,
 ## and resolve AI Random plans once (GameRandom already seeded at match start).
 static func apply_match_start_setup(game_state: GameStateClass) -> void:
 	var usa_team: Fireteam = game_state.session.blue_team
@@ -101,8 +101,8 @@ static func apply_match_start_setup(game_state: GameStateClass) -> void:
 			germany_soldier.grid_position,
 			usa_soldier.grid_position,
 		)
-		usa_soldier.fire_control_state = FireControlStateClass.HOLD_FIRE
-		germany_soldier.fire_control_state = FireControlStateClass.HOLD_FIRE
+		usa_soldier.fire_control_state = FireControlStateClass.FIRE_AT_WILL
+		germany_soldier.fire_control_state = FireControlStateClass.FIRE_AT_WILL
 	game_state.resolve_ai_plans()
 
 

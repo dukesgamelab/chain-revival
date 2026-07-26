@@ -36,8 +36,8 @@ func _ready() -> void:
 	_position_button.tooltip_text = "Set the whole fireteam prone (Down) or standing (Up)."
 	_grenade_button.tooltip_text = "Fireteam Grenade — click a tile; all soldiers with grenades throw."
 	_assault_button.tooltip_text = "Assault — coming soon."
-	_hold_fire_button.tooltip_text = "Hold Fire for the whole fireteam."
-	_fire_at_will_button.tooltip_text = "Fire At Will for the whole fireteam."
+	_hold_fire_button.tooltip_text = "Hold Fire for the whole fireteam — cease auto-fire."
+	_fire_at_will_button.tooltip_text = "Fire At Will for the whole fireteam — fire on sight."
 
 	_fire_at_button.toggled.connect(_on_fire_at_toggled)
 	_run_to_button.toggled.connect(_on_move_toggled.bind(MovementMode.RUN))

@@ -49,8 +49,8 @@ func _ready() -> void:
 	_position_button.tooltip_text = "Go prone (Down) or stand up (Up)."
 	_grenade_button.tooltip_text = "Throw a grenade — click a tile within 7 tiles."
 	_assault_button.tooltip_text = "Assault — coming soon."
-	_hold_fire_button.tooltip_text = "Hold Fire — move and face freely, manual Fire At only."
-	_fire_at_will_button.tooltip_text = "Fire At Will — automatically engage visible enemies."
+	_hold_fire_button.tooltip_text = "Hold Fire — cease auto-fire; move/face freely; manual Fire At only."
+	_fire_at_will_button.tooltip_text = "Fire At Will — fire on sight at visible enemies until Hold Fire or they leave."
 	_fire_at_button.toggled.connect(_on_fire_at_toggled)
 	_hold_fire_button.pressed.connect(_on_hold_fire_pressed)
 	_fire_at_will_button.pressed.connect(_on_fire_at_will_pressed)
@@ -64,7 +64,7 @@ func _ready() -> void:
 	_ammo_up_button.tooltip_text = "Add ammo to this gun"
 	_ammo_down_button.tooltip_text = "Reduce ammo on this gun"
 	set_position_state(PositionState.UP)
-	set_fire_control_state(FireControlState.HOLD_FIRE)
+	set_fire_control_state(FireControlState.FIRE_AT_WILL)
 	set_grenade_count(5)
 	_status_label.add_theme_color_override("font_color", CocUiTheme.TEXT_STATUS_RED)
 

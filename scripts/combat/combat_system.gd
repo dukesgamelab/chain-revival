@@ -1123,7 +1123,8 @@ static func find_closest_visible_enemy(
 	return find_best_auto_target(game_state, shooter)
 
 
-## Fire At Will: highest-scored shootable enemy in the facing cone (clear LOS required).
+## Fire At Will: highest-scored spotted/shootable enemy in weapon range (clear LOS required).
+## Facing cone is not required to acquire — shooters turn toward the pick before firing.
 static func find_best_auto_target(
 	game_state: GameStateClass,
 	shooter: SoldierStateClass,
@@ -1152,7 +1153,7 @@ static func find_best_auto_target(
 		var vis: EnemyVisibilityResult = team_cache.get(enemy_key)
 		if vis == null or not vis.visible:
 			continue
-		if not _is_target_in_cone(shooter, enemy.grid_position, max_range):
+		if _manhattan_distance(shooter.grid_position, enemy.grid_position) > max_range:
 			continue
 		## score_auto_target does the single shot-LOS pass (no prior can_spot_enemy).
 		var score := score_auto_target(shooter, enemy, game_state)
@@ -1893,6 +1894,7 @@ static func _is_auto_target_valid(
 	shooter: SoldierStateClass,
 	target: SoldierStateClass,
 ) -> bool:
+	## Keep engagement while spotted/shootable in range; shooter turns as needed.
 	if not is_priority_target_trackable(shooter, target, game_state):
 		return false
 	var weapon := shooter.get_weapon_data()
@@ -1900,8 +1902,6 @@ static func _is_auto_target_valid(
 		return false
 	var max_range := _effective_weapon_range(weapon)
 	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
-		return false
-	if not _is_target_in_cone(shooter, target.grid_position, max_range):
 		return false
 	return _is_target_shootable(game_state, shooter, target)
 
