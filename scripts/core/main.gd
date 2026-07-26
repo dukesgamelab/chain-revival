@@ -1890,6 +1890,7 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		return
 
 	## Halts must apply even when success=false (failed fire/move after clear_path).
+	var had_movement_halts := not result.movement_halts.is_empty()
 	for halt in result.movement_halts:
 		var halt_view: Soldier = _get_view(halt.team_id, halt.soldier_id)
 		if halt_view != null:
@@ -1899,6 +1900,9 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 				halt_view.position = IsometricGrid.grid_to_world(snap as Vector2i)
 
 	if not result.success:
+		## Down/Halt (and failed orders that cleared a path) must drop red diamonds.
+		if had_movement_halts or result.clear_path_overlay:
+			_sync_run_to_destination_overlay()
 		if not result.status_message.is_empty():
 			_command_bar.show_status(result.status_message)
 			if result.status_message == ActionResolverClass.FIRETEAM_COHESION_FAIL_MSG:
@@ -1914,8 +1918,9 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		_apply_map_presentation()
 
 	## Red run-to diamonds: rebuild from every local soldier still moving (never replace
-	## one mover's tile with only the latest order).
-	var refresh_dest_overlay := result.clear_path_overlay
+	## one mover's tile with only the latest order). Stance Down / Halt clear paths —
+	## refresh so those soldiers' diamonds disappear immediately.
+	var refresh_dest_overlay := result.clear_path_overlay or had_movement_halts
 	if (
 		(result.path_overlay.has("target") or result.path_overlay.has("markers"))
 		and _path_overlay_is_for_local_human(result)
