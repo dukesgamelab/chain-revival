@@ -5,6 +5,10 @@ extends Node2D
 ##
 ## Walls/trees are never rebuilt or re-sorted during movement. Godot's C++ y-sort on this
 ## node orders statics and movers together by world Y — no GDScript sort_custom per tick.
+##
+## Y-sort origin for every map object is the tile ground-contact point (cell world pos).
+## Sprite hotspots/offsets only shift pixels; they must not move the holder used for sorting.
+## Keep sibling z_index at 0 so Y-sort is not overridden.
 
 const META_MAP_OBJECT := &"map_object_sprite"
 
@@ -60,16 +64,21 @@ func _rebuild_map_object_sprites() -> void:
 			push_warning("DepthSortedLayer: missing texture for '%s' at %s" % [type_id, cell])
 			continue
 
+		## Holder at ground contact — Y-sort key. Sprite is offset above it.
+		var holder := Node2D.new()
+		holder.set_meta(META_MAP_OBJECT, true)
+		holder.z_index = 0
+		holder.position = IsometricGrid.grid_to_world(cell)
+		add_child(holder)
+
 		var sprite := Sprite2D.new()
-		sprite.set_meta(META_MAP_OBJECT, true)
 		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		sprite.texture = texture
 		var scale_factor := TileSizeConfig.object_scale_for_type(type_id)
 		sprite.scale = Vector2(scale_factor, scale_factor)
-		var center := IsometricGrid.grid_to_world(cell)
 		var size := texture.get_size() * scale_factor
-		sprite.position = _native_map_object_position(type_id, center, size)
-		add_child(sprite)
+		sprite.position = _native_sprite_offset(type_id, size)
+		holder.add_child(sprite)
 
 
 func _clear_map_object_sprites() -> void:
@@ -131,23 +140,51 @@ func _rebuild_original_sprites() -> void:
 		holder.set_meta(&"coc_cell", cell)
 		holder.set_meta(&"coc_z", int(entry.get("z", 0)))
 		holder.set_meta(&"coc_image1", image1)
-		holder.position = IsometricGrid.grid_to_world(cell)
+		holder.z_index = 0
+		## Ground-contact sort point = cell world pos (+ authored depth_offset).
+		var ground := IsometricGrid.grid_to_world(cell)
+		var present := _presentation_offsets(family, draw_info)
+		ground.y += float(present.get("depth_offset", 0.0)) * scale
+		holder.position = ground
 		add_child(holder)
 
-		var hotspot: Vector2 = draw_info.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
+		var hotspot: Vector2 = present.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
+		var render_offset: Vector2 = present.get("render_offset", Vector2.ZERO)
 		var sprite := Sprite2D.new()
 		sprite.centered = false
 		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		sprite.texture = texture
 		sprite.scale = Vector2(scale, scale)
-		sprite.position = hotspot * scale
+		sprite.position = hotspot * scale + render_offset * scale
 		holder.add_child(sprite)
 
 
-func _native_map_object_position(type_id: String, center: Vector2, size: Vector2) -> Vector2:
+## Hotspot places sprite pixels relative to the holder's ground-contact origin.
+func _presentation_offsets(family: String, draw_info: Dictionary) -> Dictionary:
+	var hotspot: Vector2 = draw_info.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
+	var render_offset := Vector2.ZERO
+	var depth_offset := 0.0
+	var variant := MapAssetRegistry.camera_variant(family, CocFacetSelector.camera_degrees())
+	if not variant.is_empty():
+		var hs_raw: Variant = variant.get("hotspot", null)
+		if hs_raw is Array and (hs_raw as Array).size() >= 2:
+			hotspot = Vector2(float(hs_raw[0]), float(hs_raw[1]))
+		var ro_raw: Variant = variant.get("render_offset", null)
+		if ro_raw is Array and (ro_raw as Array).size() >= 2:
+			render_offset = Vector2(float(ro_raw[0]), float(ro_raw[1]))
+		depth_offset = float(variant.get("depth_offset", 0.0))
+	return {
+		"hotspot": hotspot,
+		"render_offset": render_offset,
+		"depth_offset": depth_offset,
+	}
+
+
+func _native_sprite_offset(type_id: String, size: Vector2) -> Vector2:
 	if type_id == MapObjectRegistry.TYPE_WALL_STRAIGHT:
-		return Vector2(center.x, center.y + TileSizeConfig.wall_anchor_y(size.y))
-	return center + TileSizeConfig.map_object_offset()
+		## Keep holder at ground; raise the centered sprite so feet meet the tile.
+		return Vector2(0.0, TileSizeConfig.wall_anchor_y(size.y))
+	return TileSizeConfig.map_object_offset()
 
 
 func _get_object_texture(sprite_path: String) -> Texture2D:

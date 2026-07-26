@@ -1,6 +1,7 @@
 class_name CocPlacementPreviewLayer
 extends Node2D
 ## Editor ghost preview — uses CocSpriteResolver (same pipeline as DepthSortedLayer).
+## Drawn under DepthSorted so ghosts/path tiles stay beneath walls and soldiers.
 
 var _family: String = ""
 var _world_direction: int = 0

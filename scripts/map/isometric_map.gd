@@ -28,12 +28,13 @@ var _show_tile_fill: bool = true
 
 func _ready() -> void:
 	_path_overlay = IsometricPathOverlay.new()
-	_path_overlay.z_index = 2
+	## Keep at z_index 0 so effective draw stays under DepthSorted walls/soldiers.
+	_path_overlay.z_index = 0
 	_path_overlay.path_color = path_color
 	_path_overlay.target_color = target_color
 	add_child(_path_overlay)
 	_map_edit_hover_overlay = MapEditHoverOverlay.new()
-	_map_edit_hover_overlay.z_index = 3
+	_map_edit_hover_overlay.z_index = 0
 	add_child(_map_edit_hover_overlay)
 	queue_redraw()
 

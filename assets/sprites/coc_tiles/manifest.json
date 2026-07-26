@@ -435,8 +435,8 @@
    "anim_frame": 0,
    "path": "sprites/coc_tiles/LIHW_w.png",
    "hotspot": [
-    -50,
-    -73
+    -150,
+    -19
    ],
    "size": [
     300,

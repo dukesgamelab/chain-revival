@@ -231,7 +231,6 @@ func sync_from_state(
 		sync_movement_chase_from_state(state)
 	elif not _is_moving:
 		position = IsometricGrid.grid_to_world(state.grid_position)
-		z_index = int(position.y)
 	_facing_from_cell = state.grid_position
 	_apply_facing(state.facing_direction, _facing_from_cell)
 	_apply_position_visual(state)
@@ -449,8 +448,6 @@ func _process(delta: float) -> void:
 			_finish_presentation_move()
 	else:
 		position += to_target.normalized() * move_amount
-	## Keep depth ties stable while parent y-sorts by position.y.
-	z_index = int(position.y)
 
 
 ## Align visual chase target with authoritative simulation state (presentation only).
@@ -469,15 +466,14 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 		## Only play run while actually translating — early arrivals stay idle (no run-in-place).
 		var need_translate := position.distance_to(_move_target_world) > 0.5
 		_update_locomotion_visual(step_delta, need_translate)
-		## Depth via parent y_sort; z_index mirrors world-Y for stable ties.
-		z_index = int(position.y)
+		## Depth via parent DepthSorted y_sort only — do not set z_index from Y
+		## (different z_index among siblings disables Y-sort vs walls).
 		set_process(true)
 		return
 	## Path finished in sim — clear path chase and settle onto the final cell, then idle.
 	_path.clear()
 	_path_index = 0
 	_move_target_world = IsometricGrid.grid_to_world(state.grid_position)
-	z_index = int(_move_target_world.y)
 	if position.distance_to(_move_target_world) <= 0.5:
 		position = _move_target_world
 		_finish_presentation_move()
