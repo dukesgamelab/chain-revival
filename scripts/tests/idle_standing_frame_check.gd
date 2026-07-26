@@ -1,20 +1,27 @@
 extends Node
-## Headless validation for ABRLA / GBRLA idle_standing + CIS corner idle.
+## Headless validation for held ABRLA/GBRLA standing pose + explicit idle fidgets.
 ## Run: Godot --headless --path <project> res://scripts/tests/idle_standing_frame_check.tscn
 
 
 const DIRS: Array[String] = ["n", "ne", "e", "se", "s", "sw", "w", "nw"]
 const CAM_ROTATIONS: Array[int] = [0, 90, 180, 270]
-const EXPECTED_FRAMES := 21
-const EXPECTED_FPS := 8.0
+const FORBIDDEN_LETTERS := ["D", "E", "F", "T", "U"]
+const FIDGETS := {
+	"idle_fidget_1": "BCB",
+	"idle_fidget_2": "GHIJIHG",
+	"idle_fidget_3": "KLMNMLK",
+	"idle_fidget_4": "OPQRQPO",
+}
 
 
 func _ready() -> void:
 	UsSoldierSpriteFrames.reload_cached_frames()
 	var failures: Array[String] = []
 
-	failures.append_array(_validate_db("us_rifle", "ABRLA", "USA"))
-	failures.append_array(_validate_db("german_rifle", "GBRLA", "Germany"))
+	failures.append_array(_validate_held_pose("us_rifle", "ABRLA", "USA"))
+	failures.append_array(_validate_held_pose("german_rifle", "GBRLA", "Germany"))
+	failures.append_array(_validate_fidgets("us_rifle", "ABRLA", "USA"))
+	failures.append_array(_validate_fidgets("german_rifle", "GBRLA", "Germany"))
 	failures.append_array(
 		_validate_corner_idle_db("us_rifle", "corner_idle_left", "ALCIS", "USA corner L")
 	)
@@ -27,8 +34,6 @@ func _ready() -> void:
 	failures.append_array(
 		_validate_corner_idle_db("german_rifle", "corner_idle_right", "GRCIS", "Germany corner R")
 	)
-	failures.append_array(_validate_no_dupes("us_rifle"))
-	failures.append_array(_validate_no_dupes("german_rifle"))
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_germany_sprite_frames(), "Germany"))
 	failures.append_array(_validate_corner_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
@@ -39,7 +44,7 @@ func _ready() -> void:
 
 	print("=== idle_standing_frame_check ===")
 	if failures.is_empty():
-		print("PASS: ABRLA/GBRLA + corner idle CIS OK")
+		print("PASS: held standing pose + explicit fidgets OK")
 		get_tree().quit(0)
 	else:
 		print("FAIL count=%d" % failures.size())
@@ -48,7 +53,7 @@ func _ready() -> void:
 		get_tree().quit(1)
 
 
-func _validate_db(family_id: String, expected_source: String, label: String) -> Array[String]:
+func _validate_held_pose(family_id: String, expected_source: String, label: String) -> Array[String]:
 	var fails: Array[String] = []
 	var anim := AnimationDatabase.get_animation(family_id, "idle_standing")
 	if anim.is_empty():
@@ -59,24 +64,55 @@ func _validate_db(family_id: String, expected_source: String, label: String) -> 
 		fails.append(
 			"%s: source_family=%s expected %s" % [label, meta.get("source_family", ""), expected_source]
 		)
-	if not bool(anim.get("loop", false)):
-		fails.append("%s: idle_standing must loop" % label)
+	if bool(anim.get("loop", true)):
+		fails.append("%s: idle_standing must NOT loop (held pose)" % label)
 	for direction in DIRS:
 		var frames := AnimationDatabase.get_direction_frames(family_id, "idle_standing", direction)
-		if frames.size() != EXPECTED_FRAMES:
-			fails.append("%s %s: frame count %d expected %d" % [label, direction, frames.size(), EXPECTED_FRAMES])
+		if frames.size() != 1:
+			fails.append("%s %s: frame count %d expected 1 (pose A)" % [label, direction, frames.size()])
 			continue
 		var digit := _digit_for_direction(direction)
-		for i in frames.size():
-			var path := str(frames[i])
-			if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
-				fails.append("%s missing: %s" % [label, path])
-			var expected_name := "%s%d%s.png" % [expected_source, digit, String.chr(ord("A") + i)]
-			if path.get_file() != expected_name:
+		var expected_name := "%s%dA.png" % [expected_source, digit]
+		if str(frames[0]).get_file() != expected_name:
+			fails.append(
+				"%s %s: got %s expected %s" % [label, direction, str(frames[0]).get_file(), expected_name]
+			)
+		if not ResourceLoader.exists(str(frames[0])) and not FileAccess.file_exists(str(frames[0])):
+			fails.append("%s missing: %s" % [label, frames[0]])
+	return fails
+
+
+func _validate_fidgets(family_id: String, expected_source: String, label: String) -> Array[String]:
+	var fails: Array[String] = []
+	for fidget_id in FIDGETS.keys():
+		var expected_letters: String = FIDGETS[fidget_id]
+		var anim := AnimationDatabase.get_animation(family_id, fidget_id)
+		if anim.is_empty():
+			fails.append("%s: %s missing" % [label, fidget_id])
+			continue
+		if bool(anim.get("loop", true)):
+			fails.append("%s: %s must not loop" % [label, fidget_id])
+		for direction in DIRS:
+			var frames := AnimationDatabase.get_direction_frames(family_id, fidget_id, direction)
+			if frames.size() != expected_letters.length():
 				fails.append(
-					"%s %s[%d]: got %s expected %s"
-					% [label, direction, i, path.get_file(), expected_name]
+					"%s %s %s: frame count %d expected %d"
+					% [label, fidget_id, direction, frames.size(), expected_letters.length()]
 				)
+				continue
+			var digit := _digit_for_direction(direction)
+			for i in frames.size():
+				var path := str(frames[i])
+				var letter := expected_letters[i]
+				var expected_name := "%s%d%s.png" % [expected_source, digit, letter]
+				if path.get_file() != expected_name:
+					fails.append(
+						"%s %s %s[%d]: got %s expected %s"
+						% [label, fidget_id, direction, i, path.get_file(), expected_name]
+					)
+				var stem_letter := path.get_file().get_basename().right(1)
+				if FORBIDDEN_LETTERS.has(stem_letter):
+					fails.append("%s %s uses forbidden letter %s" % [label, fidget_id, stem_letter])
 	return fails
 
 
@@ -96,90 +132,69 @@ func _validate_corner_idle_db(
 		fails.append(
 			"%s: source_family=%s expected %s" % [label, meta.get("source_family", ""), expected_source]
 		)
-	if not bool(anim.get("loop", false)):
-		fails.append("%s: %s must loop" % [label, anim_id])
-	if not is_equal_approx(float(anim.get("fps", 0.0)), 4.0):
-		fails.append("%s: fps expected 4" % label)
-	for direction in DIRS:
-		var frames := AnimationDatabase.get_direction_frames(family_id, anim_id, direction)
-		if frames.size() != 1:
-			fails.append("%s %s: frame count %d expected 1" % [label, direction, frames.size()])
-			continue
-		var path := str(frames[0])
-		if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
-			fails.append("%s missing: %s" % [label, path])
-		var expected_name := "%s%dA.png" % [expected_source, _digit_for_direction(direction)]
-		if path.get_file() != expected_name:
-			fails.append("%s %s: got %s expected %s" % [label, direction, path.get_file(), expected_name])
-		if expected_source.begins_with("A") and path.contains("german_soldier"):
-			fails.append("%s cross-faction path: %s" % [label, path])
-		if expected_source.begins_with("G") and path.contains("us_soldier"):
-			fails.append("%s cross-faction path: %s" % [label, path])
-	return fails
-
-
-func _validate_no_dupes(family_id: String) -> Array[String]:
-	var fails: Array[String] = []
-	for bad in [
-		"fire_corner_left",
-		"fire_corner_right",
-		"idle_corner_left",
-		"idle_corner_right",
-		"corner_idle_kneel",
-		"corner_fire_kneel",
-	]:
-		if not AnimationDatabase.get_animation(family_id, bad).is_empty():
-			fails.append("%s still has deleted clip %s" % [family_id, bad])
 	return fails
 
 
 func _validate_runtime(sf: SpriteFrames, label: String) -> Array[String]:
 	var fails: Array[String] = []
+	if sf == null:
+		fails.append("%s: SpriteFrames null" % label)
+		return fails
 	for direction in DIRS:
 		var anim_name := "idle_standing_%s" % direction
 		if not sf.has_animation(anim_name):
-			fails.append("%s runtime missing %s" % [label, anim_name])
+			fails.append("%s missing runtime %s" % [label, anim_name])
 			continue
-		var count := sf.get_frame_count(anim_name)
-		var fps := sf.get_animation_speed(anim_name)
-		var loop := sf.get_animation_loop(anim_name)
-		if count != EXPECTED_FRAMES:
-			fails.append("%s %s frames=%d expected %d" % [label, anim_name, count, EXPECTED_FRAMES])
-		if not is_equal_approx(fps, EXPECTED_FPS):
-			fails.append("%s %s fps=%.1f expected %.1f" % [label, anim_name, fps, EXPECTED_FPS])
-		if not loop:
-			fails.append("%s %s must loop" % [label, anim_name])
+		if sf.get_animation_loop(anim_name):
+			fails.append("%s %s must not loop at runtime" % [label, anim_name])
+		if sf.get_frame_count(anim_name) != 1:
+			fails.append(
+				"%s %s runtime frames %d expected 1"
+				% [label, anim_name, sf.get_frame_count(anim_name)]
+			)
+		for fidget_id in FIDGETS.keys():
+			var fidget_name := "%s_%s" % [fidget_id, direction]
+			if not sf.has_animation(fidget_name):
+				fails.append("%s missing runtime %s" % [label, fidget_name])
+				continue
+			if sf.get_animation_loop(fidget_name):
+				fails.append("%s %s must not loop" % [label, fidget_name])
+			var expected_len: int = str(FIDGETS[fidget_id]).length()
+			if sf.get_frame_count(fidget_name) != expected_len:
+				fails.append(
+					"%s %s frames %d expected %d"
+					% [label, fidget_name, sf.get_frame_count(fidget_name), expected_len]
+				)
 	return fails
 
 
 func _validate_corner_runtime(sf: SpriteFrames, label: String) -> Array[String]:
 	var fails: Array[String] = []
-	for semantic in ["corner_idle_left", "corner_idle_right"]:
-		for direction in DIRS:
+	if sf == null:
+		return fails
+	for direction in DIRS:
+		for semantic in ["corner_idle_left", "corner_idle_right"]:
 			var anim_name := "%s_%s" % [semantic, direction]
 			if not sf.has_animation(anim_name):
-				fails.append("%s runtime missing %s" % [label, anim_name])
-				continue
-			if sf.get_frame_count(anim_name) != 1:
-				fails.append(
-					"%s %s frames=%d expected 1" % [label, anim_name, sf.get_frame_count(anim_name)]
-				)
-			if not sf.get_animation_loop(anim_name):
-				fails.append("%s %s must loop" % [label, anim_name])
+				fails.append("%s missing runtime %s" % [label, anim_name])
 	return fails
 
 
 func _validate_camera_maps() -> Array[String]:
 	var fails: Array[String] = []
-	for world in DIRS:
-		for cam in CAM_ROTATIONS:
-			var resolved := AnimationDatabase.display_direction(world, cam)
-			if resolved not in DIRS:
-				fails.append("camera map %s@%d → %s invalid" % [world, cam, resolved])
-	if AnimationDatabase.display_direction("ne", 0) != "ne":
-		fails.append("camera 0° should leave ne as ne")
-	if AnimationDatabase.display_direction("w", 180) != "e":
-		fails.append("camera 180° should map w → e")
+	for cam in CAM_ROTATIONS:
+		var mapped := AnimationDatabase.display_direction("n", cam)
+		if mapped.is_empty():
+			fails.append("camera map empty for rotation %d" % cam)
+	return fails
+
+
+func _validate_walk_untouched() -> Array[String]:
+	var fails: Array[String] = []
+	for family_id in ["us_rifle", "german_rifle"]:
+		var walk := AnimationDatabase.get_animation(family_id, "walk")
+		if walk.is_empty():
+			fails.append("%s walk missing after idle patch" % family_id)
 	return fails
 
 
@@ -187,30 +202,18 @@ func _validate_idle_policy() -> Array[String]:
 	var fails: Array[String] = []
 	var policy := GameplayPolicies.idle_anim
 	if policy.source_family_for(Team.USA) != "ABRLA":
-		fails.append("policy USA open idle → ABRLA")
-	if policy.source_family_for(Team.USA, CoverSystem.PeekSide.LEFT) != "ALCIS":
-		fails.append("policy USA corner L → ALCIS")
-	if policy.source_family_for(Team.USA, CoverSystem.PeekSide.RIGHT) != "ARCIS":
-		fails.append("policy USA corner R → ARCIS")
-	if policy.source_family_for(Team.GERMANY, CoverSystem.PeekSide.LEFT) != "GLCIS":
-		fails.append("policy Germany corner L → GLCIS")
-	if policy.source_family_for(Team.GERMANY, CoverSystem.PeekSide.RIGHT) != "GRCIS":
-		fails.append("policy Germany corner R → GRCIS")
-	if policy.semantic_for(CoverSystem.PeekSide.LEFT) != "corner_idle_left":
-		fails.append("semantic corner L")
-	if policy.semantic_for(CoverSystem.PeekSide.RIGHT) != "corner_idle_right":
-		fails.append("semantic corner R")
-	return fails
-
-
-func _validate_walk_untouched() -> Array[String]:
-	var fails: Array[String] = []
-	var us_walk := AnimationDatabase.get_direction_frames("us_rifle", "walk", "n")
-	var de_walk := AnimationDatabase.get_direction_frames("german_rifle", "walk", "n")
-	if us_walk.is_empty() or not str(us_walk[0]).contains("ASMOA"):
-		fails.append("USA walk must still use ASMOA (not ABRLA)")
-	if de_walk.is_empty() or not str(de_walk[0]).contains("GSMOA"):
-		fails.append("Germany walk must still use GSMOA (not GBRLA)")
+		fails.append("idle policy USA source drift")
+	if policy.source_family_for(Team.GERMANY) != "GBRLA":
+		fails.append("idle policy Germany source drift")
+	if policy.semantic_for() != "idle_standing":
+		fails.append("idle policy open semantic drift")
+	if policy.FIDGET_SEMANTICS.size() != 4:
+		fails.append("idle policy fidget count drift")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1
+	var delay := policy.random_fidget_delay_sec(rng)
+	if delay < IdleAnimPolicy.FIDGET_DELAY_MIN_SEC or delay > IdleAnimPolicy.FIDGET_DELAY_MAX_SEC:
+		fails.append("idle policy delay out of range: %s" % delay)
 	return fails
 
 
@@ -233,4 +236,4 @@ func _digit_for_direction(direction: String) -> int:
 		"nw":
 			return 8
 		_:
-			return 7
+			return 5

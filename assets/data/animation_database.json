@@ -317,7 +317,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -355,7 +355,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -393,7 +393,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -431,7 +431,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -469,7 +469,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -507,7 +507,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -1362,7 +1362,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -1866,218 +1866,57 @@
 				},
 				"idle_standing": {
 					"directions": {
-						"e": {
+						"w": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5S.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5T.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5U.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7S.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7T.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7U.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6S.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6T.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA6U.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8S.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8T.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8U.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3S.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3T.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA3U.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4S.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4T.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA4U.png"
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1A.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2S.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2T.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA2U.png"
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2A.png"
 							]
 						},
-						"w": {
+						"s": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1S.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1T.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1U.png"
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8A.png"
 							]
 						}
 					},
-					"fps": 8.0,
-					"label": "German Standing Idle",
-					"loop": true,
+					"fps": 1.0,
+					"label": "Germany standing pose (held)",
+					"loop": false,
 					"metadata": {
 						"category": "soldier/idle_standing",
-						"faction": "German",
+						"faction": "Germany",
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Standing/upright idle A-U x 8 directions. Not walking (ASMOA/GSMOA).",
-						"sound_effect": "",
+						"notes": "Held standing pose \u2014 frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
 						"source_family": "GBRLA",
 						"stance": "standing",
 						"verification": "manually confirmed by user",
@@ -2670,7 +2509,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GLCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GLCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -2729,7 +2568,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GRCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GRCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -2804,10 +2643,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "GLCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -2879,10 +2718,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "GRCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -2938,7 +2777,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GLCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GLCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -2997,7 +2836,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GRCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GRCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -3298,10 +3137,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"sound_effect": "",
 						"source_family": "GLCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"verified": true,
 						"frame_order": "ABC"
 					}
@@ -3450,12 +3289,412 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"sound_effect": "",
 						"source_family": "GRCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"verified": true,
 						"frame_order": "ABC"
+					}
+				},
+				"idle_fidget_1": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1B.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2B.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3B.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4B.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5B.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6B.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7B.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8B.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "Germany standing fidget 1",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/idle_fidget",
+						"faction": "Germany",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Presentation-only standing fidget. Explicit sequence BCB. Excludes D/E/F/T/U.",
+						"source_family": "GBRLA",
+						"stance": "standing",
+						"verification": "explicit frame list from OG idle behavior",
+						"verified": true,
+						"frame_letters": "BCB"
+					}
+				},
+				"idle_fidget_2": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1G.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2G.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3G.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4G.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5G.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6G.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7G.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8G.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "Germany standing fidget 2",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/idle_fidget",
+						"faction": "Germany",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Presentation-only standing fidget. Explicit sequence GHIJIHG. Excludes D/E/F/T/U.",
+						"source_family": "GBRLA",
+						"stance": "standing",
+						"verification": "explicit frame list from OG idle behavior",
+						"verified": true,
+						"frame_letters": "GHIJIHG"
+					}
+				},
+				"idle_fidget_3": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1K.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2K.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3K.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4K.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5K.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6K.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7K.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8K.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "Germany standing fidget 3",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/idle_fidget",
+						"faction": "Germany",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Presentation-only standing fidget. Explicit sequence KLMNMLK. Excludes D/E/F/T/U.",
+						"source_family": "GBRLA",
+						"stance": "standing",
+						"verification": "explicit frame list from OG idle behavior",
+						"verified": true,
+						"frame_letters": "KLMNMLK"
+					}
+				},
+				"idle_fidget_4": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1O.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA2O.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA3O.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA4O.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5O.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA6O.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7O.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8O.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "Germany standing fidget 4",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/idle_fidget",
+						"faction": "Germany",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Presentation-only standing fidget. Explicit sequence OPQRQPO. Excludes D/E/F/T/U.",
+						"source_family": "GBRLA",
+						"stance": "standing",
+						"verification": "explicit frame list from OG idle behavior",
+						"verified": true,
+						"frame_letters": "OPQRQPO"
 					}
 				}
 			},
@@ -3735,7 +3974,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -3773,7 +4012,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -3811,7 +4050,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -3849,7 +4088,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -3887,7 +4126,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -3925,7 +4164,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4384,7 +4623,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4422,7 +4661,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4460,7 +4699,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4498,7 +4737,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4536,7 +4775,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4574,7 +4813,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -5539,7 +5778,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -6423,218 +6662,57 @@
 				},
 				"idle_standing": {
 					"directions": {
-						"e": {
+						"w": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA5U.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA7U.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6U.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8U.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA3U.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4U.png"
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1A.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA2U.png"
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2A.png"
 							]
 						},
-						"w": {
+						"s": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1T.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1U.png"
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8A.png"
 							]
 						}
 					},
-					"fps": 8.0,
-					"label": "US Standing Idle",
-					"loop": true,
+					"fps": 1.0,
+					"label": "USA standing pose (held)",
+					"loop": false,
 					"metadata": {
 						"category": "soldier/idle_standing",
 						"faction": "American",
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Standing/upright idle A-U x 8 directions. Not walking (ASMOA/GSMOA).",
-						"sound_effect": "",
+						"notes": "Held standing pose \u2014 frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
 						"source_family": "ABRLA",
 						"stance": "standing",
 						"verification": "manually confirmed by user",
@@ -7035,7 +7113,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ALCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ALCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -7094,7 +7172,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ARCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ARCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ARCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -7169,10 +7247,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "ALCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -7244,10 +7322,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "ARCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -7303,7 +7381,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ALCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ALCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -7362,7 +7440,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ARCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ARCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ARCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -7847,10 +7925,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"sound_effect": "",
 						"source_family": "ALCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"verified": true,
 						"frame_order": "ABC"
 					}
@@ -7999,10 +8077,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"sound_effect": "",
 						"source_family": "ARCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"verified": true,
 						"frame_order": "ABC"
 					}
@@ -8065,6 +8143,406 @@
 						"stance": "prone",
 						"verification": "User-specified APRIS for USA laying-down idle.",
 						"verified": true
+					}
+				},
+				"idle_fidget_1": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1B.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2B.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3B.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4B.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5B.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6B.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7B.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8B.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "USA standing fidget 1",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/idle_fidget",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Presentation-only standing fidget. Explicit sequence BCB. Excludes D/E/F/T/U.",
+						"source_family": "ABRLA",
+						"stance": "standing",
+						"verification": "explicit frame list from OG idle behavior",
+						"verified": true,
+						"frame_letters": "BCB"
+					}
+				},
+				"idle_fidget_2": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1G.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2G.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3G.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4G.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5G.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6G.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7G.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8G.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "USA standing fidget 2",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/idle_fidget",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Presentation-only standing fidget. Explicit sequence GHIJIHG. Excludes D/E/F/T/U.",
+						"source_family": "ABRLA",
+						"stance": "standing",
+						"verification": "explicit frame list from OG idle behavior",
+						"verified": true,
+						"frame_letters": "GHIJIHG"
+					}
+				},
+				"idle_fidget_3": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1K.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2K.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3K.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4K.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5K.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6K.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7K.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8K.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "USA standing fidget 3",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/idle_fidget",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Presentation-only standing fidget. Explicit sequence KLMNMLK. Excludes D/E/F/T/U.",
+						"source_family": "ABRLA",
+						"stance": "standing",
+						"verification": "explicit frame list from OG idle behavior",
+						"verified": true,
+						"frame_letters": "KLMNMLK"
+					}
+				},
+				"idle_fidget_4": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1O.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA2O.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA3O.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4O.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA5O.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6O.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA7O.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8O.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "USA standing fidget 4",
+					"loop": false,
+					"metadata": {
+						"category": "soldier/idle_fidget",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Presentation-only standing fidget. Explicit sequence OPQRQPO. Excludes D/E/F/T/U.",
+						"source_family": "ABRLA",
+						"stance": "standing",
+						"verification": "explicit frame list from OG idle behavior",
+						"verified": true,
+						"frame_letters": "OPQRQPO"
 					}
 				}
 			},
@@ -8346,7 +8824,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -8384,7 +8862,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -8422,7 +8900,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -8460,7 +8938,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -8498,7 +8976,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -8536,7 +9014,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
+						"notes": "Stub \u2014 use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},

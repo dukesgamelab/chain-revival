@@ -76,6 +76,11 @@ var _stance_transition_active: bool = false
 var _stance_transition_semantic: String = ""
 var _stance_transition_target: int = PositionState.UP
 var _stance_transition_world_direction: String = "n"
+## Presentation-only standing fidget (OG: rare oneshot, then back to held pose A).
+var _idle_fidget_active: bool = false
+var _idle_fidget_semantic: String = ""
+var _idle_rng := RandomNumberGenerator.new()
+var _idle_timer: Timer = null
 
 ## When true, log hit-reaction resolution (semantic, family, directions, frames, FPS).
 const DEBUG_HIT_REACTION := false
@@ -116,6 +121,11 @@ var _dtt_textures: Array[Texture2D] = []
 
 func _ready() -> void:
 	set_process(false)
+	_idle_rng.randomize()
+	_idle_timer = Timer.new()
+	_idle_timer.one_shot = true
+	_idle_timer.timeout.connect(_on_standing_idle_timer_timeout)
+	add_child(_idle_timer)
 	_anim.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_anim.centered = true
 	_facing_arrow.position.y = TileSizeConfig.facing_arrow_y()
@@ -395,6 +405,7 @@ func _finish_presentation_move() -> void:
 
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	## Presentation-only path chase. Authoritative grid_position advances on sim ticks.
+	_cancel_standing_idle()
 	_cancel_stance_transition_visual(false)
 	## Movement cancels corner peek/aim/fire presentation immediately.
 	_cancel_fire_visual(false)
@@ -590,6 +601,9 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 				_anim.play("%s_%s" % [move_prefix, direction])
 			return
 	if not walking and _locomotion_direction == direction and not _locomotion_walking:
+		## Keep an in-flight standing fidget until it finishes or is cancelled.
+		if _idle_fidget_active:
+			return
 		## Already stationary in this world facing — keep current idle pose
 		## unless peek side changed or we still need to start the correct idle.
 		var idle_semantic := _idle_standing_semantic()
@@ -616,6 +630,9 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			)
 		):
 			return
+
+	if walking:
+		_cancel_standing_idle()
 
 	_locomotion_direction = direction
 	_locomotion_walking = walking
@@ -688,20 +705,34 @@ func _play_idle_standing(world_direction: String) -> void:
 		push_error("Soldier: idle animation %s has zero frames" % anim_name)
 		_log_idle_standing(anim_name, "EMPTY_FRAMES")
 		return
-	if str(_anim.animation) == anim_name and (
-		_anim.is_playing() or semantic.begins_with("corner_idle_")
-	):
-		## One-frame CIS is a held pose — never restart on refresh.
+	## Already on the held standing pose / CIS — do not restart or re-arm timer.
+	if str(_anim.animation) == anim_name and not _idle_fidget_active:
 		_played_idle_peek_side = _idle_peek_side
+		if semantic == "idle_standing":
+			if _anim.is_playing():
+				_anim.pause()
+				_anim.frame = 0
+			return
 		if semantic.begins_with("corner_idle_"):
 			_corner_phase = CornerPresPhase.IDLE
 			_corner_peek_side = _idle_peek_side
 			if frame_count <= 1 and _anim.is_playing():
 				_anim.pause()
 				_anim.frame = 0
-		return
+			return
 	_anim.play(anim_name)
+	if semantic == "idle_standing":
+		## Held ABRLA/GBRLA frame A — never loop continuous idle.
+		_anim.pause()
+		_anim.frame = 0
+		if _corner_phase == CornerPresPhase.IDLE:
+			_clear_corner_presentation(false)
+		_played_idle_peek_side = _idle_peek_side
+		_arm_standing_idle_timer()
+		_log_idle_standing(anim_name, "HOLD_POSE")
+		return
 	if semantic.begins_with("corner_idle_"):
+		_cancel_standing_idle()
 		_corner_phase = CornerPresPhase.IDLE
 		_corner_peek_side = _idle_peek_side
 		_corner_semantic = semantic
@@ -715,6 +746,7 @@ func _play_idle_standing(world_direction: String) -> void:
 
 
 func _play_idle_prone(world_direction: String) -> void:
+	_cancel_standing_idle()
 	var display_dir := _idle_display_direction(world_direction)
 	var anim_name := "idle_prone_%s" % display_dir
 	if _anim.sprite_frames.has_animation(anim_name):
@@ -767,6 +799,9 @@ func refresh_action_visual_for_camera() -> void:
 	if _stance_transition_active:
 		_remap_stance_transition_for_camera()
 		return
+	if _idle_fidget_active:
+		_remap_standing_idle_fidget_for_camera()
+		return
 	if _blocks_action_override():
 		return
 	if _is_moving:
@@ -779,7 +814,6 @@ func refresh_action_visual_for_camera() -> void:
 
 func _remap_idle_standing_for_camera() -> void:
 	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
-	var saved_frame := _anim.frame
 	var display_dir := _idle_display_direction(world_dir)
 	var semantic := _idle_standing_semantic()
 	var anim_name := "%s_%s" % [semantic, display_dir]
@@ -791,11 +825,30 @@ func _remap_idle_standing_for_camera() -> void:
 		return
 	if str(_anim.animation) == anim_name:
 		return
+	_anim.play(anim_name)
+	## Held standing pose — always frame A after camera remap.
+	if semantic == "idle_standing":
+		_anim.pause()
+		_anim.frame = 0
+	_played_idle_peek_side = _idle_peek_side
+	_log_idle_standing(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
+
+
+func _remap_standing_idle_fidget_for_camera() -> void:
+	if _idle_fidget_semantic.is_empty():
+		return
+	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	var saved_frame := _anim.frame
+	var display_dir := _idle_display_direction(world_dir)
+	var anim_name := "%s_%s" % [_idle_fidget_semantic, display_dir]
+	if not _anim.sprite_frames.has_animation(anim_name):
+		return
+	if str(_anim.animation) == anim_name:
+		return
 	var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
 	_anim.play(anim_name)
 	_anim.frame = mini(saved_frame, max_frame)
-	_played_idle_peek_side = _idle_peek_side
-	_log_idle_standing(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
+	_log_idle_standing(anim_name, "FIDGET_CAMERA_REMAP frame=%d" % _anim.frame)
 
 
 func _remap_idle_prone_for_camera() -> void:
@@ -833,6 +886,7 @@ func _remap_stance_transition_for_camera() -> void:
 
 ## Survivable flinch. US uses hit_standing / hit_prone; never falls back to idle/walk frames.
 func play_hit_reaction(threat_step: Vector2i, position_state: int = PositionState.UP) -> void:
+	_cancel_standing_idle()
 	if not _uses_og_frames() or _death_sequence_active or _hit_reaction_active or _is_dead:
 		return
 	if _corpse_direction_locked:
@@ -864,6 +918,7 @@ func play_death_sequence(
 ) -> void:
 	if not _uses_og_frames() or _death_sequence_active or _corpse_direction_locked:
 		return
+	_cancel_standing_idle()
 	_cancel_stance_transition_visual(false)
 	_cancel_throw_grenade_visual(false)
 	_cancel_fire_visual(false)
@@ -907,6 +962,7 @@ func play_throw_grenade(
 	if _throw_grenade_active:
 		return
 	## Throw outranks firing and stance transition.
+	_cancel_standing_idle()
 	_cancel_stance_transition_visual(false)
 	_cancel_fire_visual(false)
 
@@ -956,6 +1012,7 @@ func play_fire(
 		return
 	if _hit_reaction_active or _throw_grenade_active:
 		return
+	_cancel_standing_idle()
 	## Mid-CFA shot: queue at most one restart (no unbounded queue).
 	if _fire_active or _corner_phase == CornerPresPhase.FIRING:
 		_fire_restart_pending = true
@@ -1002,6 +1059,7 @@ func play_stance_transition(
 		return
 	if _stance_transition_active:
 		return
+	_cancel_standing_idle()
 	## Drop/stand even if we were chasing a path — sim already halted.
 	if _is_moving:
 		stop_movement()
@@ -1112,6 +1170,7 @@ func _corner_side_token() -> String:
 
 
 func _start_corner_peek_enter() -> void:
+	_cancel_standing_idle()
 	if _corner_peek_side == CoverSystem.PeekSide.NONE:
 		_corner_fire_pending = false
 		return
@@ -1204,6 +1263,7 @@ func _begin_fire_sequence(
 	facing_direction: Vector2i,
 	peek_side: int = CoverSystem.PeekSide.NONE,
 ) -> void:
+	_cancel_standing_idle()
 	_fire_active = true
 	_fire_restart_pending = false
 	_fire_visual_shot_logged = false
@@ -1561,6 +1621,10 @@ func _on_anim_animation_finished() -> void:
 		_finish_stance_transition(anim_name)
 		return
 
+	if _idle_fidget_active and not _death_sequence_active:
+		_finish_standing_idle_fidget(anim_name)
+		return
+
 	if not _death_sequence_active:
 		return
 
@@ -1800,6 +1864,8 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return _fire_source_family()
 		"idle_standing", "corner_idle_left", "corner_idle_right":
 			return _idle_source_family()
+		"idle_fidget_1", "idle_fidget_2", "idle_fidget_3", "idle_fidget_4":
+			return _idle_source_family()
 		"corner_aim_left":
 			return "GLCAS" if team_id == Team.GERMANY else "ALCAS"
 		"corner_aim_right":
@@ -1911,6 +1977,92 @@ func _log_fire_anim(anim_name: String, status: String) -> void:
 			"[FireAnim] ordered_frames=%s"
 			% ", ".join(frame_paths)
 		)
+
+
+## --- Presentation-only standing idle fidgets (OG: static pose + rare oneshots) ---
+
+func _can_standing_fidget() -> bool:
+	if not _uses_og_frames() or _is_dead or _is_moving:
+		return false
+	if _blocks_action_override():
+		return false
+	if _applied_position_state != PositionState.UP:
+		return false
+	if _idle_peek_side != CoverSystem.PeekSide.NONE:
+		return false
+	if _idle_fidget_active:
+		return false
+	return true
+
+
+func _arm_standing_idle_timer() -> void:
+	if _idle_timer == null:
+		return
+	if not _can_standing_fidget():
+		_idle_timer.stop()
+		return
+	var delay := GameplayPolicies.idle_anim.random_fidget_delay_sec(_idle_rng)
+	_idle_timer.start(delay)
+	if DEBUG_IDLE_STANDING:
+		GameLog.log_system(
+			"[IdleFidget] arm timer team=%d soldier=%d delay=%.1fs"
+			% [team_id, soldier_id, delay]
+		)
+
+
+func _cancel_standing_idle() -> void:
+	if _idle_timer != null:
+		_idle_timer.stop()
+	if not _idle_fidget_active:
+		_idle_fidget_semantic = ""
+		return
+	_idle_fidget_active = false
+	_idle_fidget_semantic = ""
+	if DEBUG_IDLE_STANDING:
+		GameLog.log_system(
+			"[IdleFidget] cancelled team=%d soldier=%d" % [team_id, soldier_id]
+		)
+
+
+func _on_standing_idle_timer_timeout() -> void:
+	if not _can_standing_fidget():
+		return
+	if not GameplayPolicies.idle_anim.should_play_fidget(_idle_rng):
+		## Most waits expire with no fidget — roll a new delay.
+		_arm_standing_idle_timer()
+		return
+	_play_standing_idle_fidget()
+
+
+func _play_standing_idle_fidget() -> void:
+	if not _can_standing_fidget() or _anim == null or _anim.sprite_frames == null:
+		_arm_standing_idle_timer()
+		return
+	var semantic := GameplayPolicies.idle_anim.pick_fidget_semantic(_idle_rng)
+	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	var display_dir := _idle_display_direction(world_dir)
+	var anim_name := "%s_%s" % [semantic, display_dir]
+	if not _anim.sprite_frames.has_animation(anim_name):
+		push_warning("Soldier: missing idle fidget %s" % anim_name)
+		_arm_standing_idle_timer()
+		return
+	var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
+	if frame_count <= 0:
+		_arm_standing_idle_timer()
+		return
+	_idle_fidget_active = true
+	_idle_fidget_semantic = semantic
+	_anim.play(anim_name)
+	_log_idle_standing(anim_name, "FIDGET_PLAY")
+
+
+func _finish_standing_idle_fidget(anim_name: String) -> void:
+	_idle_fidget_active = false
+	_idle_fidget_semantic = ""
+	_log_idle_standing(anim_name, "FIDGET_COMPLETE → HOLD_POSE")
+	## Return to the held standing pose and start a new independent delay.
+	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	_play_idle_standing(world_dir)
 
 
 func _log_idle_standing(anim_name: String, status: String) -> void:
