@@ -761,7 +761,8 @@ static func preview_fire_at_facing(
 	var changed := false
 	for soldier_id in shooter_ids:
 		var shooter: SoldierState = fireteam.get_soldier(soldier_id)
-		if shooter == null or shooter.is_dead or shooter.is_sustained_fire():
+		## Keep facing on the aim cell even while sustained / holding fire.
+		if shooter == null or shooter.is_dead:
 			continue
 		if fireteam.face_toward_tile(soldier_id, face_cell):
 			changed = true

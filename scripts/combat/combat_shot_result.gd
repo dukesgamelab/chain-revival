@@ -22,3 +22,4 @@ var messages: Array[String] = []
 ## CoverSystem.PeekSide — drives corner_fire_left / corner_fire_right (/kneel) presentation.
 var corner_peek: bool = false
 var peek_side: int = 0
+var corner_cell: Vector2i = Vector2i(-999, -999)

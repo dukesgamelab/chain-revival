@@ -726,20 +726,20 @@ func _update_los_preview() -> void:
 		shooter.grid_position,
 		max_range,
 	)
-	if not _fire_at_engaged:
-		var shooter_ids: Array[int] = []
-		for shooter_state in _get_manual_fire_at_shooters():
-			shooter_ids.append(shooter_state.soldier_id)
-		var face_cell := preview.click_cell
-		if preview.target != null:
-			face_cell = preview.target.grid_position
-		if ActionResolverClass.preview_fire_at_facing(
-			_game_state,
-			_session.active_team_id,
-			shooter_ids,
-			face_cell,
-		):
-			_sync_fire_at_shooter_views()
+	var shooter_ids: Array[int] = []
+	for shooter_state in _get_manual_fire_at_shooters():
+		shooter_ids.append(shooter_state.soldier_id)
+	var face_cell := preview.click_cell
+	if preview.target != null:
+		face_cell = preview.target.grid_position
+	## Always keep bodies aimed at the preview cell (including while engaged / holding).
+	ActionResolverClass.preview_fire_at_facing(
+		_game_state,
+		_session.active_team_id,
+		shooter_ids,
+		face_cell,
+	)
+	_sync_fire_at_shooter_views()
 	_los_visualizer.show_fire_at_preview(from_world, cone_world, preview)
 
 
@@ -840,17 +840,17 @@ func _update_squad_los_preview(
 				face_cell = preview.target.grid_position
 		entries.append({"from_world": from_world, "preview": preview})
 
-	if not _fire_at_engaged:
-		var shooter_ids: Array[int] = []
-		for shooter_state in _get_manual_fire_at_shooters():
-			shooter_ids.append(shooter_state.soldier_id)
-		if ActionResolverClass.preview_fire_at_facing(
-			_game_state,
-			_session.active_team_id,
-			shooter_ids,
-			face_cell,
-		):
-			_sync_fire_at_shooter_views()
+	var shooter_ids: Array[int] = []
+	for shooter_state in _get_manual_fire_at_shooters():
+		shooter_ids.append(shooter_state.soldier_id)
+	ActionResolverClass.preview_fire_at_facing(
+		_game_state,
+		_session.active_team_id,
+		shooter_ids,
+		face_cell,
+	)
+	## Refresh facing + corner idle against the current aim cell.
+	_sync_fire_at_shooter_views()
 
 	_los_visualizer.show_squad_fire_at_previews(entries, cone_world, cone_has_target)
 
@@ -1447,21 +1447,38 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		and soldier_state.position_state != PositionState.DOWN
 		and _map_data != null
 	):
-		var aim_cell := Vector2i(-999, -999)
-		if soldier_state.is_engaged() and _game_state != null:
-			var engaged: SoldierState = _game_state.get_soldier(
-				soldier_state.engaged_target_team_id,
-				soldier_state.engaged_target_soldier_id,
-			)
-			if engaged != null and engaged.is_alive():
-				aim_cell = engaged.grid_position
 		idle_peek = CoverSystem.corner_idle_at_cell(
 			soldier_state.grid_position,
 			soldier_state.facing_direction,
 			_map_data,
-			aim_cell,
+			_corner_aim_cell_for_soldier(soldier_state),
 		).peek_side
 	view.sync_from_state(soldier_state, is_selected, is_spotted, show_id, idle_peek)
+
+
+## Aim cell used to decide corner idle — engaged target, else Fire At / Face preview.
+func _corner_aim_cell_for_soldier(soldier_state: SoldierState) -> Vector2i:
+	if soldier_state == null:
+		return Vector2i(-999, -999)
+	if soldier_state.is_engaged() and _game_state != null:
+		var engaged: SoldierState = _game_state.get_soldier(
+			soldier_state.engaged_target_team_id,
+			soldier_state.engaged_target_soldier_id,
+		)
+		if engaged != null and engaged.is_alive():
+			return engaged.grid_position
+	if _fire_at_mode and _is_soldier_in_fire_at_scope(soldier_state):
+		if _last_fire_at_preview_cell.x > -99999:
+			return _last_fire_at_preview_cell
+	if _face_mode and (
+		_face_soldier_id == CommandBar.SQUAD_ID
+		or _face_soldier_id == soldier_state.soldier_id
+	):
+		if _last_fire_at_preview_cell.x > -99999:
+			return _last_fire_at_preview_cell
+		## Face mode tracks mouse via world→grid when preview cell unset.
+		return IsometricGrid.world_to_grid(_get_world_mouse_local())
+	return Vector2i(-999, -999)
 
 
 func _invalidate_fog_cache() -> void:
@@ -2295,10 +2312,24 @@ func _finalize_shot_result(
 		if shooter != null:
 			var shooter_view: Soldier = _get_view(shooter.team_id, shooter.soldier_id)
 			if shooter_view != null:
+				var fire_aim := (
+					target.grid_position
+					if target != null
+					else Vector2i(-999, -999)
+				)
+				var fire_peek := CoverSystem.presentation_peek_side(
+					shooter.grid_position,
+					shooter.facing_direction,
+					result.corner_peek,
+					result.peek_side,
+					result.corner_cell,
+					fire_aim,
+					_map_data,
+				)
 				shooter_view.play_fire(
 					shooter.position_state,
 					shooter.facing_direction,
-					result.peek_side,
+					fire_peek,
 				)
 		if target != null:
 			_spawn_shot_tracers(shooter, target, maxi(result.tracer_count, 1))

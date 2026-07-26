@@ -300,6 +300,7 @@ static func resolve_shot(
 	## Automatic corner peek — no command; expose lean side for presentation.
 	result.corner_peek = los.corner_peek
 	result.peek_side = los.peek_side
+	result.corner_cell = los.corner_cell
 
 	if not _can_fire_yet(shooter, weapon):
 		result.on_cooldown = true

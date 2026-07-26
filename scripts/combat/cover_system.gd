@@ -519,9 +519,23 @@ static func _remote_corner_peek_for_blocker(
 	return result
 
 
-## Presentation helper: standing idle lean at a wall-end beside/ahead of facing.
-## Optional `aim_cell` (Face / Fire At target) drives peek geometry; otherwise facing+1.
-## Never leans on a wall behind the soldier — that was reading as “facing the wrong way.”
+## True when `wall_cell` lies strictly ahead of facing (not beside/behind).
+## "Facing that corner" — required for corner idle / fire presentation.
+static func is_facing_toward_corner(
+	facing: Vector2i,
+	from_cell: Vector2i,
+	wall_cell: Vector2i,
+) -> bool:
+	var aim := FacingDirection.normalize(facing)
+	if aim == Vector2i.ZERO or not _is_adjacent(from_cell, wall_cell):
+		return false
+	var to_wall := wall_cell - from_cell
+	return to_wall.x * aim.x + to_wall.y * aim.y > 0
+
+
+## Presentation helper: corner lean only when aiming past a corner you face into.
+## Requires a real `aim_cell` (Fire At / Face / engaged target). No synthetic 1-cell lean —
+## that was putting stacked teammates into wrong-way corner poses.
 static func corner_idle_at_cell(
 	from_cell: Vector2i,
 	facing: Vector2i,
@@ -534,24 +548,90 @@ static func corner_idle_at_cell(
 	var aim := FacingDirection.normalize(facing)
 	if aim == Vector2i.ZERO:
 		return result
-	var to_cell := aim_cell
-	if to_cell.x <= -999 or to_cell == from_cell:
-		to_cell = from_cell + aim
-	var best_forward := -999
-	for offset in ADJACENT_OFFSETS:
-		var wall_cell := from_cell + offset
-		var at := corner_peek_at_cell(from_cell, to_cell, wall_cell, map_data)
-		if not at.is_corner:
-			continue
-		var to_wall := wall_cell - from_cell
-		var forward := to_wall.x * aim.x + to_wall.y * aim.y
-		## Behind facing — keep normal standing idle.
-		if forward < 0:
-			continue
-		if not result.is_corner or forward > best_forward:
-			result = at
-			best_forward = forward
+	if aim_cell.x <= -999 or aim_cell == from_cell:
+		return result
+	## Must actually be oriented toward the aim cell (not stale facing + nearby wall).
+	if FacingDirection.toward_cell(from_cell, aim_cell) != aim:
+		return result
+	var line := line_cells_between(from_cell, aim_cell)
+	var block := find_blocking_tile(from_cell, aim_cell, map_data, null, false, line)
+	if not block.corner_peek:
+		return result
+	if not _presentation_corner_allowed(
+		from_cell, aim, aim_cell, map_data, block.corner_cell, line
+	):
+		return result
+	result.is_corner = true
+	result.peek_side = block.peek_side
+	result.corner_cell = block.corner_cell
 	return result
+
+
+## Presentation gate for corner fire anims (gameplay LOS peek may still apply).
+static func presentation_peek_side(
+	from_cell: Vector2i,
+	facing: Vector2i,
+	corner_peek: bool,
+	peek_side: int,
+	corner_cell: Vector2i,
+	aim_cell: Vector2i = Vector2i(-999, -999),
+	map_data: MapData = null,
+) -> int:
+	if not corner_peek or peek_side == PeekSide.NONE:
+		return PeekSide.NONE
+	var aim := FacingDirection.normalize(facing)
+	if aim_cell.x > -999 and aim_cell != from_cell:
+		if FacingDirection.toward_cell(from_cell, aim_cell) != aim:
+			return PeekSide.NONE
+		var line: Array[Vector2i] = (
+			line_cells_between(from_cell, aim_cell) if map_data != null else ([] as Array[Vector2i])
+		)
+		if map_data != null and not _presentation_corner_allowed(
+			from_cell, aim, aim_cell, map_data, corner_cell, line
+		):
+			return PeekSide.NONE
+	elif not is_facing_toward_corner(facing, from_cell, corner_cell):
+		return PeekSide.NONE
+	elif not _is_adjacent(from_cell, corner_cell):
+		return PeekSide.NONE
+	return peek_side
+
+
+## Corner pose only at the wall you are actually peeking on the aim line (not a
+## random adjacent wall-end behind a teammate).
+static func _presentation_corner_allowed(
+	from_cell: Vector2i,
+	aim: Vector2i,
+	aim_cell: Vector2i,
+	map_data: MapData,
+	corner_cell: Vector2i,
+	line: Array[Vector2i],
+) -> bool:
+	if not is_facing_toward_corner(aim, from_cell, corner_cell):
+		return false
+	if not _is_adjacent(from_cell, corner_cell):
+		return false
+	if not corner_peek_at_cell(from_cell, aim_cell, corner_cell, map_data).is_corner:
+		return false
+	var first_hard := _first_hard_wall_on_line(line, map_data)
+	if first_hard.x <= -999:
+		return false
+	## Peeked corner must be that first hard cell, or its ortho neighbor (Bresenham cut).
+	if corner_cell != first_hard and not _is_orthogonal_adjacent(corner_cell, first_hard):
+		return false
+	return true
+
+
+static func _first_hard_wall_on_line(
+	line: Array[Vector2i],
+	map_data: MapData,
+) -> Vector2i:
+	if map_data == null:
+		return Vector2i(-999, -999)
+	for cell in line:
+		if _is_corner_peek_blocker(map_data, cell):
+			return cell
+	return Vector2i(-999, -999)
 
 
 ## Tall / NO_PASS / complete-cover wall cells eligible for corner-peek geometry.
