@@ -519,12 +519,14 @@ static func _remote_corner_peek_for_blocker(
 	return result
 
 
-## Presentation helper: standing idle at a wall-end uses facing as synthetic aim.
-## Prefers adjacent wall-ends beside/ahead of facing (not strictly behind).
+## Presentation helper: standing idle lean at a wall-end beside/ahead of facing.
+## Optional `aim_cell` (Face / Fire At target) drives peek geometry; otherwise facing+1.
+## Never leans on a wall behind the soldier — that was reading as “facing the wrong way.”
 static func corner_idle_at_cell(
 	from_cell: Vector2i,
 	facing: Vector2i,
 	map_data: MapData,
+	aim_cell: Vector2i = Vector2i(-999, -999),
 ) -> CornerPeekResult:
 	var result := CornerPeekResult.new()
 	if map_data == null:
@@ -532,7 +534,9 @@ static func corner_idle_at_cell(
 	var aim := FacingDirection.normalize(facing)
 	if aim == Vector2i.ZERO:
 		return result
-	var to_cell := from_cell + aim
+	var to_cell := aim_cell
+	if to_cell.x <= -999 or to_cell == from_cell:
+		to_cell = from_cell + aim
 	var best_forward := -999
 	for offset in ADJACENT_OFFSETS:
 		var wall_cell := from_cell + offset
@@ -541,7 +545,8 @@ static func corner_idle_at_cell(
 			continue
 		var to_wall := wall_cell - from_cell
 		var forward := to_wall.x * aim.x + to_wall.y * aim.y
-		if forward < 0 and result.is_corner:
+		## Behind facing — keep normal standing idle.
+		if forward < 0:
 			continue
 		if not result.is_corner or forward > best_forward:
 			result = at

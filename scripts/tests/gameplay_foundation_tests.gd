@@ -583,16 +583,20 @@ func _test_corner_idle_at_wall_end() -> void:
 		"corner=%s side=%s cell=%s" % [idle.is_corner, idle.peek_side, idle.corner_cell],
 	)
 
-	var open := CoverSystemClass.corner_idle_at_cell(soldier, Vector2i(-1, 0), map_data)
-	## Facing away may still find the adjacent end; require at least no crash / valid enum.
+	## Facing away: wall is behind — keep normal standing (no lean).
+	var away := CoverSystemClass.corner_idle_at_cell(soldier, Vector2i(-1, 0), map_data)
 	_assert(
-		"Corner idle returns a defined peek side enum",
-		(
-			open.peek_side == CoverSystemClass.PeekSide.NONE
-			or open.peek_side == CoverSystemClass.PeekSide.LEFT
-			or open.peek_side == CoverSystemClass.PeekSide.RIGHT
-		),
-		"side=%s" % open.peek_side,
+		"Corner idle ignores wall behind facing",
+		not away.is_corner and away.peek_side == CoverSystemClass.PeekSide.NONE,
+		"corner=%s side=%s" % [away.is_corner, away.peek_side],
+	)
+
+	## Beside the wall while facing along it still leans.
+	var along := CoverSystemClass.corner_idle_at_cell(soldier, Vector2i(0, -1), map_data)
+	_assert(
+		"Corner idle allows wall beside facing",
+		along.is_corner and along.peek_side != CoverSystemClass.PeekSide.NONE,
+		"corner=%s side=%s" % [along.is_corner, along.peek_side],
 	)
 
 

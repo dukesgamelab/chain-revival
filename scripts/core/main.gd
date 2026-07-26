@@ -1447,10 +1447,19 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		and soldier_state.position_state != PositionState.DOWN
 		and _map_data != null
 	):
+		var aim_cell := Vector2i(-999, -999)
+		if soldier_state.is_engaged() and _game_state != null:
+			var engaged: SoldierState = _game_state.get_soldier(
+				soldier_state.engaged_target_team_id,
+				soldier_state.engaged_target_soldier_id,
+			)
+			if engaged != null and engaged.is_alive():
+				aim_cell = engaged.grid_position
 		idle_peek = CoverSystem.corner_idle_at_cell(
 			soldier_state.grid_position,
 			soldier_state.facing_direction,
 			_map_data,
+			aim_cell,
 		).peek_side
 	view.sync_from_state(soldier_state, is_selected, is_spotted, show_id, idle_peek)
 
