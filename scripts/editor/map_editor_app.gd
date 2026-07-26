@@ -384,7 +384,7 @@ func _handle_mouse_editor_input(event: InputEvent) -> void:
 		var cell := _cell_at_mouse()
 		_coord_label.text = "Cell %s  Cam %d°  BrushDir %d°" % [
 			cell,
-			IsometricGrid.camera_direction_degrees(),
+			IsometricGrid.facet_camera_direction_degrees(),
 			_brush_direction,
 		]
 		if _world != null:
@@ -421,7 +421,7 @@ func _rotate_view(left: bool) -> void:
 	_refresh_placement_preview(_cell_at_mouse())
 	if _inspector_cell.x >= 0:
 		_rebuild_inspector()
-	_status.text = "Camera %d° — facets re-resolved (world dirs unchanged)" % IsometricGrid.camera_direction_degrees()
+	_status.text = "Camera %d° — facets re-resolved (world dirs unchanged)" % IsometricGrid.facet_camera_direction_degrees()
 
 
 func _apply_tool_at(cell: Vector2i, is_click: bool) -> void:

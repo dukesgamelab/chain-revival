@@ -50,7 +50,7 @@ func _update_from_mouse() -> void:
 	var visual := IsometricGrid.logical_to_visual_cell(cell)
 	_info["view"] = visual
 	_info["depth"] = visual.x + visual.y
-	_info["camera"] = IsometricGrid.camera_direction_degrees()
+	_info["camera"] = IsometricGrid.facet_camera_direction_degrees()
 	## Prefer an object / decoration on this cell; else show floor.
 	var best: Dictionary = {}
 	for entry in map_data.visual_placements:

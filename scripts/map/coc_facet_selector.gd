@@ -11,8 +11,9 @@ const LETTERS_8: PackedStringArray = ["e", "se", "s", "sw", "w", "nw", "n", "ne"
 
 
 static func camera_degrees() -> int:
-	## Same effective camera step as position remap (includes reverse-cam).
-	return IsometricGrid.camera_direction_degrees()
+	## Facet/sprite camera — normal 0/90/180/270 sequence.
+	## Must NOT use IsometricGrid.camera_direction_degrees() (reversed coord remap).
+	return IsometricGrid.facet_camera_direction_degrees()
 
 
 static func presentation_world_for_family(family: String, world_direction_degrees: int) -> int:

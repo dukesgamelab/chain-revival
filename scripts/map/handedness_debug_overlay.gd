@@ -99,13 +99,18 @@ func _draw_axis_markers() -> void:
 
 
 func _draw_compass() -> void:
-	var cam := IsometricGrid.camera_direction_degrees()
+	var facet_cam := IsometricGrid.facet_camera_direction_degrees()
+	var coord_cam := IsometricGrid.camera_direction_degrees()
 	var rot := IsometricGrid.current_view_rotation
 	## Screen-fixed compass in world units near origin for current framing.
 	var o := _cell_world(AXIS_ORIGIN)
 	var tip := o + Vector2(0, -90)
 	draw_line(o, tip, Color(1, 1, 0.2, 0.7), 1.5)
-	_label_at(tip + Vector2(4, -4), "cam %d° (rot %d)" % [cam, rot], Color(1, 1, 0.4))
+	_label_at(
+		tip + Vector2(4, -4),
+		"facet %d° coord %d° (rot %d)" % [facet_cam, coord_cam, rot],
+		Color(1, 1, 0.4),
+	)
 
 
 func _draw_landmarks() -> void:
@@ -135,27 +140,28 @@ func _draw_selection() -> void:
 	var vis := map_data.get_visual_at(selected_cell)
 	var family := str(vis.get("family", ""))
 	var world_dir := int(vis.get("direction", 0))
-	var cam := IsometricGrid.camera_direction_degrees()
+	var facet_cam := IsometricGrid.facet_camera_direction_degrees()
 	var letter := ""
 	if not family.is_empty():
 		var draw_info := CocSpriteResolver.resolve_placement(family, world_dir, str(vis.get("image1", "")))
 		letter = str(draw_info.get("letter", ""))
 	_label_at(
 		world + Vector2(12, 16),
-		"sel L%s V%s fam=%s worldDir=%d° cam=%d° facet=%s" % [
-			selected_cell, visual, family, world_dir, cam, letter,
+		"sel L%s V%s fam=%s worldDir=%d° facetCam=%d° letter=%s" % [
+			selected_cell, visual, family, world_dir, facet_cam, letter,
 		],
 		Color(0.4, 1.0, 0.55),
 	)
 
 
 func _draw_hud() -> void:
-	var cam := IsometricGrid.camera_direction_degrees()
+	var facet_cam := IsometricGrid.facet_camera_direction_degrees()
+	var coord_cam := IsometricGrid.camera_direction_degrees()
 	var mode := MapCoordinateTransform.candidate_name()
 	var lines := PackedStringArray([
 		"Handedness debug (F4)  candidate=%s (F5 cycle)" % mode,
 		"A=CURRENT (xflip+revCam)  B=legacy  C=xflipOnly  D=reflectH  E=swap  F=flipY  G=dir",
-		"Compare OG at Cam 0° — Cam 180° correctly swaps left/right   cam=%d°" % cam,
+		"facetCam=%d° coordCam=%d° (coord remap stays reversed)" % [facet_cam, coord_cam],
 	])
 	var anchor := _cell_world(AXIS_ORIGIN) + Vector2(-220, -160)
 	var y := anchor.y

@@ -5,9 +5,11 @@ extends RefCounted
 ## Callers supply family + world_direction (+ optional image1). Camera is presentation-only.
 ## Never persist the resolved path/letter — redraw always re-resolves.
 ##
-## MapAssetRegistry camera_variants are editor authoring data; runtime facet pick stays
-## CocFacetSelector (world direction + camera). Do not bypass that with camera-only registry
-## sprites — that ignores placement direction and breaks walls/corners on load.
+## MapAssetRegistry camera_variants are editor authoring data (hotspot/offset/depth);
+## runtime facet pick stays CocFacetSelector (family + world direction + facet camera).
+## Facet camera degrees are the normal 0/90/180/270 sequence (not coord-remap reverse).
+## Do not bypass facet resolution with camera-only registry sprites — that ignores
+## placement direction and breaks walls/corners on load.
 
 
 static func resolve_placement(
