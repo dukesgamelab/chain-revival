@@ -80,13 +80,15 @@ var _stance_transition_world_direction: String = "n"
 var _idle_fidget_active: bool = false
 var _idle_fidget_semantic: String = ""
 var _idle_rng := RandomNumberGenerator.new()
-var _idle_timer: Timer = null
+## Seconds remaining until next fidget roll (−1 = inactive). Ticked in _process.
+var _idle_wait_remaining_sec: float = -1.0
 
 ## When true, log hit-reaction resolution (semantic, family, directions, frames, FPS).
 const DEBUG_HIT_REACTION := false
 const DEBUG_THROW_GRENADE := false
 const DEBUG_FIRE_ANIM := false
-const DEBUG_IDLE_STANDING := false
+## TEMP: log arm/play/cancel so fidget timing is visible in the console.
+const DEBUG_IDLE_STANDING := true
 const DEBUG_STANCE_TRANSITION := false
 const DEBUG_FACING := false
 const DEBUG_DEAD_STATIC := false
@@ -122,10 +124,6 @@ var _dtt_textures: Array[Texture2D] = []
 func _ready() -> void:
 	set_process(false)
 	_idle_rng.randomize()
-	_idle_timer = Timer.new()
-	_idle_timer.one_shot = true
-	_idle_timer.timeout.connect(_on_standing_idle_timer_timeout)
-	add_child(_idle_timer)
 	_anim.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_anim.centered = true
 	_facing_arrow.position.y = TileSizeConfig.facing_arrow_y()
@@ -386,9 +384,14 @@ func stop_movement() -> void:
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
-	set_process(false)
 	if was_moving and _uses_og_frames() and not _blocks_action_override():
+		## Idle arm keeps _process on for the standing fidget wait.
 		_play_locomotion(_locomotion_direction, false)
+	elif _idle_wait_remaining_sec > 0.0 or _idle_fidget_active:
+		## Halt/stuck-heal must not freeze an already-armed fidget countdown.
+		set_process(true)
+	else:
+		set_process(false)
 
 
 func _finish_presentation_move() -> void:
@@ -398,9 +401,13 @@ func _finish_presentation_move() -> void:
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
-	set_process(false)
 	if _uses_og_frames() and not _blocks_action_override():
+		## Idle arm / ensure keeps _process on for the standing fidget wait.
 		_update_locomotion_visual(_last_applied_facing, false)
+	elif _idle_wait_remaining_sec > 0.0 or _idle_fidget_active:
+		set_process(true)
+	else:
+		set_process(false)
 
 
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
@@ -428,8 +435,12 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 
 
 func _process(delta: float) -> void:
+	## Standing fidget wait is presentation-only and must tick even when not translating.
+	_tick_standing_idle_wait(delta)
 	## Interpolates Node2D.position only — never mutates SoldierState or emits gameplay steps.
 	if not _is_moving or _is_dead or _blocks_action_override():
+		if _idle_wait_remaining_sec < 0.0 and not _idle_fidget_active and not _is_moving:
+			set_process(false)
 		return
 
 	var to_target := _move_target_world - position
@@ -613,6 +624,9 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			and _anim.sprite_frames.has_animation(idle_anim_name)
 			and str(_anim.animation).begins_with("%s_" % idle_semantic)
 		):
+			## Sync/facing refresh must not drop a stopped idle timer.
+			if idle_semantic == "idle_standing":
+				_ensure_standing_idle_timer()
 			return
 		if (
 			_applied_position_state == PositionState.DOWN
@@ -705,13 +719,14 @@ func _play_idle_standing(world_direction: String) -> void:
 		push_error("Soldier: idle animation %s has zero frames" % anim_name)
 		_log_idle_standing(anim_name, "EMPTY_FRAMES")
 		return
-	## Already on the held standing pose / CIS — do not restart or re-arm timer.
+	## Already on the held standing pose / CIS — do not restart the wait timer.
 	if str(_anim.animation) == anim_name and not _idle_fidget_active:
 		_played_idle_peek_side = _idle_peek_side
 		if semantic == "idle_standing":
 			if _anim.is_playing():
 				_anim.pause()
 				_anim.frame = 0
+			_ensure_standing_idle_timer()
 			return
 		if semantic.begins_with("corner_idle_"):
 			_corner_phase = CornerPresPhase.IDLE
@@ -728,7 +743,8 @@ func _play_idle_standing(world_direction: String) -> void:
 		if _corner_phase == CornerPresPhase.IDLE:
 			_clear_corner_presentation(false)
 		_played_idle_peek_side = _idle_peek_side
-		_arm_standing_idle_timer()
+		## Facing/camera remaps must not reset an already-running wait.
+		_ensure_standing_idle_timer()
 		_log_idle_standing(anim_name, "HOLD_POSE")
 		return
 	if semantic.begins_with("corner_idle_"):
@@ -1986,7 +2002,8 @@ func _can_standing_fidget() -> bool:
 		return false
 	if _blocks_action_override():
 		return false
-	if _applied_position_state != PositionState.UP:
+	## Allow unset (-1) during first sync: facing can run before position visual.
+	if _applied_position_state == PositionState.DOWN:
 		return false
 	if _idle_peek_side != CoverSystem.PeekSide.NONE:
 		return false
@@ -1995,24 +2012,55 @@ func _can_standing_fidget() -> bool:
 	return true
 
 
-func _arm_standing_idle_timer() -> void:
-	if _idle_timer == null:
+func _ensure_standing_idle_timer() -> void:
+	## Keep an existing wait; only arm when stopped (facing refresh must not reset it).
+	## Always keep _process on while a wait is armed — stop_movement / sync must not freeze it.
+	if _idle_wait_remaining_sec > 0.0:
+		set_process(true)
 		return
+	_arm_standing_idle_timer(true)
+
+
+func _arm_standing_idle_timer(force_restart: bool = true) -> void:
 	if not _can_standing_fidget():
-		_idle_timer.stop()
+		_idle_wait_remaining_sec = -1.0
 		return
-	var delay := GameplayPolicies.idle_anim.random_fidget_delay_sec(_idle_rng)
-	_idle_timer.start(delay)
+	if not force_restart and _idle_wait_remaining_sec > 0.0:
+		return
+	_idle_wait_remaining_sec = GameplayPolicies.idle_anim.random_fidget_delay_sec(_idle_rng)
+	set_process(true)
 	if DEBUG_IDLE_STANDING:
 		GameLog.log_system(
-			"[IdleFidget] arm timer team=%d soldier=%d delay=%.1fs"
-			% [team_id, soldier_id, delay]
+			"[IdleFidget] arm wait team=%d soldier=%d delay=%.1fs"
+			% [team_id, soldier_id, _idle_wait_remaining_sec]
 		)
 
 
+func _tick_standing_idle_wait(delta: float) -> void:
+	if _idle_fidget_active:
+		return
+	if _idle_wait_remaining_sec < 0.0:
+		return
+	if not _can_standing_fidget():
+		## Don't burn the wait while temporarily blocked; pause countdown.
+		return
+	_idle_wait_remaining_sec -= delta
+	if _idle_wait_remaining_sec > 0.0:
+		return
+	_idle_wait_remaining_sec = -1.0
+	if not GameplayPolicies.idle_anim.should_play_fidget(_idle_rng):
+		if DEBUG_IDLE_STANDING:
+			GameLog.log_system(
+				"[IdleFidget] skip (chance miss) team=%d soldier=%d — re-arm"
+				% [team_id, soldier_id]
+			)
+		_arm_standing_idle_timer(true)
+		return
+	_play_standing_idle_fidget()
+
+
 func _cancel_standing_idle() -> void:
-	if _idle_timer != null:
-		_idle_timer.stop()
+	_idle_wait_remaining_sec = -1.0
 	if not _idle_fidget_active:
 		_idle_fidget_semantic = ""
 		return
@@ -2024,19 +2072,9 @@ func _cancel_standing_idle() -> void:
 		)
 
 
-func _on_standing_idle_timer_timeout() -> void:
-	if not _can_standing_fidget():
-		return
-	if not GameplayPolicies.idle_anim.should_play_fidget(_idle_rng):
-		## Most waits expire with no fidget — roll a new delay.
-		_arm_standing_idle_timer()
-		return
-	_play_standing_idle_fidget()
-
-
 func _play_standing_idle_fidget() -> void:
 	if not _can_standing_fidget() or _anim == null or _anim.sprite_frames == null:
-		_arm_standing_idle_timer()
+		_arm_standing_idle_timer(true)
 		return
 	var semantic := GameplayPolicies.idle_anim.pick_fidget_semantic(_idle_rng)
 	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
@@ -2044,14 +2082,16 @@ func _play_standing_idle_fidget() -> void:
 	var anim_name := "%s_%s" % [semantic, display_dir]
 	if not _anim.sprite_frames.has_animation(anim_name):
 		push_warning("Soldier: missing idle fidget %s" % anim_name)
-		_arm_standing_idle_timer()
+		_arm_standing_idle_timer(true)
 		return
 	var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
 	if frame_count <= 0:
-		_arm_standing_idle_timer()
+		_arm_standing_idle_timer(true)
 		return
+	_idle_wait_remaining_sec = -1.0
 	_idle_fidget_active = true
 	_idle_fidget_semantic = semantic
+	set_process(true)
 	_anim.play(anim_name)
 	_log_idle_standing(anim_name, "FIDGET_PLAY")
 
@@ -2063,6 +2103,7 @@ func _finish_standing_idle_fidget(anim_name: String) -> void:
 	## Return to the held standing pose and start a new independent delay.
 	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
 	_play_idle_standing(world_dir)
+	_arm_standing_idle_timer(true)
 
 
 func _log_idle_standing(anim_name: String, status: String) -> void:

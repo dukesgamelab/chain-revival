@@ -4,10 +4,11 @@ extends RefCounted
 ## and standing fidget timing (OG: mostly static pose, rare oneshot fidgets).
 
 ## Independent per-soldier wait before a fidget roll (seconds).
+## TEMP debug tuning: fixed 7s / 50%. Restore OG 7–18s / 20% later.
 const FIDGET_DELAY_MIN_SEC := 7.0
-const FIDGET_DELAY_MAX_SEC := 18.0
+const FIDGET_DELAY_MAX_SEC := 7.0
 ## Chance to actually play a fidget when the wait expires.
-const FIDGET_PLAY_CHANCE := 0.20
+const FIDGET_PLAY_CHANCE := 0.50
 const FIDGET_FPS := 8.0
 
 const FIDGET_SEMANTICS: PackedStringArray = [
