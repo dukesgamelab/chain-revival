@@ -433,8 +433,9 @@ static func execute_move(
 		var ordered_count := 0
 		var notices: Array[String] = []
 		var squad_mode_label := MovementModeClass.display_name(cmd.movement_mode).to_lower()
-		## Preserve current relative tile layout: click is the anchor soldier's destination;
-		## others keep their offsets. Stacked soldiers all go to the click cell.
+		## Preserve relative tile layout: click is the anchor's destination; others keep
+		## offsets. While still moving, offsets come from planned path ends (prior Run To
+		## diamonds) — not drifted mid-path cells — so a redirect keeps the same row/shape.
 		var lead_path: Array[Vector2i] = []
 		var lead_start := Vector2i(-999, -999)
 		var orderable: Array[SoldierState] = []
@@ -452,8 +453,12 @@ static func execute_move(
 			if not notices.is_empty():
 				return ActionResult.fail(notices[0])
 			return ActionResult.fail("No soldiers could %s to that tile." % squad_mode_label)
+		## Capture formation refs before any assign/clear_path mutates movers.
+		var formation_refs: Dictionary = {} ## soldier_id -> Vector2i
+		for squad_soldier in orderable:
+			formation_refs[squad_soldier.soldier_id] = _formation_reference_cell(squad_soldier)
 		var anchor: SoldierState = orderable[0]
-		var anchor_pos := anchor.grid_position
+		var anchor_pos: Vector2i = formation_refs[anchor.soldier_id]
 		var squad_target := cmd.target_cell
 		if _acting_is_ai(game_state, context):
 			squad_target = _clamp_cell_to_fireteam_cohesion(
@@ -465,10 +470,11 @@ static func execute_move(
 		var max_full_pathfinds := 2 if _acting_is_ai(game_state, context) else 4
 		for squad_soldier in orderable:
 			var squad_move_result := _resolve_move_order(squad_soldier, cmd.movement_mode)
+			var member_ref: Vector2i = formation_refs[squad_soldier.soldier_id]
 			var member_target := _squad_relative_formation_cell(
 				game_state.map_data,
 				squad_target,
-				squad_soldier.grid_position - anchor_pos,
+				member_ref - anchor_pos,
 			)
 			if _acting_is_ai(game_state, context):
 				var peers := _living_fireteam_positions(fireteam, squad_soldier.soldier_id)
@@ -1144,7 +1150,16 @@ static func arm_movement_mode_for_soldier(
 	return "\n".join(lines)
 
 
-## Translate current formation offset onto the click cell. Stacked (0,0) → all on click.
+## Cell used for squad formation offsets: planned Run To end while moving, else stand cell.
+static func _formation_reference_cell(state: SoldierState) -> Vector2i:
+	if state == null:
+		return Vector2i.ZERO
+	if state.is_moving and not state.current_path.is_empty():
+		return state.current_path[state.current_path.size() - 1]
+	return state.grid_position
+
+
+## Translate formation offset onto the click cell. Stacked (0,0) → all on click.
 static func _squad_relative_formation_cell(
 	map_data: MapData,
 	base: Vector2i,
@@ -1297,6 +1312,10 @@ static func _assign_translated_squad_path(
 			)
 			if cheb <= 1:
 				path[path.size() - 1] = member_target
+	## Mid-run redirects: grid-delta translation can miss the planned formation cell.
+	## Refuse and let the caller full-pathfind to member_target instead.
+	if member_target.x > -900 and path[path.size() - 1] != member_target:
+		return false
 	if state.is_moving:
 		result.movement_halts.append({
 			"team_id": state.team_id,

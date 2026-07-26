@@ -28,6 +28,7 @@ func _ready() -> void:
 	_bootstrap()
 	_test_fortress_map_loads()
 	_test_soldier_movement()
+	_test_squad_run_to_redirect_keeps_formation()
 	_test_firing()
 	_test_grenade_throwing()
 	_test_los_fixture()
@@ -211,6 +212,68 @@ func _test_soldier_movement() -> void:
 		soldier.grid_position == target,
 		"expected %s got %s" % [target, soldier.grid_position],
 	)
+
+
+func _test_squad_run_to_redirect_keeps_formation() -> void:
+	## Mid-run squad redirect must keep the prior destination shape, not mid-path cells.
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var fireteam := game_state.session.get_fireteam(Team.USA)
+	var line_origin := Vector2i(10, 20)
+	var first_click := Vector2i(20, 20)
+	var second_click := Vector2i(30, 20)
+	var soldiers: Array[SoldierState] = []
+	for i in range(mini(4, fireteam.soldiers.size())):
+		var soldier: SoldierState = fireteam.soldiers[i]
+		soldier.grid_position = line_origin + Vector2i(i, 0)
+		soldier.clear_path()
+		soldiers.append(soldier)
+	_assert("squad formation test has 4 soldiers", soldiers.size() == 4, "got %d" % soldiers.size())
+
+	var cmd1 := MoveCommandClass.new()
+	cmd1.team_id = Team.USA
+	cmd1.target_cell = first_click
+	cmd1.movement_mode = MovementModeClass.RUN
+	cmd1.scope = MoveCommandClass.Scope.SQUAD
+	var result1 := ActionResolverClass.execute_move(game_state, cmd1, _path_context(map_data))
+	_assert("first squad Run To succeeds", result1.success, result1.status_message)
+
+	var first_ends: Dictionary = {}
+	for soldier in soldiers:
+		_assert(
+			"soldier %d moving after first Run To" % soldier.soldier_id,
+			soldier.is_moving and not soldier.current_path.is_empty(),
+		)
+		first_ends[soldier.soldier_id] = soldier.current_path[soldier.current_path.size() - 1]
+
+	## Drift mid-path cells so a bug using grid_position would collapse the line.
+	soldiers[0].grid_position = Vector2i(14, 20)
+	soldiers[1].grid_position = Vector2i(14, 20)
+	soldiers[2].grid_position = Vector2i(15, 21)
+	soldiers[3].grid_position = Vector2i(13, 19)
+
+	var cmd2 := MoveCommandClass.new()
+	cmd2.team_id = Team.USA
+	cmd2.target_cell = second_click
+	cmd2.movement_mode = MovementModeClass.RUN
+	cmd2.scope = MoveCommandClass.Scope.SQUAD
+	var result2 := ActionResolverClass.execute_move(game_state, cmd2, _path_context(map_data))
+	_assert("redirect squad Run To succeeds", result2.success, result2.status_message)
+
+	var anchor_id: int = soldiers[0].soldier_id
+	var first_anchor: Vector2i = first_ends[anchor_id]
+	for soldier in soldiers:
+		var expected_offset: Vector2i = first_ends[soldier.soldier_id] - first_anchor
+		var expected_end := second_click + expected_offset
+		var got_end := soldier.current_path[soldier.current_path.size() - 1]
+		_assert(
+			"redirect keeps formation for soldier %d" % soldier.soldier_id,
+			got_end == expected_end,
+			"expected %s got %s (offset %s)" % [expected_end, got_end, expected_offset],
+		)
 
 
 func _test_firing() -> void:
