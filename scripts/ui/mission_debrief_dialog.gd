@@ -54,7 +54,8 @@ func _build_layout() -> void:
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(_body)
 
-	custom_minimum_size = Vector2(720, 520)
+	## AcceptDialog is a Window — use min_size, not Control.custom_minimum_size.
+	min_size = Vector2(860, 560)
 
 
 func _rebuild_content() -> void:
@@ -95,8 +96,10 @@ func _build_fireteam_panel() -> PanelContainer:
 	var panel := _inset_panel()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_stretch_ratio = 1.0
+	panel.custom_minimum_size = Vector2(260, 0)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_child(col)
 	col.add_child(_header("YOU AND YOUR FIRETEAM", 14))
 
@@ -127,20 +130,25 @@ func _build_fireteam_panel() -> PanelContainer:
 func _build_victory_points_panel() -> PanelContainer:
 	var panel := _inset_panel()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.size_flags_stretch_ratio = 1.35
+	panel.size_flags_stretch_ratio = 1.6
+	panel.custom_minimum_size = Vector2(420, 0)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_child(col)
 	col.add_child(_header("MISSION VICTORY POINTS", 14))
 
 	var grid := GridContainer.new()
 	grid.columns = 4
-	grid.add_theme_constant_override("h_separation", 10)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 4)
 	col.add_child(grid)
 
-	for h in ["Side", "Points for Kills", "Points for Terrain Objectives", "Total Points"]:
-		grid.add_child(_body_label(h, true))
+	var headers := ["Side", "Points for Kills", "Points for Terrain Objectives", "Total Points"]
+	var header_mins := [88.0, 110.0, 150.0, 90.0]
+	for i in headers.size():
+		grid.add_child(_table_cell(headers[i], Color(0, 0, 0, 0), header_mins[i], true))
 
 	_add_score_row(grid, "Americans", Team.USA, Color(0.78, 0.88, 0.72, 1.0))
 	_add_score_row(grid, "Germans", Team.GERMANY, Color(0.70, 0.82, 0.62, 1.0))
@@ -151,57 +159,82 @@ func _add_score_row(grid: GridContainer, side: String, team_id: int, tint: Color
 	var kills := int(_game_state.team_kill_points.get(team_id, 0))
 	var terrain := int(_game_state.team_terrain_points.get(team_id, 0))
 	var total := ScenarioRulesClass.total_points(_game_state, team_id)
-	for text in [side, str(kills), str(terrain), str(total)]:
-		var cell := PanelContainer.new()
-		var style := StyleBoxFlat.new()
-		style.bg_color = tint
-		style.set_content_margin_all(3)
-		cell.add_theme_stylebox_override("panel", style)
-		var lab := _body_label(text, false)
-		lab.add_theme_color_override("font_color", Color(0.05, 0.05, 0.05, 1.0))
-		cell.add_child(lab)
-		grid.add_child(cell)
+	var mins := [88.0, 110.0, 150.0, 90.0]
+	var texts := [side, str(kills), str(terrain), str(total)]
+	for i in texts.size():
+		grid.add_child(_table_cell(texts[i], tint, mins[i], false))
+
+
+func _table_cell(text: String, tint: Color, min_width: float, is_header: bool) -> PanelContainer:
+	var cell := PanelContainer.new()
+	cell.custom_minimum_size = Vector2(min_width, 0)
+	cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style := StyleBoxFlat.new()
+	style.bg_color = tint if tint.a > 0.0 else Color(0, 0, 0, 0)
+	style.set_content_margin_all(4)
+	cell.add_theme_stylebox_override("panel", style)
+	var lab := Label.new()
+	lab.text = text
+	## No autowrap — prevents the 1-character-wide vertical stack bug.
+	lab.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lab.clip_text = false
+	lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	lab.add_theme_font_size_override("font_size", 12)
+	lab.add_theme_color_override("font_color", Color(0.05, 0.05, 0.05, 1.0))
+	if is_header:
+		lab.add_theme_font_size_override("font_size", 11)
+	cell.add_child(lab)
+	return cell
 
 
 func _build_promotion_panel() -> PanelContainer:
 	var panel := _inset_panel()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_child(col)
 	col.add_child(_header("PROMOTION POINTS (PPs)", 14))
 
 	var grid := GridContainer.new()
 	grid.columns = 4
-	grid.add_theme_constant_override("h_separation", 12)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 4)
 	col.add_child(grid)
-	for h in [
+	var pp_headers := [
 		"Player",
 		"Rank (PPs) at Mission start",
 		"Current Rank (+PPs)",
 		"PPs required to gain next Rank",
-	]:
-		grid.add_child(_body_label(h, true))
+	]
+	var pp_mins := [120.0, 170.0, 140.0, 160.0]
+	for i in pp_headers.size():
+		grid.add_child(_table_cell(pp_headers[i], Color(0, 0, 0, 0), pp_mins[i], true))
 
 	var hierarchy: CommandHierarchyClass = _game_state.command_hierarchy
 	var local_pid := _game_state.local_player_id
+	var row_texts: Array[String] = ["Commander", "PFC [0]", "PFC [0]", "500"]
 	if hierarchy != null and hierarchy.has_player(local_pid):
 		var entry := hierarchy.get_entry(local_pid)
 		var rank := int(entry.get("rank", 1))
 		var pp := int(entry.get("pp", 0))
 		var name := str(entry.get("display_name", "Commander"))
-		var rank_label := CommandHierarchyClass.RANK_LABELS[clampi(rank, 0, CommandHierarchyClass.RANK_LABELS.size() - 1)]
-		var next_need := int(CommandHierarchyClass.PP_TO_NEXT_RANK.get(rank, 500))
-		grid.add_child(_body_label(name, false))
-		grid.add_child(_body_label("%s [%d]" % [rank_label, 0], false))
-		grid.add_child(_body_label("%s [%d]" % [rank_label, pp], false))
-		grid.add_child(_body_label(str(next_need), false))
-	else:
-		grid.add_child(_body_label("Commander", false))
-		grid.add_child(_body_label("PFC [0]", false))
-		grid.add_child(_body_label("PFC [0]", false))
-		grid.add_child(_body_label("500", false))
+		var rank_label: String = str(
+			CommandHierarchyClass.RANK_LABELS[
+				clampi(rank, 0, CommandHierarchyClass.RANK_LABELS.size() - 1)
+			]
+		)
+		var next_need: int = int(CommandHierarchyClass.PP_TO_NEXT_RANK.get(rank, 500))
+		row_texts = [
+			name,
+			"%s [%d]" % [rank_label, 0],
+			"%s [%d]" % [rank_label, pp],
+			str(next_need),
+		]
+	for i in row_texts.size():
+		grid.add_child(_table_cell(row_texts[i], Color(0, 0, 0, 0), pp_mins[i], false))
 
 	var subs := PanelContainer.new()
 	subs.custom_minimum_size = Vector2(0, 72)

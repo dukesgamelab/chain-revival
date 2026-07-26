@@ -15,8 +15,9 @@ extends RefCounted
 ##   Aim corner L/R:    ALCAS·ARCAS / GLCAS·GRCAS (A) → corner_aim_left_* / corner_aim_right_*
 ##   Peek corner L/R:   ALCPA·ARCPA / GLCPA·GRCPA (A–C) → corner_peek_left_* / corner_peek_right_*
 ##   Idle prone (Ger):  GPRIS          (A)    → idle_prone_*
-##   Stand→prone (Ger): GSUPA          (A–X)  → transition_standing_to_prone_*
-##   Prone→stand (Ger): GPRNA          (A–E)  → transition_prone_to_standing_*
+##   Stand↔prone:       APRNA / GPRNA  (E-A-B-C-D up; D-C-B-A-E down) → transition_*
+##   Crawl:             APMOA / GPMOA  (A–V)  → crawl_*
+##   (ASUPA/GSUPA were previously mis-mapped as stand→prone; packs retained, unused here.)
 ##   Fall/death:        AFALA / GFALA  (A–W)
 ##   Corpse (US):       ADDSS / ADOAS / ADFUS / ADLYS  (A) → dead_<family>_*
 ##   Corpse (German):   GDLYS / GDFUS                   (A) → dead_<family>_*

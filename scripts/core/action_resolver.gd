@@ -1468,6 +1468,11 @@ static func validate_move(soldier: SoldierState, mode: int) -> String:
 static func _validate_move(soldier: SoldierState, mode: int) -> String:
 	if soldier == null or soldier.is_dead:
 		return "Soldier unavailable."
+	## Run may cancel a deferred stance (force stand). Other moves pause until transition ends.
+	## Gameplay position_state commits only in commit_stance_transition; pending_* is the
+	## presentation-transition gate so visuals can finish once without sim movement.
+	if soldier.pending_position_state >= 0 and mode != MovementModeClass.RUN:
+		return "Soldier is changing stance."
 	_stand_up_for_run(soldier, mode)
 	if not MovementModeClass.is_allowed(soldier.position_state, mode):
 		return "Cannot %s while DOWN." % MovementModeClass.display_name(mode)
@@ -1492,10 +1497,14 @@ static func _animation_family_for_soldier(soldier: SoldierState) -> String:
 
 static func _has_stance_transitions(family_id: String) -> bool:
 	AnimationDatabase.ensure_loaded()
-	return (
-		not AnimationDatabase.get_animation(family_id, "transition_standing_to_prone").is_empty()
-		and not AnimationDatabase.get_animation(family_id, "transition_prone_to_standing").is_empty()
+	## Require wired frame lists — empty stubs must not enable deferred stance.
+	var down := AnimationDatabase.get_direction_frames(
+		family_id, "transition_standing_to_prone", "n"
 	)
+	var up := AnimationDatabase.get_direction_frames(
+		family_id, "transition_prone_to_standing", "n"
+	)
+	return not down.is_empty() and not up.is_empty()
 
 
 static func _start_cell_for_soldier(_context: CommandContext, state: SoldierState) -> Vector2i:

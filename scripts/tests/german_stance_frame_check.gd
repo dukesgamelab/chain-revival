@@ -1,32 +1,70 @@
 extends Node
-## Headless validation for German stance idles + transitions.
+## Headless validation for USA/German stance transitions + crawl mappings.
 ## Run: Godot --headless --path <project> res://scripts/tests/german_stance_frame_check.tscn
 
 
 const DIRS: Array[String] = ["n", "ne", "e", "se", "s", "sw", "w", "nw"]
-const FAMILY := "german_rifle"
-const EXPECTED_FPS := 8.0
+const PRONE_TO_STAND_ORDER: Array[String] = ["E", "A", "B", "C", "D"]
+const STAND_TO_PRONE_ORDER: Array[String] = ["D", "C", "B", "A", "E"]
+const CRAWL_ORDER: Array[String] = [
+	"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K",
+	"L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V",
+]
+const EXPECTED_FPS := 10.0
 
 
 func _ready() -> void:
 	UsSoldierSpriteFrames.reload_cached_frames()
 	var failures: Array[String] = []
 
-	failures.append_array(_validate_anim("idle_standing", "GBRLA", true, 21))
-	failures.append_array(_validate_anim("idle_prone", "GPRIS", true, 1))
 	failures.append_array(
-		_validate_anim("transition_prone_to_standing", "GPRNA", false, 5)
+		_validate_transition(
+			"us_rifle",
+			"transition_prone_to_standing",
+			"APRNA",
+			PRONE_TO_STAND_ORDER,
+		)
 	)
 	failures.append_array(
-		_validate_anim("transition_standing_to_prone", "GSUPA", false, 24)
+		_validate_transition(
+			"german_rifle",
+			"transition_prone_to_standing",
+			"GPRNA",
+			PRONE_TO_STAND_ORDER,
+		)
 	)
-	failures.append_array(_validate_runtime())
+	failures.append_array(
+		_validate_transition(
+			"us_rifle",
+			"transition_standing_to_prone",
+			"APRNA",
+			STAND_TO_PRONE_ORDER,
+		)
+	)
+	failures.append_array(
+		_validate_transition(
+			"german_rifle",
+			"transition_standing_to_prone",
+			"GPRNA",
+			STAND_TO_PRONE_ORDER,
+		)
+	)
+	failures.append_array(_validate_crawl("us_rifle", "APMOA"))
+	failures.append_array(_validate_crawl("german_rifle", "GPMOA"))
+	failures.append_array(_validate_no_forbidden_stance_refs())
+	failures.append_array(_validate_runtime_sprite_frames())
 	failures.append_array(_validate_camera_maps())
-	failures.append_array(_validate_usa_has_no_german_transitions())
+	failures.append_array(_validate_shared_family_entries())
+	failures.append_array(_validate_presentation_guards())
+
+	## German idle packs (unchanged by this correction).
+	failures.append_array(_validate_german_idles())
 
 	print("=== german_stance_frame_check ===")
 	if failures.is_empty():
-		print("PASS: German stance families OK (GBRLA/GPRIS/GPRNA/GSUPA)")
+		print(
+			"PASS: stance APRNA/GPRNA EABCD+DCBAE @10fps; crawl APMOA/GPMOA A-V @10fps loop"
+		)
 		get_tree().quit(0)
 	else:
 		print("FAIL count=%d" % failures.size())
@@ -35,81 +73,153 @@ func _ready() -> void:
 		get_tree().quit(1)
 
 
-func _validate_anim(
+func _validate_transition(
+	family_id: String,
 	semantic: String,
 	expected_source: String,
-	expect_loop: bool,
-	expected_frames: int,
+	letter_order: Array[String],
 ) -> Array[String]:
 	var fails: Array[String] = []
-	var anim := AnimationDatabase.get_animation(FAMILY, semantic)
+	var anim := AnimationDatabase.get_animation(family_id, semantic)
 	if anim.is_empty():
-		fails.append("%s missing from german_rifle" % semantic)
+		fails.append("%s/%s missing" % [family_id, semantic])
 		return fails
-	var meta: Dictionary = anim.get("metadata", {}) if anim.get("metadata", {}) is Dictionary else {}
+	var meta: Dictionary = (
+		anim.get("metadata", {}) if anim.get("metadata", {}) is Dictionary else {}
+	)
 	if str(meta.get("source_family", "")) != expected_source:
 		fails.append(
-			"%s source_family=%s expected %s"
-			% [semantic, meta.get("source_family", ""), expected_source]
+			"%s/%s source_family=%s expected %s"
+			% [family_id, semantic, meta.get("source_family", ""), expected_source]
 		)
-	if bool(anim.get("loop", false)) != expect_loop:
-		fails.append("%s loop=%s expected %s" % [semantic, anim.get("loop", false), expect_loop])
+	if bool(anim.get("loop", true)):
+		fails.append("%s/%s loop=true expected false" % [family_id, semantic])
 	var fps := float(anim.get("fps", 0.0))
 	if not is_equal_approx(fps, EXPECTED_FPS):
-		fails.append("%s fps=%.1f expected %.1f" % [semantic, fps, EXPECTED_FPS])
-
+		fails.append("%s/%s fps=%.1f expected %.1f" % [family_id, semantic, fps, EXPECTED_FPS])
 	for direction in DIRS:
-		var frames := AnimationDatabase.get_direction_frames(FAMILY, semantic, direction)
-		if frames.size() != expected_frames:
+		var frames := AnimationDatabase.get_direction_frames(family_id, semantic, direction)
+		if frames.size() != letter_order.size():
 			fails.append(
-				"%s %s: frames=%d expected %d"
-				% [semantic, direction, frames.size(), expected_frames]
+				"%s/%s %s: frames=%d expected %d"
+				% [family_id, semantic, direction, frames.size(), letter_order.size()]
 			)
 			continue
+		var digit := _digit_for_direction(direction)
 		for i in frames.size():
 			var path := str(frames[i])
 			if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
-				fails.append("%s missing file: %s" % [semantic, path])
-			var expected_letter := String.chr(ord("A") + i)
-			var expected_digit := _digit_for_direction(direction)
-			var expected_name := "%s%d%s.png" % [expected_source, expected_digit, expected_letter]
+				fails.append("%s/%s missing file: %s" % [family_id, semantic, path])
+			var expected_name := "%s%d%s.png" % [expected_source, digit, letter_order[i]]
 			if path.get_file() != expected_name:
 				fails.append(
-					"%s %s[%d]: got %s expected %s"
-					% [semantic, direction, i, path.get_file(), expected_name]
+					"%s/%s %s[%d]: got %s expected %s"
+					% [family_id, semantic, direction, i, path.get_file(), expected_name]
+				)
+			## Forbidden packs must never appear in stance transitions.
+			var fname := path.get_file()
+			if (
+				fname.begins_with("ASUPA")
+				or fname.begins_with("GSUPA")
+				or fname.begins_with("ASTGA")
+				or fname.begins_with("GSPRA")
+			):
+				fails.append("%s/%s forbidden frame %s" % [family_id, semantic, fname])
+	return fails
+
+
+func _validate_crawl(family_id: String, expected_source: String) -> Array[String]:
+	var fails: Array[String] = []
+	var anim := AnimationDatabase.get_animation(family_id, "crawl")
+	if anim.is_empty():
+		fails.append("%s/crawl missing" % family_id)
+		return fails
+	var meta: Dictionary = (
+		anim.get("metadata", {}) if anim.get("metadata", {}) is Dictionary else {}
+	)
+	if str(meta.get("source_family", "")) != expected_source:
+		fails.append(
+			"%s/crawl source_family=%s expected %s"
+			% [family_id, meta.get("source_family", ""), expected_source]
+		)
+	if not bool(anim.get("loop", false)):
+		fails.append("%s/crawl loop=false expected true" % family_id)
+	var fps := float(anim.get("fps", 0.0))
+	if not is_equal_approx(fps, EXPECTED_FPS):
+		fails.append("%s/crawl fps=%.1f expected %.1f" % [family_id, fps, EXPECTED_FPS])
+	for direction in DIRS:
+		var frames := AnimationDatabase.get_direction_frames(family_id, "crawl", direction)
+		if frames.size() != 22:
+			fails.append(
+				"%s/crawl %s: frames=%d expected 22" % [family_id, direction, frames.size()]
+			)
+			continue
+		var digit := _digit_for_direction(direction)
+		for i in frames.size():
+			var path := str(frames[i])
+			if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
+				fails.append("%s/crawl missing file: %s" % [family_id, path])
+			var expected_name := "%s%d%s.png" % [expected_source, digit, CRAWL_ORDER[i]]
+			if path.get_file() != expected_name:
+				fails.append(
+					"%s/crawl %s[%d]: got %s expected %s"
+					% [family_id, direction, i, path.get_file(), expected_name]
 				)
 	return fails
 
 
-func _validate_runtime() -> Array[String]:
+func _validate_no_forbidden_stance_refs() -> Array[String]:
 	var fails: Array[String] = []
-	var sf := UsSoldierSpriteFrames.get_germany_sprite_frames()
-	var checks := {
-		"idle_standing": {"frames": 21, "loop": true},
-		"idle_prone": {"frames": 1, "loop": true},
-		"transition_prone_to_standing": {"frames": 5, "loop": false},
-		"transition_standing_to_prone": {"frames": 24, "loop": false},
+	for family_id in ["us_rifle", "german_rifle", "us_smg", "us_bar", "german_smg", "german_mg42"]:
+		for semantic in ["transition_standing_to_prone", "transition_prone_to_standing"]:
+			for direction in DIRS:
+				for path_v in AnimationDatabase.get_direction_frames(family_id, semantic, direction):
+					var fname := str(path_v).get_file()
+					if (
+						fname.begins_with("ASUPA")
+						or fname.begins_with("GSUPA")
+						or fname.begins_with("ASTGA")
+						or fname.begins_with("GSPRA")
+					):
+						fails.append("%s/%s still references %s" % [family_id, semantic, fname])
+	return fails
+
+
+func _validate_runtime_sprite_frames() -> Array[String]:
+	var fails: Array[String] = []
+	var packs := {
+		"USA": UsSoldierSpriteFrames.get_usa_sprite_frames(),
+		"Germany": UsSoldierSpriteFrames.get_germany_sprite_frames(),
 	}
-	for semantic in checks.keys():
-		var expect: Dictionary = checks[semantic]
-		for direction in DIRS:
-			var anim_name := "%s_%s" % [semantic, direction]
-			if not sf.has_animation(anim_name):
-				fails.append("runtime missing %s" % anim_name)
-				continue
-			var count := sf.get_frame_count(anim_name)
-			var loop := sf.get_animation_loop(anim_name)
-			var fps := sf.get_animation_speed(anim_name)
-			print(
-				"%s frames=%d fps=%.1f loop=%s"
-				% [anim_name, count, fps, loop]
-			)
-			if count != int(expect.frames):
-				fails.append("%s frames=%d expected %d" % [anim_name, count, expect.frames])
-			if loop != bool(expect.loop):
-				fails.append("%s loop=%s expected %s" % [anim_name, loop, expect.loop])
-			if not is_equal_approx(fps, EXPECTED_FPS):
-				fails.append("%s fps=%.1f expected %.1f" % [anim_name, fps, EXPECTED_FPS])
+	var checks := {
+		"transition_prone_to_standing": {"frames": 5, "loop": false},
+		"transition_standing_to_prone": {"frames": 5, "loop": false},
+		"crawl": {"frames": 22, "loop": true},
+	}
+	for label in packs.keys():
+		var sf: SpriteFrames = packs[label]
+		for semantic in checks.keys():
+			var expect: Dictionary = checks[semantic]
+			for direction in DIRS:
+				var anim_name := "%s_%s" % [semantic, direction]
+				if not sf.has_animation(anim_name):
+					fails.append("%s runtime missing %s" % [label, anim_name])
+					continue
+				var count := sf.get_frame_count(anim_name)
+				var loop := sf.get_animation_loop(anim_name)
+				var fps := sf.get_animation_speed(anim_name)
+				if count != int(expect.frames):
+					fails.append(
+						"%s %s frames=%d expected %d" % [label, anim_name, count, expect.frames]
+					)
+				if loop != bool(expect.loop):
+					fails.append(
+						"%s %s loop=%s expected %s" % [label, anim_name, loop, expect.loop]
+					)
+				if not is_equal_approx(fps, EXPECTED_FPS):
+					fails.append(
+						"%s %s fps=%.1f expected %.1f" % [label, anim_name, fps, EXPECTED_FPS]
+					)
 	return fails
 
 
@@ -119,15 +229,80 @@ func _validate_camera_maps() -> Array[String]:
 		fails.append("camera 0° should leave ne as ne")
 	if AnimationDatabase.display_direction("w", 180) != "e":
 		fails.append("camera 180° should map w → e")
+	## Stance transitions resolve through the same display_direction remap.
+	var usa_ne := AnimationDatabase.resolve_frames(
+		"us_rifle", "transition_prone_to_standing", "ne", 0.0
+	)
+	var usa_ne_rot := AnimationDatabase.resolve_frames(
+		"us_rifle", "transition_prone_to_standing", "ne", 180.0
+	)
+	if usa_ne.is_empty() or usa_ne_rot.is_empty():
+		fails.append("resolve_frames returned empty for USA prone→stand")
+	elif str(usa_ne[0]).get_file() != "APRNA6E.png":
+		fails.append("USA ne@0° first frame=%s expected APRNA6E.png" % str(usa_ne[0]).get_file())
+	elif str(usa_ne_rot[0]).get_file() != "APRNA2E.png":
+		## ne @ 180° → sw (digit 2)
+		fails.append(
+			"USA ne@180° first frame=%s expected APRNA2E.png" % str(usa_ne_rot[0]).get_file()
+		)
 	return fails
 
 
-func _validate_usa_has_no_german_transitions() -> Array[String]:
+func _validate_shared_family_entries() -> Array[String]:
+	## AI and human both resolve through us_rifle / german_rifle DB families.
 	var fails: Array[String] = []
-	if not AnimationDatabase.get_animation("us_rifle", "transition_standing_to_prone").is_empty():
-		fails.append("USA should not have German standing→prone transition yet")
-	if not AnimationDatabase.get_animation("us_rifle", "idle_prone").is_empty():
-		fails.append("USA should not have German idle_prone yet")
+	for fam in ["us_smg", "us_bar"]:
+		var src := str(
+			AnimationDatabase.get_animation(fam, "crawl").get("metadata", {}).get(
+				"source_family", ""
+			)
+		)
+		if src != "APMOA":
+			fails.append("%s crawl source_family=%s expected APMOA" % [fam, src])
+	for fam in ["german_smg", "german_mg42"]:
+		var src := str(
+			AnimationDatabase.get_animation(fam, "crawl").get("metadata", {}).get(
+				"source_family", ""
+			)
+		)
+		if src != "GPMOA":
+			fails.append("%s crawl source_family=%s expected GPMOA" % [fam, src])
+	return fails
+
+
+func _validate_presentation_guards() -> Array[String]:
+	## Guard logic lives on Soldier; assert the locomotion prefix + restart contract.
+	var fails: Array[String] = []
+	var soldier_script := load("res://scripts/soldiers/soldier.gd") as GDScript
+	if soldier_script == null:
+		fails.append("could not load soldier.gd")
+		return fails
+	var source := FileAccess.get_file_as_string("res://scripts/soldiers/soldier.gd")
+	if not source.contains("_locomotion_move_prefix"):
+		fails.append("soldier.gd missing crawl locomotion prefix helper")
+	if not source.contains("Do not restart crawl/walk"):
+		fails.append("soldier.gd missing crawl/walk restart preservation comment/guard")
+	if not source.contains("if _stance_transition_active:"):
+		fails.append("soldier.gd missing stance-transition restart guard")
+	if not source.contains("stance_transition_finished.emit"):
+		fails.append("soldier.gd missing transition completion signal")
+	## ActionResolver: deferred stance + move pause while pending.
+	var resolver := FileAccess.get_file_as_string("res://scripts/core/action_resolver.gd")
+	if not resolver.contains("Soldier is changing stance"):
+		fails.append("action_resolver.gd missing move-pause during pending stance")
+	if not resolver.contains("commit_stance_transition"):
+		fails.append("action_resolver.gd missing commit_stance_transition")
+	return fails
+
+
+func _validate_german_idles() -> Array[String]:
+	var fails: Array[String] = []
+	var standing := AnimationDatabase.get_animation("german_rifle", "idle_standing")
+	var prone := AnimationDatabase.get_animation("german_rifle", "idle_prone")
+	if str(standing.get("metadata", {}).get("source_family", "")) != "GBRLA":
+		fails.append("german idle_standing source drift")
+	if str(prone.get("metadata", {}).get("source_family", "")) != "GPRIS":
+		fails.append("german idle_prone source drift")
 	return fails
 
 

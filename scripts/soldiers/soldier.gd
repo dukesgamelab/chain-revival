@@ -11,7 +11,8 @@ const UsSoldierSpriteFrames := preload("res://scripts/soldiers/us_soldier_sprite
 ## not the on-screen soldier height. Same scale for USA and Germany.
 const OG_FRAME_SIZE := Vector2(100.0, 100.0)
 const OG_SPRITE_SCALE := Vector2(1.6, 1.6)
-const _PRONE_SPRITE_SCALE := Vector2(1.15, 0.42)
+## Prone/crawl art is already drawn lying down — do NOT squash Y (that flattened
+## sprites and made roster markers look like dashes).
 
 signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i)
 signal movement_finished(team_id: int, soldier_id: int)
@@ -223,11 +224,12 @@ func _refresh_id_marker(state: SoldierState) -> void:
 		_load_id_marker_textures()
 	var idx := roster_marker_index(state.soldier_id)
 	var crouched := state.position_state == PositionState.DOWN
-	var textures: Array[Texture2D] = _dtt_textures if crouched else _dot_textures
-	if idx < 0 or idx >= textures.size() or textures[idx] == null:
+	## Always use DOT* roster icons. DTT* are horizontally flattened OG variants that
+	## read as "dashes" once prone art is shown at full scale.
+	if idx < 0 or idx >= _dot_textures.size() or _dot_textures[idx] == null:
 		_id_marker.visible = false
 		return
-	_id_marker.texture = textures[idx]
+	_id_marker.texture = _dot_textures[idx]
 	_id_marker.scale = ID_MARKER_SCALE
 	_id_marker.offset = Vector2.ZERO
 	_id_marker.modulate = Color.WHITE
@@ -281,6 +283,10 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 
 
 func _apply_position_visual(state: SoldierState) -> void:
+	## Presentation transition owns applied stance until animation completes.
+	## Gameplay may still hold the prior position_state via pending_position_state.
+	if _stance_transition_active:
+		return
 	if not _is_dead and state.position_state == _applied_position_state:
 		return
 	_applied_position_state = state.position_state
@@ -301,8 +307,8 @@ func _standing_sprite_scale() -> Vector2:
 
 
 func _prone_sprite_scale() -> Vector2:
-	var base := OG_SPRITE_SCALE * TileSizeConfig.SOLDIER_SCALE
-	return Vector2(base.x * _PRONE_SPRITE_SCALE.x, base.y * _PRONE_SPRITE_SCALE.y)
+	## Same uniform scale as standing — APRNA/APMOA/idle_prone frames supply the pose.
+	return _standing_sprite_scale()
 
 
 func is_moving() -> bool:
@@ -546,10 +552,14 @@ func _update_locomotion_visual(step: Vector2i, walking: bool) -> void:
 func _play_locomotion(direction: String, walking: bool) -> void:
 	if _anim.sprite_frames == null:
 		return
+	## Presentation-only: prone locomotion uses crawl_* (APMOA/GPMOA). No root motion.
+	var move_prefix := _locomotion_move_prefix()
 	if walking and _locomotion_direction == direction and _locomotion_walking:
-		if not _anim.is_playing():
-			_anim.play("walk_%s" % direction)
-		return
+		## Do not restart crawl/walk while stance, logical anim, and facing are unchanged.
+		if str(_anim.animation).begins_with("%s_" % move_prefix):
+			if not _anim.is_playing():
+				_anim.play("%s_%s" % [move_prefix, direction])
+			return
 	if not walking and _locomotion_direction == direction and not _locomotion_walking:
 		## Already stationary in this world facing — keep current idle pose
 		## unless peek side changed or we still need to start the correct idle.
@@ -569,7 +579,10 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 					not _anim.sprite_frames.has_animation(
 						"idle_prone_%s" % _idle_display_direction(direction)
 					)
-					and str(_anim.animation).begins_with("walk_")
+					and (
+						str(_anim.animation).begins_with("walk_")
+						or str(_anim.animation).begins_with("crawl_")
+					)
 				)
 			)
 		):
@@ -579,11 +592,14 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 	_locomotion_walking = walking
 
 	if walking:
-		var walk_name := "walk_%s" % direction
-		if not _anim.sprite_frames.has_animation(walk_name):
-			push_warning("Soldier: missing animation %s" % walk_name)
+		var move_name := "%s_%s" % [move_prefix, direction]
+		if not _anim.sprite_frames.has_animation(move_name) and move_prefix == "crawl":
+			## Fallback if a family still has an empty crawl stub.
+			move_name = "walk_%s" % direction
+		if not _anim.sprite_frames.has_animation(move_name):
+			push_warning("Soldier: missing animation %s" % move_name)
 			return
-		_anim.play(walk_name)
+		_anim.play(move_name)
 		return
 
 	## Stationary: prone idle, or standing open/corner CIS idle.
@@ -592,6 +608,13 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		return
 
 	_play_idle_standing(direction)
+
+
+func _locomotion_move_prefix() -> String:
+	## Authoritative stance may already be committed; presentation uses applied stance.
+	if _applied_position_state == PositionState.DOWN:
+		return "crawl"
+	return "walk"
 
 
 func _idle_display_direction(world_direction: String) -> String:
@@ -1499,10 +1522,10 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return _idle_source_family()
 		"idle_prone":
 			return _prone_idle_source_family()
-		"transition_standing_to_prone":
-			return "GSUPA" if team_id == Team.GERMANY else "?"
-		"transition_prone_to_standing":
-			return "GPRNA" if team_id == Team.GERMANY else "?"
+		"transition_standing_to_prone", "transition_prone_to_standing":
+			return "APRNA" if team_id == Team.USA else "GPRNA"
+		"crawl":
+			return "APMOA" if team_id == Team.USA else "GPMOA"
 		_:
 			return "?"
 
