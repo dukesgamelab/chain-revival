@@ -51,6 +51,7 @@ func _ready() -> void:
 	_test_grenade_object_registry()
 	_test_team_soldier_key_consistent()
 	_test_perception_cache_incremental()
+	_test_scenario_clock_and_scoring()
 
 	print("")
 	print("Gameplay foundation tests: %d passed, %d failed" % [_passed, _failed])
@@ -1252,4 +1253,92 @@ func _test_perception_cache_incremental() -> void:
 			PerceptionCacheClass.los_evals,
 			PerceptionCacheClass.spot_cache_hits,
 		]
+	)
+
+
+func _test_scenario_clock_and_scoring() -> void:
+	_bootstrap()
+	const ScenarioRulesClass := preload("res://scripts/core/scenario_rules.gd")
+	const ScenarioEndCauseClass := preload("res://scripts/enums/scenario_end_cause.gd")
+	const ScenarioWinnerClass := preload("res://scripts/enums/scenario_winner.gd")
+	var game_state := _make_game_state()
+	game_state.map_data.victory_points = [
+		{
+			"name": "Test VP",
+			"x": 20,
+			"y": 30,
+			"us_points": 100.0,
+			"gm_points": 50.0,
+			"initial_holder": "Germany",
+		},
+	]
+	game_state.begin_running_phase()
+	_assert(
+		"Scenario clock starts at 15:00",
+		is_equal_approx(game_state.time_remaining(), float(ScenarioRulesClass.SCENARIO_TIME_SEC)),
+		"remaining=%s" % game_state.time_remaining(),
+	)
+
+	## Advance 2 sim seconds via ScenarioRules ticks.
+	var tick := SimulationClock.tick_sec()
+	for _i in range(int(round(2.0 / tick))):
+		ScenarioRulesClass.process_tick(game_state, tick)
+	_assert(
+		"Scenario clock decrements via sim ticks",
+		game_state.time_remaining() < float(ScenarioRulesClass.SCENARIO_TIME_SEC) - 1.5,
+		"remaining=%s" % game_state.time_remaining(),
+	)
+
+	var victim := game_state.get_soldier(Team.GERMANY, 1)
+	ScenarioRulesClass.on_soldier_killed(game_state, Team.USA, victim)
+	_assert(
+		"Kill awards +4 to killer team",
+		int(game_state.team_kill_points.get(Team.USA, 0)) == ScenarioRulesClass.KILL_POINTS,
+		"usa_kills=%s" % game_state.team_kill_points.get(Team.USA, 0),
+	)
+	_assert(
+		"Victim team loses 1 point",
+		int(game_state.team_kill_points.get(Team.GERMANY, 0)) == -ScenarioRulesClass.PP_LOST_PER_SOLDIER,
+		"ger_kills=%s" % game_state.team_kill_points.get(Team.GERMANY, 0),
+	)
+
+	## Early capture locks a higher decay multiplier than late capture.
+	var early := ScenarioRulesClass.effective_vp_award(100.0, 0.0)
+	var late := ScenarioRulesClass.effective_vp_award(100.0, float(ScenarioRulesClass.SCENARIO_TIME_SEC))
+	_assert(
+		"VP decay makes early capture worth more",
+		early > late,
+		"early=%d late=%d" % [early, late],
+	)
+
+	## Extermination: wipe Germany.
+	for state in game_state.session.get_fireteam(Team.GERMANY).soldiers:
+		var s: SoldierState = state
+		if s != null and not s.is_dead:
+			s.mark_killed()
+	var ended := ScenarioRulesClass.process_tick(game_state, 0.0)
+	_assert("Extermination ends scenario", ended and game_state.scenario_ended, "ended=%s" % ended)
+	_assert(
+		"Extermination winner is USA",
+		game_state.winner == ScenarioWinnerClass.USA,
+		"winner=%s" % game_state.winner,
+	)
+	_assert(
+		"Extermination cause is EXTERMINATION",
+		game_state.end_cause == ScenarioEndCauseClass.EXTERMINATION,
+		"cause=%s" % game_state.end_cause,
+	)
+
+	## Fresh state for TIME_GONE.
+	var timed := _make_game_state()
+	timed.map_data.victory_points = game_state.map_data.victory_points.duplicate(true)
+	timed.begin_running_phase()
+	timed.scenario_elapsed_sec = float(ScenarioRulesClass.SCENARIO_TIME_SEC)
+	timed.scenario_time_remaining_sec = 0.0
+	var time_ended := ScenarioRulesClass.process_tick(timed, 0.0)
+	_assert("TIME_GONE ends scenario", time_ended and timed.scenario_ended, "ended=%s" % time_ended)
+	_assert(
+		"TIME_GONE cause recorded separately from winner",
+		timed.end_cause == ScenarioEndCauseClass.TIME_GONE,
+		"cause=%s" % timed.end_cause,
 	)

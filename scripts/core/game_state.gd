@@ -14,8 +14,9 @@ extends RefCounted
 
 const CommandHierarchyClass := preload("res://scripts/core/command_hierarchy.gd")
 const WeaponCacheClass := preload("res://scripts/core/weapon_cache.gd")
+const ScenarioRulesClass := preload("res://scripts/core/scenario_rules.gd")
 
-enum MatchPhase { DEPLOYMENT, RUNNING }
+enum MatchPhase { DEPLOYMENT, RUNNING, ENDED }
 
 var session: GameSession
 var map_data: MapData
@@ -29,6 +30,22 @@ var local_player_id: int = 1
 ## O(1) cell → SoldierState for LOS. Updated on moves; rebuilt when positions change.
 var _cell_occupancy: Dictionary = {}
 var _occupancy_generation: int = -1
+
+## --- Scenario clock + scoring (authoritative; sim-tick driven) ---
+var scenario_time_remaining_sec: float = 0.0
+var scenario_elapsed_sec: float = 0.0
+var scenario_ended: bool = false
+## ScenarioEndCause / ScenarioWinner enums (kept separate like OG ScEnd Cause / Winner).
+var end_cause: int = 0
+var winner: int = 0
+## team_id -> int points from kills (can go negative when losing soldiers).
+var team_kill_points: Dictionary = {}
+## team_id -> int points from held VPs at mission end.
+var team_terrain_points: Dictionary = {}
+## Internal VP poll accumulator (seconds of sim time).
+var _vp_poll_accum_sec: float = 0.0
+## Set by ScenarioRules when a VP holder flips — Main clears after redraw.
+var vp_holders_dirty: bool = false
 
 
 func _init(game_session: GameSession, map: MapData) -> void:
@@ -225,7 +242,26 @@ func load_hierarchy_from_dict(data: Dictionary) -> void:
 
 func begin_running_phase() -> void:
 	match_phase = MatchPhase.RUNNING
+	ScenarioRulesClass.begin_scenario(self)
 
 
 func is_deployment_phase() -> bool:
 	return match_phase == MatchPhase.DEPLOYMENT
+
+
+func is_ended_phase() -> bool:
+	return match_phase == MatchPhase.ENDED or scenario_ended
+
+
+func local_team_id() -> int:
+	if command_hierarchy != null and local_player_id > 0:
+		var tid := command_hierarchy.get_team_id(local_player_id)
+		if tid == Team.USA or tid == Team.GERMANY:
+			return tid
+	if session != null and session.active_team_id > 0:
+		return session.active_team_id
+	return Team.USA
+
+
+func time_remaining() -> float:
+	return maxf(0.0, scenario_time_remaining_sec)

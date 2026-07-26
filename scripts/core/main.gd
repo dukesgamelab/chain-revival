@@ -33,6 +33,10 @@ const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd
 const AiCommanderFrameworkClass := preload("res://scripts/ai/ai_commander_framework.gd")
 const IssueAiOrderCommandClass := preload("res://scripts/commands/issue_ai_order_command.gd")
 const PlayerSlotOwnershipClass := preload("res://scripts/core/player_slot_ownership.gd")
+const ScenarioRulesClass := preload("res://scripts/core/scenario_rules.gd")
+const ScenarioEndCauseClass := preload("res://scripts/enums/scenario_end_cause.gd")
+const ScenarioWinnerClass := preload("res://scripts/enums/scenario_winner.gd")
+const MissionDebriefDialogClass := preload("res://scripts/ui/mission_debrief_dialog.gd")
 
 @onready var _world: MapWorldView = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -52,6 +56,7 @@ const PlayerSlotOwnershipClass := preload("res://scripts/core/player_slot_owners
 var _return_to_editor_on_exit: bool = false
 var _command_dialog: CommandDialog = null
 var _assign_weapons_dialog: AssignWeaponsDialog = null
+var _mission_debrief_dialog: MissionDebriefDialogClass = null
 
 var _map_data = MapDataClass.create_default()
 var _session: GameSession = GameSessionClass.new([], [])
@@ -76,6 +81,8 @@ var _debug_targeting_overlays: bool = false
 var _map_edit_palette: int = MapEditorClass.Palette.WALL
 var _sim_accum_sec: float = 0.0
 var _combat_scan_accum_msec: int = 0
+## Last whole-second remaining shown on the scenario HUD (avoids per-tick label churn).
+var _last_scenario_hud_sec: int = -1
 var _grass_layer_visible: bool = true
 var _ai_framework: AiCommanderFrameworkClass = null
 var _fire_at_preview_accum_sec: float = 0.0
@@ -306,13 +313,25 @@ func _step_simulation_tick(skip_ai: bool = false) -> void:
 		_present_movement_tick_result(move_result)
 	_perf_move_usec += Time.get_ticks_usec() - move_t0
 
-	## Capture GE→USA when a US soldier is within 5 squares of a victory tile.
-	if _game_state != null and VictoryPointSystem.update_capture(_game_state):
-		if _world != null and _world.victory_point_layer != null:
-			_world.victory_point_layer.queue_redraw()
+	## Scenario clock, VP ownership poll, extermination / TIME_GONE.
+	if _game_state != null and not _game_state.is_deployment_phase():
+		var just_ended := ScenarioRulesClass.process_tick(_game_state, float(stepped) / 1000.0)
+		if _game_state.vp_holders_dirty:
+			_game_state.vp_holders_dirty = false
+			if _world != null and _world.victory_point_layer != null:
+				_world.victory_point_layer.queue_redraw()
+			_refresh_scenario_hud()
+		if just_ended:
+			_on_scenario_ended()
+		elif not _game_state.scenario_ended:
+			## Throttle HUD to ~1s sim time (clock display); VP flips refresh immediately above.
+			var rem_i := int(floor(_game_state.time_remaining()))
+			if rem_i != _last_scenario_hud_sec:
+				_last_scenario_hud_sec = rem_i
+				_refresh_scenario_hud()
 
 	## Warm dirty perception pairs every sim tick (budgeted; combat scan flushes).
-	if _game_state != null and not _game_state.is_deployment_phase():
+	if _game_state != null and not _game_state.is_deployment_phase() and not _game_state.is_ended_phase():
 		CombatSystem.process_perception_tick(_game_state)
 
 	## AI Commanders think on the authoritative host/server only (never on thin clients).
@@ -322,6 +341,7 @@ func _step_simulation_tick(skip_ai: bool = false) -> void:
 		and _ai_framework != null
 		and _game_state != null
 		and not _game_state.is_deployment_phase()
+		and not _game_state.is_ended_phase()
 	):
 		var ai_t0 := Time.get_ticks_usec()
 		var ai_results: Array = _ai_framework.tick(_game_state, skip_ai)
@@ -330,6 +350,9 @@ func _step_simulation_tick(skip_ai: bool = false) -> void:
 		for ai_result in ai_results:
 			_present_action_result(ai_result, false)
 		_perf_present_usec += Time.get_ticks_usec() - present_t0
+
+	if _game_state != null and _game_state.is_ended_phase():
+		return
 
 	_combat_scan_accum_msec += stepped
 	var scan_msec := _combat_scan_interval_msec()
@@ -342,6 +365,17 @@ func _step_simulation_tick(skip_ai: bool = false) -> void:
 	var present_c0 := Time.get_ticks_usec()
 	_present_action_result(tick_result, true)
 	_perf_present_usec += Time.get_ticks_usec() - present_c0
+	## Immediate extermination check after lethal combat this scan.
+	if (
+		_game_state != null
+		and not _game_state.scenario_ended
+		and (
+			ScenarioRulesClass.living_soldier_count(_game_state, Team.USA) <= 0
+			or ScenarioRulesClass.living_soldier_count(_game_state, Team.GERMANY) <= 0
+		)
+	):
+		if ScenarioRulesClass.process_tick(_game_state, 0.0):
+			_on_scenario_ended()
 	## Debug HUD — every 4th combat scan (~2s) is enough while AI is active.
 	_ai_hud_refresh_counter += 1
 	if _ai_hud_refresh_counter >= 4:
@@ -951,6 +985,7 @@ func _connect_command_bar() -> void:
 	_command_bar.set_commanders_requested.connect(_on_set_commanders_requested)
 	_command_bar.assign_weapons_requested.connect(_on_assign_weapons_requested)
 	_command_bar.ammo_adjust_requested.connect(_on_ammo_adjust_requested)
+	_command_bar.retreat_requested.connect(_on_retreat_requested)
 
 
 func _ensure_command_dialog() -> void:
@@ -1015,10 +1050,72 @@ func _on_command_dialog_closed() -> void:
 	if _command_bar != null:
 		_command_bar.set_deployment_phase(false)
 		_command_bar.append_chat_system("ATTENTION: Scenario Running")
+		_refresh_scenario_hud()
 	_command_bar.show_status("Deployment complete. Chain of command ready.")
 	_invalidate_fog_cache()
 	_refresh_enemy_spotting_visuals()
 	_refresh_ai_plan_hud()
+
+
+func _refresh_scenario_hud() -> void:
+	if _command_bar == null or _game_state == null:
+		return
+	_command_bar.set_scenario_clock(_game_state.time_remaining())
+	_command_bar.set_scenario_scores(
+		ScenarioRulesClass.total_points(_game_state, Team.USA),
+		ScenarioRulesClass.total_points(_game_state, Team.GERMANY),
+		_game_state.team_kill_points,
+		_game_state.team_terrain_points,
+		_vp_holder_summary(),
+	)
+
+
+func _vp_holder_summary() -> String:
+	if _game_state == null or _game_state.map_data == null:
+		return ""
+	var bits: Array[String] = []
+	for entry in _game_state.map_data.victory_points:
+		if not entry is Dictionary:
+			continue
+		var name := str(entry.get("name", "VP"))
+		var holder := str(entry.get("holder", entry.get("initial_holder", "?")))
+		var short := "USA" if VictoryPointSystem.holder_is_usa(holder) else "GER"
+		bits.append("%s:%s" % [name, short])
+	return ", ".join(bits)
+
+
+func _on_scenario_ended() -> void:
+	if _game_state == null:
+		return
+	_refresh_scenario_hud()
+	var cause_text := ScenarioEndCauseClass.display_name(_game_state.end_cause)
+	if _command_bar != null:
+		_command_bar.append_chat_system("ATTENTION: %s" % cause_text)
+		_command_bar.show_status(ScenarioWinnerClass.display_name(_game_state.winner))
+	_open_mission_debrief_dialog()
+
+
+func _ensure_mission_debrief_dialog() -> void:
+	if _mission_debrief_dialog != null:
+		return
+	_mission_debrief_dialog = MissionDebriefDialogClass.new()
+	$UI.add_child(_mission_debrief_dialog)
+
+
+func _open_mission_debrief_dialog() -> void:
+	_ensure_mission_debrief_dialog()
+	if _mission_debrief_dialog == null or _game_state == null:
+		return
+	_mission_debrief_dialog.bind_game_state(_game_state)
+	_mission_debrief_dialog.popup_centered()
+
+
+func _on_retreat_requested() -> void:
+	if _game_state == null or _game_state.scenario_ended or _game_state.is_deployment_phase():
+		return
+	var team_id := _game_state.local_team_id()
+	if ScenarioRulesClass.request_retreat(_game_state, team_id):
+		_on_scenario_ended()
 
 
 func _refresh_ai_plan_hud() -> void:

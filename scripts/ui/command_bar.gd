@@ -23,6 +23,7 @@ signal map_edit_palette_changed(palette: int)
 signal set_commanders_requested
 signal assign_weapons_requested
 signal ammo_adjust_requested(soldier_id: int, delta: int)
+signal retreat_requested
 
 const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 
@@ -48,6 +49,8 @@ var _soldier_weapon_names: Array[String] = ["", "", "", ""]
 var _fire_at_engaged: bool = false
 var _map_edit_active: bool = false
 var _map_edit_palette: int = MapEditorClass.Palette.WALL
+var _usa_score_total: int = 0
+var _ger_score_total: int = 0
 
 
 func _ready() -> void:
@@ -90,6 +93,11 @@ func _ready() -> void:
 	%HaybailButton.pressed.connect(func() -> void: _select_map_edit_palette(MapEditorClass.Palette.HAYBAIL))
 	%WallButton.pressed.connect(func() -> void: _select_map_edit_palette(MapEditorClass.Palette.WALL))
 	%EraseButton.pressed.connect(func() -> void: _select_map_edit_palette(MapEditorClass.Palette.ERASE))
+	var retreat := %RetreatButton as Button
+	if retreat != null:
+		retreat.disabled = false
+		retreat.tooltip_text = "Retreat — end the scenario and concede the field."
+		retreat.pressed.connect(func() -> void: retreat_requested.emit())
 
 	_select_soldier(1, false, false)
 	_refresh_deployment_stage_label(true)
@@ -97,7 +105,7 @@ func _ready() -> void:
 
 func set_active_team(team_id: int) -> void:
 	_active_team_id = team_id
-	_team_label.text = Team.display_name(team_id)
+	_refresh_team_score_label()
 	## Keep black text on CoC gray; team identity is the label string.
 	_team_label.add_theme_color_override("font_color", CocUiTheme.TEXT_BLACK)
 	clear_move_targeting()
@@ -261,6 +269,39 @@ func append_chat_system(text: String) -> void:
 
 func set_deployment_phase(is_deployment: bool, elapsed_sec: float = 0.0) -> void:
 	_refresh_deployment_stage_label(is_deployment, elapsed_sec)
+	var retreat := %RetreatButton as Button
+	if retreat != null:
+		retreat.disabled = is_deployment
+
+
+func set_scenario_clock(remaining_sec: float) -> void:
+	var timer := %DeploymentTimerLabel as Label
+	if timer == null:
+		return
+	var total := int(maxi(0, int(ceil(remaining_sec))))
+	timer.text = "%02d:%02d" % [total / 60, total % 60]
+	timer.add_theme_color_override("font_color", CocUiTheme.TEXT_STATUS_RED)
+
+
+func set_scenario_scores(
+	usa_total: int,
+	ger_total: int,
+	kill_points: Dictionary,
+	terrain_points: Dictionary,
+	vp_summary: String,
+) -> void:
+	_usa_score_total = usa_total
+	_ger_score_total = ger_total
+	_refresh_team_score_label()
+	if _team_label != null:
+		var uk := int(kill_points.get(Team.USA, 0))
+		var ut := int(terrain_points.get(Team.USA, 0))
+		var gk := int(kill_points.get(Team.GERMANY, 0))
+		var gt := int(terrain_points.get(Team.GERMANY, 0))
+		_team_label.tooltip_text = (
+			"USA %d (kills %d + terrain %d)\nGermany %d (kills %d + terrain %d)\nVP: %s"
+			% [usa_total, uk, ut, ger_total, gk, gt, vp_summary if not vp_summary.is_empty() else "—"]
+		)
 
 
 func _setup_chat_panel() -> void:
@@ -288,11 +329,21 @@ func _refresh_deployment_stage_label(is_deployment: bool, elapsed_sec: float = 0
 	var timer := %DeploymentTimerLabel as Label
 	if stage != null:
 		stage.text = "Deployment Stage" if is_deployment else "Scenario Running"
-	if timer != null:
+	if timer != null and is_deployment:
 		var total := int(maxi(0, int(elapsed_sec)))
-		var mins := total / 60
-		var secs := total % 60
-		timer.text = "%02d:%02d" % [mins, secs]
+		timer.text = "%02d:%02d" % [total / 60, total % 60]
+	_refresh_team_score_label()
+
+
+func _refresh_team_score_label() -> void:
+	if _team_label == null:
+		return
+	_team_label.text = "%s  %d|%d" % [
+		Team.display_name(_active_team_id),
+		_usa_score_total,
+		_ger_score_total,
+	]
+	_team_label.custom_minimum_size = Vector2(96, 26)
 
 
 func _on_squad_move_mode_toggled(movement_mode: int, is_pressed: bool) -> void:

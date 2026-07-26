@@ -4,6 +4,7 @@ extends RefCounted
 ## Called by ActionResolver — not by UI directly.
 
 const GameStateClass := preload("res://scripts/core/game_state.gd")
+const ScenarioRulesClass := preload("res://scripts/core/scenario_rules.gd")
 const SoldierStateClass := preload("res://scripts/soldiers/soldier_state.gd")
 const WeaponDataClass := preload("res://scripts/combat/weapon_data.gd")
 const WeaponRegistryClass := preload("res://scripts/combat/weapon_registry.gd")
@@ -386,6 +387,7 @@ static func resolve_shot(
 		target.mark_killed()
 		notify_soldier_perception_dirty(game_state, target)
 		result.killed = true
+		ScenarioRulesClass.on_soldier_killed(game_state, shooter.team_id, target)
 		result.messages.append(
 			"%s Soldier %d killed" % [Team.display_name(target.team_id), target.soldier_id],
 		)
@@ -2042,6 +2044,7 @@ static func resolve_grenade(
 				if GameRandom.chance(GameplayPolicies.grenade.kill_chance):
 					soldier.mark_killed()
 					notify_soldier_perception_dirty(game_state, soldier)
+					ScenarioRulesClass.on_soldier_killed(game_state, thrower.team_id, soldier)
 					result.killed.append({
 						"team_id": soldier.team_id,
 						"soldier_id": soldier.soldier_id,
