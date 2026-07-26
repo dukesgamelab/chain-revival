@@ -2803,11 +2803,11 @@
 						"faction": "German",
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 2.0,
-						"notes": "Source GLCFA frames ABC. Lean-out action. muzzle_flash_frame=2 approximate (lean-out/flash frame) — tune in editor.",
+						"muzzle_flash_frame": 0.0,
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "GLCFA",
-						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -2878,11 +2878,11 @@
 						"faction": "German",
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 2.0,
-						"notes": "Source GRCFA frames ABC. Lean-out action. muzzle_flash_frame=2 approximate (lean-out/flash frame) — tune in editor.",
+						"muzzle_flash_frame": 0.0,
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "GRCFA",
-						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -3152,6 +3152,310 @@
 						"source_family": "GRCPA",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
 						"verified": true
+					}
+				},
+				"corner_peek_enter_left": {
+					"label": "Corner Peek Enter (Left)",
+					"fps": 12.0,
+					"loop": false,
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA5C.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA5B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA7C.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA7B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA6C.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA6B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA8C.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA8B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA3C.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA3B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA4C.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA4B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA2C.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA2B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA1C.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA1B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA1A.png"
+							]
+						}
+					},
+					"metadata": {
+						"category": "soldier/corner",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"sound_effect": "",
+						"source_family": "GLCPA",
+						"verification": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"verified": true,
+						"frame_order": "CBA"
+					}
+				},
+				"corner_peek_exit_left": {
+					"label": "Corner Peek Exit (Left)",
+					"fps": 12.0,
+					"loop": false,
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA5A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA5B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA7A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA7B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA6A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA6B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA8A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA8B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA3A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA3B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA4A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA4B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA2A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA2B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GLCPA1A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA1B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA1C.png"
+							]
+						}
+					},
+					"metadata": {
+						"category": "soldier/corner",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"sound_effect": "",
+						"source_family": "GLCPA",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verified": true,
+						"frame_order": "ABC"
+					}
+				},
+				"corner_peek_enter_right": {
+					"label": "Corner Peek Enter (Right)",
+					"fps": 12.0,
+					"loop": false,
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA5C.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA5B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA7C.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA7B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA6C.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA6B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA8C.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA8B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA3C.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA3B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA4C.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA4B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA2C.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA2B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA1C.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA1B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA1A.png"
+							]
+						}
+					},
+					"metadata": {
+						"category": "soldier/corner",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"sound_effect": "",
+						"source_family": "GRCPA",
+						"verification": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"verified": true,
+						"frame_order": "CBA"
+					}
+				},
+				"corner_peek_exit_right": {
+					"label": "Corner Peek Exit (Right)",
+					"fps": 12.0,
+					"loop": false,
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA5A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA5B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA7A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA7B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA6A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA6B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA8A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA8B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA3A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA3B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA4A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA4B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA2A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA2B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/corner/GRCPA1A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA1B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA1C.png"
+							]
+						}
+					},
+					"metadata": {
+						"category": "soldier/corner",
+						"faction": "German",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"sound_effect": "",
+						"source_family": "GRCPA",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verified": true,
+						"frame_order": "ABC"
 					}
 				}
 			},
@@ -6864,11 +7168,11 @@
 						"faction": "American",
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 2.0,
-						"notes": "Source ALCFA frames ABC. Lean-out action. muzzle_flash_frame=2 approximate (lean-out/flash frame) — tune in editor.",
+						"muzzle_flash_frame": 0.0,
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "ALCFA",
-						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -6939,11 +7243,11 @@
 						"faction": "American",
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 2.0,
-						"notes": "Source ARCFA frames ABC. Lean-out action. muzzle_flash_frame=2 approximate (lean-out/flash frame) — tune in editor.",
+						"muzzle_flash_frame": 0.0,
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "ARCFA",
-						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -7396,6 +7700,370 @@
 						"source_family": "APRNA",
 						"stance": "transition",
 						"verification": "Verified against controlled original-client stance/crawl video, prone-to-stand sequence E-A-B-C-D; reverse sequence D-C-B-A-E. ASUPA/GSUPA were previously (incorrectly) mapped as standing-to-prone; those packs are not deleted and remain unclassified for other uses.",
+						"verified": true
+					}
+				},
+				"corner_peek_enter_left": {
+					"label": "Corner Peek Enter (Left)",
+					"fps": 12.0,
+					"loop": false,
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA5C.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA5B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA7C.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA7B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA6C.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA6B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA8C.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA8B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA3C.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA3B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA4C.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA4B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA2C.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA2B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA1C.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA1B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA1A.png"
+							]
+						}
+					},
+					"metadata": {
+						"category": "soldier/corner",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"sound_effect": "",
+						"source_family": "ALCPA",
+						"verification": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"verified": true,
+						"frame_order": "CBA"
+					}
+				},
+				"corner_peek_exit_left": {
+					"label": "Corner Peek Exit (Left)",
+					"fps": 12.0,
+					"loop": false,
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA5A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA5B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA7A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA7B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA6A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA6B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA8A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA8B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA3A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA3B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA4A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA4B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA2A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA2B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ALCPA1A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA1B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA1C.png"
+							]
+						}
+					},
+					"metadata": {
+						"category": "soldier/corner",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"sound_effect": "",
+						"source_family": "ALCPA",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verified": true,
+						"frame_order": "ABC"
+					}
+				},
+				"corner_peek_enter_right": {
+					"label": "Corner Peek Enter (Right)",
+					"fps": 12.0,
+					"loop": false,
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA5C.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA5B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA7C.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA7B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA6C.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA6B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA8C.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA8B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA3C.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA3B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA4C.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA4B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA2C.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA2B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA1C.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA1B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA1A.png"
+							]
+						}
+					},
+					"metadata": {
+						"category": "soldier/corner",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"sound_effect": "",
+						"source_family": "ARCPA",
+						"verification": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"verified": true,
+						"frame_order": "CBA"
+					}
+				},
+				"corner_peek_exit_right": {
+					"label": "Corner Peek Exit (Right)",
+					"fps": 12.0,
+					"loop": false,
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA5A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA5B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA5C.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA7A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA7B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA7C.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA6A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA6B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA6C.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA8A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA8B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA8C.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA3A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA3B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA3C.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA4A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA4B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA4C.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA2A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA2B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA2C.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/corner/ARCPA1A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA1B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA1C.png"
+							]
+						}
+					},
+					"metadata": {
+						"category": "soldier/corner",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"sound_effect": "",
+						"source_family": "ARCPA",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verified": true,
+						"frame_order": "ABC"
+					}
+				},
+				"idle_prone": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/APRIS5A.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/APRIS7A.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/APRIS6A.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/APRIS8A.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/APRIS3A.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/APRIS4A.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/APRIS2A.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/APRIS1A.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "US Prone Idle",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/idle_prone",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "APRIS wired as idle_prone (USA prone idle, 1 frame/dir).",
+						"sound_effect": "",
+						"source_family": "APRIS",
+						"stance": "prone",
+						"verification": "User-specified APRIS for USA laying-down idle.",
 						"verified": true
 					}
 				}

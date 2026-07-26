@@ -66,6 +66,12 @@ var _played_idle_peek_side: int = CoverSystem.PeekSide.NONE
 var _fire_visual_shot_logged: bool = false
 ## At most one queued restart if a new shot arrives mid-sequence.
 var _fire_restart_pending: bool = false
+## Presentation-only corner cover phases (not authoritative combat state).
+enum CornerPresPhase { NONE, IDLE, PEEKING_OUT, AIMING, FIRING, PEEKING_IN }
+var _corner_phase: int = CornerPresPhase.NONE
+var _corner_peek_side: int = CoverSystem.PeekSide.NONE
+var _corner_semantic: String = ""
+var _corner_fire_pending: bool = false
 var _stance_transition_active: bool = false
 var _stance_transition_semantic: String = ""
 var _stance_transition_target: int = PositionState.UP
@@ -114,6 +120,8 @@ func _ready() -> void:
 	_anim.centered = true
 	_facing_arrow.position.y = TileSizeConfig.facing_arrow_y()
 	_prone_marker.position.y = TileSizeConfig.prone_marker_y()
+	## APRIS/GPRIS idle art replaces the old yellow prone rectangle indicator.
+	_prone_marker.visible = false
 	_dead_marker.position.y = TileSizeConfig.dead_marker_y()
 	_configure_team_visual()
 	_load_id_marker_textures()
@@ -151,13 +159,23 @@ static func roster_marker_index(soldier_id: int) -> int:
 
 
 func _blocks_action_override() -> bool:
-	## Priority: death → hit → throw → fire → stance transition → movement → idle.
+	## Priority: death → hit → throw → fire/corner → stance transition → movement → idle.
 	return (
 		_death_sequence_active
 		or _hit_reaction_active
 		or _throw_grenade_active
 		or _fire_active
+		or _corner_phase_blocks_locomotion()
 		or _stance_transition_active
+	)
+
+
+func _corner_phase_blocks_locomotion() -> bool:
+	return (
+		_corner_phase == CornerPresPhase.PEEKING_OUT
+		or _corner_phase == CornerPresPhase.AIMING
+		or _corner_phase == CornerPresPhase.FIRING
+		or _corner_phase == CornerPresPhase.PEEKING_IN
 	)
 
 
@@ -180,6 +198,16 @@ func sync_from_state(
 	if state.is_dead:
 		state.ensure_death_sprite_family()
 		_death_sprite_family = state.death_sprite_family
+
+	## Corner aim hold ends when authoritative peek geometry is lost.
+	if (
+		_corner_phase == CornerPresPhase.AIMING
+		and (
+			idle_peek_side == CoverSystem.PeekSide.NONE
+			or idle_peek_side != _corner_peek_side
+		)
+	):
+		_start_corner_peek_exit()
 
 	if _blocks_action_override():
 		soldier_id = state.soldier_id
@@ -294,7 +322,7 @@ func _apply_position_visual(state: SoldierState) -> void:
 	if state.position_state == PositionState.DOWN:
 		_anim.scale = _prone_sprite_scale()
 		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
-		_prone_marker.visible = true
+		_prone_marker.visible = false
 	else:
 		_anim.scale = _standing_sprite_scale()
 		_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
@@ -367,6 +395,9 @@ func _finish_presentation_move() -> void:
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	## Presentation-only path chase. Authoritative grid_position advances on sim ticks.
 	_cancel_stance_transition_visual(false)
+	## Movement cancels corner peek/aim/fire presentation immediately.
+	_cancel_fire_visual(false)
+	_clear_corner_presentation(false)
 	if _is_dead or _blocks_action_override() or path.size() <= 1:
 		return
 
@@ -635,7 +666,7 @@ func _idle_source_family() -> String:
 
 
 func _prone_idle_source_family() -> String:
-	return "GPRIS" if team_id == Team.GERMANY else ""
+	return "GPRIS" if team_id == Team.GERMANY else "APRIS"
 
 
 func _play_idle_standing(world_direction: String) -> void:
@@ -659,10 +690,28 @@ func _play_idle_standing(world_direction: String) -> void:
 		push_error("Soldier: idle animation %s has zero frames" % anim_name)
 		_log_idle_standing(anim_name, "EMPTY_FRAMES")
 		return
-	if str(_anim.animation) == anim_name and _anim.is_playing():
+	if str(_anim.animation) == anim_name and (
+		_anim.is_playing() or semantic.begins_with("corner_idle_")
+	):
+		## One-frame CIS is a held pose — never restart on refresh.
 		_played_idle_peek_side = _idle_peek_side
+		if semantic.begins_with("corner_idle_"):
+			_corner_phase = CornerPresPhase.IDLE
+			_corner_peek_side = _idle_peek_side
+			if frame_count <= 1 and _anim.is_playing():
+				_anim.pause()
+				_anim.frame = 0
 		return
 	_anim.play(anim_name)
+	if semantic.begins_with("corner_idle_"):
+		_corner_phase = CornerPresPhase.IDLE
+		_corner_peek_side = _idle_peek_side
+		_corner_semantic = semantic
+		if frame_count <= 1:
+			_anim.pause()
+			_anim.frame = 0
+	elif _corner_phase == CornerPresPhase.IDLE:
+		_clear_corner_presentation(false)
 	_played_idle_peek_side = _idle_peek_side
 	_log_idle_standing(anim_name, "PLAY")
 
@@ -675,12 +724,19 @@ func _play_idle_prone(world_direction: String) -> void:
 		if frame_count <= 0:
 			push_error("Soldier: idle_prone animation %s has zero frames" % anim_name)
 			return
-		if str(_anim.animation) == anim_name and _anim.is_playing():
+		## One-frame APRIS/GPRIS hold — do not restart on refresh.
+		if str(_anim.animation) == anim_name:
+			if _anim.is_playing() and frame_count <= 1:
+				_anim.pause()
+				_anim.frame = 0
 			return
 		_anim.play(anim_name)
+		if frame_count <= 1:
+			_anim.pause()
+			_anim.frame = 0
 		_log_stance_transition(anim_name, "IDLE_PRONE")
 		return
-	## Legacy fallback (USA / missing DB): paused first walk frame.
+	## Legacy fallback if DB entry missing: paused first walk frame.
 	var prone_idle := "walk_%s" % world_direction
 	if not _anim.sprite_frames.has_animation(prone_idle):
 		push_warning("Soldier: missing animation %s" % prone_idle)
@@ -702,6 +758,13 @@ func refresh_action_visual_for_camera() -> void:
 		return
 	if _fire_active:
 		_remap_fire_for_camera()
+		return
+	if (
+		_corner_phase == CornerPresPhase.PEEKING_OUT
+		or _corner_phase == CornerPresPhase.AIMING
+		or _corner_phase == CornerPresPhase.PEEKING_IN
+	):
+		_remap_corner_presentation_for_camera()
 		return
 	if _stance_transition_active:
 		_remap_stance_transition_for_camera()
@@ -895,11 +958,15 @@ func play_fire(
 		return
 	if _hit_reaction_active or _throw_grenade_active:
 		return
-	## Mid-sequence shot: queue at most one restart (no unbounded queue).
-	if _fire_active:
+	## Mid-CFA shot: queue at most one restart (no unbounded queue).
+	if _fire_active or _corner_phase == CornerPresPhase.FIRING:
 		_fire_restart_pending = true
 		_fire_return_prone = position_state == PositionState.DOWN
-		_fire_peek_side = peek_side
+		## Keep locked corner side during an active peek sequence.
+		if _corner_peek_side != CoverSystem.PeekSide.NONE:
+			_fire_peek_side = _corner_peek_side
+		else:
+			_fire_peek_side = peek_side
 		if facing_direction != Vector2i.ZERO:
 			_last_applied_facing = facing_direction
 		_log_fire_anim("queued", "RESTART_QUEUED")
@@ -910,6 +977,16 @@ func play_fire(
 	## the run anim in place for the whole engagement (the running-in-place bug).
 	stop_movement()
 	_cancel_stance_transition_visual(false)
+
+	## Standing corner: CIS → CPA enter → CAS → CFA (enter once per engagement).
+	if (
+		position_state != PositionState.DOWN
+		and peek_side != CoverSystem.PeekSide.NONE
+	):
+		_request_corner_fire(position_state, facing_direction, peek_side)
+		return
+
+	_clear_corner_presentation(false)
 	_begin_fire_sequence(position_state, facing_direction, peek_side)
 
 
@@ -926,6 +1003,8 @@ func play_stance_transition(
 		return
 	if _is_moving:
 		return
+	if _corner_phase_blocks_locomotion():
+		_cancel_fire_visual(false)
 
 	var from_prone := _applied_position_state == PositionState.DOWN
 	var to_prone := target_position_state == PositionState.DOWN
@@ -933,6 +1012,7 @@ func play_stance_transition(
 		return
 
 	_stance_transition_active = true
+	_clear_corner_presentation(false)
 	_stance_transition_target = target_position_state
 	_stance_transition_semantic = (
 		"transition_standing_to_prone" if to_prone else "transition_prone_to_standing"
@@ -972,6 +1052,141 @@ func play_stance_transition(
 	_log_stance_transition(anim_name, "PLAY")
 
 
+func _request_corner_fire(
+	position_state: int,
+	facing_direction: Vector2i,
+	peek_side: int,
+) -> void:
+	_fire_return_prone = position_state == PositionState.DOWN
+	if facing_direction != Vector2i.ZERO:
+		_last_applied_facing = facing_direction
+	_fire_world_direction = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	if _fire_world_direction.is_empty():
+		_fire_world_direction = (
+			_locomotion_direction if not _locomotion_direction.is_empty() else "n"
+		)
+
+	## Lock peek side for the whole enter/aim/fire/exit chain.
+	if (
+		_corner_phase == CornerPresPhase.NONE
+		or _corner_phase == CornerPresPhase.IDLE
+		or _corner_peek_side == CoverSystem.PeekSide.NONE
+	):
+		_corner_peek_side = peek_side
+	_fire_peek_side = _corner_peek_side
+
+	if _corner_phase == CornerPresPhase.PEEKING_OUT:
+		_corner_fire_pending = true
+		_log_fire_anim("corner_enter", "SHOT_PENDING_ENTER")
+		return
+
+	if _corner_phase == CornerPresPhase.AIMING:
+		_begin_fire_sequence(position_state, facing_direction, _corner_peek_side)
+		return
+
+	if _corner_phase == CornerPresPhase.PEEKING_IN:
+		## Re-acquire during exit — restart enter after canceling exit pose.
+		_corner_fire_pending = true
+		_start_corner_peek_enter()
+		return
+
+	## From CIS / open: peek out once, then fire.
+	_corner_fire_pending = true
+	_start_corner_peek_enter()
+
+
+func _corner_side_token() -> String:
+	return "left" if _corner_peek_side == CoverSystem.PeekSide.LEFT else "right"
+
+
+func _start_corner_peek_enter() -> void:
+	if _corner_peek_side == CoverSystem.PeekSide.NONE:
+		_corner_fire_pending = false
+		return
+	_corner_phase = CornerPresPhase.PEEKING_OUT
+	_corner_semantic = "corner_peek_enter_%s" % _corner_side_token()
+	var display_dir := _idle_display_direction(
+		_fire_world_direction if not _fire_world_direction.is_empty() else "n"
+	)
+	var anim_name := "%s_%s" % [_corner_semantic, display_dir]
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+		push_warning("Soldier: missing %s — skipping to aim hold" % anim_name)
+		_start_corner_aim_hold()
+		return
+	_anim.play(anim_name)
+	_log_fire_anim(anim_name, "CORNER_ENTER")
+
+
+func _start_corner_aim_hold() -> void:
+	if _corner_peek_side == CoverSystem.PeekSide.NONE:
+		_clear_corner_presentation(true)
+		return
+	_corner_phase = CornerPresPhase.AIMING
+	_fire_active = false
+	_corner_semantic = "corner_aim_%s" % _corner_side_token()
+	var display_dir := _idle_display_direction(
+		_fire_world_direction if not _fire_world_direction.is_empty() else "n"
+	)
+	var anim_name := "%s_%s" % [_corner_semantic, display_dir]
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+		push_warning("Soldier: missing %s" % anim_name)
+	else:
+		_anim.play(anim_name)
+		## One-frame CAS hold — pause so refreshes do not replay.
+		if _anim.sprite_frames.get_frame_count(anim_name) <= 1:
+			_anim.pause()
+			_anim.frame = 0
+		_log_fire_anim(anim_name, "CORNER_AIM_HOLD")
+
+	if _corner_fire_pending:
+		_corner_fire_pending = false
+		var stance := PositionState.DOWN if _fire_return_prone else PositionState.UP
+		_begin_fire_sequence(stance, _last_applied_facing, _corner_peek_side)
+
+
+func _start_corner_peek_exit() -> void:
+	if _corner_peek_side == CoverSystem.PeekSide.NONE:
+		_clear_corner_presentation(true)
+		return
+	_corner_phase = CornerPresPhase.PEEKING_IN
+	_corner_fire_pending = false
+	_fire_active = false
+	_fire_restart_pending = false
+	_corner_semantic = "corner_peek_exit_%s" % _corner_side_token()
+	var display_dir := _idle_display_direction(
+		_fire_world_direction if not _fire_world_direction.is_empty() else "n"
+	)
+	var anim_name := "%s_%s" % [_corner_semantic, display_dir]
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+		push_warning("Soldier: missing %s — snap to corner idle" % anim_name)
+		_finish_corner_peek_exit()
+		return
+	_anim.play(anim_name)
+	_log_fire_anim(anim_name, "CORNER_EXIT")
+
+
+func _finish_corner_peek_exit() -> void:
+	var peek := _corner_peek_side
+	_corner_phase = CornerPresPhase.NONE
+	_corner_semantic = ""
+	_corner_fire_pending = false
+	_fire_peek_side = CoverSystem.PeekSide.NONE
+	## Return to CIS if still at that corner; otherwise open idle.
+	if _idle_peek_side == peek and peek != CoverSystem.PeekSide.NONE:
+		_corner_phase = CornerPresPhase.IDLE
+		_corner_peek_side = peek
+	else:
+		_corner_peek_side = CoverSystem.PeekSide.NONE
+	_finish_fire_idle()
+
+
+func _clear_corner_presentation(_resume_idle: bool) -> void:
+	_corner_phase = CornerPresPhase.NONE
+	_corner_peek_side = CoverSystem.PeekSide.NONE
+	_corner_semantic = ""
+	_corner_fire_pending = false
+
+
 func _begin_fire_sequence(
 	position_state: int,
 	facing_direction: Vector2i,
@@ -982,6 +1197,9 @@ func _begin_fire_sequence(
 	_fire_visual_shot_logged = false
 	_fire_return_prone = position_state == PositionState.DOWN
 	_fire_peek_side = peek_side
+	if peek_side != CoverSystem.PeekSide.NONE:
+		_corner_phase = CornerPresPhase.FIRING
+		_corner_peek_side = peek_side
 	_fire_semantic = GameplayPolicies.fire_anim.semantic_for(position_state, peek_side)
 	if facing_direction != Vector2i.ZERO:
 		_last_applied_facing = facing_direction
@@ -999,12 +1217,16 @@ func _begin_fire_sequence(
 		)
 		_log_fire_anim(anim_name, "MISSING_ANIMATION")
 		_fire_active = false
+		if peek_side != CoverSystem.PeekSide.NONE:
+			_corner_phase = CornerPresPhase.AIMING
 		return
 	var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
 	if frame_count <= 0:
 		push_error("Soldier: fire animation %s has zero frames" % anim_name)
 		_log_fire_anim(anim_name, "EMPTY_FRAMES")
 		_fire_active = false
+		if peek_side != CoverSystem.PeekSide.NONE:
+			_corner_phase = CornerPresPhase.AIMING
 		return
 
 	GameplayPolicies.fire_anim.note_visual_firing_trigger()
@@ -1040,6 +1262,30 @@ func _remap_fire_for_camera() -> void:
 	_anim.play(anim_name)
 	_anim.frame = mini(saved_frame, max_frame)
 	_log_fire_anim(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
+
+
+func _remap_corner_presentation_for_camera() -> void:
+	if _corner_semantic.is_empty():
+		return
+	var saved_frame := _anim.frame
+	var world_dir := (
+		_fire_world_direction if not _fire_world_direction.is_empty() else _locomotion_direction
+	)
+	if world_dir.is_empty():
+		world_dir = "n"
+	var display_dir := _idle_display_direction(world_dir)
+	var anim_name := "%s_%s" % [_corner_semantic, display_dir]
+	if not _anim.sprite_frames.has_animation(anim_name):
+		return
+	if str(_anim.animation) == anim_name:
+		return
+	var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
+	_anim.play(anim_name)
+	_anim.frame = mini(saved_frame, max_frame)
+	if _corner_phase == CornerPresPhase.AIMING and max_frame <= 0:
+		_anim.pause()
+		_anim.frame = 0
+	_log_fire_anim(anim_name, "CORNER_CAMERA_REMAP frame=%d" % _anim.frame)
 
 
 ## Developer validation snapshot for active or last throw resolution.
@@ -1108,11 +1354,13 @@ func _fire_source_family() -> String:
 
 
 func _cancel_fire_visual(resume_idle: bool) -> void:
-	if not _fire_active:
+	var had_corner := _corner_phase_blocks_locomotion() or _fire_active
+	if not _fire_active and not had_corner:
 		return
 	_fire_active = false
 	_fire_restart_pending = false
 	_fire_peek_side = CoverSystem.PeekSide.NONE
+	_clear_corner_presentation(false)
 	if resume_idle and not _is_dead and not _death_sequence_active:
 		_finish_fire_idle()
 
@@ -1149,7 +1397,7 @@ func _finish_stance_transition(anim_name: String) -> void:
 		_applied_position_state = PositionState.DOWN
 		_anim.scale = _prone_sprite_scale()
 		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
-		_prone_marker.visible = true
+		_prone_marker.visible = false
 	else:
 		_applied_position_state = PositionState.UP
 		_anim.scale = _standing_sprite_scale()
@@ -1285,6 +1533,14 @@ func _on_anim_animation_finished() -> void:
 		_finish_survivable_hit_reaction(anim_name)
 		return
 
+	if _corner_phase == CornerPresPhase.PEEKING_OUT and not _death_sequence_active:
+		_start_corner_aim_hold()
+		return
+
+	if _corner_phase == CornerPresPhase.PEEKING_IN and not _death_sequence_active:
+		_finish_corner_peek_exit()
+		return
+
 	if _fire_active and not _death_sequence_active:
 		_finish_fire(anim_name)
 		return
@@ -1314,14 +1570,26 @@ func _finish_fire(anim_name: String) -> void:
 	if _fire_restart_pending and not _hit_reaction_active and not _throw_grenade_active:
 		_log_fire_anim(anim_name, "COMPLETE → restart queued shot")
 		var stance := PositionState.DOWN if _fire_return_prone else PositionState.UP
-		var peek := _fire_peek_side
+		var peek := (
+			_corner_peek_side
+			if _corner_peek_side != CoverSystem.PeekSide.NONE
+			else _fire_peek_side
+		)
 		_fire_active = false
+		## Sustained corner fire: CFA → CFA, never CIS between queued shots.
 		_begin_fire_sequence(stance, _last_applied_facing, peek)
 		return
 	_fire_active = false
 	_fire_restart_pending = false
+	_log_fire_anim(anim_name, "COMPLETE → post-shot")
+	## Corner engagement: recover to CAS while peek remains valid; else CPA exit → CIS.
+	if _corner_peek_side != CoverSystem.PeekSide.NONE:
+		if _idle_peek_side == _corner_peek_side:
+			_start_corner_aim_hold()
+			return
+		_start_corner_peek_exit()
+		return
 	_fire_peek_side = CoverSystem.PeekSide.NONE
-	_log_fire_anim(anim_name, "COMPLETE → idle")
 	_finish_fire_idle()
 
 
@@ -1344,7 +1612,7 @@ func _finish_fire_idle() -> void:
 		_applied_position_state = PositionState.DOWN
 		_anim.scale = _prone_sprite_scale()
 		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
-		_prone_marker.visible = true
+		_prone_marker.visible = false
 	else:
 		_applied_position_state = PositionState.UP
 		_anim.scale = _standing_sprite_scale()
@@ -1361,7 +1629,7 @@ func _finish_throw_grenade_idle() -> void:
 		_applied_position_state = PositionState.DOWN
 		_anim.scale = _prone_sprite_scale()
 		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
-		_prone_marker.visible = true
+		_prone_marker.visible = false
 	else:
 		_applied_position_state = PositionState.UP
 		_anim.scale = _standing_sprite_scale()
@@ -1382,7 +1650,7 @@ func _finish_survivable_hit_reaction(anim_name: String) -> void:
 		_applied_position_state = PositionState.DOWN
 		_anim.scale = _prone_sprite_scale()
 		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
-		_prone_marker.visible = true
+		_prone_marker.visible = false
 	else:
 		_applied_position_state = PositionState.UP
 		_anim.scale = _standing_sprite_scale()
@@ -1520,6 +1788,14 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return _fire_source_family()
 		"idle_standing", "corner_idle_left", "corner_idle_right":
 			return _idle_source_family()
+		"corner_aim_left":
+			return "GLCAS" if team_id == Team.GERMANY else "ALCAS"
+		"corner_aim_right":
+			return "GRCAS" if team_id == Team.GERMANY else "ARCAS"
+		"corner_peek_left", "corner_peek_enter_left", "corner_peek_exit_left":
+			return "GLCPA" if team_id == Team.GERMANY else "ALCPA"
+		"corner_peek_right", "corner_peek_enter_right", "corner_peek_exit_right":
+			return "GRCPA" if team_id == Team.GERMANY else "ARCPA"
 		"idle_prone":
 			return _prone_idle_source_family()
 		"transition_standing_to_prone", "transition_prone_to_standing":

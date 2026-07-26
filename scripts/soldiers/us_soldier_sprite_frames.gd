@@ -14,7 +14,7 @@ extends RefCounted
 ##   Idle corner L/R:   ALCIS·ARCIS / GLCIS·GRCIS (A) → corner_idle_left_* / corner_idle_right_*
 ##   Aim corner L/R:    ALCAS·ARCAS / GLCAS·GRCAS (A) → corner_aim_left_* / corner_aim_right_*
 ##   Peek corner L/R:   ALCPA·ARCPA / GLCPA·GRCPA (A–C) → corner_peek_left_* / corner_peek_right_*
-##   Idle prone (Ger):  GPRIS          (A)    → idle_prone_*
+##   Idle prone:        APRIS / GPRIS  (A)    → idle_prone_*
 ##   Stand↔prone:       APRNA / GPRNA  (E-A-B-C-D up; D-C-B-A-E down) → transition_*
 ##   Crawl:             APMOA / GPMOA  (A–V)  → crawl_*
 ##   (ASUPA/GSUPA were previously mis-mapped as stand→prone; packs retained, unused here.)

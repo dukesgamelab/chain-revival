@@ -6,8 +6,8 @@ extends RefCounted
 ## 0-based frame index into A–C (or A–B for ASFIA NW). Frame B = 1.
 const DEFAULT_VISUAL_SHOT_FRAME := 1
 const DEFAULT_FIRE_ANIM_FPS := 8.0
-## CFA lean-out muzzle flash — approximate last frame (C); tune in editor.
-const DEFAULT_CORNER_FIRE_SHOT_FRAME := 2
+## CFA muzzle flash is source letter A (index 0) — verified vs corner-firing video.
+const DEFAULT_CORNER_FIRE_SHOT_FRAME := 0
 
 ## Per-family visual shot markers (presentation sync only; gameplay shots stay authoritative).
 var visual_shot_frame_asfia: int = DEFAULT_VISUAL_SHOT_FRAME

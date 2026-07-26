@@ -1092,7 +1092,8 @@ func _on_scenario_ended() -> void:
 	if _command_bar != null:
 		_command_bar.append_chat_system("ATTENTION: %s" % cause_text)
 		_command_bar.show_status(ScenarioWinnerClass.display_name(_game_state.winner))
-	_open_mission_debrief_dialog()
+	## Brief beat before debrief so the end state is visible on the map.
+	get_tree().create_timer(3.0).timeout.connect(_open_mission_debrief_dialog)
 
 
 func _ensure_mission_debrief_dialog() -> void:
@@ -1105,6 +1106,8 @@ func _ensure_mission_debrief_dialog() -> void:
 func _open_mission_debrief_dialog() -> void:
 	_ensure_mission_debrief_dialog()
 	if _mission_debrief_dialog == null or _game_state == null:
+		return
+	if not _game_state.scenario_ended:
 		return
 	_mission_debrief_dialog.bind_game_state(_game_state)
 	_mission_debrief_dialog.popup_centered()

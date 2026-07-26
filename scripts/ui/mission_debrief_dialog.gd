@@ -19,6 +19,7 @@ func _ready() -> void:
 	dialog_hide_on_ok = true
 	transient = true
 	exclusive = true
+	unresizable = true
 	CocUiTheme.apply_to(self)
 	_build_layout()
 
@@ -49,13 +50,14 @@ func _build_layout() -> void:
 	add_child(margin)
 
 	_body = VBoxContainer.new()
-	_body.add_theme_constant_override("separation", 10)
+	_body.add_theme_constant_override("separation", 8)
 	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	## Content-sized — do not expand to fill a tall window.
+	_body.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	margin.add_child(_body)
 
-	## AcceptDialog is a Window — use min_size, not Control.custom_minimum_size.
-	min_size = Vector2(860, 560)
+	## AcceptDialog is a Window — size to content, not a tall forced min height.
+	min_size = Vector2(820, 0)
 
 
 func _rebuild_content() -> void:
@@ -68,6 +70,7 @@ func _rebuild_content() -> void:
 	_body.add_child(parchment)
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 8)
+	root.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	parchment.add_child(root)
 
 	var title := _header("Mission-End Debriefing", 20)
@@ -77,7 +80,8 @@ func _rebuild_content() -> void:
 
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 12)
-	top.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	## Shrink to content height — EXPAND_FILL was stretching columns off-screen.
+	top.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	root.add_child(top)
 
 	top.add_child(_build_fireteam_panel())
@@ -91,11 +95,27 @@ func _rebuild_content() -> void:
 	footer.add_child(_countdown_label)
 	root.add_child(footer)
 
+	## Fit window to content after layout rebuild.
+	call_deferred("_fit_window_to_content")
+
+
+func _fit_window_to_content() -> void:
+	if _body == null:
+		return
+	var content := _body.get_combined_minimum_size()
+	var w := maxf(820.0, content.x + 40.0)
+	var h := content.y + 96.0
+	## Cap so tall monitors don't get a giant empty dialog.
+	h = clampf(h, 360.0, 640.0)
+	size = Vector2(w, h)
+	min_size = Vector2(820, 0)
+
 
 func _build_fireteam_panel() -> PanelContainer:
 	var panel := _inset_panel()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_stretch_ratio = 1.0
+	panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	panel.custom_minimum_size = Vector2(260, 0)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
@@ -131,6 +151,7 @@ func _build_victory_points_panel() -> PanelContainer:
 	var panel := _inset_panel()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_stretch_ratio = 1.6
+	panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	panel.custom_minimum_size = Vector2(420, 0)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
@@ -190,7 +211,7 @@ func _table_cell(text: String, tint: Color, min_width: float, is_header: bool) -
 func _build_promotion_panel() -> PanelContainer:
 	var panel := _inset_panel()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -237,7 +258,7 @@ func _build_promotion_panel() -> PanelContainer:
 		grid.add_child(_table_cell(row_texts[i], Color(0, 0, 0, 0), pp_mins[i], false))
 
 	var subs := PanelContainer.new()
-	subs.custom_minimum_size = Vector2(0, 72)
+	subs.custom_minimum_size = Vector2(0, 56)
 	subs.add_theme_stylebox_override("panel", _green_block_style())
 	var subs_label := Label.new()
 	subs_label.text = "Subordinates"
@@ -252,7 +273,7 @@ func _build_promotion_panel() -> PanelContainer:
 func _parchment_panel() -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.82, 0.78, 0.62, 1.0)
 	style.border_color = Color(0.25, 0.22, 0.16, 1.0)
