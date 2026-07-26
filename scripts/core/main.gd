@@ -146,6 +146,17 @@ func _start_ai_framework() -> void:
 	## Clients never tick AI; host/offline keep authority.
 	_ai_framework.set_authority(GameModeManager.is_ai_authority())
 	_ai_framework.setup(_game_state, find_path)
+	## Offline 1v1 hotseat: no AI on either side — press 1/2 to control USA/Germany.
+	if GameModeManager.is_offline_dev():
+		_ai_framework.set_enabled(false)
+		for commander in _ai_framework.all_commanders():
+			_ai_framework.disable_commander(commander.player_id)
+		if _game_state != null and _game_state.command_hierarchy != null:
+			for pid in _game_state.command_hierarchy.all_player_ids():
+				if _game_state.command_hierarchy.is_ai_player(int(pid)):
+					PlayerSlotOwnershipClass.claim_slot_as_human(
+						_game_state, _ai_framework, int(pid)
+					)
 	_refresh_ai_plan_hud()
 
 
@@ -1230,7 +1241,7 @@ func _switch_active_team(team_id: int) -> void:
 	_command_bar.show_status(status)
 
 
-## Dev/SP hotseat: claim target side as human and hand the other side to AI.
+## Dev/SP hotseat: claim target side as human. Opposite side stays idle (AI off in OFFLINE_DEV).
 func _offline_dev_take_team_control(team_id: int) -> bool:
 	if _session == null or _game_state == null:
 		return false
@@ -1249,10 +1260,13 @@ func _offline_dev_take_team_control(team_id: int) -> bool:
 	if current_pid == target_pid:
 		return true
 	var hierarchy = _game_state.command_hierarchy
-	if hierarchy != null and hierarchy.has_player(current_pid) and not hierarchy.is_ai_player(current_pid):
-		PlayerSlotOwnershipClass.release_slot_to_ai(_game_state, _ai_framework, current_pid)
+	## Do not hand the previous side to AI — offline hotseat keeps both sides player-driven.
 	if hierarchy != null and hierarchy.has_player(target_pid) and hierarchy.is_ai_player(target_pid):
 		PlayerSlotOwnershipClass.claim_slot_as_human(_game_state, _ai_framework, target_pid)
+	if _ai_framework != null:
+		_ai_framework.set_enabled(false)
+		_ai_framework.disable_commander(current_pid)
+		_ai_framework.disable_commander(target_pid)
 	_session.local_player_id = target_pid
 	if _session.match_config != null:
 		_session.match_config.local_player_id = target_pid
@@ -1753,6 +1767,8 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 	if not result.success:
 		if not result.status_message.is_empty():
 			_command_bar.show_status(result.status_message)
+			if result.status_message == ActionResolverClass.FIRETEAM_COHESION_FAIL_MSG:
+				_command_bar.append_chat_system(result.status_message)
 		return
 
 	for order in result.move_orders:

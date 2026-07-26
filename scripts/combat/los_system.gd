@@ -75,6 +75,12 @@ static func evaluate(
 		result.corner_peek = true
 		result.peek_side = block.peek_side
 		result.corner_cell = block.corner_cell
+		## Offensive lean around a wall end flanks that cell — it is not hard cover for the target.
+		if (
+			result.target_using_wall_cover
+			and wall_usage.target_cover_cell == result.corner_cell
+		):
+			result.target_using_wall_cover = false
 	if block.blocked:
 		result.status = Status.BLOCKED
 		result.blocking_cell = block.blocking_cell
@@ -84,7 +90,13 @@ static func evaluate(
 		_log_evaluation(from_cell, to_cell, map_data, result, game_state)
 		return result
 
-	## Cover still runs on peek shots — target keeps PseudoCover / corner benefit.
+	## Offensive corner peek with no remaining hard wall = clear shot.
+	## Other cover still applies when the target keeps hard protection (e.g. deeper wall).
+	if result.corner_peek and not result.target_using_wall_cover:
+		result.status = Status.CLEAR
+		_log_evaluation(from_cell, to_cell, map_data, result, game_state)
+		return result
+
 	var cover := CoverSystem.evaluate_target_cover(from_cell, to_cell, map_data)
 	result.cover_type = cover.cover_type
 	result.cover_source_type = cover.source_type_id

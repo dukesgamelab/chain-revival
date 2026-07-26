@@ -502,6 +502,16 @@ func _test_corner_peek_around_wall_end() -> void:
 		peek_los.corner_peek and peek_los.peek_side != CoverSystemClass.PeekSide.NONE,
 		"peek=%s side=%s" % [peek_los.corner_peek, peek_los.peek_side],
 	)
+	_assert(
+		"Corner peek defeats hard wall protection on the peeked cell",
+		not peek_los.target_using_wall_cover,
+		"target_using_wall_cover=%s" % peek_los.target_using_wall_cover,
+	)
+	_assert(
+		"Corner peek around wall end is a clear shot",
+		peek_los.status == LOSSystemClass.Status.CLEAR,
+		"status=%s cover=%s" % [LOSSystemClass.status_name(peek_los.status), peek_los.cover_type],
+	)
 
 	## Second wall further along the line — not adjacent to shooter or target.
 	## Line (10,10)->(14,12) visits (11,10)/(12,11)/(13,11); deeper wall at (12,11) blocks.
