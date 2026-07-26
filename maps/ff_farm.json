@@ -1382,8 +1382,692 @@
 			"y": 46
 		},
 		{
+			"x": 8,
+			"y": 23
+		},
+		{
+			"x": 8,
+			"y": 24
+		},
+		{
+			"x": 8,
+			"y": 26
+		},
+		{
+			"x": 8,
+			"y": 27
+		},
+		{
+			"x": 8,
+			"y": 28
+		},
+		{
+			"x": 8,
+			"y": 31
+		},
+		{
+			"x": 8,
+			"y": 32
+		},
+		{
+			"x": 8,
+			"y": 35
+		},
+		{
+			"x": 8,
+			"y": 36
+		},
+		{
+			"x": 8,
+			"y": 37
+		},
+		{
+			"x": 8,
+			"y": 33
+		},
+		{
+			"x": 15,
+			"y": 37
+		},
+		{
+			"x": 15,
+			"y": 36
+		},
+		{
+			"x": 15,
+			"y": 35
+		},
+		{
+			"x": 15,
+			"y": 34
+		},
+		{
+			"x": 15,
+			"y": 33
+		},
+		{
+			"x": 15,
+			"y": 31
+		},
+		{
+			"x": 15,
+			"y": 25
+		},
+		{
+			"x": 15,
+			"y": 26
+		},
+		{
+			"x": 15,
+			"y": 27
+		},
+		{
+			"x": 15,
+			"y": 23
+		},
+		{
+			"x": 15,
+			"y": 21
+		},
+		{
+			"x": 15,
+			"y": 18
+		},
+		{
+			"x": 15,
+			"y": 19
+		},
+		{
+			"x": 15,
+			"y": 14
+		},
+		{
+			"x": 15,
+			"y": 15
+		},
+		{
+			"x": 15,
+			"y": 16
+		},
+		{
+			"x": 22,
+			"y": 18
+		},
+		{
+			"x": 22,
+			"y": 19
+		},
+		{
+			"x": 22,
+			"y": 21
+		},
+		{
+			"x": 22,
+			"y": 22
+		},
+		{
+			"x": 22,
+			"y": 23
+		},
+		{
+			"x": 22,
+			"y": 25
+		},
+		{
+			"x": 22,
+			"y": 26
+		},
+		{
+			"x": 22,
+			"y": 27
+		},
+		{
+			"x": 27,
+			"y": 18
+		},
+		{
+			"x": 27,
+			"y": 19
+		},
+		{
+			"x": 27,
+			"y": 21
+		},
+		{
+			"x": 27,
+			"y": 22
+		},
+		{
+			"x": 27,
+			"y": 23
+		},
+		{
+			"x": 27,
+			"y": 24
+		},
+		{
+			"x": 27,
+			"y": 25
+		},
+		{
+			"x": 27,
+			"y": 27
+		},
+		{
+			"x": 27,
+			"y": 11
+		},
+		{
+			"x": 27,
+			"y": 12
+		},
+		{
+			"x": 27,
+			"y": 13
+		},
+		{
+			"x": 27,
+			"y": 14
+		},
+		{
+			"x": 27,
+			"y": 15
+		},
+		{
+			"x": 37,
+			"y": 12
+		},
+		{
+			"x": 37,
+			"y": 13
+		},
+		{
+			"x": 37,
+			"y": 14
+		},
+		{
+			"x": 37,
+			"y": 15
+		},
+		{
+			"x": 43,
+			"y": 26
+		},
+		{
+			"x": 43,
+			"y": 24
+		},
+		{
+			"x": 43,
+			"y": 27
+		},
+		{
+			"x": 43,
+			"y": 28
+		},
+		{
+			"x": 43,
+			"y": 29
+		},
+		{
+			"x": 43,
+			"y": 31
+		},
+		{
+			"x": 43,
+			"y": 32
+		},
+		{
+			"x": 43,
+			"y": 34
+		},
+		{
+			"x": 43,
+			"y": 35
+		},
+		{
+			"x": 36,
+			"y": 34
+		},
+		{
+			"x": 36,
+			"y": 35
+		},
+		{
+			"x": 36,
+			"y": 37
+		},
+		{
+			"x": 36,
+			"y": 38
+		},
+		{
+			"x": 39,
+			"y": 38
+		},
+		{
+			"x": 52,
+			"y": 34
+		},
+		{
+			"x": 52,
+			"y": 35
+		},
+		{
+			"x": 52,
+			"y": 38
+		},
+		{
+			"x": 52,
+			"y": 39
+		},
+		{
+			"x": 52,
+			"y": 41
+		},
+		{
+			"x": 52,
+			"y": 42
+		},
+		{
+			"x": 52,
+			"y": 44
+		},
+		{
+			"x": 52,
+			"y": 46
+		},
+		{
+			"x": 52,
+			"y": 47
+		},
+		{
+			"x": 52,
+			"y": 48
+		},
+		{
+			"x": 52,
+			"y": 49
+		},
+		{
+			"x": 60,
+			"y": 49
+		},
+		{
+			"x": 60,
+			"y": 46
+		},
+		{
+			"x": 60,
+			"y": 44
+		},
+		{
+			"x": 60,
+			"y": 45
+		},
+		{
+			"x": 60,
+			"y": 47
+		},
+		{
+			"x": 60,
+			"y": 29
+		},
+		{
+			"x": 60,
+			"y": 30
+		},
+		{
+			"x": 60,
+			"y": 32
+		},
+		{
+			"x": 60,
+			"y": 33
+		},
+		{
+			"x": 60,
+			"y": 34
+		},
+		{
+			"x": 60,
+			"y": 35
+		},
+		{
+			"x": 60,
+			"y": 36
+		},
+		{
+			"x": 60,
+			"y": 38
+		},
+		{
+			"x": 60,
+			"y": 39
+		},
+		{
+			"x": 60,
+			"y": 40
+		},
+		{
+			"x": 60,
+			"y": 41
+		},
+		{
+			"x": 55,
+			"y": 26
+		},
+		{
+			"x": 55,
+			"y": 27
+		},
+		{
+			"x": 49,
+			"y": 27
+		},
+		{
+			"x": 43,
+			"y": 16
+		},
+		{
+			"x": 47,
+			"y": 15
+		},
+		{
+			"x": 45,
+			"y": 19
+		},
+		{
+			"x": 55,
+			"y": 30
+		},
+		{
+			"x": 45,
+			"y": 31
+		},
+		{
+			"x": 52,
+			"y": 19
+		},
+		{
+			"x": 37,
+			"y": 17
+		},
+		{
+			"x": 27,
+			"y": 28
+		},
+		{
+			"x": 15,
+			"y": 29
+		},
+		{
+			"x": 15,
+			"y": 38
+		},
+		{
+			"x": 39,
+			"y": 39
+		},
+		{
+			"x": 60,
+			"y": 50
+		},
+		{
+			"x": 55,
+			"y": 24
+		},
+		{
+			"x": 40,
+			"y": 62
+		},
+		{
+			"x": 40,
+			"y": 63
+		},
+		{
+			"x": 40,
+			"y": 64
+		},
+		{
+			"x": 40,
+			"y": 66
+		},
+		{
+			"x": 35,
+			"y": 68
+		},
+		{
+			"x": 35,
+			"y": 69
+		},
+		{
+			"x": 35,
+			"y": 71
+		},
+		{
+			"x": 35,
+			"y": 72
+		},
+		{
+			"x": 32,
+			"y": 66
+		},
+		{
+			"x": 32,
+			"y": 65
+		},
+		{
+			"x": 32,
+			"y": 64
+		},
+		{
+			"x": 32,
+			"y": 61
+		},
+		{
+			"x": 32,
+			"y": 62
+		},
+		{
+			"x": 25,
+			"y": 61
+		},
+		{
+			"x": 25,
+			"y": 62
+		},
+		{
+			"x": 25,
+			"y": 63
+		},
+		{
+			"x": 25,
+			"y": 65
+		},
+		{
+			"x": 25,
+			"y": 66
+		},
+		{
+			"x": 40,
+			"y": 67
+		},
+		{
+			"x": 35,
+			"y": 63
+		},
+		{
 			"x": 29,
 			"y": 55
+		},
+		{
+			"x": 36,
+			"y": 45
+		},
+		{
+			"x": 30,
+			"y": 46
+		},
+		{
+			"x": 33,
+			"y": 52
+		},
+		{
+			"x": 33,
+			"y": 53
+		},
+		{
+			"x": 37,
+			"y": 51
+		},
+		{
+			"x": 37,
+			"y": 52
+		},
+		{
+			"x": 37,
+			"y": 54
+		},
+		{
+			"x": 47,
+			"y": 48
+		},
+		{
+			"x": 47,
+			"y": 42
+		},
+		{
+			"x": 47,
+			"y": 43
+		},
+		{
+			"x": 47,
+			"y": 45
+		},
+		{
+			"x": 40,
+			"y": 23
+		},
+		{
+			"x": 40,
+			"y": 24
+		},
+		{
+			"x": 40,
+			"y": 25
+		},
+		{
+			"x": 40,
+			"y": 26
+		},
+		{
+			"x": 40,
+			"y": 29
+		},
+		{
+			"x": 34,
+			"y": 36
+		},
+		{
+			"x": 34,
+			"y": 37
+		},
+		{
+			"x": 34,
+			"y": 38
+		},
+		{
+			"x": 34,
+			"y": 39
+		},
+		{
+			"x": 47,
+			"y": 44
+		},
+		{
+			"x": 47,
+			"y": 46
+		},
+		{
+			"x": 31,
+			"y": 40
+		},
+		{
+			"x": 29,
+			"y": 40
+		},
+		{
+			"x": 27,
+			"y": 40
+		},
+		{
+			"x": 25,
+			"y": 33
+		},
+		{
+			"x": 25,
+			"y": 41
+		},
+		{
+			"x": 25,
+			"y": 34
+		},
+		{
+			"x": 36,
+			"y": 30
+		},
+		{
+			"x": 34,
+			"y": 30
+		},
+		{
+			"x": 40,
+			"y": 30
+		},
+		{
+			"x": 40,
+			"y": 28
+		},
+		{
+			"x": 47,
+			"y": 47
+		},
+		{
+			"x": 47,
+			"y": 49
+		},
+		{
+			"x": 34,
+			"y": 40
+		},
+		{
+			"x": 25,
+			"y": 46
+		},
+		{
+			"x": 23,
+			"y": 38
+		},
+		{
+			"x": 25,
+			"y": 45
+		},
+		{
+			"x": 25,
+			"y": 44
+		},
+		{
+			"x": 38,
+			"y": 27
+		},
+		{
+			"x": 37,
+			"y": 55
+		},
+		{
+			"x": 23,
+			"y": 36
 		}
 	],
 	"floors": [
@@ -2400,7 +3084,7 @@
 	"map_objects": [
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2422,7 +3106,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2444,7 +3128,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2466,7 +3150,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2488,7 +3172,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2510,7 +3194,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2532,7 +3216,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2554,7 +3238,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2576,7 +3260,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2730,7 +3414,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2752,7 +3436,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2774,7 +3458,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2796,7 +3480,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2818,7 +3502,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2840,7 +3524,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2862,7 +3546,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2884,7 +3568,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2906,7 +3590,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2928,7 +3612,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2950,7 +3634,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2972,7 +3656,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -2994,7 +3678,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3016,7 +3700,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3038,7 +3722,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3060,7 +3744,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3082,7 +3766,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3104,7 +3788,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3126,7 +3810,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3148,7 +3832,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3170,7 +3854,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3192,7 +3876,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3214,7 +3898,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3236,7 +3920,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3258,7 +3942,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3280,7 +3964,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3302,7 +3986,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3324,7 +4008,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3346,7 +4030,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3368,7 +4052,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3390,7 +4074,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3412,7 +4096,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3434,7 +4118,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3456,7 +4140,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3478,7 +4162,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3500,7 +4184,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3522,7 +4206,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3544,7 +4228,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3566,7 +4250,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3588,7 +4272,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3610,7 +4294,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3632,7 +4316,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3654,7 +4338,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3676,7 +4360,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3698,7 +4382,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3720,7 +4404,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3742,7 +4426,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3764,7 +4448,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3786,7 +4470,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3808,7 +4492,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3830,7 +4514,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3852,7 +4536,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3874,7 +4558,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3896,7 +4580,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3918,7 +4602,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3940,7 +4624,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3962,7 +4646,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -3984,7 +4668,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4006,7 +4690,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4028,7 +4712,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4050,7 +4734,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4072,7 +4756,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4094,7 +4778,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4116,7 +4800,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4138,7 +4822,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4160,7 +4844,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4182,7 +4866,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4204,7 +4888,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4226,7 +4910,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4248,7 +4932,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4270,7 +4954,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4292,7 +4976,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4314,7 +4998,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4336,7 +5020,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4358,7 +5042,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4380,7 +5064,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4402,7 +5086,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4424,7 +5108,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4446,7 +5130,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4468,7 +5152,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4798,7 +5482,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4820,7 +5504,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4842,7 +5526,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4864,7 +5548,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4886,7 +5570,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4908,7 +5592,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4930,7 +5614,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4952,7 +5636,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4974,7 +5658,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -4996,7 +5680,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5018,7 +5702,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5040,7 +5724,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5062,7 +5746,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5084,7 +5768,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5106,7 +5790,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5128,7 +5812,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5150,7 +5834,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5172,7 +5856,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5194,7 +5878,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5216,7 +5900,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5238,7 +5922,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5260,7 +5944,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5282,7 +5966,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5304,7 +5988,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5326,7 +6010,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5348,7 +6032,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5370,7 +6054,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5392,7 +6076,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5414,7 +6098,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5436,7 +6120,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5458,7 +6142,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5480,7 +6164,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5502,7 +6186,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5524,7 +6208,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5546,7 +6230,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5568,7 +6252,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5590,7 +6274,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5612,7 +6296,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5634,7 +6318,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5656,7 +6340,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5678,7 +6362,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5700,7 +6384,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5722,7 +6406,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5744,7 +6428,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5766,7 +6450,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5788,7 +6472,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5810,7 +6494,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5832,7 +6516,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5854,7 +6538,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5898,7 +6582,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5920,7 +6604,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5942,7 +6626,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5964,7 +6648,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -5986,7 +6670,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6008,7 +6692,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6030,7 +6714,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6052,7 +6736,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6074,7 +6758,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6096,7 +6780,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6118,7 +6802,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6140,7 +6824,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6162,7 +6846,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6184,7 +6868,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6206,7 +6890,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6228,7 +6912,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6250,7 +6934,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6272,7 +6956,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6294,7 +6978,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6316,7 +7000,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6338,7 +7022,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6382,7 +7066,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6404,7 +7088,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6426,7 +7110,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6778,7 +7462,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6800,7 +7484,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6822,7 +7506,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -6844,7 +7528,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -7130,7 +7814,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -7372,7 +8056,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -7394,7 +8078,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -7944,7 +8628,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -8032,7 +8716,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -8185,7 +8869,7 @@
 			"y": 34
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -8384,7 +9068,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -8560,7 +9244,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -8582,7 +9266,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -8823,7 +9507,7 @@
 			"y": 40
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -9198,7 +9882,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -9220,7 +9904,7 @@
 		},
 		{
 			"blocks_los": false,
-			"blocks_movement": false,
+			"blocks_movement": true,
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
@@ -12079,10 +12763,10 @@
 			"y": 27
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 49,
 				"y": 27
@@ -12101,10 +12785,10 @@
 			"y": 27
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 43,
 				"y": 16
@@ -12123,10 +12807,10 @@
 			"y": 16
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 47,
 				"y": 15
@@ -12189,10 +12873,10 @@
 			"y": 30
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 45,
 				"y": 31
@@ -12211,10 +12895,10 @@
 			"y": 31
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 52,
 				"y": 19
@@ -12233,10 +12917,10 @@
 			"y": 19
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 37,
 				"y": 17
@@ -12255,10 +12939,10 @@
 			"y": 17
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 28
@@ -12277,10 +12961,10 @@
 			"y": 28
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 29
@@ -12299,10 +12983,10 @@
 			"y": 29
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 15,
 				"y": 38
@@ -12321,10 +13005,10 @@
 			"y": 38
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 39,
 				"y": 39
@@ -12343,10 +13027,10 @@
 			"y": 39
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 60,
 				"y": 50
@@ -12783,10 +13467,10 @@
 			"y": 66
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 40,
 				"y": 67
@@ -12829,8 +13513,8 @@
 		{
 			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 29,
 				"y": 55
@@ -12849,10 +13533,10 @@
 			"y": 55
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 36,
 				"y": 45
@@ -12871,10 +13555,10 @@
 			"y": 45
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 30,
 				"y": 46
@@ -12893,7 +13577,7 @@
 			"y": 46
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -12937,7 +13621,7 @@
 			"y": 53
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13003,7 +13687,7 @@
 			"y": 54
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13025,7 +13709,7 @@
 			"y": 48
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13047,7 +13731,7 @@
 			"y": 42
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13069,7 +13753,7 @@
 			"y": 43
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13091,7 +13775,7 @@
 			"y": 45
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13113,7 +13797,7 @@
 			"y": 23
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13135,7 +13819,7 @@
 			"y": 24
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13157,7 +13841,7 @@
 			"y": 25
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13179,7 +13863,7 @@
 			"y": 26
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13201,7 +13885,7 @@
 			"y": 29
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13223,7 +13907,7 @@
 			"y": 36
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13245,7 +13929,7 @@
 			"y": 37
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13267,7 +13951,7 @@
 			"y": 38
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13289,7 +13973,7 @@
 			"y": 39
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13311,7 +13995,7 @@
 			"y": 44
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13333,7 +14017,7 @@
 			"y": 46
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13355,7 +14039,7 @@
 			"y": 40
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13377,7 +14061,7 @@
 			"y": 40
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13399,7 +14083,7 @@
 			"y": 40
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13421,7 +14105,7 @@
 			"y": 33
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13443,7 +14127,7 @@
 			"y": 41
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13465,7 +14149,7 @@
 			"y": 34
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13487,7 +14171,7 @@
 			"y": 30
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13509,7 +14193,7 @@
 			"y": 30
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13553,7 +14237,7 @@
 			"y": 28
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13575,7 +14259,7 @@
 			"y": 47
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13597,7 +14281,7 @@
 			"y": 49
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13619,7 +14303,7 @@
 			"y": 40
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13641,29 +14325,7 @@
 			"y": 46
 		},
 		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 23,
-				"y": 36
-			},
-			"object_id": "coc_wall@23,36",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWCLS3A",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 23,
-			"y": 36
-		},
-		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13707,7 +14369,7 @@
 			"y": 38
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13729,7 +14391,7 @@
 			"y": 37
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13751,7 +14413,7 @@
 			"y": 38
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13773,7 +14435,7 @@
 			"y": 45
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13795,7 +14457,7 @@
 			"y": 44
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13817,7 +14479,7 @@
 			"y": 27
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13839,7 +14501,7 @@
 			"y": 27
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13861,7 +14523,7 @@
 			"y": 27
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13883,7 +14545,7 @@
 			"y": 24
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13905,7 +14567,7 @@
 			"y": 52
 		},
 		{
-			"blocks_los": true,
+			"blocks_los": false,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -13925,6 +14587,28 @@
 			"type": "coc_wall_corner",
 			"x": 37,
 			"y": 55
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 23,
+				"y": 36
+			},
+			"object_id": "coc_wall@23,36",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWCL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 23,
+			"y": 36
 		}
 	],
 	"source_format": "Chain of Command OIX (decoded)",

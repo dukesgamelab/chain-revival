@@ -164,35 +164,36 @@
 		"IWCL": {
 			"camera_variants": {
 				"0": {
-					"depth_offset": 0.0,
-					"facet": "IWCL_e",
+					"depth_offset": 0,
+					"facet": "IWCLS3A_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
 					"letter": "e",
-					"path": "sprites/coc_tiles/IWCL_e.png",
+					"path": "sprites/coc_tiles/IWCLS3A_e.png",
 					"render_offset": [
-						0.0,
-						0.0
-					]
+						0,
+						0
+					],
+					"source_family": "IWCLS3A"
 				},
 				"180": {
-					"depth_offset": 0.0,
-					"facet": "IWCR_e",
+					"depth_offset": 0,
+					"facet": "IWCRS3A_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
 					"letter": "e",
-					"path": "sprites/coc_tiles/IWCR_e.png",
+					"path": "sprites/coc_tiles/IWCRS3A_e.png",
 					"render_offset": [
-						0.0,
-						0.0
+						0,
+						0
 					],
-					"source_family": "IWCR"
+					"source_family": "IWCRS3A"
 				},
 				"270": {
 					"depth_offset": 0.0,
@@ -244,150 +245,71 @@
 			"material": "wood",
 			"usage_ff_farm": 1.0
 		},
-		"IWCLS3A": {
+		"IWCR": {
 			"camera_variants": {
 				"0": {
-					"depth_offset": 0.0,
-					"facet": "IWCLS3A_e",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "e",
-					"path": "sprites/coc_tiles/IWCLS3A_e.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"180": {
-					"depth_offset": 0.0,
+					"depth_offset": 0,
 					"facet": "IWCRS3A_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWCRS3A_e.png",
 					"render_offset": [
-						0.0,
-						0.0
+						0,
+						0
 					],
 					"source_family": "IWCRS3A"
 				},
-				"270": {
-					"depth_offset": 0.0,
-					"facet": "IWCR_n",
+				"180": {
+					"depth_offset": 0,
+					"facet": "IWCLS3A_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
-					"letter": "n",
-					"path": "sprites/coc_tiles/IWCR_n.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/IWCLS3A_e.png",
 					"render_offset": [
-						0.0,
-						0.0
+						0,
+						0
 					],
-					"source_family": "IWCR"
+					"source_family": "IWCLS3A"
 				},
-				"90": {
-					"depth_offset": 0.0,
+				"270": {
+					"depth_offset": 0,
 					"facet": "IWCRS5A_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWCRS5A_e.png",
 					"render_offset": [
-						0.0,
-						0.0
+						0,
+						0
 					],
 					"source_family": "IWCRS5A"
-				}
-			},
-			"category": "wall",
-			"display_name": "Interior wood corner L S3A",
-			"family": "IWCLS3A",
-			"gameplay": {
-				"blocks_bullets": false,
-				"blocks_los": false,
-				"blocks_movement": true,
-				"concealment": 0.0,
-				"cover_type": 2.0,
-				"provides_cover": true,
-				"suppression_modifier": 0.0,
-				"terrain": "_HG_NoPass",
-				"terrain_height": 0.0
-			},
-			"material": "wood",
-			"usage_ff_farm": 1.0
-		},
-		"IWCR": {
-			"camera_variants": {
-				"0": {
-					"depth_offset": 0.0,
-					"facet": "IWCR_e",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "e",
-					"path": "sprites/coc_tiles/IWCR_e.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"180": {
-					"depth_offset": 0.0,
-					"facet": "IWCR_w",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "w",
-					"path": "sprites/coc_tiles/IWCR_w.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"270": {
-					"depth_offset": 0.0,
-					"facet": "IWCR_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/IWCR_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
 				},
 				"90": {
-					"depth_offset": 0.0,
-					"facet": "IWCR_n",
+					"depth_offset": 0,
+					"facet": "IWCRS1A_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
-					"letter": "n",
-					"path": "sprites/coc_tiles/IWCR_n.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/IWCRS1A_e.png",
 					"render_offset": [
-						0.0,
-						0.0
-					]
+						0,
+						0
+					],
+					"source_family": "IWCRS1A"
 				}
 			},
 			"category": "wall",
@@ -490,19 +412,20 @@
 		"IWWL": {
 			"camera_variants": {
 				"0": {
-					"depth_offset": 0.0,
-					"facet": "IWWL_e",
+					"depth_offset": 0,
+					"facet": "IWDRS7A_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
 					"letter": "e",
-					"path": "sprites/coc_tiles/IWWL_e.png",
+					"path": "sprites/coc_tiles/IWDRS7A_e.png",
 					"render_offset": [
-						0.0,
-						0.0
-					]
+						0,
+						0
+					],
+					"source_family": "IWDRS7A"
 				},
 				"180": {
 					"depth_offset": 0.0,
@@ -521,34 +444,36 @@
 					"source_family": "IWDRS7A"
 				},
 				"270": {
-					"depth_offset": 0.0,
-					"facet": "IWWL_s",
+					"depth_offset": 0,
+					"facet": "IWWLS1C_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/IWWL_s.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/IWWLS1C_e.png",
 					"render_offset": [
-						0.0,
-						0.0
-					]
+						0,
+						0
+					],
+					"source_family": "IWWLS1C"
 				},
 				"90": {
-					"depth_offset": 0.0,
-					"facet": "IWWL_n",
+					"depth_offset": 0,
+					"facet": "IWWLS1C_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
-					"letter": "n",
-					"path": "sprites/coc_tiles/IWWL_n.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/IWWLS1C_e.png",
 					"render_offset": [
-						0.0,
-						0.0
-					]
+						0,
+						0
+					],
+					"source_family": "IWWLS1C"
 				}
 			},
 			"category": "wall",
@@ -1680,11 +1605,11 @@
 				"blocks_los": true,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2,
+				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 2
+				"terrain_height": 2.0
 			},
 			"material": "wood",
 			"usage_ff_farm": 7.0

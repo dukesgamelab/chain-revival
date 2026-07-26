@@ -202,7 +202,7 @@ static func categorize_family(family: String) -> String:
 	## Interior wood partition kit (Farm Fight houses).
 	if fam in ["IWWL", "IWCR", "IWCL", "IWDR", "IWAL"]:
 		return "Interior Wood Walls"
-	if fam in ["IWDRS7A", "IWWLS1C", "IWCLS3A", "IWALS7A", "IWCRS3A", "IWCRS1A", "IWCRS5A"]:
+	if fam in ["IWDRS7A", "IWWLS1C", "IWALS7A", "IWCRS3A", "IWCRS1A", "IWCRS5A"]:
 		return "New Wood Interior Walls"
 	## Stone-house kit (Farm Fight / Fortress stone buildings).
 	if fam in ["SWAL", "SWAI", "SICR", "SWAQ", "SWAR", "SI04"]:

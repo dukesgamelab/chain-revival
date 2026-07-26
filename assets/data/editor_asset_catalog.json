@@ -1,5 +1,5 @@
 {
-	"_comment": "Editable Chain Revival Editor asset browser labels and categories. Family codes stay fixed (WWAL, TR01, …). Edit 'label' / 'category' / 'sort' here, or rename in the editor tree (F2 / double-click) — changes are saved back to this file. Sprite PNGs still come from assets/sprites/coc_tiles/manifest.json.",
+	"_comment": "Editable Chain Revival Editor asset browser labels and categories. Family codes stay fixed (WWAL, TR01, \u2026). Edit 'label' / 'category' / 'sort' here, or rename in the editor tree (F2 / double-click) \u2014 changes are saved back to this file. Sprite PNGs still come from assets/sprites/coc_tiles/manifest.json.",
 	"category_order": [
 		"On This Map",
 		"Terrain",
@@ -412,7 +412,8 @@
 			"category": "New Wood Interior Walls",
 			"kind": "family",
 			"label": "IWCLS3A",
-			"sort": 30.0
+			"sort": 30.0,
+			"hidden": true
 		},
 		"IWALS7A": {
 			"category": "New Wood Interior Walls",

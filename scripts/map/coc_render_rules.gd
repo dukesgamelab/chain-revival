@@ -39,7 +39,6 @@ const WALLISH_FAMILIES := {
 	"IWCL": true,
 	"IWDRS7A": true,
 	"IWWLS1C": true,
-	"IWCLS3A": true,
 	"IWALS7A": true,
 	"IWCRS3A": true,
 	"IWCRS1A": true,

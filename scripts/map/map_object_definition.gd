@@ -122,7 +122,7 @@ static func type_id_for_family(family: String) -> String:
 		return "coc_wwal"
 	if fam == "SWAL":
 		return "coc_swal"
-	if fam in ["LIHW", "IWWL", "RIHW"] or fam in ["IWDRS7A", "IWWLS1C", "IWCLS3A", "IWALS7A", "IWCRS3A", "IWCRS1A", "IWCRS5A", "IWDR", "IWCL", "IWAL", "IWCR"]:
+	if fam in ["LIHW", "IWWL", "RIHW"] or fam in ["IWDRS7A", "IWWLS1C", "IWALS7A", "IWCRS3A", "IWCRS1A", "IWCRS5A", "IWDR", "IWCL", "IWAL", "IWCR"]:
 		return "coc_wall"
 	if CocRenderRules.is_floor_family(fam):
 		return "coc_floor"
