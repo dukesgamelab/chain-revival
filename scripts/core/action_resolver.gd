@@ -940,7 +940,9 @@ static func execute_position(
 
 	var result := ActionResult.new()
 	## Going prone (or standing) while moving: stop immediately so stance can apply now.
-	_halt_soldier_for_combat(game_state, soldier, result)
+	if _halt_soldier_for_combat(game_state, soldier, result):
+		## Drop that soldier's red run-to diamond (overlay rebuilds from remaining movers).
+		result.clear_path_overlay = true
 
 	## Gameplay stance commits immediately — presentation may still play a drop/stand anim.
 	soldier.position_state = cmd.position_state
