@@ -1230,10 +1230,6 @@
 			"y": 50
 		},
 		{
-			"x": 30,
-			"y": 52
-		},
-		{
 			"x": 31,
 			"y": 50
 		},
@@ -1244,14 +1240,6 @@
 		{
 			"x": 32,
 			"y": 50
-		},
-		{
-			"x": 31,
-			"y": 52
-		},
-		{
-			"x": 32,
-			"y": 52
 		},
 		{
 			"x": 33,
@@ -1268,18 +1256,6 @@
 		{
 			"x": 35,
 			"y": 50
-		},
-		{
-			"x": 35,
-			"y": 52
-		},
-		{
-			"x": 35,
-			"y": 54
-		},
-		{
-			"x": 35,
-			"y": 53
 		},
 		{
 			"x": 35,
@@ -1367,10 +1343,6 @@
 		},
 		{
 			"x": 45,
-			"y": 45
-		},
-		{
-			"x": 46,
 			"y": 45
 		},
 		{
@@ -2068,6 +2040,18 @@
 		{
 			"x": 23,
 			"y": 36
+		},
+		{
+			"x": 35,
+			"y": 52
+		},
+		{
+			"x": 35,
+			"y": 53
+		},
+		{
+			"x": 35,
+			"y": 54
 		}
 	],
 	"floors": [
@@ -9842,28 +9826,6 @@
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 30,
-				"y": 52
-			},
-			"object_id": "coc_wall@30,52",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 30,
-			"y": 52
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
 				"x": 31,
 				"y": 50
 			},
@@ -9923,50 +9885,6 @@
 			"type": "coc_window",
 			"x": 32,
 			"y": 50
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 31,
-				"y": 52
-			},
-			"object_id": "coc_wall@31,52",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 31,
-			"y": 52
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 32,
-				"y": 52
-			},
-			"object_id": "coc_wall@32,52",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 32,
-			"y": 52
 		},
 		{
 			"blocks_los": true,
@@ -10055,72 +9973,6 @@
 			"type": "coc_wall",
 			"x": 35,
 			"y": 50
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 35,
-				"y": 52
-			},
-			"object_id": "coc_wall@35,52",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 35,
-			"y": 52
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 35,
-				"y": 54
-			},
-			"object_id": "coc_wall@35,54",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 35,
-			"y": 54
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 35,
-				"y": 53
-			},
-			"object_id": "coc_wall@35,53",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 35,
-			"y": 53
 		},
 		{
 			"blocks_los": true,
@@ -10604,28 +10456,6 @@
 			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 45,
-			"y": 45
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 46,
-				"y": 45
-			},
-			"object_id": "coc_wall@46,45",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 46,
 			"y": 45
 		},
 		{
@@ -13577,7 +13407,7 @@
 			"y": 46
 		},
 		{
-			"blocks_los": false,
+			"blocks_los": true,
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
@@ -14609,6 +14439,160 @@
 			"type": "coc_wall",
 			"x": 23,
 			"y": 36
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 32,
+				"y": 52
+			},
+			"object_id": "coc_wall@32,52",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 32,
+			"y": 52
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 31,
+				"y": 52
+			},
+			"object_id": "coc_wall@31,52",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 31,
+			"y": 52
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 30,
+				"y": 52
+			},
+			"object_id": "coc_wall@30,52",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 30,
+			"y": 52
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 35,
+				"y": 52
+			},
+			"object_id": "coc_wall@35,52",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 35,
+			"y": 52
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 35,
+				"y": 53
+			},
+			"object_id": "coc_wall@35,53",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 35,
+			"y": 53
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 35,
+				"y": 54
+			},
+			"object_id": "coc_wall@35,54",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 35,
+			"y": 54
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 46,
+				"y": 45
+			},
+			"object_id": "coc_wall@46,45",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 46,
+			"y": 45
 		}
 	],
 	"source_format": "Chain of Command OIX (decoded)",

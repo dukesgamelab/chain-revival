@@ -10,6 +10,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+clip_contents = true
 script = ExtResource("1_app")
 
 [node name="Root" type="VBoxContainer" parent="."]
@@ -19,10 +20,12 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+clip_contents = true
 
 [node name="Toolbar" type="HBoxContainer" parent="Root"]
 layout_mode = 2
 theme_override_constants/separation = 8
+clip_contents = true
 
 [node name="BackButton" type="Button" parent="Root/Toolbar"]
 unique_name_in_owner = true
@@ -75,20 +78,30 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Cell —"
+text_overrun_behavior = 3
+clip_text = true
 
 [node name="StatusLabel" type="Label" parent="Root/Toolbar"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.2
 text = "Ready"
+text_overrun_behavior = 3
+clip_text = true
 
 [node name="Body" type="HBoxContainer" parent="Root"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 6
+clip_contents = true
 
 [node name="LeftPanel" type="VBoxContainer" parent="Root/Body"]
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 3
+clip_contents = true
 
 [node name="BrowserTitle" type="Label" parent="Root/Body/LeftPanel"]
 layout_mode = 2
@@ -107,13 +120,15 @@ theme_override_constants/separation = 6
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Rename Selected"
+text = "Rename"
+tooltip_text = "Rename Selected"
 
 [node name="DeleteAssetButton" type="Button" parent="Root/Body/LeftPanel/BrowserActions"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Delete from Browser"
+text = "Hide"
+tooltip_text = "Delete from Browser (hide from list)"
 
 [node name="BrowserHint" type="Label" parent="Root/Body/LeftPanel"]
 layout_mode = 2
@@ -128,9 +143,11 @@ autowrap_mode = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+size_flags_horizontal = 3
 hide_root = true
 allow_rmb_select = true
 select_mode = 1
+clip_contents = true
 
 [node name="AssetContextMenu" type="PopupMenu" parent="Root/Body/LeftPanel"]
 unique_name_in_owner = true
@@ -152,18 +169,23 @@ dialog_hide_on_ok = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+clip_contents = true
 
 [node name="MapViewportContainer" type="SubViewportContainer" parent="Root/Body/CenterPanel"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 stretch = true
 focus_mode = 2
+clip_contents = true
 
 [node name="MapViewport" type="SubViewport" parent="Root/Body/CenterPanel/MapViewportContainer"]
 unique_name_in_owner = true
 handle_input_locally = true
-size = Vector2i(800, 600)
+size = Vector2i(640, 480)
 render_target_update_mode = 4
 
 [node name="EditorCamera" type="Camera2D" parent="Root/Body/CenterPanel/MapViewportContainer/MapViewport"]
@@ -178,16 +200,24 @@ layout_mode = 2
 text = "Validation: —"
 
 [node name="RightPanel" type="VBoxContainer" parent="Root/Body"]
-custom_minimum_size = Vector2(300, 0)
+custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 3
+clip_contents = true
 
 [node name="InspectorTitle" type="Label" parent="Root/Body/RightPanel"]
 layout_mode = 2
 text = "Inspector"
+clip_text = true
+text_overrun_behavior = 3
 
 [node name="InspectorScroll" type="ScrollContainer" parent="Root/Body/RightPanel"]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
+clip_contents = true
 
 [node name="InspectorFields" type="VBoxContainer" parent="Root/Body/RightPanel/InspectorScroll"]
 unique_name_in_owner = true
@@ -196,6 +226,7 @@ size_flags_horizontal = 3
 
 [node name="Help" type="Label" parent="Root/Body/RightPanel"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 11
 text = "Q/E rotate · R brush dir · Ctrl+Z/Y undo/redo · Ctrl+S save · F3 debug · F4/F5 handedness · Esc back"
 autowrap_mode = 3

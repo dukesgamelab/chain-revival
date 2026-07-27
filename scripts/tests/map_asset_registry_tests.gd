@@ -16,6 +16,7 @@ func _ready() -> void:
 	MapAssetRegistryClass.reload()
 	_test_farm_families_registered()
 	_test_camera_variants_resolve()
+	_test_iwcr_cross_family_camera_variants_apply()
 	_test_registry_blocks_movement_propagates()
 	_test_registry_climb_propagates()
 	_test_camera_rotation_does_not_change_gameplay()
@@ -73,6 +74,27 @@ func _test_camera_variants_resolve() -> void:
 		incomplete.is_empty(),
 		"incomplete=%s" % str(incomplete),
 	)
+
+
+func _test_iwcr_cross_family_camera_variants_apply() -> void:
+	## Asset Editor authored IWCR → IWCRS*/IWCLS* corner art; must reach CocSpriteResolver.
+	MapAssetRegistryClass.reload()
+	var expected := {
+		0: "IWCRS3A_e",
+		90: "IWCRS1A_e",
+		180: "IWCLS3A_e",
+		270: "IWCRS5A_e",
+	}
+	for cam in expected.keys():
+		var info := CocSpriteResolver.resolve_placement("IWCR", 0, "", int(cam))
+		var path := str(info.get("path", "")).get_file().get_basename()
+		var facet := str(info.get("facet", ""))
+		var ok := path == str(expected[cam]) or facet == str(expected[cam])
+		_assert(
+			"IWCR @ cam %d° uses authored corner %s" % [cam, expected[cam]],
+			ok and bool(info.get("registry_override", false)),
+			"path=%s facet=%s override=%s" % [path, facet, str(info.get("registry_override", false))],
+		)
 
 
 func _test_registry_blocks_movement_propagates() -> void:

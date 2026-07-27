@@ -164,34 +164,34 @@
 		"IWCL": {
 			"camera_variants": {
 				"0": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "IWCLS3A_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWCLS3A_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "IWCLS3A"
 				},
 				"180": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "IWCRS3A_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWCRS3A_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "IWCRS3A"
 				},
@@ -248,66 +248,66 @@
 		"IWCR": {
 			"camera_variants": {
 				"0": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "IWCRS3A_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWCRS3A_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "IWCRS3A"
 				},
 				"180": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "IWCLS3A_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWCLS3A_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "IWCLS3A"
 				},
 				"270": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "IWCRS5A_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWCRS5A_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "IWCRS5A"
 				},
 				"90": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "IWCRS1A_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWCRS1A_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "IWCRS1A"
 				}
@@ -316,15 +316,15 @@
 			"display_name": "Interior wood corner R",
 			"family": "IWCR",
 			"gameplay": {
-				"blocks_bullets": false,
-				"blocks_los": false,
+				"blocks_bullets": true,
+				"blocks_los": true,
 				"blocks_movement": true,
 				"concealment": 0.0,
 				"cover_type": 2.0,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0.0
+				"terrain_height": 2.0
 			},
 			"material": "wood",
 			"usage_ff_farm": 1.0
@@ -412,18 +412,18 @@
 		"IWWL": {
 			"camera_variants": {
 				"0": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "IWDRS7A_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWDRS7A_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "IWDRS7A"
 				},
@@ -444,34 +444,34 @@
 					"source_family": "IWDRS7A"
 				},
 				"270": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "IWWLS1C_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWWLS1C_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "IWWLS1C"
 				},
 				"90": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "IWWLS1C_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/IWWLS1C_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "IWWLS1C"
 				}
@@ -497,64 +497,67 @@
 			"camera_variants": {
 				"0": {
 					"depth_offset": 0.0,
-					"facet": "IWWL_e",
+					"facet": "IWWLS1C_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
 					"letter": "e",
-					"path": "sprites/coc_tiles/IWWL_e.png",
+					"path": "sprites/coc_tiles/IWWLS1C_e.png",
 					"render_offset": [
 						0.0,
 						0.0
 					],
-					"source_family": "IWWL"
+					"source_family": "IWWLS1C"
 				},
 				"180": {
 					"depth_offset": 0.0,
-					"facet": "IWWLS1C_w",
+					"facet": "IWWLS1C_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "w",
-					"path": "sprites/coc_tiles/IWWLS1C_w.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/IWWLS1C_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "IWWLS1C"
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "IWWLS1C_s",
+					"facet": "IWDRS7A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/IWWLS1C_s.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/IWDRS7A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "IWDRS7A"
 				},
 				"90": {
 					"depth_offset": 0.0,
-					"facet": "IWWLS1C_n",
+					"facet": "IWDRS7A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "n",
-					"path": "sprites/coc_tiles/IWWLS1C_n.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/IWDRS7A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "IWDRS7A"
 				}
 			},
 			"category": "wall",
@@ -578,63 +581,67 @@
 			"camera_variants": {
 				"0": {
 					"depth_offset": 0.0,
-					"facet": "LIHW_e",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "e",
-					"path": "sprites/coc_tiles/LIHW_e.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"180": {
-					"depth_offset": 0.0,
-					"facet": "LIHW_w",
-					"fallback": false,
-					"hotspot": [
-						-150.0,
-						-19.0
-					],
-					"letter": "w",
-					"path": "sprites/coc_tiles/LIHW_w.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"270": {
-					"depth_offset": 0.0,
-					"facet": "LIHW_s",
+					"facet": "WWAR_s",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
 					"letter": "s",
-					"path": "sprites/coc_tiles/LIHW_s.png",
+					"path": "sprites/coc_tiles/WWAR_s.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WWAR"
 				},
-				"90": {
+				"180": {
 					"depth_offset": 0.0,
-					"facet": "LIHW_n",
+					"facet": "WWAR_s",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "n",
-					"path": "sprites/coc_tiles/LIHW_n.png",
+					"letter": "s",
+					"path": "sprites/coc_tiles/WWAR_s.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WWAR"
+				},
+				"270": {
+					"depth_offset": 0,
+					"facet": "WWAQ_s",
+					"fallback": false,
+					"hotspot": [
+						-50,
+						-73
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/WWAQ_s.png",
+					"render_offset": [
+						0,
+						0
+					],
+					"source_family": "WWAQ"
+				},
+				"90": {
+					"depth_offset": 0,
+					"facet": "WWAQ_s",
+					"fallback": false,
+					"hotspot": [
+						-50,
+						-73
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/WWAQ_s.png",
+					"render_offset": [
+						0,
+						0
+					],
+					"source_family": "WWAQ"
 				}
 			},
 			"category": "wall",

@@ -69,6 +69,9 @@ var _pending_asset_filter: String = ""
 func _ready() -> void:
 	MapCoordinateTransform.reset_candidate()
 	IsometricGrid.reset_view_rotation()
+	## Keep editor chrome inside the window — long inspector/status text must not expand side panels off-screen.
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	clip_contents = true
 	_setup_world()
 	_setup_tools()
 	_setup_asset_browser()
@@ -421,7 +424,7 @@ func _rotate_view(left: bool) -> void:
 	_refresh_placement_preview(_cell_at_mouse())
 	if _inspector_cell.x >= 0:
 		_rebuild_inspector()
-	_status.text = "Camera %d° — facets re-resolved (world dirs unchanged)" % IsometricGrid.facet_camera_direction_degrees()
+	_status.text = "Camera %d° — facets re-resolved" % IsometricGrid.facet_camera_direction_degrees()
 
 
 func _apply_tool_at(cell: Vector2i, is_click: bool) -> void:
@@ -672,6 +675,7 @@ func _rebuild_inspector() -> void:
 		child.queue_free()
 	if _inspector_cell.x < 0 or _map_data == null or not _map_data.is_in_bounds(_inspector_cell):
 		_add_inspector_label("No selection")
+		call_deferred("_fit_inspector_width")
 		return
 	var cell := _inspector_cell
 	_add_inspector_label("Cell %s" % cell)
@@ -714,22 +718,46 @@ func _rebuild_inspector() -> void:
 		if not str(resolved.get("image1", "")).is_empty():
 			var under: Dictionary = resolved.get("image1_resolve", {})
 			_add_inspector_label("Image1 PNG: %s" % str(under.get("path", "-")).get_file())
+	call_deferred("_fit_inspector_width")
+
+
+func _fit_inspector_width() -> void:
+	## Autowrap needs an explicit width; ScrollContainer width is the panel content width.
+	if _inspector == null or not is_instance_valid(_inspector):
+		return
+	var scroll := _inspector.get_parent() as ScrollContainer
+	var width := 240.0
+	if scroll != null and scroll.size.x > 8.0:
+		width = scroll.size.x - 8.0
+	_inspector.custom_minimum_size = Vector2(width, 0)
+	for child in _inspector.get_children():
+		if child is Control:
+			(child as Control).custom_minimum_size.x = 0
+		if child is Label:
+			(child as Label).custom_minimum_size = Vector2(width, 0)
 
 
 func _add_inspector_label(text: String) -> void:
 	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	## Fit to inspector width so long resolve lines cannot widen the right panel past the window.
+	label.custom_minimum_size = Vector2(0, 0)
 	_inspector.add_child(label)
 
 
 func _add_field(title: String, value: String, setter: Callable) -> void:
 	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var lab := Label.new()
 	lab.text = title
-	lab.custom_minimum_size = Vector2(96, 0)
+	lab.custom_minimum_size = Vector2(72, 0)
+	lab.clip_text = true
+	lab.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	var edit := LineEdit.new()
 	edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	edit.clip_contents = true
 	edit.text = value
 	edit.text_submitted.connect(func(t: String) -> void:
 		_push_history()
@@ -748,11 +776,14 @@ func _add_int_field(title: String, value: int, setter: Callable) -> void:
 
 func _add_terrain_class_field(cell: Vector2i) -> void:
 	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var lab := Label.new()
 	lab.text = "Terrain"
-	lab.custom_minimum_size = Vector2(96, 0)
+	lab.custom_minimum_size = Vector2(72, 0)
+	lab.clip_text = true
 	var opt := OptionButton.new()
 	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	opt.clip_contents = true
 	opt.add_item("Even", MapData.TerrainClass.EVEN)
 	opt.add_item("NoPass", MapData.TerrainClass.NO_PASS)
 	opt.add_item("Climb", MapData.TerrainClass.CLIMB)
@@ -777,15 +808,19 @@ func _add_terrain_class_field(cell: Vector2i) -> void:
 
 func _add_terrain_height_field(cell: Vector2i) -> void:
 	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var lab := Label.new()
-	lab.text = "Terrain Height"
-	lab.custom_minimum_size = Vector2(96, 0)
+	lab.text = "Height"
+	lab.tooltip_text = "Terrain Height"
+	lab.custom_minimum_size = Vector2(72, 0)
+	lab.clip_text = true
 	var spin := SpinBox.new()
 	spin.min_value = 0
 	spin.max_value = 2
 	spin.step = 1
 	spin.value = _map_data.obstruction_height(cell)
 	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spin.clip_contents = true
 	spin.value_changed.connect(func(v: float) -> void:
 		if not _map_data.has_object(cell):
 			_status.text = "Select a cell with a map object to edit height"
@@ -1081,6 +1116,9 @@ func _on_refresh_from_assets_pressed() -> void:
 	if _map_data == null:
 		_status.text = "No map loaded."
 		return
+	## Reload registry + tile catalog so Asset Editor camera_variants / sprites apply immediately.
+	MapAssetRegistry.reload()
+	CocTileCatalog.reload()
 	_push_history()
 	var summary: Dictionary = _map_data.refresh_gameplay_from_asset_registry()
 	_refresh_world()
@@ -1091,7 +1129,7 @@ func _on_refresh_from_assets_pressed() -> void:
 	if saved:
 		_dirty = false
 	_status.text = (
-		"Inspected %d. Cleaned %d. Removed %d legacy fields. Overrides preserved: %d. Missing definitions: %d.%s"
+		"Registry reloaded. Inspected %d. Cleaned %d. Removed %d legacy fields. Overrides preserved: %d. Missing definitions: %d.%s"
 		% [
 			int(summary.get("inspected", 0)),
 			int(summary.get("cleaned", 0)),
