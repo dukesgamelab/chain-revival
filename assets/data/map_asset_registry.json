@@ -612,34 +612,34 @@
 					"source_family": "WWAR"
 				},
 				"270": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "WWAQ_s",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "s",
 					"path": "sprites/coc_tiles/WWAQ_s.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "WWAQ"
 				},
 				"90": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "WWAQ_s",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "s",
 					"path": "sprites/coc_tiles/WWAQ_s.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "WWAQ"
 				}
@@ -1000,18 +1000,19 @@
 				},
 				"180": {
 					"depth_offset": 0.0,
-					"facet": "SWAL_w",
+					"facet": "SWAI_w",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
 					"letter": "w",
-					"path": "sprites/coc_tiles/SWAL_w.png",
+					"path": "sprites/coc_tiles/SWAI_w.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "SWAI"
 				},
 				"270": {
 					"depth_offset": 0.0,
@@ -1625,63 +1626,67 @@
 			"camera_variants": {
 				"0": {
 					"depth_offset": 0.0,
-					"facet": "WH00_e",
+					"facet": "WH01S3A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
 					"letter": "e",
-					"path": "sprites/coc_tiles/WH00_e.png",
+					"path": "sprites/coc_tiles/WH01S3A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH01S3A"
 				},
 				"180": {
 					"depth_offset": 0.0,
-					"facet": "WH00_w",
+					"facet": "WH01S3A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "w",
-					"path": "sprites/coc_tiles/WH00_w.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WH01S3A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH01S3A"
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WH00_s",
+					"facet": "WH01S5A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WH00_s.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WH01S5A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH01S5A"
 				},
 				"90": {
 					"depth_offset": 0.0,
-					"facet": "WH00_n",
+					"facet": "WH01S5A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "n",
-					"path": "sprites/coc_tiles/WH00_n.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WH01S5A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH01S5A"
 				}
 			},
 			"category": "wall",
@@ -1705,63 +1710,67 @@
 			"camera_variants": {
 				"0": {
 					"depth_offset": 0.0,
-					"facet": "WH01_e",
+					"facet": "WH01S5A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
 					"letter": "e",
-					"path": "sprites/coc_tiles/WH01_e.png",
+					"path": "sprites/coc_tiles/WH01S5A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH01S5A"
 				},
 				"180": {
 					"depth_offset": 0.0,
-					"facet": "WH01_w",
+					"facet": "WH01S5A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "w",
-					"path": "sprites/coc_tiles/WH01_w.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WH01S5A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH01S5A"
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WH01_s",
+					"facet": "WH01S3A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WH01_s.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WH01S3A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH01S3A"
 				},
 				"90": {
 					"depth_offset": 0.0,
-					"facet": "WH01_n",
+					"facet": "WH01S3A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "n",
-					"path": "sprites/coc_tiles/WH01_n.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WH01S3A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH01S3A"
 				}
 			},
 			"category": "wall",
@@ -1865,63 +1874,67 @@
 			"camera_variants": {
 				"0": {
 					"depth_offset": 0.0,
-					"facet": "WH11_e",
+					"facet": "WH11S3A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
 					"letter": "e",
-					"path": "sprites/coc_tiles/WH11_e.png",
+					"path": "sprites/coc_tiles/WH11S3A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH11S3A"
 				},
 				"180": {
 					"depth_offset": 0.0,
-					"facet": "WH11_w",
+					"facet": "WH11S3A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "w",
-					"path": "sprites/coc_tiles/WH11_w.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WH11S3A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH11S3A"
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WH11_s",
+					"facet": "WH11S1A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WH11_s.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WH11S1A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH11S1A"
 				},
 				"90": {
 					"depth_offset": 0.0,
-					"facet": "WH11_n",
+					"facet": "WH11S1A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "n",
-					"path": "sprites/coc_tiles/WH11_n.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WH11S1A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WH11S1A"
 				}
 			},
 			"category": "wall",
@@ -2200,33 +2213,35 @@
 				},
 				"180": {
 					"depth_offset": 0.0,
-					"facet": "WWAL_w",
+					"facet": "WWAL_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "w",
-					"path": "sprites/coc_tiles/WWAL_w.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WWAL_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WWAL"
 				},
 				"270": {
-					"depth_offset": 0.0,
-					"facet": "WWAL_s",
+					"depth_offset": 0,
+					"facet": "WWAL_n",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WWAL_s.png",
+					"letter": "n",
+					"path": "sprites/coc_tiles/WWAL_n.png",
 					"render_offset": [
-						0.0,
-						0.0
-					]
+						0,
+						0
+					],
+					"source_family": "WWAL"
 				},
 				"90": {
 					"depth_offset": 0.0,
@@ -2535,33 +2550,35 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WWINS17A_s",
+					"facet": "WWINS27A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WWINS17A_s.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WWINS27A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WWINS27A"
 				},
 				"90": {
 					"depth_offset": 0.0,
-					"facet": "WWINS17A_n",
+					"facet": "WWINS27A_e",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "n",
-					"path": "sprites/coc_tiles/WWINS17A_n.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/WWINS27A_e.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WWINS27A"
 				}
 			},
 			"category": "window",

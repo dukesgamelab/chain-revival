@@ -866,26 +866,6 @@
 			"y": 25
 		},
 		{
-			"x": 36,
-			"y": 27
-		},
-		{
-			"x": 37,
-			"y": 27
-		},
-		{
-			"x": 34,
-			"y": 24
-		},
-		{
-			"x": 33,
-			"y": 24
-		},
-		{
-			"x": 32,
-			"y": 24
-		},
-		{
 			"x": 31,
 			"y": 24
 		},
@@ -970,18 +950,6 @@
 			"y": 46
 		},
 		{
-			"x": 31,
-			"y": 37
-		},
-		{
-			"x": 30,
-			"y": 37
-		},
-		{
-			"x": 29,
-			"y": 37
-		},
-		{
 			"x": 33,
 			"y": 40
 		},
@@ -1028,22 +996,6 @@
 		{
 			"x": 26,
 			"y": 35
-		},
-		{
-			"x": 28,
-			"y": 37
-		},
-		{
-			"x": 27,
-			"y": 37
-		},
-		{
-			"x": 26,
-			"y": 37
-		},
-		{
-			"x": 24,
-			"y": 37
 		},
 		{
 			"x": 23,
@@ -1275,14 +1227,6 @@
 		},
 		{
 			"x": 47,
-			"y": 41
-		},
-		{
-			"x": 46,
-			"y": 41
-		},
-		{
-			"x": 45,
 			"y": 41
 		},
 		{
@@ -2052,6 +1996,74 @@
 		{
 			"x": 35,
 			"y": 54
+		},
+		{
+			"x": 45,
+			"y": 41
+		},
+		{
+			"x": 46,
+			"y": 41
+		},
+		{
+			"x": 73,
+			"y": 40
+		},
+		{
+			"x": 74,
+			"y": 40
+		},
+		{
+			"x": 75,
+			"y": 40
+		},
+		{
+			"x": 76,
+			"y": 40
+		},
+		{
+			"x": 76,
+			"y": 39
+		},
+		{
+			"x": 76,
+			"y": 38
+		},
+		{
+			"x": 76,
+			"y": 37
+		},
+		{
+			"x": 75,
+			"y": 37
+		},
+		{
+			"x": 74,
+			"y": 37
+		},
+		{
+			"x": 73,
+			"y": 37
+		},
+		{
+			"x": 73,
+			"y": 39
+		},
+		{
+			"x": 73,
+			"y": 38
+		},
+		{
+			"x": 71,
+			"y": 36
+		},
+		{
+			"x": 79,
+			"y": 38
+		},
+		{
+			"x": 79,
+			"y": 39
 		}
 	],
 	"floors": [
@@ -7824,116 +7836,6 @@
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 36,
-				"y": 27
-			},
-			"object_id": "coc_wall@36,27",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 36,
-			"y": 27
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 37,
-				"y": 27
-			},
-			"object_id": "coc_wall@37,27",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 37,
-			"y": 27
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 34,
-				"y": 24
-			},
-			"object_id": "coc_wall@34,24",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 34,
-			"y": 24
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 33,
-				"y": 24
-			},
-			"object_id": "coc_wall@33,24",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 33,
-			"y": 24
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 32,
-				"y": 24
-			},
-			"object_id": "coc_wall@32,24",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 32,
-			"y": 24
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
 				"x": 31,
 				"y": 24
 			},
@@ -8396,72 +8298,6 @@
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 31,
-				"y": 37
-			},
-			"object_id": "coc_wall@31,37",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 31,
-			"y": 37
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 30,
-				"y": 37
-			},
-			"object_id": "coc_wall@30,37",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 30,
-			"y": 37
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 29,
-				"y": 37
-			},
-			"object_id": "coc_wall@29,37",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 29,
-			"y": 37
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
 				"x": 33,
 				"y": 40
 			},
@@ -8719,94 +8555,6 @@
 			"type": "coc_window",
 			"x": 26,
 			"y": 35
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 28,
-				"y": 37
-			},
-			"object_id": "coc_wall@28,37",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 28,
-			"y": 37
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 27,
-				"y": 37
-			},
-			"object_id": "coc_wall@27,37",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 27,
-			"y": 37
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 26,
-				"y": 37
-			},
-			"object_id": "coc_wall@26,37",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 26,
-			"y": 37
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 24,
-				"y": 37
-			},
-			"object_id": "coc_wall@24,37",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "IWWL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 24,
-			"y": 37
 		},
 		{
 			"blocks_los": true,
@@ -10082,50 +9830,6 @@
 			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 47,
-			"y": 41
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 46,
-				"y": 41
-			},
-			"object_id": "coc_wall@46,41",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "WWAL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 46,
-			"y": 41
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 45,
-				"y": 41
-			},
-			"object_id": "coc_wall@45,41",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "WWAL",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 45,
 			"y": 41
 		},
 		{
@@ -14205,28 +13909,6 @@
 			"cover_type_name": "COMPLETE",
 			"grid_position": {
 				"x": 25,
-				"y": 37
-			},
-			"object_id": "coc_wall@25,37",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWDRS7A",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 25,
-			"y": 37
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 25,
 				"y": 38
 			},
 			"object_id": "coc_wall@25,38",
@@ -14306,28 +13988,6 @@
 			"sprite_path": "",
 			"type": "coc_door_wood",
 			"x": 38,
-			"y": 27
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 35,
-				"y": 27
-			},
-			"object_id": "coc_wall@35,27",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWWLS1C",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 35,
 			"y": 27
 		},
 		{
@@ -14593,6 +14253,688 @@
 			"type": "coc_wall",
 			"x": 46,
 			"y": 45
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 31,
+				"y": 37
+			},
+			"object_id": "coc_wall@31,37",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 31,
+			"y": 37
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 30,
+				"y": 37
+			},
+			"object_id": "coc_wall@30,37",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 30,
+			"y": 37
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 29,
+				"y": 37
+			},
+			"object_id": "coc_wall@29,37",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 29,
+			"y": 37
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 28,
+				"y": 37
+			},
+			"object_id": "coc_wall@28,37",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 28,
+			"y": 37
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 27,
+				"y": 37
+			},
+			"object_id": "coc_wall@27,37",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 27,
+			"y": 37
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 26,
+				"y": 37
+			},
+			"object_id": "coc_wall@26,37",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 26,
+			"y": 37
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 25,
+				"y": 37
+			},
+			"object_id": "coc_wall@25,37",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 25,
+			"y": 37
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 24,
+				"y": 37
+			},
+			"object_id": "coc_wall@24,37",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 24,
+			"y": 37
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 37,
+				"y": 27
+			},
+			"object_id": "coc_wall@37,27",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 37,
+			"y": 27
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 35,
+				"y": 27
+			},
+			"object_id": "coc_wall@35,27",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 35,
+			"y": 27
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 36,
+				"y": 27
+			},
+			"object_id": "coc_wall@36,27",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 36,
+			"y": 27
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 34,
+				"y": 24
+			},
+			"object_id": "coc_wall@34,24",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 34,
+			"y": 24
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 33,
+				"y": 24
+			},
+			"object_id": "coc_wall@33,24",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 33,
+			"y": 24
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 32,
+				"y": 24
+			},
+			"object_id": "coc_wall@32,24",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWLS1C",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 32,
+			"y": 24
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 45,
+				"y": 41
+			},
+			"object_id": "coc_wwal@45,41",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 270.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 45,
+			"y": 41
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 46,
+				"y": 41
+			},
+			"object_id": "coc_wwal@46,41",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 270.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 46,
+			"y": 41
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 73,
+				"y": 40
+			},
+			"object_id": "coc_wwal@73,40",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 73,
+			"y": 40
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 74,
+				"y": 40
+			},
+			"object_id": "coc_wwal@74,40",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 74,
+			"y": 40
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 75,
+				"y": 40
+			},
+			"object_id": "coc_wwal@75,40",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 75,
+			"y": 40
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 76,
+				"y": 40
+			},
+			"object_id": "coc_wwal@76,40",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 76,
+			"y": 40
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 76,
+				"y": 39
+			},
+			"object_id": "coc_wwal@76,39",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 180.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 76,
+			"y": 39
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 76,
+				"y": 38
+			},
+			"object_id": "coc_wwal@76,38",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 180.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 76,
+			"y": 38
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 76,
+				"y": 37
+			},
+			"object_id": "coc_wwal@76,37",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 180.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 76,
+			"y": 37
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 75,
+				"y": 37
+			},
+			"object_id": "coc_wwal@75,37",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 270.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 75,
+			"y": 37
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 74,
+				"y": 37
+			},
+			"object_id": "coc_wwal@74,37",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 270.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 74,
+			"y": 37
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 73,
+				"y": 37
+			},
+			"object_id": "coc_wwal@73,37",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 270.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 73,
+			"y": 37
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 73,
+				"y": 39
+			},
+			"object_id": "coc_wwal@73,39",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 73,
+			"y": 39
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 73,
+				"y": 38
+			},
+			"object_id": "coc_wwal@73,38",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 73,
+			"y": 38
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 71,
+				"y": 36
+			},
+			"object_id": "coc_wwal@71,36",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 71,
+			"y": 36
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 79,
+				"y": 38
+			},
+			"object_id": "coc_wwal@79,38",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 79,
+			"y": 38
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 79,
+				"y": 39
+			},
+			"object_id": "coc_wwal@79,39",
+			"object_type": "coc_wwal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WWAL",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wwal",
+			"x": 79,
+			"y": 39
 		}
 	],
 	"source_format": "Chain of Command OIX (decoded)",
