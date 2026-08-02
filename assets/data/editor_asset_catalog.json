@@ -31,10 +31,10 @@
 	],
 	"entries": {
 		"BG01": {
-			"category": "Special",
+			"category": "Bushes",
 			"kind": "family",
-			"label": "BG01 (BG01)",
-			"sort": 100.0
+			"label": "Haybail 2",
+			"sort": 15.0
 		},
 		"BH01": {
 			"category": "Bushes",

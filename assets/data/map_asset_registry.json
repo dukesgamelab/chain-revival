@@ -1,6 +1,86 @@
 {
 	"_comment": "Static CoC map-object family registry. Gameplay is shared; camera_variants are presentation-only.",
 	"families": {
+		"BG01": {
+			"camera_variants": {
+				"0": {
+					"depth_offset": 0.0,
+					"facet": "BG01_e",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "e",
+					"path": "sprites/coc_tiles/BG01_e.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"180": {
+					"depth_offset": 0.0,
+					"facet": "BG01_e",
+					"fallback": true,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "e",
+					"path": "sprites/coc_tiles/BG01_e.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"270": {
+					"depth_offset": 0.0,
+					"facet": "BG01_e",
+					"fallback": true,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "e",
+					"path": "sprites/coc_tiles/BG01_e.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "BG01_e",
+					"fallback": true,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "e",
+					"path": "sprites/coc_tiles/BG01_e.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				}
+			},
+			"category": "bush",
+			"display_name": "Haybail 2",
+			"family": "BG01",
+			"gameplay": {
+				"blocks_bullets": false,
+				"blocks_los": false,
+				"blocks_movement": true,
+				"concealment": 0.0,
+				"cover_type": 1.0,
+				"provides_cover": true,
+				"suppression_modifier": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1.0
+			},
+			"material": "",
+			"usage_ff_farm": 0.0
+		},
 		"BH01": {
 			"camera_variants": {
 				"0": {
@@ -65,7 +145,7 @@
 				}
 			},
 			"category": "bush",
-			"display_name": "Bush",
+			"display_name": "Haybail 1",
 			"family": "BH01",
 			"gameplay": {
 				"blocks_bullets": false,
@@ -80,6 +160,86 @@
 			},
 			"material": "",
 			"usage_ff_farm": 19.0
+		},
+		"BH02": {
+			"camera_variants": {
+				"0": {
+					"depth_offset": 0.0,
+					"facet": "BH02_e",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "e",
+					"path": "sprites/coc_tiles/BH02_e.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"180": {
+					"depth_offset": 0.0,
+					"facet": "BH02_e",
+					"fallback": true,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "e",
+					"path": "sprites/coc_tiles/BH02_e.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"270": {
+					"depth_offset": 0.0,
+					"facet": "BH02_e",
+					"fallback": true,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "e",
+					"path": "sprites/coc_tiles/BH02_e.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "BH02_e",
+					"fallback": true,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "e",
+					"path": "sprites/coc_tiles/BH02_e.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				}
+			},
+			"category": "bush",
+			"display_name": "Red Dot 1",
+			"family": "BH02",
+			"gameplay": {
+				"blocks_bullets": false,
+				"blocks_los": false,
+				"blocks_movement": true,
+				"concealment": 0.0,
+				"cover_type": 1.0,
+				"provides_cover": true,
+				"suppression_modifier": 0.0,
+				"terrain": "_HG_Climb",
+				"terrain_height": 1.0
+			},
+			"material": "",
+			"usage_ff_farm": 0.0
 		},
 		"CW01": {
 			"camera_variants": {
