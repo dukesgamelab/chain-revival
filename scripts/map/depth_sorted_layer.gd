@@ -160,19 +160,24 @@ func _rebuild_original_sprites() -> void:
 
 
 ## Hotspot places sprite pixels relative to the holder's ground-contact origin.
+## Prefer offsets already resolved into draw_info (shared CocSpriteResolver path).
 func _presentation_offsets(family: String, draw_info: Dictionary) -> Dictionary:
 	var hotspot: Vector2 = draw_info.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
-	var render_offset := Vector2.ZERO
-	var depth_offset := 0.0
-	var variant := MapAssetRegistry.camera_variant(family, CocFacetSelector.camera_degrees())
-	if not variant.is_empty():
-		var hs_raw: Variant = variant.get("hotspot", null)
-		if hs_raw is Array and (hs_raw as Array).size() >= 2:
-			hotspot = Vector2(float(hs_raw[0]), float(hs_raw[1]))
-		var ro_raw: Variant = variant.get("render_offset", null)
-		if ro_raw is Array and (ro_raw as Array).size() >= 2:
-			render_offset = Vector2(float(ro_raw[0]), float(ro_raw[1]))
-		depth_offset = float(variant.get("depth_offset", 0.0))
+	var render_offset: Vector2 = draw_info.get("render_offset", Vector2.ZERO)
+	var depth_offset := float(draw_info.get("depth_offset", 0.0))
+	## Legacy fallback if an older resolve omitted presentation fields.
+	if not draw_info.has("render_offset") or not draw_info.has("depth_offset"):
+		var variant := MapAssetRegistry.camera_variant(family, CocFacetSelector.camera_degrees())
+		if not variant.is_empty():
+			var hs_raw: Variant = variant.get("hotspot", null)
+			if hs_raw is Array and (hs_raw as Array).size() >= 2 and not draw_info.has("hotspot"):
+				hotspot = Vector2(float(hs_raw[0]), float(hs_raw[1]))
+			if not draw_info.has("render_offset"):
+				var ro_raw: Variant = variant.get("render_offset", null)
+				if ro_raw is Array and (ro_raw as Array).size() >= 2:
+					render_offset = Vector2(float(ro_raw[0]), float(ro_raw[1]))
+			if not draw_info.has("depth_offset"):
+				depth_offset = float(variant.get("depth_offset", 0.0))
 	return {
 		"hotspot": hotspot,
 		"render_offset": render_offset,

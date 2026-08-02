@@ -29,6 +29,7 @@ const MAP_WORLD_SCENE := preload("res://scenes/map/map_world.tscn")
 @onready var _tool_option: OptionButton = %ToolOption
 @onready var _status: Label = %StatusLabel
 @onready var _coord_label: Label = %CoordLabel
+@onready var _camera_label: Label = %CameraLabel
 @onready var _search: LineEdit = %SearchField
 @onready var _viewport_host: SubViewportContainer = %MapViewportContainer
 @onready var _subviewport: SubViewport = %MapViewport
@@ -89,6 +90,7 @@ func _ready() -> void:
 	_viewport_host.mouse_filter = Control.MOUSE_FILTER_STOP
 	_viewport_host.gui_input.connect(_on_viewport_gui_input)
 	_load_map(_map_path)
+	_update_camera_label()
 	set_process_input(true)
 	set_process_unhandled_input(true)
 
@@ -385,11 +387,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func _handle_mouse_editor_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		var cell := _cell_at_mouse()
-		_coord_label.text = "Cell %s  Cam %d°  BrushDir %d°" % [
+		_coord_label.text = "Cell %s  BrushDir %d°" % [
 			cell,
-			IsometricGrid.facet_camera_direction_degrees(),
 			_brush_direction,
 		]
+		_update_camera_label()
 		if _world != null:
 			_world.set_handedness_selected_cell(cell)
 		if _map_data != null and _map_data.is_in_bounds(cell):
@@ -425,6 +427,13 @@ func _rotate_view(left: bool) -> void:
 	if _inspector_cell.x >= 0:
 		_rebuild_inspector()
 	_status.text = "Camera %d° — facets re-resolved" % IsometricGrid.facet_camera_direction_degrees()
+	_update_camera_label()
+
+
+func _update_camera_label() -> void:
+	if _camera_label == null:
+		return
+	_camera_label.text = "Camera %d°" % IsometricGrid.facet_camera_direction_degrees()
 
 
 func _apply_tool_at(cell: Vector2i, is_click: bool) -> void:
@@ -708,12 +717,14 @@ func _rebuild_inspector() -> void:
 		_add_inspector_label("Resolved: (none)")
 	else:
 		var resolved := CocSpriteResolver.resolve_placement(def.family, def.direction, def.image1)
+		_add_inspector_label("family: %s" % def.family)
+		_add_inspector_label("world_direction: %d°" % int(resolved.get("world_direction", def.direction)))
+		_add_inspector_label("camera_rotation: %d°" % int(resolved.get("camera_direction", 0)))
+		_add_inspector_label("relative_facet: %d°" % int(resolved.get("relative_facet", 0)))
+		_add_inspector_label("configured sprite path: %s" % str(resolved.get("path", "-")))
 		_add_inspector_label(
-			"Display letter @ cam %d°: %s"
-			% [int(resolved.get("camera_direction", 0)), str(resolved.get("letter", "-"))]
+			"Display letter (metadata): %s" % str(resolved.get("letter", "-"))
 		)
-		_add_inspector_label("World direction: %d° (unchanged by camera)" % def.direction)
-		_add_inspector_label("PNG: %s" % str(resolved.get("path", "-")).get_file())
 		_add_inspector_label("Hotspot: %s" % str(resolved.get("hotspot", "-")))
 		if not str(resolved.get("image1", "")).is_empty():
 			var under: Dictionary = resolved.get("image1_resolve", {})

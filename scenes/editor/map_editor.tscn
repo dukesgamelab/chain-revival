@@ -90,6 +90,13 @@ text = "Ready"
 text_overrun_behavior = 3
 clip_text = true
 
+[node name="CameraLabel" type="Label" parent="Root/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Camera 0°"
+horizontal_alignment = 2
+clip_text = true
+
 [node name="Body" type="HBoxContainer" parent="Root"]
 layout_mode = 2
 size_flags_vertical = 3

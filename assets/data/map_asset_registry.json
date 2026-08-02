@@ -1560,19 +1560,20 @@
 					]
 				},
 				"180": {
-					"depth_offset": 0.0,
-					"facet": "WCOR_w",
+					"depth_offset": 0,
+					"facet": "USWKA8T_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
-					"letter": "w",
-					"path": "sprites/coc_tiles/WCOR_w.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/USWKA8T_e.png",
 					"render_offset": [
-						0.0,
-						0.0
-					]
+						0,
+						0
+					],
+					"source_family": "USWKA8T"
 				},
 				"270": {
 					"depth_offset": 0.0,
@@ -2198,18 +2199,19 @@
 			"camera_variants": {
 				"0": {
 					"depth_offset": 0.0,
-					"facet": "WWAL_e",
+					"facet": "WWAI_w",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "e",
-					"path": "sprites/coc_tiles/WWAL_e.png",
+					"letter": "w",
+					"path": "sprites/coc_tiles/WWAI_w.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "WWAI"
 				},
 				"180": {
 					"depth_offset": 0.0,
@@ -2224,26 +2226,9 @@
 					"render_offset": [
 						0.0,
 						0.0
-					],
-					"source_family": "WWAL"
+					]
 				},
 				"270": {
-					"depth_offset": 0,
-					"facet": "WWAL_n",
-					"fallback": false,
-					"hotspot": [
-						-50,
-						-73
-					],
-					"letter": "n",
-					"path": "sprites/coc_tiles/WWAL_n.png",
-					"render_offset": [
-						0,
-						0
-					],
-					"source_family": "WWAL"
-				},
-				"90": {
 					"depth_offset": 0.0,
 					"facet": "WWAL_n",
 					"fallback": false,
@@ -2253,6 +2238,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/WWAL_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "WWAL_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/WWAL_s.png",
 					"render_offset": [
 						0.0,
 						0.0

@@ -16,7 +16,9 @@ func _ready() -> void:
 	MapAssetRegistryClass.reload()
 	_test_farm_families_registered()
 	_test_camera_variants_resolve()
-	_test_iwcr_cross_family_camera_variants_apply()
+	_test_iwcr_relative_facet_variants()
+	_test_wwal_relative_facet_square()
+	_test_wwal_opaque_paths_ignore_filename_suffix()
 	_test_registry_blocks_movement_propagates()
 	_test_registry_climb_propagates()
 	_test_camera_rotation_does_not_change_gameplay()
@@ -76,25 +78,111 @@ func _test_camera_variants_resolve() -> void:
 	)
 
 
-func _test_iwcr_cross_family_camera_variants_apply() -> void:
-	## Asset Editor authored IWCR → IWCRS*/IWCLS* corner art; must reach CocSpriteResolver.
+func _test_iwcr_relative_facet_variants() -> void:
+	## Different world Directions at the same camera must pick different relative facets.
 	MapAssetRegistryClass.reload()
-	var expected := {
-		0: "IWCRS3A_e",
-		90: "IWCRS1A_e",
-		180: "IWCLS3A_e",
-		270: "IWCRS5A_e",
-	}
-	for cam in expected.keys():
-		var info := CocSpriteResolver.resolve_placement("IWCR", 0, "", int(cam))
-		var path := str(info.get("path", "")).get_file().get_basename()
-		var facet := str(info.get("facet", ""))
-		var ok := path == str(expected[cam]) or facet == str(expected[cam])
+	var paths_at_cam0: Dictionary = {}
+	for world_dir in [0, 90, 180, 270]:
+		var info := CocSpriteResolver.resolve_placement("IWCR", world_dir, "", 0)
+		var path := str(info.get("path", ""))
+		var rel := int(info.get("relative_facet", -1))
+		paths_at_cam0[world_dir] = path
 		_assert(
-			"IWCR @ cam %d° uses authored corner %s" % [cam, expected[cam]],
-			ok and bool(info.get("registry_override", false)),
-			"path=%s facet=%s override=%s" % [path, facet, str(info.get("registry_override", false))],
+			"IWCR dir=%d @ cam0 has relative_facet" % world_dir,
+			rel in [0, 90, 180, 270],
+			"rel=%s" % rel,
 		)
+		_assert(
+			"IWCR world Direction preserved dir=%d" % world_dir,
+			int(info.get("world_direction", -1)) == world_dir,
+		)
+	var unique := {}
+	for p in paths_at_cam0.values():
+		unique[p] = true
+	_assert(
+		"IWCR four Directions at cam0 are not all parallel (same sprite)",
+		unique.size() >= 2,
+		"paths=%s" % str(paths_at_cam0),
+	)
+
+
+func _test_wwal_relative_facet_square() -> void:
+	## Four WWAL walls (Directions 0/90/180/270) must keep distinct facets per camera.
+	MapAssetRegistryClass.reload()
+	IsometricGrid.set_original_projection_enabled(true)
+	for cam in [0, 90, 180, 270]:
+		var paths: Dictionary = {}
+		var rels: Dictionary = {}
+		for world_dir in [0, 90, 180, 270]:
+			var info := CocSpriteResolver.resolve_placement("WWAL", world_dir, "", cam)
+			var path := str(info.get("path", ""))
+			var rel := int(info.get("relative_facet", -1))
+			paths[world_dir] = path
+			rels[world_dir] = rel
+			_assert(
+				"WWAL dir=%d cam=%d world Direction unchanged" % [world_dir, cam],
+				int(info.get("world_direction", -1)) == world_dir,
+			)
+			## Path equals the registry variant for this relative facet (opaque).
+			var variant := MapAssetRegistryClass.camera_variant("WWAL", rel)
+			var want := CocSpriteResolver._registry_path_to_res(str(variant.get("path", "")))
+			_assert(
+				"WWAL dir=%d cam=%d uses configured path for relative_facet %d" % [world_dir, cam, rel],
+				path == want and not path.is_empty(),
+				"got=%s want=%s" % [path, want],
+			)
+		var unique_paths := {}
+		var unique_rels := {}
+		for d in paths.keys():
+			unique_paths[paths[d]] = true
+			unique_rels[rels[d]] = true
+		_assert(
+			"WWAL square at cam %d keeps four relative facets" % cam,
+			unique_rels.size() == 4,
+			"rels=%s" % str(rels),
+		)
+		_assert(
+			"WWAL square at cam %d does not collapse to one sprite" % cam,
+			unique_paths.size() >= 2,
+			"paths=%s" % str(paths),
+		)
+	## Rotating camera changes which configured path a fixed Direction uses.
+	var d0_cam0 := str(CocSpriteResolver.resolve_placement("WWAL", 0, "", 0).get("path", ""))
+	var d0_cam90 := str(CocSpriteResolver.resolve_placement("WWAL", 0, "", 90).get("path", ""))
+	_assert("WWAL dir0 changes facet when camera rotates", d0_cam0 != d0_cam90, "%s vs %s" % [d0_cam0, d0_cam90])
+
+
+func _test_wwal_opaque_paths_ignore_filename_suffix() -> void:
+	## Simulate arbitrary filenames: keep real PNG paths but poison letter/facet metadata.
+	## Selection must still follow relative_facet → registry path, not suffix letters.
+	MapAssetRegistryClass.reload()
+	var originals: Dictionary = {}
+	for key in [0, 90, 180, 270]:
+		originals[key] = MapAssetRegistryClass.camera_variant("WWAL", key)
+		var v: Dictionary = originals[key].duplicate(true)
+		v["letter"] = "z"
+		v["facet"] = "OPAQUE_SLOT_%d" % key
+		v["source_family"] = "NOTREAL"
+		MapAssetRegistryClass.set_camera_variant("WWAL", key, v)
+	var expected_paths: Dictionary = {}
+	for key in [0, 90, 180, 270]:
+		expected_paths[key] = CocSpriteResolver._registry_path_to_res(str(originals[key].get("path", "")))
+	for cam in [0, 90, 180, 270]:
+		for world_dir in [0, 90, 180, 270]:
+			var info := CocSpriteResolver.resolve_placement("WWAL", world_dir, "", cam)
+			var rel := int(info.get("relative_facet", -1))
+			var path := str(info.get("path", ""))
+			_assert(
+				"opaque WWAL dir=%d cam=%d ignores poisoned letter/facet" % [world_dir, cam],
+				path == str(expected_paths.get(rel, "")),
+				"path=%s rel=%s letter=%s facet=%s"
+				% [path, rel, info.get("letter"), info.get("facet")],
+			)
+	## Restore authored variants.
+	for key in [0, 90, 180, 270]:
+		MapAssetRegistryClass.set_camera_variant("WWAL", key, originals[key])
+	MapAssetRegistryClass.reload()
+
 
 
 func _test_registry_blocks_movement_propagates() -> void:

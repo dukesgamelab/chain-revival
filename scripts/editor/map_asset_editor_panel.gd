@@ -808,16 +808,11 @@ func _refresh_family_list_labels() -> void:
 
 
 func _refresh_variant_preview(cam: int) -> void:
-	var sel: Dictionary = _variant_selection.get(cam, {})
-	var rel := str(sel.get("path", ""))
-	if rel.is_empty():
-		var variant := MapAssetRegistryClass.camera_variant(_family, cam)
-		rel = str(variant.get("path", ""))
-	var path := rel
-	if not path.begins_with("res://"):
-		path = "res://assets/%s" % rel if not rel.begins_with("assets/") else "res://%s" % rel
+	## Column thumbnails show the authored registry path for that variant key.
+	var resolved := CocSpriteResolver.resolve_authored_variant(_family, cam)
+	var path := str(resolved.get("path", ""))
 	var preview: TextureRect = _variant_preview[cam]
-	if ResourceLoader.exists(path) or FileAccess.file_exists(path):
+	if not path.is_empty() and (ResourceLoader.exists(path) or FileAccess.file_exists(path)):
 		preview.texture = load(path) as Texture2D
 	else:
 		preview.texture = null
@@ -831,9 +826,14 @@ func _on_large_cam_selected(index: int) -> void:
 func _refresh_large_preview() -> void:
 	if _family.is_empty():
 		return
-	_refresh_variant_preview(_large_cam)
-	_large_preview.texture = (_variant_preview[_large_cam] as TextureRect).texture
-	## Neighbor hint is informational only (no separate renderer).
+	## Large preview = runtime resolve at this view camera for world Direction 0.
+	var resolved := CocSpriteResolver.resolve_camera_preview(_family, _large_cam, 0)
+	var path := str(resolved.get("path", ""))
+	if not path.is_empty() and (ResourceLoader.exists(path) or FileAccess.file_exists(path)):
+		_large_preview.texture = load(path) as Texture2D
+	else:
+		_refresh_variant_preview(_large_cam)
+		_large_preview.texture = (_variant_preview[_large_cam] as TextureRect).texture
 	if _show_neighbors:
 		status_message.emit("Neighbor preview: use map editor for wall connections")
 

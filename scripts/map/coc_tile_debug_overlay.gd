@@ -78,7 +78,10 @@ func _update_from_mouse() -> void:
 	var draw_info := CocSpriteResolver.resolve_placement(family, direction, image1)
 	_info["family"] = family
 	_info["direction"] = direction
-	_info["display_angle"] = int(draw_info.get("display_angle", CocFacetSelector.display_angle(direction)))
+	_info["world_direction"] = int(draw_info.get("world_direction", direction))
+	_info["camera"] = int(draw_info.get("camera_direction", IsometricGrid.facet_camera_direction_degrees()))
+	_info["relative_facet"] = int(draw_info.get("relative_facet", 0))
+	_info["display_angle"] = int(draw_info.get("display_angle", CocFacetSelector.display_angle(direction, family)))
 	_info["facet_count"] = int(draw_info.get("facet_count", CocTileCatalog.facet_count(family)))
 	_info["letter"] = str(draw_info.get("letter", ""))
 	_info["path"] = str(draw_info.get("path", ""))
@@ -105,15 +108,14 @@ func _draw() -> void:
 		var view: Vector2i = _info.get("view", Vector2i.ZERO)
 		lines.append("view %s  depth %s  z %s" % [view, _info.get("depth", 0), _info.get("z", 0)])
 		lines.append("family %s  layer %s" % [_info.get("family", ""), _info.get("layer", "")])
+		lines.append("world_direction %s" % _info.get("world_direction", _info.get("direction", 0)))
+		lines.append("camera_rotation %s" % _info.get("camera", 0))
+		lines.append("relative_facet %s" % _info.get("relative_facet", 0))
+		lines.append("configured sprite path %s" % str(_info.get("path", "")))
 		lines.append(
-			"worldDir %s  cam %s  display %s"
-			% [_info.get("direction", 0), _info.get("camera", 0), _info.get("display_angle", 0)]
+			"display %s  facets %s  letter(meta) %s"
+			% [_info.get("display_angle", 0), _info.get("facet_count", 0), _info.get("letter", "")]
 		)
-		lines.append(
-			"facets %s  letter %s"
-			% [_info.get("facet_count", 0), _info.get("letter", "")]
-		)
-		lines.append("path %s" % str(_info.get("path", "")).get_file())
 		var hs: Vector2 = _info.get("hotspot", Vector2.ZERO)
 		lines.append("hotspot %s" % hs)
 		lines.append(

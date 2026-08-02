@@ -38,15 +38,14 @@ static func set_original_projection_enabled(enabled: bool) -> void:
 
 
 static func camera_direction_degrees() -> int:
-	## Coordinate-remap camera only (may use reversed steps [0,3,2,1]).
-	## Sprite/facet selection must use facet_camera_direction_degrees() instead.
+	## Coordinate-remap camera (reversed steps [0,3,2,1]).
 	return MapCoordinateTransform.camera_step_for_rotation(current_view_rotation) * 90
 
 
 static func facet_camera_direction_degrees() -> int:
-	## Presentation facet camera: normal rotation index 0→0°, 1→90°, 2→180°, 3→270°.
-	## Independent of MapCoordinateTransform.camera_step_for_rotation() reverse order.
-	return posmod(current_view_rotation, 4) * 90
+	## Must match the coordinate-remap camera; a normal [0,1,2,3] sequence
+	## diverges by 180° at odd steps and flips 4-facet walls outward.
+	return MapCoordinateTransform.camera_step_for_rotation(current_view_rotation) * 90
 
 
 static func reset_view_rotation() -> void:

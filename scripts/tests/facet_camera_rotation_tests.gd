@@ -31,7 +31,8 @@ func _ready() -> void:
 	_test_right_rotations_enws()
 	_test_left_rotations_eswn()
 	_test_cam0_and_cam180_unchanged_vs_explicit()
-	_test_cam90_270_not_swapped()
+	_test_cam90_270_quarter_turn_handedness()
+	_test_wwal_exterior_quarter_turns_s_then_n()
 	_test_editor_preview_matches_runtime()
 	_test_world_direction_unchanged_by_camera()
 	_test_maps_not_modified()
@@ -81,19 +82,19 @@ func _test_facet_camera_sequence() -> void:
 		degrees.append(IsometricGrid.facet_camera_direction_degrees())
 	IsometricGrid.reset_view_rotation()
 	_assert(
-		"facet camera degrees use [0,1,2,3] → 0/90/180/270",
-		degrees == [0, 90, 180, 270],
+		"facet camera degrees match reversed coord steps [0,3,2,1] → 0/270/180/90",
+		degrees == [0, 270, 180, 90],
 		"got %s" % str(degrees),
 	)
 	IsometricGrid.rotate_view_right()
 	_assert(
-		"CocFacetSelector.camera_degrees uses facet camera (90 after right)",
-		CocFacetSelector.camera_degrees() == 90,
+		"CocFacetSelector.camera_degrees uses facet camera (270 after right)",
+		CocFacetSelector.camera_degrees() == 270,
 		"got %d" % CocFacetSelector.camera_degrees(),
 	)
 	_assert(
-		"facet camera ≠ coord remap camera after rotate_right",
-		CocFacetSelector.camera_degrees() != IsometricGrid.camera_direction_degrees(),
+		"facet camera == coord remap camera after rotate_right",
+		CocFacetSelector.camera_degrees() == IsometricGrid.camera_direction_degrees(),
 		"facet=%d coord=%d"
 		% [CocFacetSelector.camera_degrees(), IsometricGrid.camera_direction_degrees()],
 	)
@@ -121,10 +122,11 @@ func _letters_for_left_rotations(family: String, world_dir: int) -> PackedString
 
 
 func _test_right_rotations_enws() -> void:
+	## Steps 0/2 unchanged (e,w); steps 1/3 swap vs prior normal-sequence expectations.
 	var letters := _letters_for_right_rotations(TEST_FAMILY, 0)
 	_assert(
-		"four right rotations resolve e,n,w,s for dir-0 four-facet family",
-		letters == PackedStringArray(["e", "n", "w", "s"]),
+		"four right rotations resolve e,s,w,n for dir-0 four-facet family",
+		letters == PackedStringArray(["e", "s", "w", "n"]),
 		"got %s" % ", ".join(letters),
 	)
 
@@ -132,14 +134,14 @@ func _test_right_rotations_enws() -> void:
 func _test_left_rotations_eswn() -> void:
 	var letters := _letters_for_left_rotations(TEST_FAMILY, 0)
 	_assert(
-		"four left rotations resolve e,s,w,n for dir-0 four-facet family",
-		letters == PackedStringArray(["e", "s", "w", "n"]),
+		"four left rotations resolve e,n,w,s for dir-0 four-facet family",
+		letters == PackedStringArray(["e", "n", "w", "s"]),
 		"got %s" % ", ".join(letters),
 	)
 
 
 func _test_cam0_and_cam180_unchanged_vs_explicit() -> void:
-	## Camera 0 and 180 facet picks match explicit angles (unaffected by swap fix).
+	## Camera 0 and 180 facet picks match explicit angles (unaffected by odd-step swap).
 	IsometricGrid.reset_view_rotation()
 	var live0 := CocFacetSelector.select_letter(TEST_FAMILY, 0)
 	var expl0 := CocFacetSelector.select_letter_at_camera(TEST_FAMILY, 0, 0)
@@ -156,17 +158,52 @@ func _test_cam0_and_cam180_unchanged_vs_explicit() -> void:
 	)
 
 
-func _test_cam90_270_not_swapped() -> void:
-	## Before fix: rot1 used coord 270 → s; rot3 used coord 90 → n (swapped).
+func _test_cam90_270_quarter_turn_handedness() -> void:
+	## Rotation steps 1 and 3 now use reversed facet camera (270° and 90°).
+	## Letters swap vs the prior normal-sequence expectations; steps 0/2 unchanged above.
 	IsometricGrid.current_view_rotation = 1
-	var at90 := CocFacetSelector.select_letter(TEST_FAMILY, 0)
+	var at_step1 := CocFacetSelector.select_letter(TEST_FAMILY, 0)
 	IsometricGrid.current_view_rotation = 3
-	var at270 := CocFacetSelector.select_letter(TEST_FAMILY, 0)
+	var at_step3 := CocFacetSelector.select_letter(TEST_FAMILY, 0)
 	IsometricGrid.reset_view_rotation()
-	_assert("camera 90 resolves n (not s)", at90 == "n", "got %s" % at90)
-	_assert("camera 270 resolves s (not n)", at270 == "s", "got %s" % at270)
-	_assert("camera 90 and 270 are no longer swapped", at90 != at270 and at90 == "n" and at270 == "s")
+	_assert("rotation step 1 resolves s (facet cam 270°)", at_step1 == "s", "got %s" % at_step1)
+	_assert("rotation step 3 resolves n (facet cam 90°)", at_step3 == "n", "got %s" % at_step3)
 
+
+func _test_wwal_exterior_quarter_turns_s_then_n() -> void:
+	## Relative facet: four Directions stay distinct; paths come from registry by index.
+	IsometricGrid.set_original_projection_enabled(true)
+	MapAssetRegistry.ensure_loaded()
+	for cam in [0, 90, 180, 270]:
+		var rels: Dictionary = {}
+		for world_dir in [0, 90, 180, 270]:
+			var info := CocSpriteResolver.resolve_placement("WWAL", world_dir, "", cam)
+			var rel := int(info.get("relative_facet", -1))
+			rels[world_dir] = rel
+			_assert(
+				"WWAL dir=%d cam=%d Direction preserved" % [world_dir, cam],
+				int(info.get("world_direction", -1)) == world_dir,
+			)
+			var variant := MapAssetRegistry.camera_variant("WWAL", rel)
+			var want := CocSpriteResolver._registry_path_to_res(str(variant.get("path", "")))
+			_assert(
+				"WWAL dir=%d cam=%d path matches relative_facet %d" % [world_dir, cam, rel],
+				str(info.get("path", "")) == want,
+				"got %s" % info.get("path"),
+			)
+		var unique := {}
+		for r in rels.values():
+			unique[r] = true
+		_assert("WWAL four dirs at cam %d → four relative facets" % cam, unique.size() == 4, str(rels))
+	## Facet selector math still available for fallback families.
+	_assert(
+		"WWAL selector cam90 is s (fallback math unchanged)",
+		CocFacetSelector.select_letter_at_camera("WWAL", 0, 90) == "s",
+	)
+	_assert(
+		"WWAL selector cam270 is n (fallback math unchanged)",
+		CocFacetSelector.select_letter_at_camera("WWAL", 0, 270) == "n",
+	)
 
 func _test_editor_preview_matches_runtime() -> void:
 	IsometricGrid.reset_view_rotation()

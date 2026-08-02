@@ -8,8 +8,8 @@ extends RefCounted
 ##   2) camera remap with reversed step order 0,3,2,1 (OG rotate spin)
 ##   3) isometric project: screen = (vx-vy)·31·s, (vx+vy)·16·s
 ##   4) facets: display_angle = (world - facet_camera) mod 360
-##      Facet camera uses normal rotation index (0,1,2,3)×90 — NOT the reversed
-##      coordinate-remap steps. See IsometricGrid.facet_camera_direction_degrees().
+##      Facet camera matches coordinate-remap reversed steps [0,3,2,1]
+##      (see IsometricGrid.facet_camera_direction_degrees()).
 ##      World Direction in map data is unchanged by camera / X-flip.
 ##      Exterior walls get a selective +180° in CocFacetSelector only
 ##      (see CocRenderRules.EXTERIOR_OUTWARD_FACE_FAMILIES). Interiors stay identity.

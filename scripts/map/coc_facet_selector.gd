@@ -3,9 +3,12 @@ extends RefCounted
 ## Camera-relative facet selection from the recovered engine quantizer.
 ##
 ## display_angle = (presentation_world - CameraDirection + 360) mod 360
-## Map-data Direction is unchanged. Under CoC X-flip, exterior wall families get
-## +180° for facet selection only (outward faces); interiors stay identity.
+## Map-data Direction is unchanged. Exterior wall families get +180° for facet
+## selection only (outward faces); interiors stay identity.
 
+## Recovered 4-facet order: display angles 0/90/180/270 → e/s/w/n.
+## Exterior families add +180° in presentation_world_for_family (keeps e/w at
+## cam 0/180 and yields s at cam 90 / n at cam 270 for inward wall faces).
 const LETTERS_4: PackedStringArray = ["e", "s", "w", "n"]
 const LETTERS_8: PackedStringArray = ["e", "se", "s", "sw", "w", "nw", "n", "ne"]
 
@@ -18,23 +21,47 @@ static func camera_degrees() -> int:
 
 static func presentation_world_for_family(family: String, world_direction_degrees: int) -> int:
 	var world := MapCoordinateTransform.presentation_world_direction(world_direction_degrees)
-	## Opposite face ≡ +180° (e↔w and s↔n). Only when X-flip is active — that is
-	## what inverted exterior textured sides relative to OG.
-	if (
-		MapCoordinateTransform.uses_coc_x_flip()
-		and CocRenderRules.uses_outward_face_remap(family)
-	):
+	## Opposite face ≡ +180° (e↔w and s↔n). Exterior walls only — interiors stay
+	## identity. Not gated on X-flip: facet camera is independent of coord remap,
+	## and quarter-turn inward faces require this remap whenever originals are shown.
+	if CocRenderRules.uses_outward_face_remap(family):
 		world = posmod(world + 180, 360)
 	return world
 
 
 static func display_angle(world_direction_degrees: int, family: String = "") -> int:
+	return display_angle_at_camera(family, world_direction_degrees, camera_degrees())
+
+
+static func display_angle_at_camera(
+	family: String,
+	world_direction_degrees: int,
+	camera_direction_degrees: int,
+) -> int:
 	var world: int
 	if family.is_empty():
 		world = MapCoordinateTransform.presentation_world_direction(world_direction_degrees)
 	else:
 		world = presentation_world_for_family(family, world_direction_degrees)
-	return posmod(world - camera_degrees(), 360)
+	return posmod(world - posmod(camera_direction_degrees, 360), 360)
+
+
+## Relative Asset Editor variant key (0/90/180/270).
+## Formula: slot = ((presentation_world - camera + 45) mod 360) / 90
+##          relative_facet = slot * 90
+## presentation_world includes exterior +180° when applicable (CocFacetSelector).
+static func relative_facet_degrees(
+	family: String,
+	world_direction_degrees: int,
+	camera_direction_degrees: int = -1,
+) -> int:
+	var cam := camera_direction_degrees
+	if cam < 0:
+		cam = camera_degrees()
+	var angle := display_angle_at_camera(family, world_direction_degrees, cam)
+	## Always index the four authored registry columns.
+	var slot := slot_for_facets(angle, 4)
+	return posmod(slot * 90, 360)
 
 
 static func slot_for_facets(display_angle_deg: int, facets: int) -> int:
