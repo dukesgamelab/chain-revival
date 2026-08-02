@@ -856,22 +856,6 @@
 				},
 				"270": {
 					"depth_offset": 0,
-					"facet": "SCORS5A_e",
-					"fallback": false,
-					"hotspot": [
-						-50,
-						-73
-					],
-					"letter": "e",
-					"path": "sprites/coc_tiles/SCORS5A_e.png",
-					"render_offset": [
-						0,
-						0
-					],
-					"source_family": "SCORS5A"
-				},
-				"90": {
-					"depth_offset": 0,
 					"facet": "SCOR_n",
 					"fallback": false,
 					"hotspot": [
@@ -885,6 +869,22 @@
 						0
 					],
 					"source_family": "SCOR"
+				},
+				"90": {
+					"depth_offset": 0,
+					"facet": "SCORS5A_e",
+					"fallback": false,
+					"hotspot": [
+						-50,
+						-73
+					],
+					"letter": "e",
+					"path": "sprites/coc_tiles/SCORS5A_e.png",
+					"render_offset": [
+						0,
+						0
+					],
+					"source_family": "SCORS5A"
 				}
 			},
 			"category": "wall",
@@ -938,21 +938,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "SICR_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/SICR_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "SICR_n",
 					"fallback": false,
 					"hotspot": [
@@ -961,6 +946,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/SICR_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "SICR_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/SICR_s.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -1018,21 +1018,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "SWAI_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/SWAI_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "SWAI_n",
 					"fallback": false,
 					"hotspot": [
@@ -1041,6 +1026,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/SWAI_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "SWAI_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/SWAI_s.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -1421,21 +1421,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "SWIN_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/SWIN_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "SWIN_n",
 					"fallback": false,
 					"hotspot": [
@@ -1444,6 +1429,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/SWIN_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "SWIN_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/SWIN_s.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -1742,21 +1742,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WCOR_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WCOR_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "WCOR_n",
 					"fallback": false,
 					"hotspot": [
@@ -1765,6 +1750,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/WCOR_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "WCOR_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/WCOR_s.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -2154,21 +2154,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WICR_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WICR_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "WICR_n",
 					"fallback": false,
 					"hotspot": [
@@ -2177,6 +2162,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/WICR_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "WICR_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/WICR_s.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -2234,21 +2234,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WWAI_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WWAI_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "WWAI_n",
 					"fallback": false,
 					"hotspot": [
@@ -2257,6 +2242,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/WWAI_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "WWAI_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/WWAI_s.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -2635,21 +2635,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WWIN_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WWIN_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "WWIN_n",
 					"fallback": false,
 					"hotspot": [
@@ -2658,6 +2643,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/WWIN_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "WWIN_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/WWIN_s.png",
 					"render_offset": [
 						0.0,
 						0.0
