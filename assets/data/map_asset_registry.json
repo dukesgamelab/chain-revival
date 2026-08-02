@@ -2364,6 +2364,21 @@
 			"camera_variants": {
 				"0": {
 					"depth_offset": 0.0,
+					"facet": "WWAL_e",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "e",
+					"path": "sprites/coc_tiles/WWAL_e.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"180": {
+					"depth_offset": 0.0,
 					"facet": "WWAI_w",
 					"fallback": false,
 					"hotspot": [
@@ -2377,21 +2392,6 @@
 						0.0
 					],
 					"source_family": "WWAI"
-				},
-				"180": {
-					"depth_offset": 0.0,
-					"facet": "WWAL_e",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "e",
-					"path": "sprites/coc_tiles/WWAL_e.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
 				},
 				"270": {
 					"depth_offset": 0.0,

@@ -101,7 +101,7 @@ static func run() -> Dictionary:
 	else:
 		lines.append("PASS legacy_no_flip still has Hay left of Fort (pre-fix mirror)")
 
-	## 6) Coordinate remap and facet camera share reversed steps [0,3,2,1].
+	## 6) Coordinate remap uses reversed steps; facet camera uses normal index.
 	IsometricGrid.reset_view_rotation()
 	IsometricGrid.rotate_view_right()
 	var coord1 := IsometricGrid.camera_direction_degrees()
@@ -112,11 +112,11 @@ static func run() -> Dictionary:
 		lines.append("FAIL reverse-cam coord: after rotate_right expected 270°, got %d°" % coord1)
 	else:
 		lines.append("PASS reverse-cam coord: rotate_right → 270° (OG spin remap)")
-	if facet1 != 270:
+	if facet1 != 90:
 		ok = false
-		lines.append("FAIL facet-cam: after rotate_right expected 270° (match coord), got %d°" % facet1)
+		lines.append("FAIL facet-cam: after rotate_right expected 90°, got %d°" % facet1)
 	else:
-		lines.append("PASS facet-cam: rotate_right → 270° (matches coord; no odd-step flip)")
+		lines.append("PASS facet-cam: rotate_right → 90° (sprite facet sequence)")
 
 	## 7) Interior facets stay identity; exterior get opposite face under X-flip.
 	IsometricGrid.reset_view_rotation()
