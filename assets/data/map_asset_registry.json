@@ -680,48 +680,51 @@
 				},
 				"180": {
 					"depth_offset": 0.0,
-					"facet": "SCOR_w",
+					"facet": "RIHW_w",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
 					"letter": "w",
-					"path": "sprites/coc_tiles/SCOR_w.png",
+					"path": "sprites/coc_tiles/RIHW_w.png",
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "RIHW"
 				},
 				"270": {
-					"depth_offset": 0.0,
-					"facet": "SCOR_s",
+					"depth_offset": 0,
+					"facet": "SCORS5A_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/SCOR_s.png",
+					"letter": "e",
+					"path": "sprites/coc_tiles/SCORS5A_e.png",
 					"render_offset": [
-						0.0,
-						0.0
-					]
+						0,
+						0
+					],
+					"source_family": "SCORS5A"
 				},
 				"90": {
-					"depth_offset": 0.0,
+					"depth_offset": 0,
 					"facet": "SCOR_n",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/SCOR_n.png",
 					"render_offset": [
-						0.0,
-						0.0
-					]
+						0,
+						0
+					],
+					"source_family": "SCOR"
 				}
 			},
 			"category": "wall",
@@ -1016,21 +1019,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "SWAL_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/SWAL_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "SWAL_n",
 					"fallback": false,
 					"hotspot": [
@@ -1042,7 +1030,24 @@
 					"render_offset": [
 						0.0,
 						0.0
-					]
+					],
+					"source_family": "SWAL"
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "SWAL_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/SWAL_s.png",
+					"render_offset": [
+						0.0,
+						0.0
+					],
+					"source_family": "SWAL"
 				}
 			},
 			"category": "wall",
@@ -1560,18 +1565,18 @@
 					]
 				},
 				"180": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "USWKA8T_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/USWKA8T_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "USWKA8T"
 				},

@@ -375,7 +375,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			)
 			get_viewport().set_input_as_handled()
 			return
+		if event.keycode == KEY_V:
+			_enter_select_tool()
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_ESCAPE:
+			## First Esc leaves place-brush mode; second Esc (already on Select) exits editor.
+			if _tool != Tool.SELECT:
+				_enter_select_tool()
+				get_viewport().set_input_as_handled()
+				return
 			get_tree().change_scene_to_file(MODE_SELECT_SCENE)
 			get_viewport().set_input_as_handled()
 			return
@@ -1066,6 +1075,21 @@ func _on_asset_context_id(id: int) -> void:
 func _on_tool_selected(index: int) -> void:
 	_tool = index
 	_rect_anchor = Vector2i(-1, -1)
+	if _tool == Tool.SELECT:
+		_enter_select_tool(false)
+	elif _world != null and _tool not in [Tool.PLACE, Tool.RECT_FILL, Tool.FLOOD_FILL]:
+		_world.clear_placement_preview()
+
+
+func _enter_select_tool(update_option: bool = true) -> void:
+	_tool = Tool.SELECT
+	_rect_anchor = Vector2i(-1, -1)
+	_painting = false
+	if update_option and _tool_option != null:
+		_tool_option.select(Tool.SELECT)
+	if _world != null:
+		_world.clear_placement_preview()
+	_status.text = "Select — click a tile to inspect properties (V or Esc)"
 
 
 func _on_search_changed(text: String) -> void:
