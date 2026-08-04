@@ -14999,9 +14999,9 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 270,
+				"direction": 270.0,
 				"image": "SCOR",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -15021,9 +15021,9 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 90,
+				"direction": 90.0,
 				"image": "SCOR",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -15043,9 +15043,9 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 270,
+				"direction": 270.0,
 				"image": "WCOR",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -15065,9 +15065,9 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 90,
+				"direction": 90.0,
 				"image": "WCOR",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -15087,9 +15087,9 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 90,
+				"direction": 90.0,
 				"image": "WCOR",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -15109,9 +15109,9 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 270,
+				"direction": 270.0,
 				"image": "WCOR",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -15131,9 +15131,9 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 270,
+				"direction": 270.0,
 				"image": "WCOR",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -15153,9 +15153,9 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 90,
+				"direction": 90.0,
 				"image": "SCOR",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -15175,9 +15175,9 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 270,
+				"direction": 270.0,
 				"image": "SCOR",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
@@ -15197,9 +15197,9 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 270,
+				"direction": 270.0,
 				"image": "SWIN",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_window",
@@ -15219,9 +15219,9 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 270,
+				"direction": 270.0,
 				"image": "SWIN",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_window",
@@ -15241,9 +15241,9 @@
 			"object_type": "coc_wwal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAL",
-				"z": 0
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wwal",
@@ -15263,9 +15263,9 @@
 			"object_type": "coc_wwal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAL",
-				"z": 0
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wwal",
@@ -15285,9 +15285,9 @@
 			"object_type": "coc_wwal",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WWAL",
-				"z": 0
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_wwal",
