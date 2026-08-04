@@ -121,10 +121,11 @@ func _ready() -> void:
 	_connect_command_bar()
 	_apply_multiplayer_side_lock()
 	_apply_map_presentation()
-	_center_camera_on_map()
 	_spawn_all_soldier_views()
 	_log_fireteam_loadouts()
 	_command_bar.set_active_team(_session.active_team_id)
+	## Side default camera (FF: USA 90° / GE 270°) + center on that fireteam.
+	_apply_team_default_camera(_session.active_team_id)
 	_command_bar.set_deployment_phase(_game_state != null and _game_state.is_deployment_phase())
 	_refresh_ai_plan_hud()
 	_refresh_all_views()
@@ -1342,6 +1343,7 @@ func _switch_active_team(team_id: int) -> void:
 	var fireteam: Fireteam = _control_fireteam()
 	_repair_fireteam_selection(fireteam)
 	_command_bar.sync_selected_soldier(fireteam.selected_soldier_id)
+	_apply_team_default_camera(team_id)
 	_refresh_all_views()
 	var status := "Controlling %s team." % Team.display_name(team_id)
 	if GameModeManager.is_offline_dev():
@@ -1736,6 +1738,17 @@ func _is_soldier_in_fire_at_scope(soldier_state: SoldierState) -> bool:
 
 
 func _on_center_camera_requested() -> void:
+	_center_camera_on_active_fireteam()
+
+
+## Apply map-authored default camera for a side (e.g. FF USA=90°, GE=270°) and center.
+func _apply_team_default_camera(team_id: int) -> void:
+	if _map_data == null:
+		_center_camera_on_map()
+		return
+	if _map_data.has_team_camera_degrees(team_id):
+		IsometricGrid.set_camera_direction_degrees(_map_data.get_team_camera_degrees(team_id))
+		_refresh_view_rotation()
 	_center_camera_on_active_fireteam()
 
 
@@ -2678,7 +2691,7 @@ func _on_map_load_requested() -> void:
 	IsometricGrid.reset_view_rotation()
 	_apply_map_presentation()
 	_camera.set_map_size(_map_data.width, _map_data.height)
-	_center_camera_on_map()
+	_apply_team_default_camera(_session.active_team_id)
 	_sync_views_after_load()
 	_present_action_result(result)
 

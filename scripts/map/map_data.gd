@@ -54,6 +54,9 @@ var decoration: Array[Dictionary] = []
 var victory_points: Array[Dictionary] = []
 var labels: Array[Dictionary] = []
 var starting_points: Dictionary = {}
+## Optional per-side default presentation camera in degrees (0/90/180/270).
+## Keys: "USA" / "Germany" (or 1 / 2). Used on match start and team switch.
+var team_camera_degrees: Dictionary = {}
 var unresolved: Array = []
 ## Render list for original maps (objects + decoration). Gameplay uses _object_lookup.
 var visual_placements: Array[Dictionary] = []
@@ -797,6 +800,7 @@ func restore_snapshot(data: Dictionary) -> void:
 	victory_points = restored.victory_points
 	labels = restored.labels
 	starting_points = restored.starting_points
+	team_camera_degrees = restored.team_camera_degrees
 	unresolved = restored.unresolved
 	extra_fields = restored.extra_fields
 	visual_placements = restored.visual_placements
@@ -878,6 +882,8 @@ func to_dict() -> Dictionary:
 		data["labels"] = labels.duplicate(true)
 	if not starting_points.is_empty():
 		data["starting_points"] = starting_points.duplicate(true)
+	if not team_camera_degrees.is_empty():
+		data["team_camera_degrees"] = team_camera_degrees.duplicate(true)
 	if not unresolved.is_empty():
 		data["unresolved"] = unresolved.duplicate(true)
 	for key in extra_fields.keys():
@@ -904,6 +910,11 @@ static func from_dict(data: Dictionary) -> MapData:
 	map_data.starting_points = (
 		data.get("starting_points", {}) if data.get("starting_points", {}) is Dictionary else {}
 	)
+	map_data.team_camera_degrees = (
+		data.get("team_camera_degrees", {})
+		if data.get("team_camera_degrees", {}) is Dictionary
+		else {}
+	)
 	map_data.unresolved = data.get("unresolved", []) if data.get("unresolved", []) is Array else []
 	map_data._object_lookup.clear()
 	map_data._object_meta.clear()
@@ -926,6 +937,7 @@ static func from_dict(data: Dictionary) -> MapData:
 		"victory_points": true,
 		"labels": true,
 		"starting_points": true,
+		"team_camera_degrees": true,
 		"unresolved": true,
 	}
 	for key in data.keys():
@@ -942,6 +954,33 @@ static func from_dict(data: Dictionary) -> MapData:
 	map_data._append_decoration_visuals()
 	map_data._rebuild_blocked_tiles_list()
 	return map_data
+
+
+## True when this map authors a default presentation camera for the side.
+func has_team_camera_degrees(team_id: int) -> bool:
+	return _team_camera_degrees_raw(team_id) != null
+
+
+## Displayed camera degrees (0/90/180/270) for the side; 0 if unset.
+func get_team_camera_degrees(team_id: int) -> int:
+	var raw = _team_camera_degrees_raw(team_id)
+	if raw == null:
+		return 0
+	return posmod(int(round(float(raw) / 90.0)), 4) * 90
+
+
+func _team_camera_degrees_raw(team_id: int):
+	if team_camera_degrees.is_empty():
+		return null
+	var keys: Array = []
+	if team_id == Team.GERMANY:
+		keys = ["Germany", "GERMANY", "GE", "2", 2]
+	else:
+		keys = ["USA", "US", "1", 1]
+	for key in keys:
+		if team_camera_degrees.has(key):
+			return team_camera_degrees[key]
+	return null
 
 
 ## Extra USA push behind authored spawn cells. FF/Fortress author the final

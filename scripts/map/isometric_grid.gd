@@ -53,6 +53,16 @@ static func reset_view_rotation() -> void:
 	current_view_rotation = 0
 
 
+## Set view from displayed camera degrees (0/90/180/270), matching camera_direction_degrees().
+static func set_camera_direction_degrees(degrees: int) -> void:
+	var step := posmod(int(round(float(degrees) / 90.0)), 4)
+	if MapCoordinateTransform.uses_reversed_camera():
+		## Inverse of camera_step_for_rotation's [0,3,2,1] (involution).
+		current_view_rotation = [0, 3, 2, 1][step]
+	else:
+		current_view_rotation = step
+
+
 static func rotate_view_left() -> void:
 	current_view_rotation = (current_view_rotation + 3) % 4
 
