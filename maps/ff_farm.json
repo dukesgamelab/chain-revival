@@ -1102,24 +1102,12 @@
 			"y": 33
 		},
 		{
-			"x": 36,
-			"y": 30
-		},
-		{
-			"x": 34,
-			"y": 30
-		},
-		{
 			"x": 23,
 			"y": 38
 		},
 		{
 			"x": 38,
 			"y": 27
-		},
-		{
-			"x": 37,
-			"y": 55
 		},
 		{
 			"x": 23,
@@ -2120,6 +2108,18 @@
 		{
 			"x": 25,
 			"y": 45
+		},
+		{
+			"x": 37,
+			"y": 55
+		},
+		{
+			"x": 34,
+			"y": 30
+		},
+		{
+			"x": 36,
+			"y": 30
 		}
 	],
 	"floors": [
@@ -8905,7 +8905,7 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 0.0,
+				"direction": 90.0,
 				"image": "SWIN",
 				"z": 0.0
 			},
@@ -9049,8 +9049,8 @@
 		{
 			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 47,
 				"y": 44
@@ -9060,7 +9060,7 @@
 			"provides_cover": true,
 			"source": {
 				"direction": 0.0,
-				"image": "WWINS17A",
+				"image": "WWIN",
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -9071,8 +9071,8 @@
 		{
 			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 47,
 				"y": 46
@@ -9082,7 +9082,7 @@
 			"provides_cover": true,
 			"source": {
 				"direction": 0.0,
-				"image": "WWINS17A",
+				"image": "WWIN",
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -9093,8 +9093,8 @@
 		{
 			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 31,
 				"y": 40
@@ -9103,8 +9103,8 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 0.0,
-				"image": "WWINS27A",
+				"direction": 90.0,
+				"image": "WWIN",
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -9115,8 +9115,8 @@
 		{
 			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 29,
 				"y": 40
@@ -9125,8 +9125,8 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 0.0,
-				"image": "WWINS27A",
+				"direction": 90.0,
+				"image": "WWIN",
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -9137,8 +9137,8 @@
 		{
 			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
 				"y": 40
@@ -9147,8 +9147,8 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 0.0,
-				"image": "WWINS27A",
+				"direction": 90.0,
+				"image": "WWIN",
 				"z": 0.0
 			},
 			"sprite_path": "",
@@ -9159,8 +9159,8 @@
 		{
 			"blocks_los": false,
 			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 25,
 				"y": 33
@@ -9170,57 +9170,13 @@
 			"provides_cover": true,
 			"source": {
 				"direction": 0.0,
-				"image": "WWINS17A",
+				"image": "WWIN",
 				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_window",
 			"x": 25,
 			"y": 33
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 36,
-				"y": 30
-			},
-			"object_id": "coc_window@36,30",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "SWINS27A",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 36,
-			"y": 30
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 34,
-				"y": 30
-			},
-			"object_id": "coc_window@34,30",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "SWINS27A",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 34,
-			"y": 30
 		},
 		{
 			"blocks_los": false,
@@ -9375,28 +9331,6 @@
 			"type": "coc_wall",
 			"x": 29,
 			"y": 52
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 37,
-				"y": 55
-			},
-			"object_id": "coc_wall_corner@37,55",
-			"object_type": "coc_wall_corner",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "SWAIS3A",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall_corner",
-			"x": 37,
-			"y": 55
 		},
 		{
 			"blocks_los": true,
@@ -10423,7 +10357,7 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 90.0,
+				"direction": 270.0,
 				"image": "WWIN",
 				"z": 200.0
 			},
@@ -10445,7 +10379,7 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 90.0,
+				"direction": 270.0,
 				"image": "WWIN",
 				"z": 200.0
 			},
@@ -14955,7 +14889,7 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 90.0,
+				"direction": 270.0,
 				"image": "SWIN",
 				"z": 200.0
 			},
@@ -14977,7 +14911,7 @@
 			"object_type": "coc_window",
 			"provides_cover": true,
 			"source": {
-				"direction": 90.0,
+				"direction": 270.0,
 				"image": "SWIN",
 				"z": 200.0
 			},
@@ -15293,6 +15227,72 @@
 			"type": "coc_wwal",
 			"x": 25,
 			"y": 45
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 37,
+				"y": 55
+			},
+			"object_id": "coc_wall_corner@37,55",
+			"object_type": "coc_wall_corner",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "SCOR",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall_corner",
+			"x": 37,
+			"y": 55
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 34,
+				"y": 30
+			},
+			"object_id": "coc_window@34,30",
+			"object_type": "coc_window",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "SWIN",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_window",
+			"x": 34,
+			"y": 30
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 36,
+				"y": 30
+			},
+			"object_id": "coc_window@36,30",
+			"object_type": "coc_window",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "SWIN",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_window",
+			"x": 36,
+			"y": 30
 		}
 	],
 	"source_format": "Chain of Command OIX (decoded)",

@@ -855,34 +855,34 @@
 					"source_family": "RIHW"
 				},
 				"270": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "SCOR_n",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/SCOR_n.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "SCOR"
 				},
 				"90": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "SCORS5A_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/SCORS5A_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "SCORS5A"
 				}
@@ -1406,21 +1406,6 @@
 				},
 				"180": {
 					"depth_offset": 0.0,
-					"facet": "SWIN_w",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "w",
-					"path": "sprites/coc_tiles/SWIN_w.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"270": {
-					"depth_offset": 0.0,
 					"facet": "SWIN_n",
 					"fallback": false,
 					"hotspot": [
@@ -1429,6 +1414,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/SWIN_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"270": {
+					"depth_offset": 0.0,
+					"facet": "SWIN_w",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "w",
+					"path": "sprites/coc_tiles/SWIN_w.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -2620,21 +2620,6 @@
 				},
 				"180": {
 					"depth_offset": 0.0,
-					"facet": "WWIN_w",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "w",
-					"path": "sprites/coc_tiles/WWIN_w.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"270": {
-					"depth_offset": 0.0,
 					"facet": "WWIN_n",
 					"fallback": false,
 					"hotspot": [
@@ -2643,6 +2628,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/WWIN_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"270": {
+					"depth_offset": 0.0,
+					"facet": "WWIN_w",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "w",
+					"path": "sprites/coc_tiles/WWIN_w.png",
 					"render_offset": [
 						0.0,
 						0.0
