@@ -14,8 +14,9 @@ const COVER_TYPE_MODERATE := 1
 
 @export var path_color := Color(0.95, 0.85, 0.20, 0.55)
 @export var target_color := Color(0.90, 0.15, 0.15, 0.75)
-@export var team_1_spawn_color := Color(0.35, 0.72, 0.38, 0.70)
-@export var team_2_spawn_color := Color(0.58, 0.58, 0.62, 0.70)
+## OG Close Combat: US deployment outline is cyan-blue; GE is white.
+@export var team_1_spawn_color := Color(0.15, 0.78, 0.95, 0.95)
+@export var team_2_spawn_color := Color(1.0, 1.0, 1.0, 0.95)
 
 var map_data: MapData = null
 
@@ -161,8 +162,8 @@ func _draw() -> void:
 	if _show_tile_fill:
 		_draw_grass_border()
 	_draw_tiles()
-	if _show_tile_fill:
-		_draw_spawn_markers()
+	## Deployment zones must draw on original-floor maps too (tile fill is off there).
+	_draw_spawn_markers()
 
 
 ## Decorative grass diamonds outside the playable map (not used for pathfinding).
@@ -216,18 +217,45 @@ func _draw_tiles() -> void:
 
 
 func _draw_spawn_markers() -> void:
-	for cell in map_data.team_1_spawn_points:
-		_draw_spawn_diamond(cell, team_1_spawn_color)
-	for cell in map_data.team_2_spawn_points:
-		_draw_spawn_diamond(cell, team_2_spawn_color)
+	_draw_spawn_zone_outline(map_data.team_1_spawn_points, team_1_spawn_color)
+	_draw_spawn_zone_outline(map_data.team_2_spawn_points, team_2_spawn_color)
 
 
-func _draw_spawn_diamond(cell: Vector2i, color: Color) -> void:
-	if not map_data.is_in_bounds(cell):
+## OG-style thin deployment rectangle: exterior diamond edges of the spawn set.
+func _draw_spawn_zone_outline(cells: Array[Vector2i], color: Color) -> void:
+	if cells.is_empty():
 		return
-	var center := IsometricGrid.grid_to_world(cell)
-	var corners := IsometricGrid.diamond_corners(center)
-	var inset := PackedVector2Array()
-	for point in corners:
-		inset.append(center + (point - center) * 0.72)
-	draw_colored_polygon(inset, color)
+	var cell_set: Dictionary = {}
+	for cell in cells:
+		if map_data.is_in_bounds(cell):
+			cell_set[cell] = true
+	if cell_set.is_empty():
+		return
+	var edge_deltas: Array[Vector2i] = [
+		Vector2i(0, -1),
+		Vector2i(1, 0),
+		Vector2i(0, 1),
+		Vector2i(-1, 0),
+	]
+	for cell in cell_set.keys():
+		var center := IsometricGrid.grid_to_world(cell)
+		var corners := IsometricGrid.diamond_corners(center)
+		for delta in edge_deltas:
+			var neighbor: Vector2i = cell + delta
+			if cell_set.has(neighbor):
+				continue
+			## Edge facing this logical neighbor = consecutive corners whose
+			## midpoint is closest to the neighbor center (X-flip safe).
+			var neighbor_center := IsometricGrid.grid_to_world(neighbor)
+			var best_i := 0
+			var best_dist := INF
+			for a_i in 4:
+				var b_i := (a_i + 1) % 4
+				var mid: Vector2 = (corners[a_i] + corners[b_i]) * 0.5
+				var dist := mid.distance_squared_to(neighbor_center)
+				if dist < best_dist:
+					best_dist = dist
+					best_i = a_i
+			var a: Vector2 = corners[best_i]
+			var b: Vector2 = corners[(best_i + 1) % 4]
+			draw_line(a, b, color, 2.0, true)

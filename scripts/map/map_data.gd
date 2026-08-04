@@ -944,8 +944,9 @@ static func from_dict(data: Dictionary) -> MapData:
 	return map_data
 
 
-## USA starts this many cells behind authored USA lines (away from enemy).
-const USA_DEPLOY_BEHIND_CELLS := 10
+## Extra USA push behind authored spawn cells. FF/Fortress author the final
+## deployment rectangle in map JSON (matching OG zone outlines), so keep 0.
+const USA_DEPLOY_BEHIND_CELLS := 0
 
 
 static func default_usa_spawn_points() -> Array[Vector2i]:
