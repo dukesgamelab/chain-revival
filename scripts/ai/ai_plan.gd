@@ -110,19 +110,21 @@ static func display_name(plan_id: String) -> String:
 
 
 ## Default selected plan for a MatchConfig AI slot (pre-game).
-## Friendly AI → Attack Center; enemy AI → Random.
+## Side-based: Germany → Defend; USA → Attack Center. Random stays user-selectable.
 static func default_selected_for_slot(
 	controller: int,
 	slot_team_id: int,
-	local_human_team_id: int,
+	_local_human_team_id: int,
 ) -> String:
 	## MatchConfig.ControllerType.AI == 1 — avoid importing MatchConfig here.
 	const CONTROLLER_AI := 1
 	if controller != CONTROLLER_AI:
 		return ""
-	if slot_team_id == local_human_team_id:
+	if slot_team_id == Team.GERMANY:
+		return ID_DEFEND
+	if slot_team_id == Team.USA:
 		return ID_ATTACK_CENTER
-	return ID_RANDOM
+	return ID_ATTACK_CENTER
 
 
 ## Resolve Random to one concrete plan using GameRandom (deterministic per match seed).

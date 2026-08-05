@@ -121,10 +121,10 @@ func bootstrap_default_match() -> void:
 	register_player("FRITZ", 1, Team.GERMANY, true, [5, 6, 7, 8] as Array[int])
 	## First USA human is Mission Commander by default.
 	set_mission_commander(1)
-	## Offline defaults: friendly AI Attack Center; enemy AI Random (resolved at match start).
+	## Offline defaults: USA AI Attack Center; Germany AI Defend.
 	set_selected_ai_plan(2, AiPlanClass.ID_ATTACK_CENTER)
-	set_selected_ai_plan(3, AiPlanClass.ID_RANDOM)
-	set_selected_ai_plan(4, AiPlanClass.ID_RANDOM)
+	set_selected_ai_plan(3, AiPlanClass.ID_DEFEND)
+	set_selected_ai_plan(4, AiPlanClass.ID_DEFEND)
 
 
 ## Build hierarchy from MatchConfig player slots / owned fireteams (players + whole AI fireteams).

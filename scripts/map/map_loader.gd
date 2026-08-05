@@ -3,10 +3,12 @@ extends RefCounted
 ## Shared map load entry-point for gameplay and the Chain Revival Editor.
 
 
-static func load_path(path: String) -> MapData:
+## validate=true runs full sprite/placement checks (editor). Playtime skips — ff_farm
+## placement×camera validation was a multi-second hitch before the first frame.
+static func load_path(path: String, validate: bool = false) -> MapData:
 	CocTileCatalog.ensure_loaded()
 	var map_data := MapData.load_from_file(path)
-	if map_data != null and map_data.is_original_visual_map():
+	if validate and map_data != null and map_data.is_original_visual_map():
 		MapValidator.validate_and_log(map_data)
 	return map_data
 

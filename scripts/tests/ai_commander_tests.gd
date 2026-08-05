@@ -53,9 +53,13 @@ func _ready() -> void:
 	_test_prone_when_settled_in_cover()
 	_test_contact_halts_objective_move()
 	_test_high_stress_blocks_advance()
+	_test_defend_holds_near_own_lines()
 	_test_defend_splits_approaches()
 	_test_defend_skips_owned_vp()
 	_test_defend_hold_faces_approach()
+	_test_defensive_posts_stay_cohesive()
+	_test_threat_scoring_prefers_close_exposed()
+	_test_dedup_expires()
 	print("")
 	print("AI commander tests: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -664,6 +668,38 @@ func _test_high_stress_blocks_advance() -> void:
 	)
 
 
+func _test_defend_holds_near_own_lines() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var own := AiSectorObjectivesClass._team_anchor(gs, Team.GERMANY)
+	var enemy := AiSectorObjectivesClass._team_anchor(gs, Team.USA)
+	var opts: Array = AiSectorObjectivesClass.objectives_for_plan(
+		gs, 2, AiPlanClass.ID_DEFEND, []
+	)
+	_assert("DEFEND emits holds", opts.size() >= 3)
+	for opt in opts:
+		if opt == null or str(opt.kind) != "hold":
+			continue
+		var to_own := absi(opt.cell.x - own.x) + absi(opt.cell.y - own.y)
+		var to_enemy := absi(opt.cell.x - enemy.x) + absi(opt.cell.y - enemy.y)
+		_assert(
+			"DEFEND hold stays nearer own lines than enemy",
+			to_own < to_enemy,
+			"cell=%s own=%s enemy=%s d_own=%d d_enemy=%d" % [opt.cell, own, enemy, to_own, to_enemy],
+		)
+		var corridor := absi(own.x - enemy.x) + absi(own.y - enemy.y)
+		var max_forward := (
+			mini(AiSectorObjectivesClass.DEFEND_FORWARD_CELLS, maxi(2, int(round(float(corridor) * 0.2))))
+			+ AiSectorObjectivesClass.DEFEND_COVER_RADIUS
+			+ AiSectorObjectivesClass.DEFEND_LATERAL_CELLS
+			+ 4
+		)
+		_assert(
+			"DEFEND hold within forward screen of spawn",
+			to_own <= max_forward,
+			"cell=%s own=%s d=%d max=%d" % [opt.cell, own, to_own, max_forward],
+		)
+
+
 func _test_defend_splits_approaches() -> void:
 	var gs := _make_game_state(MatchConfigClass.MatchType.TWO_V_TWO)
 	## Both Germany AI on DEFEND so they share the plan and must split lanes.
@@ -790,4 +826,82 @@ func _test_defend_hold_faces_approach() -> void:
 		"hold post stays in FIGHT/watch",
 		commander.state_id == AiCommanderStateClass.FIGHT,
 		"state=%s" % commander.state_id,
+	)
+
+
+func _test_defensive_posts_stay_cohesive() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	gs.command_hierarchy.set_selected_ai_plan(2, AiPlanClass.ID_DEFEND)
+	gs.command_hierarchy.set_active_ai_plan(2, AiPlanClass.ID_DEFEND)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	## Dense cover near German lines so posts can cluster.
+	for x in range(28, 40):
+		for y in range(18, 26):
+			if (x + y) % 2 == 0:
+				map_data.set_object(Vector2i(x, y), MapObjectRegistryClass.TYPE_HAYBAIL)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	_think_cycle(fw, gs)
+	commander = fw.get_commander(2)
+	_assert("defend commander assigned posts", not commander._defensive_posts.is_empty())
+	var posts: Array[Vector2i] = []
+	for sid in commander._defensive_posts.keys():
+		posts.append(commander._defensive_posts[sid])
+	var max_span := 0
+	for i in range(posts.size()):
+		for j in range(i + 1, posts.size()):
+			var span := maxi(absi(posts[i].x - posts[j].x), absi(posts[i].y - posts[j].y))
+			max_span = maxi(max_span, span)
+	_assert(
+		"defensive posts within fireteam cohesion",
+		max_span <= AiCommanderClass.FIRETEAM_COHESION_RADIUS,
+		"span=%d posts=%s" % [max_span, posts],
+	)
+	if commander.current_objective != null:
+		for post in posts:
+			var d := maxi(
+				absi(post.x - commander.current_objective.cell.x),
+				absi(post.y - commander.current_objective.cell.y),
+			)
+			_assert(
+				"post near primary hold",
+				d <= AiCommanderClass.DEFENSIVE_POST_CLUSTER,
+				"post=%s primary=%s d=%d" % [post, commander.current_objective.cell, d],
+			)
+
+
+func _test_threat_scoring_prefers_close_exposed() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	var far = gs.get_soldier(Team.USA, 1)
+	var near = gs.get_soldier(Team.USA, 2)
+	_assert("threat scoring fixtures", far != null and near != null)
+	var ger = gs.get_soldier(Team.GERMANY, 1)
+	ger.grid_position = Vector2i(30, 20)
+	near.grid_position = Vector2i(32, 20)
+	far.grid_position = Vector2i(50, 20)
+	near.position_state = PositionStateClass.UP
+	far.position_state = PositionStateClass.DOWN
+	var visible: Array = [far, near]
+	var best = commander._select_best_threat(gs, visible)
+	_assert("selects closer exposed threat", best == near, "got=%s" % best)
+
+
+func _test_dedup_expires() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander._last_move_cell = Vector2i(10, 10)
+	commander._last_move_msec = SimulationClock.get_ticks_msec()
+	_assert(
+		"fresh dedup blocks",
+		commander._move_dedup_blocks(Vector2i(10, 10), Vector2i(10, 10)),
+	)
+	SimulationClock.advance_msec(AiCommanderClass.DEDUP_EXPIRE_MSEC + 1)
+	_assert(
+		"expired dedup allows retry",
+		not commander._move_dedup_blocks(Vector2i(10, 10), Vector2i(10, 10)),
 	)

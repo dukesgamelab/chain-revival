@@ -85,7 +85,15 @@ static func enemy_approach_cell(game_state, player_id: int) -> Vector2i:
 	return _team_anchor(game_state, enemy_team)
 
 
-## DEFEND: split left/center/right approach holds with cover overlooking each lane.
+## How far forward of own lines DEFEND posts sit (never mid-map / enemy-side).
+const DEFEND_FORWARD_CELLS := 10
+const DEFEND_LATERAL_CELLS := 8
+const DEFEND_COVER_RADIUS := 12
+## Owned VP must be this close to spawn to count as the dig-in point.
+const DEFEND_VP_MAX_DIST := 20
+
+
+## DEFEND: split left/center/right holds just forward of own lines.
 static func _defend_objectives(
 	game_state,
 	team_id: int,
@@ -96,8 +104,8 @@ static func _defend_objectives(
 	var out: Array = []
 	var map_data = game_state.map_data
 	var defended := _defended_point(game_state, team_id, own_anchor)
-	## Approaches between the defended point and the enemy (same sector math as ATTACK).
-	var sectors := _sector_cells(map_data, defended, enemy_anchor)
+	## Own-line screen — NOT attack corridor mid+toward-enemy (that sent GE to USA spawns).
+	var sectors := _defend_sector_cells(map_data, defended, enemy_anchor)
 	## Center is the most direct approach — highest priority for a lone fireteam.
 	var lanes: Array = [
 		{"id": "defend_center", "label": "Defend Center", "cells": sectors.center, "prio": 14},
@@ -114,7 +122,7 @@ static func _defend_objectives(
 		## Cover near the approach lane, facing the enemy (directional via cover task).
 		## Hard-exclude already-emitted stands so lanes don't collapse to one tile.
 		var cover := nearest_cover_within(
-			game_state, lane_cell, enemy_anchor, 24, lane_claims, true
+			game_state, lane_cell, enemy_anchor, DEFEND_COVER_RADIUS, lane_claims, true
 		)
 		if cover.x <= -900:
 			cover = _clamp_walkable(map_data, lane_cell)
@@ -138,12 +146,17 @@ static func _defend_objectives(
 	return out
 
 
-## Point being defended: owned/contested VP if present, else own spawn anchor.
+## Dig-in point: owned VP near our lines, else own spawn. Never a distant mid-map flag.
 static func _defended_point(game_state, team_id: int, own_anchor: Vector2i) -> Vector2i:
+	if not _team_controls_victory_point(game_state, team_id):
+		return own_anchor
 	var vp := _nearest_victory_point(game_state.map_data, own_anchor)
-	if vp.x > -900:
-		return vp
-	return own_anchor
+	if vp.x <= -900:
+		return own_anchor
+	var d := absi(vp.x - own_anchor.x) + absi(vp.y - own_anchor.y)
+	if d > DEFEND_VP_MAX_DIST:
+		return own_anchor
+	return vp
 
 
 ## True when map VP holder (runtime `holder` or `initial_holder`) is this team.
@@ -268,6 +281,37 @@ static func _sector_cells(map_data, own_anchor: Vector2i, enemy_anchor: Vector2i
 	var left := _clamp_walkable(map_data, mid + toward + Vector2i(ox, oy))
 	var right := _clamp_walkable(map_data, mid + toward - Vector2i(ox, oy))
 	return {"left": [left] as Array[Vector2i], "center": [center] as Array[Vector2i], "right": [right] as Array[Vector2i]}
+
+
+## DEFEND screen: short forward offset from own lines + left/right spread.
+## Must stay on our half — attack `_sector_cells` mid+0.35*toward lands on enemy spawns.
+static func _defend_sector_cells(
+	map_data,
+	own_anchor: Vector2i,
+	enemy_anchor: Vector2i,
+) -> Dictionary:
+	var dx := enemy_anchor.x - own_anchor.x
+	var dy := enemy_anchor.y - own_anchor.y
+	var flen := maxf(1.0, sqrt(float(dx * dx + dy * dy)))
+	## Cap by corridor length so short test maps do not overshoot into enemy lines.
+	var forward := mini(DEFEND_FORWARD_CELLS, maxi(2, int(round(flen * 0.2))))
+	var lateral := mini(DEFEND_LATERAL_CELLS, maxi(2, forward))
+	var fx := int(round(float(dx) / flen * float(forward)))
+	var fy := int(round(float(dy) / flen * float(forward)))
+	var px := -dy
+	var py := dx
+	var plen := maxf(1.0, sqrt(float(px * px + py * py)))
+	var ox := int(round(float(px) / plen * float(lateral)))
+	var oy := int(round(float(py) / plen * float(lateral)))
+	var base := own_anchor + Vector2i(fx, fy)
+	var center := _clamp_walkable(map_data, base)
+	var left := _clamp_walkable(map_data, base + Vector2i(ox, oy))
+	var right := _clamp_walkable(map_data, base - Vector2i(ox, oy))
+	return {
+		"left": [left] as Array[Vector2i],
+		"center": [center] as Array[Vector2i],
+		"right": [right] as Array[Vector2i],
+	}
 
 
 static func _clamp_walkable(map_data, cell: Vector2i) -> Vector2i:

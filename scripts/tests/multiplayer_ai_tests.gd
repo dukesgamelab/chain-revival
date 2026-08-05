@@ -32,6 +32,8 @@ func _ready() -> void:
 	_test_hierarchy_and_los_survive_switch()
 	_test_host_authority_gate()
 	_test_offline_still_works()
+	_test_hotseat_flag_defaults_off()
+	_test_side_switch_keeps_other_ai()
 	print("")
 	print("Multiplayer AI tests: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -288,3 +290,34 @@ func _test_offline_still_works() -> void:
 	fw._tick_counter = AiCommanderFrameworkClass.THINK_EVERY_N_TICKS - 1
 	fw.tick(gs)
 	_assert("offline AI tick runs", fw.has_authority())
+
+
+func _test_hotseat_flag_defaults_off() -> void:
+	## Without `--hotseat`, SP/offline must keep AI commanders (Stage 0 root cause).
+	_assert("hotseat defaults false", GameConfig.hotseat_enabled() == false)
+	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var gs := _make_game_state(cfg)
+	var fw := _make_framework(gs)
+	_assert("SP 1v1 keeps Germany AI without hotseat", gs.command_hierarchy.is_ai_player(2))
+	_assert("SP 1v1 has Germany commander without hotseat", fw.get_commander(2) != null)
+
+
+func _test_side_switch_keeps_other_ai() -> void:
+	## Non-hotseat 1/2 behaviour: claim target as human, release previous to AI.
+	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var gs := _make_game_state(cfg)
+	var fw := _make_framework(gs)
+	_assert("start USA human", not gs.command_hierarchy.is_ai_player(1))
+	_assert("start Germany AI", gs.command_hierarchy.is_ai_player(2))
+	_assert(
+		"claim Germany",
+		PlayerSlotOwnershipClass.claim_slot_as_human(gs, fw, 2),
+	)
+	_assert(
+		"release USA back to AI",
+		PlayerSlotOwnershipClass.release_slot_to_ai(gs, fw, 1),
+	)
+	_assert("after switch Germany is human", not gs.command_hierarchy.is_ai_player(2))
+	_assert("after switch USA is AI", gs.command_hierarchy.is_ai_player(1))
+	_assert("USA commander restored", fw.get_commander(1) != null)
+	_assert("Germany commander removed", fw.get_commander(2) == null)

@@ -218,7 +218,7 @@ func _populate_assets_now() -> void:
 
 func _load_map(path: String) -> void:
 	_map_path = path
-	_map_data = MapLoader.load_path(path)
+	_map_data = MapLoader.load_path(path, true)
 	if _map_data == null:
 		_map_data = MapLoader.create_blank()
 	_history.clear()

@@ -108,19 +108,38 @@ var _stuck_mismatch_since: Dictionary = {} ## "team:sid" -> msec when mismatch b
 var _stuck_logged: Dictionary = {} ## "team:sid" -> true once per stuck episode
 const PerceptionCacheClass := preload("res://scripts/combat/perception_cache.gd")
 const _FRAME_SPIKE_LOG_MSEC := 50.0
+## False until staged boot finishes — keeps sim/AI off while the loading overlay paints.
+var _boot_complete: bool = false
+var _loading_overlay: CanvasLayer = null
+var _loading_label: Label = null
 
 
 func _ready() -> void:
+	_show_loading_overlay("Starting…")
+	await get_tree().process_frame
+
 	_bootstrap_simulation()
 	_log_network_mode()
 	LOSSystemClass.apply_debug_settings()
 	RenderingServer.set_default_clear_color(Color(0.22, 0.38, 0.18, 1.0))
 	_camera.make_current()
+
+	_set_loading_status("Loading map…")
+	await get_tree().process_frame
 	_load_map_data()
 	_init_session_from_spawns()
 	_connect_command_bar()
 	_apply_multiplayer_side_lock()
+
+	_set_loading_status("Building terrain…")
+	await get_tree().process_frame
 	_apply_map_presentation()
+	## Prewarm cover-stand cache so first DEFEND think does not hitch on object scan.
+	if _map_data != null and _map_data.has_method("get_cover_stand_cells"):
+		_map_data.get_cover_stand_cells()
+
+	_set_loading_status("Spawning units…")
+	await get_tree().process_frame
 	_spawn_all_soldier_views()
 	_log_fireteam_loadouts()
 	_command_bar.set_active_team(_session.active_team_id)
@@ -132,6 +151,8 @@ func _ready() -> void:
 	_show_startup_status()
 	_start_ai_framework()
 	_ensure_command_dialog()
+	_boot_complete = true
+	_hide_loading_overlay()
 	call_deferred("_open_command_dialog_for_deployment")
 
 
@@ -154,8 +175,13 @@ func _start_ai_framework() -> void:
 	## Clients never tick AI; host/offline keep authority.
 	_ai_framework.set_authority(GameModeManager.is_ai_authority())
 	_ai_framework.setup(_game_state, find_path)
-	## Offline 1v1 hotseat: no AI on either side — press 1/2 to control USA/Germany.
-	if GameModeManager.is_offline_dev():
+	var declared_ai_slots := 0
+	if _game_state != null and _game_state.command_hierarchy != null:
+		for pid in _game_state.command_hierarchy.all_player_ids():
+			if _game_state.command_hierarchy.is_ai_player(int(pid)):
+				declared_ai_slots += 1
+	## Explicit `--hotseat` only: both sides human, AI off. SP / Offline Quick Start keep AI.
+	if GameConfig.hotseat_enabled():
 		_ai_framework.set_enabled(false)
 		for commander in _ai_framework.all_commanders():
 			_ai_framework.disable_commander(commander.player_id)
@@ -165,7 +191,42 @@ func _start_ai_framework() -> void:
 					PlayerSlotOwnershipClass.claim_slot_as_human(
 						_game_state, _ai_framework, int(pid)
 					)
+	_log_ai_framework_startup(declared_ai_slots)
 	_refresh_ai_plan_hud()
+
+
+func _log_ai_framework_startup(declared_ai_slots: int) -> void:
+	if _game_state == null or _game_state.command_hierarchy == null:
+		return
+	var hierarchy = _game_state.command_hierarchy
+	var pids: Array = hierarchy.all_player_ids()
+	pids.sort()
+	for pid in pids:
+		var player_id := int(pid)
+		var team_name := Team.display_name(hierarchy.get_team_id(player_id)).to_upper()
+		var role := "AI" if hierarchy.is_ai_player(player_id) else "Human"
+		var plan := hierarchy.get_active_ai_plan(player_id)
+		if plan.is_empty():
+			plan = hierarchy.get_selected_ai_plan(player_id)
+		if plan.is_empty():
+			plan = "(none)"
+		GameLog.log_system(
+			"[AI] player %d / %s / %s / plan=%s" % [player_id, team_name, role, plan]
+		)
+	if (
+		_ai_framework != null
+		and not _ai_framework.has_commanders()
+		and declared_ai_slots > 0
+		and not GameConfig.hotseat_enabled()
+	):
+		var warn := (
+			"[AI] WARNING: framework has zero commanders but match declared %d AI slot(s)."
+			% declared_ai_slots
+		)
+		push_warning(warn)
+		GameLog.log_system(warn)
+	elif GameConfig.hotseat_enabled():
+		GameLog.log_system("[AI] Hotseat enabled — all AI commanders disabled.")
 
 
 func _log_network_mode() -> void:
@@ -178,6 +239,51 @@ func _log_network_mode() -> void:
 			NetworkClient.connect_for_local_multiplayer()
 	else:
 		GameLog.log_system("[NetworkClient] Offline mode — no server connection.")
+
+
+func _show_loading_overlay(message: String) -> void:
+	if _loading_overlay != null:
+		_set_loading_status(message)
+		return
+	_loading_overlay = CanvasLayer.new()
+	_loading_overlay.layer = 100
+	_loading_overlay.name = "LoadingOverlay"
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.08, 0.1, 0.07, 0.92)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	_loading_overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_loading_overlay.add_child(center)
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	center.add_child(col)
+	var title := Label.new()
+	title.text = "Chain Revival"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", Color(0.9, 0.93, 0.85, 1.0))
+	col.add_child(title)
+	_loading_label = Label.new()
+	_loading_label.text = message
+	_loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_loading_label.add_theme_font_size_override("font_size", 16)
+	_loading_label.add_theme_color_override("font_color", Color(0.75, 0.8, 0.68, 1.0))
+	col.add_child(_loading_label)
+	add_child(_loading_overlay)
+
+
+func _set_loading_status(message: String) -> void:
+	if _loading_label != null:
+		_loading_label.text = message
+
+
+func _hide_loading_overlay() -> void:
+	if _loading_overlay != null:
+		_loading_overlay.queue_free()
+		_loading_overlay = null
+		_loading_label = null
 
 
 func _show_startup_status() -> void:
@@ -227,6 +333,8 @@ func _log_fireteam_loadouts() -> void:
 
 
 func _process(delta: float) -> void:
+	if not _boot_complete:
+		return
 	## Sim first (authoritative), then presentation so views reflect the latest tick.
 	var frame_t0 := Time.get_ticks_usec()
 	_step_fixed_simulation(delta)
@@ -899,7 +1007,8 @@ func _get_fire_at_preview_shooter() -> SoldierState:
 
 
 func _load_map_data() -> void:
-	CocTileCatalog.reload()
+	## Catalog already loaded from menus/editor — avoid full manifest reparse every match.
+	CocTileCatalog.ensure_loaded()
 	var pending := EditorPlaySession.consume_pending_map_path()
 	_return_to_editor_on_exit = EditorPlaySession.should_return_to_editor()
 	if not pending.is_empty():
@@ -1299,7 +1408,7 @@ func _switch_active_team(team_id: int) -> void:
 			"You control %s only." % PlayerSides.display_side_name()
 		)
 		return
-	## Offline / SP hotseat: 1=USA, 2=Germany swaps human control + AI opposite.
+	## Offline / SP: 1=USA, 2=Germany hands local control to that side.
 	if GameModeManager.is_offline_dev():
 		if not _offline_dev_take_team_control(team_id):
 			return
@@ -1334,11 +1443,14 @@ func _switch_active_team(team_id: int) -> void:
 	_refresh_all_views()
 	var status := "Controlling %s team." % Team.display_name(team_id)
 	if GameModeManager.is_offline_dev():
-		status += " Press 1/2 to switch."
+		if GameConfig.hotseat_enabled():
+			status += " Hotseat — press 1/2 to switch sides."
+		else:
+			status += " Press 1/2 to take a side (other AI keeps thinking)."
 	_command_bar.show_status(status)
 
 
-## Dev/SP hotseat: claim target side as human. Opposite side stays idle (AI off in OFFLINE_DEV).
+## Offline/SP: claim target side as human. Non-hotseat returns the previous side to AI.
 func _offline_dev_take_team_control(team_id: int) -> bool:
 	if _session == null or _game_state == null:
 		return false
@@ -1357,13 +1469,19 @@ func _offline_dev_take_team_control(team_id: int) -> bool:
 	if current_pid == target_pid:
 		return true
 	var hierarchy = _game_state.command_hierarchy
-	## Do not hand the previous side to AI — offline hotseat keeps both sides player-driven.
 	if hierarchy != null and hierarchy.has_player(target_pid) and hierarchy.is_ai_player(target_pid):
 		PlayerSlotOwnershipClass.claim_slot_as_human(_game_state, _ai_framework, target_pid)
-	if _ai_framework != null:
-		_ai_framework.set_enabled(false)
-		_ai_framework.disable_commander(current_pid)
+	elif _ai_framework != null:
+		## Already human (hotseat) — ensure no commander is thinking for this slot.
 		_ai_framework.disable_commander(target_pid)
+	if GameConfig.hotseat_enabled():
+		## Both sides stay human; never re-enable AI for the side we left.
+		if _ai_framework != null:
+			_ai_framework.disable_commander(current_pid)
+			_ai_framework.disable_commander(target_pid)
+	elif current_pid > 0 and current_pid != target_pid:
+		## Hand me this side; previous side returns to AI so it keeps thinking.
+		PlayerSlotOwnershipClass.release_slot_to_ai(_game_state, _ai_framework, current_pid)
 	_session.local_player_id = target_pid
 	if _session.match_config != null:
 		_session.match_config.local_player_id = target_pid

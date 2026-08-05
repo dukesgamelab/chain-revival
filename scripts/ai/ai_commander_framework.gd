@@ -353,6 +353,25 @@ func debug_lines(game_state) -> PackedStringArray:
 		lines.append("  Order: %s" % order_label)
 		if not target.is_empty():
 			lines.append("  Target: %s" % target)
+		var soldiers: Array = snap.get("soldiers", [])
+		for entry in soldiers:
+			if not entry is Dictionary:
+				continue
+			var sid := int(entry.get("id", 0))
+			var post: Vector2i = entry.get("post", Vector2i(-999, -999))
+			var cell: Vector2i = entry.get("cell", Vector2i(-999, -999))
+			var post_txt := "—" if post.x <= -900 else str(post)
+			var cover_txt := "Y" if bool(entry.get("in_cover", false)) else "N"
+			var pos_txt := "Down" if int(entry.get("position", 0)) == 1 else "Up"
+			var ammo := int(entry.get("ammo", 0))
+			var stress := int(entry.get("stress", 0))
+			var tgt := str(entry.get("target", ""))
+			if tgt.is_empty():
+				tgt = "—"
+			lines.append(
+				"  S%d @%s post=%s cover=%s %s ammo=%d stress=%d tgt=%s"
+				% [sid, cell, post_txt, cover_txt, pos_txt, ammo, stress, tgt]
+			)
 	return lines
 
 

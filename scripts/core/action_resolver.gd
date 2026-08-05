@@ -1414,17 +1414,15 @@ static func _overlay_markers_from_move_orders(move_orders: Array) -> Array:
 
 
 ## Planned positions = movers at path ends, everyone else at current cell.
-## Allows orders that keep spread ≤ radius, or that do not worsen an already-broken spread.
+## Human and AI: final fireteam span must stay within FIRETEAM_COHESION_RADIUS.
 static func _fireteam_cohesion_holds_after_orders(fireteam: Fireteam, move_orders: Array) -> bool:
 	if fireteam == null:
 		return true
-	var before_cells: Array[Vector2i] = []
 	var planned: Dictionary = {} ## soldier_id -> Vector2i
 	for state in fireteam.soldiers:
 		var soldier: SoldierState = state
 		if soldier == null or soldier.is_dead:
 			continue
-		before_cells.append(soldier.grid_position)
 		planned[soldier.soldier_id] = soldier.grid_position
 	for order in move_orders:
 		if not order is Dictionary:
@@ -1437,10 +1435,7 @@ static func _fireteam_cohesion_holds_after_orders(fireteam: Fireteam, move_order
 	var after_cells: Array[Vector2i] = []
 	for sid in planned.keys():
 		after_cells.append(planned[sid])
-	var after_span := _max_pairwise_chebyshev(after_cells)
-	if after_span <= FIRETEAM_COHESION_RADIUS:
-		return true
-	return after_span <= _max_pairwise_chebyshev(before_cells)
+	return _max_pairwise_chebyshev(after_cells) <= FIRETEAM_COHESION_RADIUS
 
 
 static func _max_pairwise_chebyshev(cells: Array[Vector2i]) -> int:

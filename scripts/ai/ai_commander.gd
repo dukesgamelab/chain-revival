@@ -27,8 +27,8 @@ static var DIAGNOSTIC_SIMPLE_RUSH: bool = false
 
 ## TUNED — replan cadence (msec). Not recovered.
 const DEFAULT_REPLAN_INTERVAL_MSEC := 2000
-## TUNED — max Move/Face/Fire/Grenade submits per think tick.
-const MAX_COMMANDS_PER_TICK := 2
+## Hard cap on submits per think (pathfind budget is the real throttle).
+const MAX_COMMANDS_PER_TICK := 6
 ## TUNED — consider objective reached within this Manhattan distance.
 const OBJECTIVE_ARRIVE_DIST := 2
 ## TUNED — grenade only if clustered enemies within this Chebyshev range of impact.
@@ -41,12 +41,23 @@ const CLOSE_RANGE_DIST := 4
 const CLOSE_COVER_SEEK_MAX_DIST := 3
 ## TUNED — max length of a contact cover-to-cover crawl bound.
 const CONTACT_BOUND_MAX_DIST := 6
+## TUNED — advance bound length toward objective (cover-to-cover).
+const ADVANCE_BOUND_MIN_DIST := 6
+const ADVANCE_BOUND_MAX_DIST := 10
+## TUNED — defensive posts stay within this Chebyshev of the primary hold (FT cohesion).
+const DEFENSIVE_POST_CLUSTER := 12
+## Must match ActionResolver.FIRETEAM_COHESION_RADIUS — AI posts never exceed this span.
+const FIRETEAM_COHESION_RADIUS := 25
 ## TUNED — never bound closer than this Manhattan to a visible threat.
 const CONTACT_THREAT_STANDOFF := 3
 ## TUNED — re-bound if threat cell moves at least this Chebyshev from last bound axis.
 const COVER_THREAT_SHIFT_CHEBYSHEV := 3
 ## TUNED — avg fireteam stress at/above this → favor cover + prone over pushing.
 const STRESS_COVER_PRIORITY := 35.0
+## Dedup keys expire so a failed/starved order can be retried.
+const DEDUP_EXPIRE_MSEC := 3000
+## No successful command + idle + no contact → clear dedup and replan.
+const WATCHDOG_IDLE_MSEC := 5000
 
 ## Personality / difficulty hooks — aggression scales grenade; retreat_threshold gates stress.
 var aggression: float = 1.0
@@ -64,6 +75,7 @@ var current_target_key: String = ""
 var last_replan_msec: int = -999999
 var needs_replan: bool = true
 var _commands_this_tick: int = 0
+var _command_budget: int = 2
 var _debug_last_action: String = ""
 ## Settled behind directional cover for this contact (cleared on flank / contact lost).
 var _settled_in_cover: bool = false
@@ -73,12 +85,19 @@ var _cover_threat_cell: Vector2i = Vector2i(-999, -999)
 var _contact_bound_active: bool = false
 ## Shared snapshot for this think (set by framework; tests may leave null).
 var _snapshot: AiBattlefieldSnapshotClass = null
-## Dedup — skip identical Move/Face/Fire intents.
+## Dedup — skip identical Move/Face/Fire intents (timestamped; expire after DEDUP_EXPIRE_MSEC).
 var _last_move_cell: Vector2i = Vector2i(-999, -999)
+var _last_move_msec: int = -999999
 var _last_face_cell: Vector2i = Vector2i(-999, -999)
+var _last_face_msec: int = -999999
 var _last_fire_key: String = ""
+var _last_fire_msec: int = -999999
 var _last_path_request_msec: int = 0
 var _last_command_label: String = ""
+var _last_success_msec: int = 0
+var _watchdog_logged: bool = false
+## Per-soldier defensive posts for hold/cover objectives (soldier_id -> cell).
+var _defensive_posts: Dictionary = {}
 
 
 func _init(p_player_id: int = -1) -> void:
@@ -137,6 +156,30 @@ func debug_snapshot(game_state) -> Dictionary:
 	var obj_label := "—"
 	if current_objective != null and current_objective.is_valid():
 		obj_label = current_objective.label
+	var soldier_lines: Array = []
+	if game_state != null:
+		var approach := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
+		for soldier in _living_soldiers(game_state):
+			var post: Vector2i = _defensive_posts.get(soldier.soldier_id, Vector2i(-999, -999))
+			var in_cover := false
+			if approach.x > -900 and game_state.map_data != null:
+				in_cover = AiSectorObjectivesClass.stand_covered_vs_threat(
+					soldier.grid_position, approach, game_state.map_data
+				)
+			elif _cover_threat_cell.x > -900 and game_state.map_data != null:
+				in_cover = AiSectorObjectivesClass.stand_covered_vs_threat(
+					soldier.grid_position, _cover_threat_cell, game_state.map_data
+				)
+			soldier_lines.append({
+				"id": soldier.soldier_id,
+				"post": post,
+				"cell": soldier.grid_position,
+				"in_cover": in_cover,
+				"position": soldier.position_state,
+				"ammo": soldier.ammo_current,
+				"stress": int(round(soldier.stress)),
+				"target": current_target_key,
+			})
 	return {
 		"player_id": player_id,
 		"plan": get_active_plan(game_state) if game_state != null else "",
@@ -148,6 +191,7 @@ func debug_snapshot(game_state) -> Dictionary:
 		"last_command": _last_command_label,
 		"last_move_cell": _last_move_cell,
 		"last_path_request_msec": _last_path_request_msec,
+		"soldiers": soldier_lines,
 	}
 
 
@@ -179,9 +223,16 @@ func tick(
 	if _snapshot == null:
 		_snapshot = AiBattlefieldSnapshotClass.build(game_state, [player_id])
 
+	var living_n := _living_soldiers(game_state).size()
+	_command_budget = clampi(living_n, 1, MAX_COMMANDS_PER_TICK)
+
 	var visible: Array = _snapshot.visible_for(player_id)
-	_update_current_target(visible)
+	if visible.is_empty():
+		current_target_key = ""
+	else:
+		_select_best_threat(game_state, visible)
 	_sync_human_order_from_hierarchy(game_state)
+	_run_watchdog(game_state, visible, now_msec)
 
 	var replan_usec := 0
 	if needs_replan or (now_msec - last_replan_msec) >= DEFAULT_REPLAN_INTERVAL_MSEC:
@@ -252,11 +303,13 @@ func _replan(game_state, claimed: Array[Vector2i], visible: Array) -> void:
 			if cell.x <= -900:
 				cell = AiSectorObjectivesClass.retreat_objective(game_state, player_id).cell
 			current_objective = AiObjectiveClass.make("order_defend", "Defend", cell, "hold", 30)
+			_assign_defensive_posts(game_state, [current_objective])
 			state_id = AiCommanderStateClass.MOVE
 			return
 		AiOrderClass.ID_HOLD:
 			var hold_cell := _formation_center(game_state)
 			current_objective = AiSectorObjectivesClass.hold_objective_at(hold_cell)
+			_assign_defensive_posts(game_state, [current_objective])
 			state_id = AiCommanderStateClass.FIGHT if not visible.is_empty() else AiCommanderStateClass.MOVE
 			return
 		AiOrderClass.ID_FACE_DIRECTION:
@@ -272,9 +325,13 @@ func _replan(game_state, claimed: Array[Vector2i], visible: Array) -> void:
 		current_objective = null
 		state_id = AiCommanderStateClass.PLAN
 		return
-	## Prefer high-priority, least-claimed option (DEFEND lanes spread via claims).
+	## Prefer high-priority, least-claimed option (DEFEND center first for a lone FT).
 	var selected = AiSectorObjectivesClass.select_for_claims(options, claimed)
 	current_objective = selected if selected != null else options[0]
+	if _is_hold_objective():
+		_assign_defensive_posts(game_state, options)
+	else:
+		_defensive_posts.clear()
 	## Enter CONTACT from movement/planning only — never demote FIGHT back to CONTACT
 	## on every replan interval (that starved Fire/Grenade forever).
 	if not visible.is_empty():
@@ -283,8 +340,8 @@ func _replan(game_state, claimed: Array[Vector2i], visible: Array) -> void:
 			AiCommanderStateClass.ADVANCE, AiCommanderStateClass.OBJECTIVE_COMPLETE:
 				state_id = AiCommanderStateClass.CONTACT
 				_clear_cover_settlement()
-	elif _is_hold_objective() and _objective_reached(game_state):
-		## Stay on the defensive post — do not replan into a chase.
+	elif _is_hold_objective() and _defensive_posts_reached(game_state):
+		## Stay on defensive posts — do not replan into a chase.
 		state_id = AiCommanderStateClass.FIGHT
 	elif state_id == AiCommanderStateClass.OBJECTIVE_COMPLETE or state_id == AiCommanderStateClass.PLAN:
 		state_id = AiCommanderStateClass.MOVE
@@ -316,19 +373,20 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 				## Under fire but no LOS yet — hold advance; look for local cover.
 				_try_take_cover(game_state, find_path, submit_command, [])
 			elif not _fireteam_is_moving(game_state):
-				if _is_hold_objective() and _objective_reached(game_state):
-					## Arrived at defensive hold — face the approach and watch.
+				if _is_hold_objective() and _defensive_posts_reached(game_state):
+					## Arrived at defensive posts — face the approach and watch.
 					_hold_defensive_post(game_state, submit_command, visible)
 					state_id = AiCommanderStateClass.FIGHT
+				elif _is_hold_objective():
+					_move_to_defensive_posts(game_state, find_path, submit_command)
+					if _defensive_posts_reached(game_state):
+						_hold_defensive_post(game_state, submit_command, visible)
+						state_id = AiCommanderStateClass.FIGHT
 				else:
 					_move_toward_objective(game_state, find_path, submit_command)
 					if _objective_reached(game_state):
-						if _is_hold_objective():
-							_hold_defensive_post(game_state, submit_command, visible)
-							state_id = AiCommanderStateClass.FIGHT
-						else:
-							state_id = AiCommanderStateClass.OBJECTIVE_COMPLETE
-							request_replan("objective_complete")
+						state_id = AiCommanderStateClass.OBJECTIVE_COMPLETE
+						request_replan("objective_complete")
 		AiCommanderStateClass.CONTACT:
 			_engage_contact(game_state, find_path, submit_command, visible)
 			state_id = AiCommanderStateClass.FIGHT
@@ -339,14 +397,20 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 					_is_hold_objective()
 					or AiOrderClass.normalize_id(human_order_id) == AiOrderClass.ID_HOLD
 				):
-					## Defend / Hold — stay put and keep facing the approach.
-					_hold_defensive_post(game_state, submit_command, visible)
+					## Defend / Hold — return to posts if drifted, else face approach.
+					if not _defensive_posts_reached(game_state):
+						_move_to_defensive_posts(game_state, find_path, submit_command)
+					else:
+						_hold_defensive_post(game_state, submit_command, visible)
 					state_id = AiCommanderStateClass.FIGHT
 				else:
 					state_id = AiCommanderStateClass.ADVANCE
 					request_replan("contact_lost")
 			else:
 				## Fight from cover — do not push the objective while enemies are visible.
+				## Hold objectives: if a soldier left their post, send them back first.
+				if _is_hold_objective() and not _defensive_posts_reached(game_state):
+					_move_to_defensive_posts(game_state, find_path, submit_command)
 				_engage_contact(game_state, find_path, submit_command, visible)
 		AiCommanderStateClass.OBJECTIVE_COMPLETE:
 			if _is_hold_objective():
@@ -360,31 +424,31 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 ## Face the enemy approach (or visible threat) and hunker when holding a defensive post.
 func _hold_defensive_post(game_state, submit_command: Callable, visible: Array) -> void:
 	if not visible.is_empty():
-		_face_threat(game_state, submit_command, visible)
-		if _formation_in_directional_cover(game_state, visible[0].grid_position):
-			_try_go_prone(game_state, submit_command)
+		var threat = _select_best_threat(game_state, visible)
+		if threat == null:
+			return
+		_face_threat(game_state, submit_command, [threat])
+		_try_go_prone_on_posts(game_state, submit_command, threat.grid_position)
 		return
 	var approach := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
 	if approach.x <= -900:
 		return
-	if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+	if not _has_command_budget():
 		return
 	var lead = _lead_soldier(game_state)
 	if lead == null:
 		return
-	if approach == _last_face_cell:
-		PerceptionCacheClass.duplicate_commands_skipped += 1
+	if _face_dedup_blocks(approach):
 		return
 	var cmd := FaceCommandClass.new()
 	cmd.team_id = lead.team_id
 	cmd.soldier_id = lead.soldier_id
 	cmd.target_cell = approach
 	cmd.scope = FaceCommandClass.Scope.SQUAD
-	var result = submit_command.call(cmd, _make_context(Callable()))
-	if result != null and result.success:
-		_commands_this_tick += 1
+	if _submit_ai(game_state, submit_command, cmd, _make_context(Callable()), "hold-face→%s" % approach):
 		_last_face_cell = approach
-		_debug_last_action = "hold-face→%s" % approach
+		_last_face_msec = SimulationClock.get_ticks_msec()
+		_try_go_prone_on_posts(game_state, submit_command, approach)
 
 
 func _clear_cover_settlement() -> void:
@@ -403,7 +467,9 @@ func _engage_contact(
 ) -> void:
 	if visible.is_empty():
 		return
-	var threat = visible[0]
+	var threat = _select_best_threat(game_state, visible)
+	if threat == null:
+		return
 	var center := _formation_center(game_state)
 	var threat_cell: Vector2i = threat.grid_position
 	var threat_dist := absi(center.x - threat_cell.x) + absi(center.y - threat_cell.y)
@@ -465,7 +531,7 @@ func _engage_contact(
 	if _settled_in_cover and _formation_in_directional_cover(game_state, threat_cell):
 		_try_go_prone(game_state, submit_command)
 
-	## 4) Face + suppress. Grenade last — command budget is 2.
+	## 4) Face + suppress. Grenade last — respects per-think command budget.
 	_face_threat(game_state, submit_command, visible)
 	_try_fire(game_state, submit_command, visible)
 	_try_grenade(game_state, submit_command, visible)
@@ -476,9 +542,9 @@ func _engage_contact(
 		and not _fireteam_is_moving(game_state)
 		and not _objective_reached(game_state)
 		and threat_dist >= CLOSE_RANGE_DIST
-		and _commands_this_tick < MAX_COMMANDS_PER_TICK
+		and _has_command_budget()
 	):
-		_try_contact_bound_forward(game_state, find_path, submit_command, visible)
+		_try_contact_bound_forward(game_state, find_path, submit_command, [threat])
 
 
 func _mark_cover_settled(threat_cell: Vector2i) -> void:
@@ -517,8 +583,61 @@ func _update_current_target(visible: Array) -> void:
 	if visible.is_empty():
 		current_target_key = ""
 		return
+	## Scoring needs game_state; set after think has snapshot — best-effort from visible[0]
+	## until _select_best_threat runs with full state.
 	var best = visible[0]
 	current_target_key = "%d:%d" % [best.team_id, best.soldier_id]
+
+
+## Deterministic threat pick: closer, exposed, standing, engaging us, wounded — ties on (team, id).
+func _select_best_threat(game_state, visible: Array):
+	if visible.is_empty():
+		return null
+	var lead = _lead_soldier(game_state)
+	var from_cell: Vector2i = (
+		lead.grid_position if lead != null else _formation_center(game_state)
+	)
+	var map_data = game_state.map_data if game_state != null else null
+	var best = null
+	var best_score := -999999
+	var best_team := 999
+	var best_sid := 999
+	for enemy in visible:
+		if enemy == null or enemy.is_dead:
+			continue
+		var score := 0
+		var dist := absi(from_cell.x - enemy.grid_position.x) + absi(from_cell.y - enemy.grid_position.y)
+		score += maxi(0, 40 - dist) * 3
+		if enemy.position_state != PositionStateClass.DOWN:
+			score += 12
+		if map_data != null:
+			var cover = GameplayPolicies.cover.cover_check(from_cell, enemy.grid_position, map_data)
+			if cover == null or not bool(cover.in_cover):
+				score += 18
+		if enemy.is_sustained_fire():
+			for ours in _living_soldiers(game_state):
+				if (
+					enemy.engaged_target_team_id == ours.team_id
+					and enemy.engaged_target_soldier_id == ours.soldier_id
+				):
+					score += 10
+					break
+		if enemy.stress >= 40.0 or enemy.ammo_current <= 2:
+			score += 6
+		var tid := int(enemy.team_id)
+		var sid := int(enemy.soldier_id)
+		if (
+			score > best_score
+			or (score == best_score and tid < best_team)
+			or (score == best_score and tid == best_team and sid < best_sid)
+		):
+			best = enemy
+			best_score = score
+			best_team = tid
+			best_sid = sid
+	if best != null:
+		current_target_key = "%d:%d" % [best.team_id, best.soldier_id]
+	return best
 
 
 func _formation_center(game_state) -> Vector2i:
@@ -564,7 +683,7 @@ func _fireteam_is_moving(game_state) -> bool:
 
 ## Cancel in-progress paths via HaltCommand → ActionResolver movement_halts.
 func _halt_fireteam_movement(game_state, submit_command: Callable) -> bool:
-	if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+	if not _has_command_budget():
 		return false
 	if not _fireteam_is_moving(game_state):
 		return false
@@ -575,13 +694,9 @@ func _halt_fireteam_movement(game_state, submit_command: Callable) -> bool:
 	cmd.team_id = lead.team_id
 	cmd.soldier_id = lead.soldier_id
 	cmd.scope = HaltCommandClass.Scope.SQUAD
-	var result = submit_command.call(cmd, _make_context(Callable()))
-	if result != null and result.success:
-		_commands_this_tick += 1
+	if _submit_ai(game_state, submit_command, cmd, _make_context(Callable()), "halt-contact"):
 		_contact_bound_active = false
-		_last_move_cell = Vector2i(-999, -999)
-		_last_command_label = "Halt"
-		_debug_last_action = "halt-contact"
+		_clear_move_dedup()
 		return true
 	return false
 
@@ -602,12 +717,12 @@ func _objective_reached(game_state) -> bool:
 func _move_toward_objective(game_state, find_path: Callable, submit_command: Callable) -> void:
 	if current_objective == null or not current_objective.is_valid():
 		return
-	if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+	if not _has_command_budget():
 		return
 	if _fireteam_is_moving(game_state):
 		return
 	## Already on a defensive hold — stay; do not drift.
-	if _is_hold_objective() and _objective_reached(game_state):
+	if _is_hold_objective() and _defensive_posts_reached(game_state):
 		return
 	## High stress — do not push; prefer holding / looking for cover.
 	if _under_suppression(game_state):
@@ -615,34 +730,36 @@ func _move_toward_objective(game_state, find_path: Callable, submit_command: Cal
 	var lead = _lead_soldier(game_state)
 	if lead == null:
 		return
-	var target := current_objective.cell
-	if not game_state.map_data.is_walkable(target):
+	var objective_cell := current_objective.cell
+	if not game_state.map_data.is_walkable(objective_cell):
 		return
-	## Already ordered this destination — do not resubmit identical MoveCommands.
-	## If we are halted short of the goal (budget starve / interrupt), allow remarch.
-	if target == _last_move_cell:
-		var dist_left := absi(lead.grid_position.x - target.x) + absi(lead.grid_position.y - target.y)
-		if dist_left <= OBJECTIVE_ARRIVE_DIST:
-			PerceptionCacheClass.duplicate_commands_skipped += 1
-			return
-		_last_move_cell = Vector2i(-999, -999)
+	var center := _formation_center(game_state)
+	var visible: Array = _snapshot.visible_for(player_id) if _snapshot != null else []
+	var enemy_anchor := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
+	## Cover-to-cover bound: next stand that shortens distance to the objective.
+	var target := _next_advance_cover_stand(game_state, center, objective_cell, enemy_anchor)
+	var used_cover_bound := target.x > -900
+	if not used_cover_bound:
+		target = objective_cell
+	if _move_dedup_blocks(target, lead.grid_position):
+		return
+	var mode := MovementModeClass.RUN
+	if not visible.is_empty() or _under_suppression(game_state):
+		mode = MovementModeClass.CRAWL
 	var cmd := MoveCommandClass.new()
 	cmd.team_id = lead.team_id
 	cmd.soldier_id = lead.soldier_id
 	cmd.target_cell = target
 	cmd.scope = MoveCommandClass.Scope.SQUAD
-	cmd.movement_mode = MovementModeClass.RUN
+	cmd.movement_mode = mode
 	var ctx := _make_context(find_path)
 	_last_path_request_msec = SimulationClock.get_ticks_msec()
-	var result = submit_command.call(cmd, ctx)
-	PerceptionCacheClass.move_commands += 1
-	if result != null and result.success:
-		_commands_this_tick += 1
-		_last_move_cell = target
-		_last_command_label = "Move→%s" % target
+	var label := "bound→%s" % target if used_cover_bound else "move FT→%s" % target
+	if _submit_ai(game_state, submit_command, cmd, ctx, label):
+		_note_move_dedup(target)
 		_settled_in_cover = false
 		_contact_bound_active = false
-		_debug_last_action = "move FT→%s" % target
+		PerceptionCacheClass.move_commands += 1
 
 
 func _try_take_cover(
@@ -655,7 +772,7 @@ func _try_take_cover(
 	require_short_of_threat: bool = false,
 	precomputed_cover: Vector2i = Vector2i(-999, -999),
 ) -> bool:
-	if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+	if not _has_command_budget():
 		return false
 	## Only block a NEW cover order while an existing contact cover bound is in progress.
 	if _contact_bound_active and _fireteam_is_moving(game_state):
@@ -664,7 +781,9 @@ func _try_take_cover(
 	var center := _formation_center(game_state)
 	var threat_cell := Vector2i(-999, -999)
 	if not visible.is_empty():
-		threat_cell = visible[0].grid_position
+		var threat = _select_best_threat(game_state, visible)
+		if threat != null:
+			threat_cell = threat.grid_position
 	elif _cover_threat_cell.x > -900:
 		threat_cell = _cover_threat_cell
 	var cover := precomputed_cover
@@ -689,12 +808,12 @@ func _try_take_cover(
 	if lead == null:
 		return false
 	## Already ordered this cover cell and still moving there.
-	if cover == _last_move_cell and _fireteam_is_moving(game_state):
+	if cover == _last_move_cell and not _dedup_expired(_last_move_msec) and _fireteam_is_moving(game_state):
 		_contact_bound_active = true
 		PerceptionCacheClass.duplicate_commands_skipped += 1
 		return true
-	if cover == _last_move_cell and not _fireteam_is_moving(game_state):
-		## Arrived / failed previously — don't spam identical Move.
+	if cover == _last_move_cell and not _dedup_expired(_last_move_msec) and not _fireteam_is_moving(game_state):
+		## Arrived / failed — expire eventually via watchdog / DEDUP_EXPIRE_MSEC.
 		PerceptionCacheClass.duplicate_commands_skipped += 1
 		return false
 	var cmd := MoveCommandClass.new()
@@ -704,17 +823,13 @@ func _try_take_cover(
 	cmd.scope = MoveCommandClass.Scope.SQUAD
 	cmd.movement_mode = movement_mode
 	_last_path_request_msec = SimulationClock.get_ticks_msec()
-	var result = submit_command.call(cmd, _make_context(find_path))
 	PerceptionCacheClass.move_commands += 1
-	if result != null and result.success:
-		_commands_this_tick += 1
-		_last_move_cell = cover
-		_last_command_label = "MoveCover→%s" % cover
+	if _submit_ai(game_state, submit_command, cmd, _make_context(find_path), "cover→%s" % cover):
+		_note_move_dedup(cover)
 		_contact_bound_active = true
 		_cover_bound_msec = SimulationClock.get_ticks_msec()
 		if threat_cell.x > -900:
 			_cover_threat_cell = threat_cell
-		_debug_last_action = "cover→%s" % cover
 		return true
 	return false
 
@@ -730,7 +845,10 @@ func _try_contact_bound_forward(
 		return false
 	if _is_hold_objective():
 		return false
-	var threat_cell: Vector2i = visible[0].grid_position
+	var threat = _select_best_threat(game_state, visible)
+	if threat == null:
+		return false
+	var threat_cell: Vector2i = threat.grid_position
 	var center := _formation_center(game_state)
 	var obj := current_objective.cell
 	var old_obj_dist := absi(center.x - obj.x) + absi(center.y - obj.y)
@@ -781,10 +899,20 @@ func _cover_is_short_of_threat(
 
 ## Issue DOWN for standing soldiers once behind cover. Respects command budget.
 func _try_go_prone(game_state, submit_command: Callable) -> void:
-	if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+	_try_go_prone_on_posts(game_state, submit_command, Vector2i(-999, -999))
+
+
+## Go prone when the soldier's stand (or post) has directional cover vs the approach.
+func _try_go_prone_on_posts(
+	game_state,
+	submit_command: Callable,
+	threat_or_approach: Vector2i,
+) -> void:
+	if not _has_command_budget():
 		return
+	var map_data = game_state.map_data if game_state != null else null
 	for soldier in _living_soldiers(game_state):
-		if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+		if not _has_command_budget():
 			return
 		if soldier.position_state == PositionStateClass.DOWN:
 			continue
@@ -792,14 +920,22 @@ func _try_go_prone(game_state, submit_command: Callable) -> void:
 			continue
 		if soldier.is_moving:
 			continue
+		if threat_or_approach.x > -900 and map_data != null:
+			if not AiSectorObjectivesClass.stand_covered_vs_threat(
+				soldier.grid_position, threat_or_approach, map_data
+			):
+				continue
 		var cmd := PositionCommandClass.new()
 		cmd.team_id = soldier.team_id
 		cmd.soldier_id = soldier.soldier_id
 		cmd.position_state = PositionStateClass.DOWN
-		var result = submit_command.call(cmd, _make_context(Callable()))
-		if result != null and result.success:
-			_commands_this_tick += 1
-			_debug_last_action = "prone %d" % soldier.soldier_id
+		_submit_ai(
+			game_state,
+			submit_command,
+			cmd,
+			_make_context(Callable()),
+			"prone %d" % soldier.soldier_id,
+		)
 
 
 func _fireteam_avg_stress(game_state) -> float:
@@ -820,14 +956,15 @@ func _under_suppression(game_state) -> bool:
 
 
 func _face_threat(game_state, submit_command: Callable, visible: Array) -> void:
-	if visible.is_empty() or _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+	if visible.is_empty() or not _has_command_budget():
 		return
-	var threat = visible[0]
+	var threat = _select_best_threat(game_state, visible)
+	if threat == null:
+		return
 	var lead = _lead_soldier(game_state)
 	if lead == null:
 		return
-	if threat.grid_position == _last_face_cell:
-		PerceptionCacheClass.duplicate_commands_skipped += 1
+	if _face_dedup_blocks(threat.grid_position):
 		return
 	var needs_face := false
 	for soldier in _living_soldiers(game_state):
@@ -841,17 +978,21 @@ func _face_threat(game_state, submit_command: Callable, visible: Array) -> void:
 	cmd.soldier_id = lead.soldier_id
 	cmd.target_cell = threat.grid_position
 	cmd.scope = FaceCommandClass.Scope.SQUAD
-	var result = submit_command.call(cmd, _make_context(Callable()))
-	if result != null and result.success:
-		_commands_this_tick += 1
+	if _submit_ai(
+		game_state,
+		submit_command,
+		cmd,
+		_make_context(Callable()),
+		"face FT→%s" % threat.grid_position,
+	):
 		_last_face_cell = threat.grid_position
-		_debug_last_action = "face FT→%s" % threat.grid_position
+		_last_face_msec = SimulationClock.get_ticks_msec()
 
 
 func _order_face(game_state, submit_command: Callable) -> void:
 	if human_order_cell.x <= -900:
 		return
-	if _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+	if not _has_command_budget():
 		return
 	var lead = _lead_soldier(game_state)
 	if lead == null:
@@ -861,15 +1002,15 @@ func _order_face(game_state, submit_command: Callable) -> void:
 	cmd.soldier_id = lead.soldier_id
 	cmd.target_cell = human_order_cell
 	cmd.scope = FaceCommandClass.Scope.SQUAD
-	var result = submit_command.call(cmd, _make_context(Callable()))
-	if result != null and result.success:
-		_commands_this_tick += 1
+	_submit_ai(game_state, submit_command, cmd, _make_context(Callable()), "order-face")
 
 
 func _try_fire(game_state, submit_command: Callable, visible: Array) -> void:
-	if visible.is_empty() or _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+	if visible.is_empty() or not _has_command_budget():
 		return
-	var threat = visible[0]
+	var threat = _select_best_threat(game_state, visible)
+	if threat == null:
+		return
 	var lead = _lead_soldier(game_state)
 	if lead == null:
 		return
@@ -878,7 +1019,7 @@ func _try_fire(game_state, submit_command: Callable, visible: Array) -> void:
 	if _fireteam_already_engaging(game_state, threat):
 		current_target_key = fire_key
 		return
-	if fire_key == _last_fire_key:
+	if fire_key == _last_fire_key and not _dedup_expired(_last_fire_msec):
 		PerceptionCacheClass.duplicate_commands_skipped += 1
 		return
 	## Include movers — FireCommand halts them so the FT stops to shoot.
@@ -898,12 +1039,16 @@ func _try_fire(game_state, submit_command: Callable, visible: Array) -> void:
 	cmd.aim_world = IsometricGrid.soldier_aim_point(threat.grid_position)
 	var ctx := _make_context(Callable())
 	ctx.shooter_ids = shooters
-	var result = submit_command.call(cmd, ctx)
-	if result != null and result.success:
-		_commands_this_tick += 1
+	if _submit_ai(
+		game_state,
+		submit_command,
+		cmd,
+		ctx,
+		"fire FT→%d:%d" % [threat.team_id, threat.soldier_id],
+	):
 		_last_fire_key = fire_key
-		_last_move_cell = Vector2i(-999, -999) ## Halted — allow remarch later.
-		_debug_last_action = "fire FT→%d:%d" % [threat.team_id, threat.soldier_id]
+		_last_fire_msec = SimulationClock.get_ticks_msec()
+		_clear_move_dedup() ## Halted — allow remarch later.
 		current_target_key = fire_key
 
 
@@ -926,9 +1071,12 @@ func _fireteam_already_engaging(game_state, threat) -> bool:
 
 
 func _try_grenade(game_state, submit_command: Callable, visible: Array) -> void:
-	if visible.is_empty() or _commands_this_tick >= MAX_COMMANDS_PER_TICK:
+	if visible.is_empty() or not _has_command_budget():
 		return
-	var impact: Vector2i = visible[0].grid_position
+	var threat = _select_best_threat(game_state, visible)
+	if threat == null:
+		return
+	var impact: Vector2i = threat.grid_position
 	var cluster := 0
 	for enemy in visible:
 		if (
@@ -949,11 +1097,285 @@ func _try_grenade(game_state, submit_command: Callable, visible: Array) -> void:
 		cmd.team_id = soldier.team_id
 		cmd.soldier_id = soldier.soldier_id
 		cmd.target_cell = impact
-		var result = submit_command.call(cmd, _make_context(Callable()))
-		if result != null and result.success:
-			_commands_this_tick += 1
-			_debug_last_action = "grenade %d→%s" % [soldier.soldier_id, impact]
+		_submit_ai(
+			game_state,
+			submit_command,
+			cmd,
+			_make_context(Callable()),
+			"grenade %d→%s" % [soldier.soldier_id, impact],
+		)
 		break
+
+
+## --- Defensive posts (Stage 2) + cohesion-safe clustering ---
+
+## Assign living soldiers to nearby cover stands around the primary hold.
+## Posts stay inside DEFENSIVE_POST_CLUSTER of the primary and within FT cohesion of each other.
+func _assign_defensive_posts(game_state, hold_options: Array) -> void:
+	_defensive_posts.clear()
+	var soldiers := _living_soldiers(game_state)
+	if soldiers.is_empty() or current_objective == null or not current_objective.is_valid():
+		return
+	var primary := current_objective.cell
+	var approach := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
+	var claimed: Array[Vector2i] = []
+	## Prefer primary, then other hold options sorted by priority (already in options order).
+	var seed_cells: Array[Vector2i] = [primary]
+	for opt in hold_options:
+		if opt == null or not opt.is_valid():
+			continue
+		var kind := str(opt.kind)
+		if kind != "hold" and kind != "cover":
+			continue
+		if opt.cell == primary:
+			continue
+		## Only consider lane stands near the primary — never opposite map approaches.
+		if maxi(absi(opt.cell.x - primary.x), absi(opt.cell.y - primary.y)) > DEFENSIVE_POST_CLUSTER:
+			continue
+		seed_cells.append(opt.cell)
+	var posts: Array[Vector2i] = []
+	for seed in seed_cells:
+		if posts.size() >= soldiers.size():
+			break
+		var stand := AiSectorObjectivesClass.nearest_cover_within(
+			game_state, seed, approach, DEFENSIVE_POST_CLUSTER, claimed, true
+		)
+		if stand.x <= -900:
+			stand = seed
+		if not _post_fits_cluster(stand, posts, primary):
+			continue
+		posts.append(stand)
+		claimed.append(stand)
+	## Fill remaining soldiers with nearby distinct cover around primary.
+	while posts.size() < soldiers.size():
+		var stand2 := AiSectorObjectivesClass.nearest_cover_within(
+			game_state, primary, approach, DEFENSIVE_POST_CLUSTER, claimed, true
+		)
+		if stand2.x <= -900 or not _post_fits_cluster(stand2, posts, primary):
+			## Offset walkable fallback near primary.
+			stand2 = primary + Vector2i(posts.size() % 3 - 1, posts.size() / 3)
+			if game_state.map_data != null and not game_state.map_data.is_walkable(stand2):
+				stand2 = primary
+			if stand2 in claimed or not _post_fits_cluster(stand2, posts, primary):
+				break
+		posts.append(stand2)
+		claimed.append(stand2)
+	## Assign nearest free post to each soldier (stable by soldier_id).
+	var sorted_soldiers: Array = soldiers.duplicate()
+	sorted_soldiers.sort_custom(func(a, b) -> bool: return a.soldier_id < b.soldier_id)
+	var used: Dictionary = {}
+	for soldier in sorted_soldiers:
+		var best_i := -1
+		var best_d := 999999
+		for i in posts.size():
+			if used.has(i):
+				continue
+			var d := (
+				absi(soldier.grid_position.x - posts[i].x)
+				+ absi(soldier.grid_position.y - posts[i].y)
+			)
+			if d < best_d:
+				best_d = d
+				best_i = i
+		if best_i < 0:
+			_defensive_posts[soldier.soldier_id] = primary
+		else:
+			used[best_i] = true
+			_defensive_posts[soldier.soldier_id] = posts[best_i]
+
+
+func _post_fits_cluster(cell: Vector2i, posts: Array[Vector2i], primary: Vector2i) -> bool:
+	if maxi(absi(cell.x - primary.x), absi(cell.y - primary.y)) > DEFENSIVE_POST_CLUSTER:
+		return false
+	for other in posts:
+		if maxi(absi(cell.x - other.x), absi(cell.y - other.y)) > FIRETEAM_COHESION_RADIUS:
+			return false
+	return true
+
+
+func _defensive_posts_reached(game_state) -> bool:
+	if _defensive_posts.is_empty():
+		return _objective_reached(game_state)
+	for soldier in _living_soldiers(game_state):
+		var post: Vector2i = _defensive_posts.get(soldier.soldier_id, Vector2i(-999, -999))
+		if post.x <= -900:
+			continue
+		var d := absi(soldier.grid_position.x - post.x) + absi(soldier.grid_position.y - post.y)
+		if d > OBJECTIVE_ARRIVE_DIST:
+			return false
+	return true
+
+
+func _move_to_defensive_posts(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+) -> void:
+	if _defensive_posts.is_empty():
+		_move_toward_objective(game_state, find_path, submit_command)
+		return
+	if not _has_command_budget():
+		return
+	var sorted: Array = _living_soldiers(game_state)
+	sorted.sort_custom(func(a, b) -> bool: return a.soldier_id < b.soldier_id)
+	for soldier in sorted:
+		if not _has_command_budget():
+			return
+		if soldier.is_moving:
+			continue
+		var post: Vector2i = _defensive_posts.get(soldier.soldier_id, Vector2i(-999, -999))
+		if post.x <= -900:
+			continue
+		var d := absi(soldier.grid_position.x - post.x) + absi(soldier.grid_position.y - post.y)
+		if d <= OBJECTIVE_ARRIVE_DIST:
+			continue
+		if not game_state.map_data.is_walkable(post):
+			continue
+		var cmd := MoveCommandClass.new()
+		cmd.team_id = soldier.team_id
+		cmd.soldier_id = soldier.soldier_id
+		cmd.target_cell = post
+		cmd.scope = MoveCommandClass.Scope.SINGLE
+		cmd.movement_mode = MovementModeClass.RUN
+		_last_path_request_msec = SimulationClock.get_ticks_msec()
+		PerceptionCacheClass.move_commands += 1
+		if _submit_ai(
+			game_state,
+			submit_command,
+			cmd,
+			_make_context(find_path),
+			"post %d→%s" % [soldier.soldier_id, post],
+		):
+			_note_move_dedup(post)
+
+
+## Next cover stand along the advance axis (Stage 3). Empty if none qualify.
+func _next_advance_cover_stand(
+	game_state,
+	from_cell: Vector2i,
+	objective_cell: Vector2i,
+	enemy_anchor: Vector2i,
+) -> Vector2i:
+	var old_dist := absi(from_cell.x - objective_cell.x) + absi(from_cell.y - objective_cell.y)
+	if old_dist <= ADVANCE_BOUND_MAX_DIST:
+		return Vector2i(-999, -999)
+	var face := enemy_anchor if enemy_anchor.x > -900 else objective_cell
+	var cover := AiSectorObjectivesClass.nearest_cover_within(
+		game_state, from_cell, face, ADVANCE_BOUND_MAX_DIST
+	)
+	if cover.x <= -900:
+		return Vector2i(-999, -999)
+	var step := absi(cover.x - from_cell.x) + absi(cover.y - from_cell.y)
+	if step < ADVANCE_BOUND_MIN_DIST:
+		return Vector2i(-999, -999)
+	var new_dist := absi(cover.x - objective_cell.x) + absi(cover.y - objective_cell.y)
+	if new_dist >= old_dist:
+		return Vector2i(-999, -999)
+	return cover
+
+
+## --- Dedup / watchdog / submit helpers (Stage 5 + 6) ---
+
+func _has_command_budget() -> bool:
+	return _commands_this_tick < _command_budget
+
+
+func _dedup_expired(stamp_msec: int) -> bool:
+	if stamp_msec < 0:
+		return true
+	return SimulationClock.get_ticks_msec() - stamp_msec >= DEDUP_EXPIRE_MSEC
+
+
+func _clear_move_dedup() -> void:
+	_last_move_cell = Vector2i(-999, -999)
+	_last_move_msec = -999999
+
+
+func _note_move_dedup(cell: Vector2i) -> void:
+	_last_move_cell = cell
+	_last_move_msec = SimulationClock.get_ticks_msec()
+
+
+func _move_dedup_blocks(target: Vector2i, lead_cell: Vector2i) -> bool:
+	if target != _last_move_cell or _dedup_expired(_last_move_msec):
+		return false
+	var dist_left := absi(lead_cell.x - target.x) + absi(lead_cell.y - target.y)
+	if dist_left <= OBJECTIVE_ARRIVE_DIST:
+		PerceptionCacheClass.duplicate_commands_skipped += 1
+		return true
+	## Halted short — allow remarch after expiry; clear now so next call proceeds.
+	_clear_move_dedup()
+	return false
+
+
+func _face_dedup_blocks(cell: Vector2i) -> bool:
+	if cell != _last_face_cell or _dedup_expired(_last_face_msec):
+		return false
+	PerceptionCacheClass.duplicate_commands_skipped += 1
+	return true
+
+
+func _clear_all_dedup() -> void:
+	_clear_move_dedup()
+	_last_face_cell = Vector2i(-999, -999)
+	_last_face_msec = -999999
+	_last_fire_key = ""
+	_last_fire_msec = -999999
+
+
+func _run_watchdog(game_state, visible: Array, now_msec: int) -> void:
+	if _last_success_msec <= 0:
+		_last_success_msec = now_msec
+		return
+	if now_msec - _last_success_msec < WATCHDOG_IDLE_MSEC:
+		_watchdog_logged = false
+		return
+	if _fireteam_is_moving(game_state):
+		return
+	if not visible.is_empty():
+		return
+	_clear_all_dedup()
+	request_replan("watchdog")
+	if not _watchdog_logged:
+		_watchdog_logged = true
+		GameLog.log_system("[AI-WATCHDOG] pid=%d idle — cleared dedup, replanning" % player_id)
+
+
+func _submit_ai(
+	game_state,
+	submit_command: Callable,
+	command: RefCounted,
+	context: CommandContextClass,
+	debug_label: String,
+) -> bool:
+	if not _has_command_budget():
+		return false
+	var result = submit_command.call(command, context)
+	if result == null or not result.success:
+		return false
+	_commands_this_tick += 1
+	_last_success_msec = SimulationClock.get_ticks_msec()
+	_last_command_label = debug_label
+	_debug_last_action = debug_label
+	_watchdog_logged = false
+	if GameConfig.ai_verbose_enabled():
+		var sid := -1
+		if "soldier_id" in command:
+			sid = int(command.soldier_id)
+		var target_cell := Vector2i(-999, -999)
+		if "target_cell" in command:
+			target_cell = command.target_cell
+		elif "aim_world" in command:
+			target_cell = IsometricGrid.world_to_grid(command.aim_world)
+		var type_name := command.get_class()
+		var script_res = command.get_script()
+		if script_res != null:
+			type_name = str(script_res.resource_path).get_file().get_basename()
+		GameLog.log_system(
+			"[AI-CMD] pid=%d soldier=%d type=%s target=%s"
+			% [player_id, sid, type_name, target_cell]
+		)
+	return true
 
 
 func _make_context(find_path: Callable) -> CommandContextClass:

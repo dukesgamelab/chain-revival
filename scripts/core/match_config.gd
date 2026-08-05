@@ -94,7 +94,7 @@ func _local_human_team_id() -> int:
 	return Team.USA
 
 
-## Friendly AI â†’ Attack Center; enemy AI â†’ Random; Human/Open â†’ clear.
+## Germany AI → Defend; USA AI → Attack Center; Human/Open → clear.
 func _apply_default_ai_plans() -> void:
 	var human_team := _local_human_team_id()
 	for i in slots.size():

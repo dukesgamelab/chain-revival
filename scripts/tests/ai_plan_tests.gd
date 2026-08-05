@@ -18,6 +18,7 @@ var _passed: int = 0
 
 
 func _ready() -> void:
+	_test_default_selected_for_slot_by_side()
 	_test_match_config_1v1_ai_selector_shape()
 	_test_match_config_2v2_ai_selector_shape()
 	_test_human_open_have_no_ai_plan()
@@ -29,6 +30,7 @@ func _ready() -> void:
 	_test_set_ai_plan_command_validation()
 	_test_plans_lock_after_running()
 	_test_runtime_active_plans_for_hud()
+	_test_explicit_user_selection_wins_over_default()
 	print("")
 	print("AI plan tests: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -76,6 +78,29 @@ func _submit(game_state: GameStateClass, command: RefCounted) -> ActionResultCla
 	return ActionResolverClass.execute(game_state, command)
 
 
+func _test_default_selected_for_slot_by_side() -> void:
+	const CONTROLLER_AI := 1
+	_assert(
+		"Germany AI default Defend",
+		AiPlanClass.default_selected_for_slot(CONTROLLER_AI, Team.GERMANY, Team.USA)
+		== AiPlanClass.ID_DEFEND,
+	)
+	_assert(
+		"USA AI default Attack Center",
+		AiPlanClass.default_selected_for_slot(CONTROLLER_AI, Team.USA, Team.GERMANY)
+		== AiPlanClass.ID_ATTACK_CENTER,
+	)
+	_assert(
+		"Germany default ignores human team arg",
+		AiPlanClass.default_selected_for_slot(CONTROLLER_AI, Team.GERMANY, Team.GERMANY)
+		== AiPlanClass.ID_DEFEND,
+	)
+	_assert(
+		"Human controller gets empty plan",
+		AiPlanClass.default_selected_for_slot(0, Team.GERMANY, Team.USA).is_empty(),
+	)
+
+
 func _test_match_config_1v1_ai_selector_shape() -> void:
 	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
 	var ai := cfg.ai_slots()
@@ -87,8 +112,8 @@ func _test_match_config_1v1_ai_selector_shape() -> void:
 		int(ai[0].get("team_id", -1)) != cfg.local_human_team_id(),
 	)
 	_assert(
-		"SP 1v1 enemy AI defaults to Random",
-		AiPlanClass.normalize_id(str(ai[0].get("selected_ai_plan", ""))) == AiPlanClass.ID_RANDOM,
+		"SP 1v1 Germany AI defaults to Defend",
+		AiPlanClass.normalize_id(str(ai[0].get("selected_ai_plan", ""))) == AiPlanClass.ID_DEFEND,
 	)
 
 
@@ -99,26 +124,24 @@ func _test_match_config_2v2_ai_selector_shape() -> void:
 	) as MatchConfigClass
 	var ai := cfg.ai_slots()
 	_assert("SP 2v2 has three AI slots", ai.size() == 3, "count=%d" % ai.size())
-	var friendly := 0
-	var enemy := 0
-	var human_team := cfg.local_human_team_id()
+	var usa_ai := 0
+	var ger_ai := 0
 	for slot in ai:
-		if int(slot.get("team_id", -1)) == human_team:
-			friendly += 1
+		var plan := AiPlanClass.normalize_id(str(slot.get("selected_ai_plan", "")))
+		if int(slot.get("team_id", -1)) == Team.USA:
+			usa_ai += 1
 			_assert(
-				"Friendly AI defaults to Attack Center",
-				AiPlanClass.normalize_id(str(slot.get("selected_ai_plan", "")))
-				== AiPlanClass.ID_ATTACK_CENTER,
+				"USA AI defaults to Attack Center",
+				plan == AiPlanClass.ID_ATTACK_CENTER,
 			)
-		else:
-			enemy += 1
+		elif int(slot.get("team_id", -1)) == Team.GERMANY:
+			ger_ai += 1
 			_assert(
-				"Enemy AI defaults to Random",
-				AiPlanClass.normalize_id(str(slot.get("selected_ai_plan", "")))
-				== AiPlanClass.ID_RANDOM,
+				"Germany AI defaults to Defend",
+				plan == AiPlanClass.ID_DEFEND,
 			)
-	_assert("SP 2v2 one friendly AI", friendly == 1, "friendly=%d" % friendly)
-	_assert("SP 2v2 two enemy AI", enemy == 2, "enemy=%d" % enemy)
+	_assert("SP 2v2 one USA AI", usa_ai == 1, "usa_ai=%d" % usa_ai)
+	_assert("SP 2v2 two Germany AI", ger_ai == 2, "ger_ai=%d" % ger_ai)
 
 
 func _test_human_open_have_no_ai_plan() -> void:
@@ -166,6 +189,8 @@ func _test_ai_slots_receive_valid_selected_plans() -> void:
 func _test_random_resolves_once_to_concrete() -> void:
 	GameRandom.begin_match(GameRandom.DEFAULT_SEED)
 	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	## Explicit Random — defaults are side-based now (Germany → Defend).
+	_assert("set Germany AI to Random", cfg.set_slot_ai_plan(2, AiPlanClass.ID_RANDOM))
 	var game_state := _make_game_state(cfg)
 	var enemy_id := -1
 	for pid in game_state.command_hierarchy.all_player_ids():
@@ -188,6 +213,7 @@ func _test_random_resolves_once_to_concrete() -> void:
 func _test_random_deterministic_with_seed() -> void:
 	GameRandom.begin_match(42)
 	var cfg_a: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	cfg_a.set_slot_ai_plan(2, AiPlanClass.ID_RANDOM)
 	var gs_a := _make_game_state(cfg_a)
 	var active_a := ""
 	for pid in gs_a.command_hierarchy.all_player_ids():
@@ -197,6 +223,7 @@ func _test_random_deterministic_with_seed() -> void:
 
 	GameRandom.begin_match(42)
 	var cfg_b: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	cfg_b.set_slot_ai_plan(2, AiPlanClass.ID_RANDOM)
 	var gs_b := _make_game_state(cfg_b)
 	var active_b := ""
 	for pid in gs_b.command_hierarchy.all_player_ids():
@@ -234,8 +261,8 @@ func _test_match_config_serialization() -> void:
 		restored.get_slot_ai_plan(2) == AiPlanClass.ID_FLANK,
 	)
 	_assert(
-		"enemy random survives",
-		restored.get_slot_ai_plan(3) == AiPlanClass.ID_RANDOM,
+		"Germany defend default survives",
+		restored.get_slot_ai_plan(3) == AiPlanClass.ID_DEFEND,
 	)
 
 
@@ -318,3 +345,23 @@ func _test_runtime_active_plans_for_hud() -> void:
 		_assert("HUD label non-empty", not label.is_empty(), "pid=%d" % pid)
 		lines += 1
 	_assert("HUD would show three AI lines", lines == 3, "lines=%d" % lines)
+
+
+func _test_explicit_user_selection_wins_over_default() -> void:
+	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	_assert(
+		"default Germany Defend before override",
+		cfg.get_slot_ai_plan(2) == AiPlanClass.ID_DEFEND,
+	)
+	_assert("user picks Flank", cfg.set_slot_ai_plan(2, AiPlanClass.ID_FLANK))
+	_assert("explicit Flank wins over default", cfg.get_slot_ai_plan(2) == AiPlanClass.ID_FLANK)
+	_assert("user can still pick Random", cfg.set_slot_ai_plan(2, AiPlanClass.ID_RANDOM))
+	_assert("explicit Random retained", cfg.get_slot_ai_plan(2) == AiPlanClass.ID_RANDOM)
+	## Rebuilding defaults must not clobber an already-valid explicit selection via set_slot.
+	## Switching controller away and back re-applies defaults only when plan invalid.
+	cfg.set_slot_controller(2, MatchConfigClass.ControllerType.HUMAN)
+	cfg.set_slot_controller(2, MatchConfigClass.ControllerType.AI)
+	_assert(
+		"re-AI after human gets side default Defend",
+		cfg.get_slot_ai_plan(2) == AiPlanClass.ID_DEFEND,
+	)
