@@ -50,6 +50,7 @@ func _ready() -> void:
 	_test_directional_cover_stand_selection()
 	_test_cover_reeval_on_flank()
 	_test_close_range_seeks_nearby_cover()
+	_test_cover_approach_crawls_under_heavy_fire()
 	_test_prone_when_settled_in_cover()
 	_test_contact_halts_objective_move()
 	_test_high_stress_blocks_advance()
@@ -411,6 +412,14 @@ func _test_directional_cover_stand_selection() -> void:
 		chosen != bad_stand,
 		"chosen=%s" % chosen,
 	)
+	_assert(
+		"good stand is directly behind cover vs threat",
+		AiSectorObjectivesClass.stand_is_directly_behind(good_stand, threat, map_data),
+	)
+	_assert(
+		"far-side stand is not directly behind",
+		not AiSectorObjectivesClass.stand_is_directly_behind(bad_stand, threat, map_data),
+	)
 
 
 func _test_cover_reeval_on_flank() -> void:
@@ -552,6 +561,7 @@ func _test_contact_halts_objective_move() -> void:
 	_think_cycle(fw, gs)
 	var saw_halt := false
 	var saw_objective_run := false
+	var saw_run_cover := false
 	var saw_crawl_cover := false
 	for cmd in _submitted:
 		if cmd is HaltCommandClass:
@@ -560,7 +570,9 @@ func _test_contact_halts_objective_move() -> void:
 			var move := cmd as MoveCommandClass
 			if move.target_cell == objective_cell and move.movement_mode == MovementModeClass.RUN:
 				saw_objective_run = true
-			if move.movement_mode == MovementModeClass.CRAWL:
+			elif move.movement_mode == MovementModeClass.RUN:
+				saw_run_cover = true
+			elif move.movement_mode == MovementModeClass.CRAWL:
 				saw_crawl_cover = true
 	var still_running_to_obj := false
 	for sid in gs.command_hierarchy.get_soldier_ids(2):
@@ -582,11 +594,35 @@ func _test_contact_halts_objective_move() -> void:
 		not still_running_to_obj,
 		"path still ends at objective",
 	)
-	## Cover seek is best-effort (map-dependent); if issued it must be CRAWL.
-	if saw_crawl_cover:
-		_pass("contact cover bound uses CRAWL")
+	## Low stress → dash into cover; crawl only under heavy fire.
+	_assert("low-stress contact does not crawl to cover", not saw_crawl_cover)
+	if saw_run_cover:
+		_pass("contact cover bound uses RUN when not under heavy fire")
 	else:
 		_pass("contact cover bound optional when no stand in range")
+
+
+func _test_cover_approach_crawls_under_heavy_fire() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger != null:
+			ger.stress = AiCommanderClass.STRESS_HEAVY_FIRE + 5.0
+	_assert("heavy fire detected", commander._under_heavy_fire(gs))
+	_assert(
+		"heavy fire uses CRAWL into cover",
+		commander._cover_approach_mode(gs) == MovementModeClass.CRAWL,
+	)
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger2 = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger2 != null:
+			ger2.stress = 0.0
+	_assert(
+		"low stress uses RUN into cover",
+		commander._cover_approach_mode(gs) == MovementModeClass.RUN,
+	)
 
 
 func _test_prone_when_settled_in_cover() -> void:

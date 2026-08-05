@@ -54,6 +54,8 @@ const CONTACT_THREAT_STANDOFF := 3
 const COVER_THREAT_SHIFT_CHEBYSHEV := 3
 ## TUNED — avg fireteam stress at/above this → favor cover + prone over pushing.
 const STRESS_COVER_PRIORITY := 35.0
+## TUNED — crawl to cover only at/above this; below it, RUN into cover.
+const STRESS_HEAVY_FIRE := 55.0
 ## Dedup keys expire so a failed/starved order can be retried.
 const DEDUP_EXPIRE_MSEC := 3000
 ## No successful command + idle + no contact → clear dedup and replan.
@@ -370,8 +372,24 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 				_clear_cover_settlement()
 				_engage_contact(game_state, find_path, submit_command, visible)
 			elif _under_suppression(game_state):
-				## Under fire but no LOS yet — hold advance; look for local cover.
-				_try_take_cover(game_state, find_path, submit_command, [])
+				## Under fire but no LOS yet — dash/crawl behind cover facing the approach.
+				var approach := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
+				var center := _formation_center(game_state)
+				var cover := AiSectorObjectivesClass.nearest_cover_within(
+					game_state, center, approach, COVER_SEEK_MAX_DIST, [], false, true
+				)
+				if cover.x > -900:
+					_cover_threat_cell = approach
+				_try_take_cover(
+					game_state,
+					find_path,
+					submit_command,
+					[],
+					COVER_SEEK_MAX_DIST,
+					_cover_approach_mode(game_state),
+					false,
+					cover,
+				)
 			elif not _fireteam_is_moving(game_state):
 				if _is_hold_objective() and _defensive_posts_reached(game_state):
 					## Arrived at defensive posts — face the approach and watch.
@@ -491,17 +509,17 @@ func _engage_contact(
 		_contact_bound_active = false
 		_debug_last_action = "cover-reeval"
 
-	## 2) Bound into directional cover (CRAWL while enemies visible).
+	## 2) Bound into directional cover — RUN unless under heavy fire.
 	if not _settled_in_cover:
 		if _formation_in_directional_cover(game_state, threat_cell):
 			_mark_cover_settled(threat_cell)
 		elif _contact_bound_active and _fireteam_is_moving(game_state):
-			## Already crawling to cover — wait; do not re-issue objective moves.
+			## Already moving to cover — wait; do not re-issue objective moves.
 			return
 		else:
-			## One cover query — reuse for both “crawl there” and “exists but order failed”.
+			## One cover query — reuse for both “move there” and “exists but order failed”.
 			var nearby_cover := AiSectorObjectivesClass.nearest_cover_within(
-				game_state, center, threat_cell, seek_max
+				game_state, center, threat_cell, seek_max, [], false, true
 			)
 			var cover_reachable := (
 				nearby_cover.x > -900
@@ -513,7 +531,7 @@ func _engage_contact(
 				submit_command,
 				visible,
 				seek_max,
-				MovementModeClass.CRAWL,
+				_cover_approach_mode(game_state),
 				false,
 				nearby_cover,
 			):
@@ -743,9 +761,8 @@ func _move_toward_objective(game_state, find_path: Callable, submit_command: Cal
 		target = objective_cell
 	if _move_dedup_blocks(target, lead.grid_position):
 		return
-	var mode := MovementModeClass.RUN
-	if not visible.is_empty() or _under_suppression(game_state):
-		mode = MovementModeClass.CRAWL
+	## Advance at a run; crawl only when pinned by heavy fire.
+	var mode := _cover_approach_mode(game_state)
 	var cmd := MoveCommandClass.new()
 	cmd.team_id = lead.team_id
 	cmd.soldier_id = lead.soldier_id
@@ -872,7 +889,7 @@ func _try_contact_bound_forward(
 		submit_command,
 		visible,
 		CONTACT_BOUND_MAX_DIST,
-		MovementModeClass.CRAWL,
+		_cover_approach_mode(game_state),
 		true,
 	)
 
@@ -953,6 +970,17 @@ func _under_suppression(game_state) -> bool:
 	if retreat_threshold > 0.0 and avg >= retreat_threshold:
 		return true
 	return avg >= STRESS_COVER_PRIORITY
+
+
+## Heavy fire → crawl into cover; otherwise dash. Distinct from soft suppression.
+func _under_heavy_fire(game_state) -> bool:
+	return _fireteam_avg_stress(game_state) >= STRESS_HEAVY_FIRE
+
+
+func _cover_approach_mode(game_state) -> int:
+	if _under_heavy_fire(game_state):
+		return MovementModeClass.CRAWL
+	return MovementModeClass.RUN
 
 
 func _face_threat(game_state, submit_command: Callable, visible: Array) -> void:
@@ -1137,8 +1165,9 @@ func _assign_defensive_posts(game_state, hold_options: Array) -> void:
 	for seed in seed_cells:
 		if posts.size() >= soldiers.size():
 			break
+		## Dig in on the far side of cover from the enemy approach (USA for GE).
 		var stand := AiSectorObjectivesClass.nearest_cover_within(
-			game_state, seed, approach, DEFENSIVE_POST_CLUSTER, claimed, true
+			game_state, seed, approach, DEFENSIVE_POST_CLUSTER, claimed, true, true
 		)
 		if stand.x <= -900:
 			stand = seed
@@ -1149,7 +1178,7 @@ func _assign_defensive_posts(game_state, hold_options: Array) -> void:
 	## Fill remaining soldiers with nearby distinct cover around primary.
 	while posts.size() < soldiers.size():
 		var stand2 := AiSectorObjectivesClass.nearest_cover_within(
-			game_state, primary, approach, DEFENSIVE_POST_CLUSTER, claimed, true
+			game_state, primary, approach, DEFENSIVE_POST_CLUSTER, claimed, true, true
 		)
 		if stand2.x <= -900 or not _post_fits_cluster(stand2, posts, primary):
 			## Offset walkable fallback near primary.

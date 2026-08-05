@@ -122,7 +122,7 @@ static func _defend_objectives(
 		## Cover near the approach lane, facing the enemy (directional via cover task).
 		## Hard-exclude already-emitted stands so lanes don't collapse to one tile.
 		var cover := nearest_cover_within(
-			game_state, lane_cell, enemy_anchor, DEFEND_COVER_RADIUS, lane_claims, true
+			game_state, lane_cell, enemy_anchor, DEFEND_COVER_RADIUS, lane_claims, true, true
 		)
 		if cover.x <= -900:
 			cover = _clamp_walkable(map_data, lane_cell)
@@ -352,6 +352,23 @@ static func stand_covered_vs_threat(stand: Vector2i, threat: Vector2i, map_data)
 	return check != null and bool(check.in_cover)
 
 
+## True when an adjacent cover object sits closer to the threat than `stand`
+## (soldier is on the far / "behind" side of that object).
+static func stand_is_directly_behind(stand: Vector2i, threat: Vector2i, map_data) -> bool:
+	if map_data == null or threat.x <= -900:
+		return false
+	var stand_d := absi(stand.x - threat.x) + absi(stand.y - threat.y)
+	for offset in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+		var obj_cell: Vector2i = stand + offset
+		var def = map_data.get_object_def(obj_cell)
+		if def == null or not def.provides_cover:
+			continue
+		var obj_d := absi(obj_cell.x - threat.x) + absi(obj_cell.y - threat.y)
+		if obj_d < stand_d:
+			return true
+	return false
+
+
 ## Cover_check calls in the current AI think (reset by AiCommander.tick).
 static var cover_checks_this_think: int = 0
 ## Hard cap — even with O(1) height lookups, unbounded directional scans are wasteful.
@@ -361,6 +378,7 @@ const MAX_COVER_CHECKS_PER_QUERY := 96
 ## When face_toward is a real threat (≠ near_cell), only stands that pass
 ## CoverPolicy.cover_check vs that threat are eligible.
 ## reject_claimed: skip exact claimed cells (DEFEND lane emit).
+## prefer_behind: favor stands on the far side of cover from the threat (defend dig-in).
 ##
 ## IMPORTANT: evaluate nearest distance bands first and return early. Checking every
 ## cover stand on ff_farm (~500 cover objects) with cover_check was an AI hitch.
@@ -371,6 +389,7 @@ static func nearest_cover_within(
 	max_dist: int,
 	claimed: Array[Vector2i] = [],
 	reject_claimed: bool = false,
+	prefer_behind: bool = false,
 ) -> Vector2i:
 	var map_data = game_state.map_data
 	var none := Vector2i(-999, -999)
@@ -416,12 +435,18 @@ static func nearest_cover_within(
 				if not stand_covered_vs_threat(stand, face_toward, map_data):
 					continue
 			var score: int = dist + _claim_penalty(stand, claimed)
+			if prefer_behind and require_dir:
+				if stand_is_directly_behind(stand, face_toward, map_data):
+					score -= 20
+				else:
+					## Soft-penalize side-of-cover stands when digging in to defend.
+					score += 6
 			if score < best_score:
 				best_score = score
 				best = stand
-		## Farther bands have dist >= next_min; with non-negative claim penalty they
-		## cannot beat a current best whose score <= next_min.
-		if best.x > -900:
+		## Farther bands cannot beat a nearer best when scores are dist-dominated.
+		## Skip early-out when prefer_behind — a farther "true behind" can win.
+		if best.x > -900 and not prefer_behind:
 			var next_min := 999999
 			if i + 1 < distances.size():
 				next_min = int(distances[i + 1])
