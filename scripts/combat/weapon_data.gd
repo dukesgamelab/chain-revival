@@ -28,9 +28,11 @@ var aim_delay_sec: float = 0.0
 var fire_interval_sec: float = 0.0
 ## RECOVERED BulletSpeed$weapon.
 var bullet_speed: int = 6
-## RECOVERED StressFactor$weapon — stress applied to target per shot.
+## RECOVERED StressFactor$weapon — per-tile stress factor in the range-scaled gain formula.
 var suppression_generated: float = 0.4
-## RECOVERED StressLimit$weapon — per-weapon runtime stress cap (mapped via STRESS_LIMIT_REF).
+## RECOVERED StressLimit$weapon — range cutoff in tiles; no suppression at range >= this.
+var stress_limit_tiles: float = 25.0
+## TUNED per-weapon stress cap input (mapped via STRESS_LIMIT_REF). Not the OG range cutoff.
 var stress_limit: float = 25.0
 ## RECOVERED stress_aim_factor$weapon — scales how hard the shooter's stress degrades their aim.
 var stress_aim_factor: float = 0.5
@@ -55,6 +57,7 @@ func _init(
 	p_stress_limit: float = 25.0,
 	p_stress_aim_factor: float = 0.5,
 	p_range_falloff: String = FALLOFF_CUBIC,
+	p_stress_limit_tiles: float = -1.0,
 ) -> void:
 	weapon_id = p_weapon_id
 	weapon_name = p_weapon_name
@@ -72,6 +75,8 @@ func _init(
 	bullet_speed = p_bullet_speed
 	suppression_generated = p_suppression_generated
 	stress_limit = p_stress_limit
+	## Default tiles cutoff to the recovered StressLimit value when not passed separately.
+	stress_limit_tiles = p_stress_limit if p_stress_limit_tiles < 0.0 else p_stress_limit_tiles
 	stress_aim_factor = p_stress_aim_factor
 	range_falloff = p_range_falloff
 

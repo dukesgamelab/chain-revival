@@ -48,8 +48,9 @@ static func default_definitions() -> Dictionary:
 			"rounds_per_attack": 1,
 			"ammo_pool": 70, ## total rounds carried; no reload in the original
 			"bullet_speed": 6,
-			"suppression_generated": 0.25,
-			"stress_limit": 25.0,
+			"suppression_generated": 0.25, ## RECOVERED StressFactor
+			"stress_limit_tiles": 25.0, ## RECOVERED StressLimit — range cutoff
+			"stress_limit": 25.0, ## TUNED cap mapping input (separate from tiles cutoff)
 			"stress_aim_factor": 0.5,
 			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
 			## TUNED cadence (aim_factor_sqr 2000)
@@ -67,7 +68,8 @@ static func default_definitions() -> Dictionary:
 			"ammo_pool": 70,
 			"bullet_speed": 6,
 			"suppression_generated": 0.25,
-			"stress_limit": 25.0,
+			"stress_limit_tiles": 25.0, ## RECOVERED
+			"stress_limit": 25.0, ## TUNED cap mapping
 			"stress_aim_factor": 0.5,
 			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
 			"aim_delay_sec": 1.1,
@@ -84,7 +86,8 @@ static func default_definitions() -> Dictionary:
 			"ammo_pool": 200,
 			"bullet_speed": 6,
 			"suppression_generated": 2.0,
-			"stress_limit": 13.0,
+			"stress_limit_tiles": 13.0, ## RECOVERED
+			"stress_limit": 13.0, ## TUNED cap mapping
 			"stress_aim_factor": 1.5,
 			"range_falloff": WeaponDataClass.FALLOFF_PENTIC, ## RECOVERED range_const_pent 0.02
 			"aim_delay_sec": 1.1,
@@ -101,7 +104,8 @@ static func default_definitions() -> Dictionary:
 			"ammo_pool": 200,
 			"bullet_speed": 6,
 			"suppression_generated": 2.0,
-			"stress_limit": 13.0,
+			"stress_limit_tiles": 13.0, ## RECOVERED
+			"stress_limit": 13.0, ## TUNED cap mapping
 			"stress_aim_factor": 1.5,
 			"range_falloff": WeaponDataClass.FALLOFF_PENTIC,
 			"aim_delay_sec": 1.1,
@@ -118,7 +122,8 @@ static func default_definitions() -> Dictionary:
 			"ammo_pool": 900,
 			"bullet_speed": 6,
 			"suppression_generated": 0.6,
-			"stress_limit": 25.0,
+			"stress_limit_tiles": 25.0, ## RECOVERED
+			"stress_limit": 25.0, ## TUNED cap mapping
 			"stress_aim_factor": 2.0,
 			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
 			"aim_delay_sec": 1.7, ## LMG ~ longer aim cycle; TUNED absolute
@@ -135,7 +140,8 @@ static func default_definitions() -> Dictionary:
 			"ammo_pool": 900,
 			"bullet_speed": 7,
 			"suppression_generated": 0.6,
-			"stress_limit": 25.0,
+			"stress_limit_tiles": 25.0, ## RECOVERED
+			"stress_limit": 25.0, ## TUNED cap mapping
 			"stress_aim_factor": 2.0,
 			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
 			"aim_delay_sec": 1.7,
@@ -171,6 +177,8 @@ func create_weapon(weapon_id: String) -> WeaponDataClass:
 	var d: Dictionary = definitions[weapon_id]
 	## ammo_pool is the recovered name; ammo_capacity kept as legacy JSON key.
 	var ammo := int(d.get("ammo_pool", d.get("ammo_capacity", 200)))
+	var stress_limit := float(d.get("stress_limit", 25.0))
+	var stress_limit_tiles := float(d.get("stress_limit_tiles", stress_limit))
 	return WeaponDataClass.new(
 		weapon_id,
 		str(d.get("weapon_name", weapon_id)),
@@ -185,9 +193,10 @@ func create_weapon(weapon_id: String) -> WeaponDataClass:
 		float(d.get("aim_delay_sec", 0.0)),
 		int(d.get("bullet_speed", 6)),
 		float(d.get("suppression_generated", 0.4)),
-		float(d.get("stress_limit", 25.0)),
+		stress_limit,
 		float(d.get("stress_aim_factor", 0.5)),
 		str(d.get("range_falloff", WeaponDataClass.FALLOFF_CUBIC)),
+		stress_limit_tiles,
 	)
 
 

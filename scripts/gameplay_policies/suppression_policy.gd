@@ -5,9 +5,9 @@ extends RefCounted
 ## SCALE DECISION (B): runtime and UI stress stay 0–100. The original uses 0–7
 ## (INITMaxStressOut). Convert with STRESS_SCALE only — never scatter 100/7 literals.
 ##
-## Recovered generation/caps live on WeaponData (StressFactor / StressLimit /
-## stress_aim_factor). Accuracy uses the Exp-Str × Range table (JSON), normalized
-## before multiplying hit chance.
+## Recovered generation uses WeaponData StressFactor + stress_limit_tiles (range
+## cutoff). stress_limit is a separate TUNED cap input. Accuracy uses the Exp-Str
+## × Range table (JSON), normalized before multiplying hit chance.
 
 const TABLE_PATH := "res://assets/data/stress_accuracy_table.json"
 
@@ -22,9 +22,9 @@ const INIT_STRESS_FALL_MULTIPLIER := 0.3 ## RECOVERED — retained fraction per 
 const INIT_STRESS_INITIAL := 0.0 ## RECOVERED
 const STRESS_MULTIPLIER_GLOBAL := 1.0 ## RECOVERED StressMultiplier$global
 
-## StressLimit recovered units (13 / 25) vs INITMaxStressOut=7 are unresolved.
-## Map onto 0–100 by (limit / STRESS_LIMIT_REF) * max_stress so relative caps hold.
-const STRESS_LIMIT_REF := 25.0 ## rifle/LMG recovered StressLimit
+## TUNED cap mapping: stress_limit (not stress_limit_tiles) → 0–100 via this ref.
+## OG StressLimit is a range cutoff; relative caps are our design choice.
+const STRESS_LIMIT_REF := 25.0
 
 ## TUNED UI / band thresholds on the 0–100 runtime scale (not recovered).
 const DEFAULT_PINNED_THRESHOLD := 45.0
@@ -51,18 +51,22 @@ const DEFAULT_SUPPRESSION_RIFLE := 0.25
 const DEFAULT_SUPPRESSION_SMG := 2.0
 const DEFAULT_SUPPRESSION_LMG := 0.6
 const DEFAULT_SUPPRESSION_DEFAULT := 0.25
+const DEFAULT_STRESS_LIMIT_TILES := 25.0 ## RECOVERED rifle/LMG StressLimit
 
 ## PROBABLE default experience for effective_tier = experience − stress_original.
 ## Not proven — change effective_tier_from_stress() if the axis is pure stress.
 const DEFAULT_EXPERIENCE := 4.0
 
-## Sorted ascending: -8, -4, 0, +4 with matching Range0..6 rows.
-var _tier_keys: Array[float] = [-8.0, -4.0, 0.0, 4.0]
+## Sorted ascending: -8, -4, 0, +4, +8 with matching Range0..6 rows.
+## Initial.oin ships Exp-Str4/0/-4/-8 only; +8 key added per combat model (row = +4
+## ceiling until an authentic Exp-Str8 row is recovered).
+var _tier_keys: Array[float] = [-8.0, -4.0, 0.0, 4.0, 8.0]
 var _tier_rows: Array = [
 	[0.5, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0],
 	[1.0, 1.5, 1.5, 2.0, 2.5, 3.0, 3.0],
 	[1.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0],
 	[1.0, 4.0, 4.5, 4.5, 5.0, 5.0, 5.0],
+	[1.0, 4.0, 4.5, 4.5, 5.0, 5.0, 5.0], ## +8 — matches Exp-Str4 until recovered
 ]
 
 var moderate_cover_suppression_mult: float = DEFAULT_MODERATE_COVER_SUPPRESSION_MULT
@@ -151,11 +155,12 @@ func range_band_from_distance(distance_tiles: int) -> int:
 
 
 ## Normalized hit-chance multiplier from the recovered table.
-## Raw weights are relative; divide by the best tier (+4) at the same band so calm ≈ 1.0.
+## Raw weights are relative; divide by the best tier key at the same band so calm ≈ 1.0.
 func accuracy_multiplier(effective_tier: float, range_band: int) -> float:
 	var band := clampi(range_band, 0, 6)
 	var raw := _raw_weight(effective_tier, band)
-	var ref := _raw_weight(4.0, band)
+	var best_tier := 4.0 if _tier_keys.is_empty() else _tier_keys[_tier_keys.size() - 1]
+	var ref := _raw_weight(best_tier, band)
 	if ref <= 0.0001:
 		return 1.0
 	return clampf(raw / ref, 0.0, 2.0)
@@ -186,7 +191,7 @@ func accuracy_modifier(stress: float) -> float:
 	return accuracy_modifier_for(stress, 3, 1.0)
 
 
-## StressFactor → runtime gain (original factor × base × global × STRESS_SCALE).
+## Legacy factor-only gain (no range). Prefer range_suppression_gain_runtime().
 func suppression_gain_runtime(stress_factor: float) -> float:
 	return (
 		float(stress_factor)
@@ -196,7 +201,22 @@ func suppression_gain_runtime(stress_factor: float) -> float:
 	)
 
 
-## Per-weapon StressLimit → runtime cap (relative mapping; see STRESS_LIMIT_REF).
+## RECOVERED GivenStress = (StressLimit − range) × StressFactor when range < StressLimit.
+## Returns runtime 0–100 units (original × STRESS_SCALE). No gain at/ beyond cutoff.
+func range_suppression_gain_runtime(
+	stress_factor: float,
+	stress_limit_tiles: float,
+	range_tiles: int,
+) -> float:
+	if stress_limit_tiles <= 0.0 or float(range_tiles) >= stress_limit_tiles:
+		return 0.0
+	var original := (stress_limit_tiles - float(range_tiles)) * float(stress_factor)
+	if original <= 0.0:
+		return 0.0
+	return original * stress_multiplier_global * STRESS_SCALE
+
+
+## TUNED per-weapon stress_limit → runtime cap (relative mapping; see STRESS_LIMIT_REF).
 func weapon_stress_cap_runtime(stress_limit: float) -> float:
 	if stress_limit <= 0.0:
 		return max_stress

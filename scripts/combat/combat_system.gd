@@ -1466,18 +1466,21 @@ static func hit_pct_vs_faced_enemy(
 
 static func apply_suppression_from_shot(
 	_game_state: GameStateClass,
-	_shooter: SoldierStateClass,
+	shooter: SoldierStateClass,
 	target: SoldierStateClass,
 	weapon: WeaponDataClass,
 	los: LOSSystemClass.LossResult,
 ) -> void:
-	if target == null or target.is_dead or weapon == null:
+	if target == null or target.is_dead or weapon == null or shooter == null:
 		return
 	if los.status == LOSSystemClass.Status.BLOCKED:
 		return
 
 	var policy := GameplayPolicies.suppression
-	var gain := _suppression_stress_gain(weapon)
+	var range_tiles := _manhattan_distance(shooter.grid_position, target.grid_position)
+	var gain := _suppression_stress_gain(weapon, range_tiles)
+	if gain <= 0.0:
+		return
 	var cover_mult := 1.0
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
 		cover_mult = policy.moderate_cover_suppression_mult
@@ -1485,6 +1488,8 @@ static func apply_suppression_from_shot(
 	if target.position_state == PositionStateClass.DOWN:
 		stance_mult = policy.prone_suppression_mult
 	gain *= cover_mult * stance_mult
+	if gain <= 0.0:
+		return
 	var cap := minf(policy.max_stress, policy.weapon_stress_cap_runtime(weapon.stress_limit))
 	target.stress = clampf(target.stress + gain, 0.0, cap)
 	target.received_suppression_this_tick = true
@@ -1513,14 +1518,20 @@ static func recover_stress_tick(
 			soldier.stress = policy.apply_stress_decay(soldier.stress, prone)
 
 
-static func _suppression_stress_gain(weapon: WeaponDataClass) -> float:
-	## RECOVERED StressFactor → runtime via STRESS_SCALE (option B).
-	var factor := (
-		weapon.suppression_generated
-		if weapon != null
-		else GameplayPolicies.suppression.suppression_default
+static func _suppression_stress_gain(weapon: WeaponDataClass, range_tiles: int) -> float:
+	## RECOVERED: (stress_limit_tiles − range) × StressFactor → runtime via STRESS_SCALE.
+	var policy := GameplayPolicies.suppression
+	if weapon == null:
+		return policy.range_suppression_gain_runtime(
+			policy.suppression_default,
+			SuppressionPolicyClass.DEFAULT_STRESS_LIMIT_TILES,
+			range_tiles,
+		)
+	return policy.range_suppression_gain_runtime(
+		weapon.suppression_generated,
+		weapon.stress_limit_tiles,
+		range_tiles,
 	)
-	return GameplayPolicies.suppression.suppression_gain_runtime(factor)
 
 
 ## Stress represents suppression/combat pressure and reduces firing effectiveness.

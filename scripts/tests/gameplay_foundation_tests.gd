@@ -1197,12 +1197,12 @@ func _test_recovered_weapon_stats() -> void:
 	GameplayPolicies.reset_all_to_defaults()
 	var WeaponPolicyClass := preload("res://scripts/gameplay_policies/weapon_policy.gd")
 	var expected := {
-		"m1_garand": {"rpa": 1, "ammo": 70, "speed": 6, "supp": 0.25, "sl": 25.0, "saf": 0.5, "fo": "cubic", "aim": 1.1},
-		"kar98k": {"rpa": 1, "ammo": 70, "speed": 6, "supp": 0.25, "sl": 25.0, "saf": 0.5, "fo": "cubic", "aim": 1.1},
-		"thompson": {"rpa": 4, "ammo": 200, "speed": 6, "supp": 2.0, "sl": 13.0, "saf": 1.5, "fo": "pentic", "aim": 1.1},
-		"mp40": {"rpa": 5, "ammo": 200, "speed": 6, "supp": 2.0, "sl": 13.0, "saf": 1.5, "fo": "pentic", "aim": 1.1},
-		"bar": {"rpa": 7, "ammo": 900, "speed": 6, "supp": 0.6, "sl": 25.0, "saf": 2.0, "fo": "cubic", "aim": 1.7},
-		"mg42": {"rpa": 6, "ammo": 900, "speed": 7, "supp": 0.6, "sl": 25.0, "saf": 2.0, "fo": "cubic", "aim": 1.7},
+		"m1_garand": {"rpa": 1, "ammo": 70, "speed": 6, "supp": 0.25, "slt": 25.0, "saf": 0.5, "fo": "cubic", "aim": 1.1},
+		"kar98k": {"rpa": 1, "ammo": 70, "speed": 6, "supp": 0.25, "slt": 25.0, "saf": 0.5, "fo": "cubic", "aim": 1.1},
+		"thompson": {"rpa": 4, "ammo": 200, "speed": 6, "supp": 2.0, "slt": 13.0, "saf": 1.5, "fo": "pentic", "aim": 1.1},
+		"mp40": {"rpa": 5, "ammo": 200, "speed": 6, "supp": 2.0, "slt": 13.0, "saf": 1.5, "fo": "pentic", "aim": 1.1},
+		"bar": {"rpa": 7, "ammo": 900, "speed": 6, "supp": 0.6, "slt": 25.0, "saf": 2.0, "fo": "cubic", "aim": 1.7},
+		"mg42": {"rpa": 6, "ammo": 900, "speed": 7, "supp": 0.6, "slt": 25.0, "saf": 2.0, "fo": "cubic", "aim": 1.7},
 	}
 	for weapon_id in expected.keys():
 		var w := GameplayPolicies.weapons.create_weapon(weapon_id)
@@ -1214,7 +1214,7 @@ func _test_recovered_weapon_stats() -> void:
 			and w.ammo_capacity == int(e.ammo)
 			and w.bullet_speed == int(e.speed)
 			and is_equal_approx(w.suppression_generated, float(e.supp))
-			and is_equal_approx(w.stress_limit, float(e.sl))
+			and is_equal_approx(w.stress_limit_tiles, float(e.slt))
 			and is_equal_approx(w.stress_aim_factor, float(e.saf))
 			and w.range_falloff == str(e.fo)
 			and is_equal_approx(w.aim_delay_sec, float(e.aim)),
@@ -1290,16 +1290,63 @@ func _test_stress_model() -> void:
 		"STRESS_SCALE is single conversion constant",
 		is_equal_approx(SuppressionPolicyClass.STRESS_SCALE, 100.0 / 7.0),
 	)
+	_assert(
+		"Exp-Str table includes fifth +8 tier",
+		policy._tier_keys.size() == 5
+		and is_equal_approx(policy._tier_keys[0], -8.0)
+		and is_equal_approx(policy._tier_keys[4], 8.0),
+		"keys=%s" % str(policy._tier_keys),
+	)
 
 	var thompson := GameplayPolicies.weapons.create_weapon("thompson")
 	var garand := GameplayPolicies.weapons.create_weapon("m1_garand")
 	var bar := GameplayPolicies.weapons.create_weapon("bar")
-	var smg_gain := policy.suppression_gain_runtime(thompson.suppression_generated)
-	var rifle_gain := policy.suppression_gain_runtime(garand.suppression_generated)
+	## Stage 3 expected original magnitudes: (limit − range) × StressFactor.
+	var cases: Array[Dictionary] = [
+		{"w": garand, "r": 5, "orig": 5.0},
+		{"w": garand, "r": 12, "orig": 3.25},
+		{"w": garand, "r": 20, "orig": 1.25},
+		{"w": thompson, "r": 5, "orig": 16.0},
+		{"w": thompson, "r": 12, "orig": 2.0},
+		{"w": thompson, "r": 20, "orig": 0.0},
+		{"w": bar, "r": 5, "orig": 12.0},
+		{"w": bar, "r": 12, "orig": 7.8},
+		{"w": bar, "r": 20, "orig": 3.0},
+	]
+	for case in cases:
+		var weapon: WeaponData = case.w
+		var range_tiles: int = int(case.r)
+		var expected_orig: float = float(case.orig)
+		var runtime := policy.range_suppression_gain_runtime(
+			weapon.suppression_generated,
+			weapon.stress_limit_tiles,
+			range_tiles,
+		)
+		var expected_runtime := expected_orig * SuppressionPolicyClass.STRESS_SCALE
+		_assert(
+			"%s suppression at range %d" % [weapon.weapon_id, range_tiles],
+			is_equal_approx(runtime, expected_runtime),
+			"got=%.4f expected=%.4f (orig %.2f)" % [runtime, expected_runtime, expected_orig],
+		)
+	var smg_close := policy.range_suppression_gain_runtime(
+		thompson.suppression_generated, thompson.stress_limit_tiles, 5
+	)
+	var rifle_close := policy.range_suppression_gain_runtime(
+		garand.suppression_generated, garand.stress_limit_tiles, 5
+	)
 	_assert(
-		"SMG fire generates more suppression than rifle fire",
-		smg_gain > rifle_gain,
-		"smg=%.3f rifle=%.3f" % [smg_gain, rifle_gain],
+		"SMG fire generates more suppression than rifle fire at close range",
+		smg_close > rifle_close,
+		"smg=%.3f rifle=%.3f" % [smg_close, rifle_close],
+	)
+	_assert(
+		"SMG suppression cuts off at stress_limit_tiles",
+		is_equal_approx(
+			policy.range_suppression_gain_runtime(
+				thompson.suppression_generated, thompson.stress_limit_tiles, 13
+			),
+			0.0,
+		),
 	)
 	var smg_cap := policy.weapon_stress_cap_runtime(thompson.stress_limit)
 	var lmg_cap := policy.weapon_stress_cap_runtime(bar.stress_limit)

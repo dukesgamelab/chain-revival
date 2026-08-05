@@ -87,7 +87,7 @@
 		"peek_adjacency_chebyshev": 1
 	},
 	"weapons": {
-		"comment": "RECOVERED from Initial-*.oin: rounds_per_attack, ammo_pool (total rounds, no reload), bullet_speed, suppression_generated, stress_limit, stress_aim_factor, range_falloff, INIT_LimitPerSquad. Cadence aim_delay_sec/fire_interval_sec: ratio from aim_factor_sqr; absolute seconds TUNED. range_tiles/hit_modifier/close_range TUNED.",
+		"comment": "RECOVERED: rounds_per_attack, ammo_pool, bullet_speed, suppression_generated (StressFactor), stress_limit_tiles (StressLimit range cutoff), stress_aim_factor, range_falloff, INIT_LimitPerSquad. stress_limit is TUNED cap mapping input (separate job from tiles cutoff). Cadence absolute seconds TUNED. range_tiles/hit_modifier/close_range TUNED.",
 		"definitions": {
 			"m1_garand": {
 				"weapon_name": "M1 Garand",
@@ -100,6 +100,7 @@
 				"close_range_tiles": 0,
 				"bullet_speed": 6,
 				"suppression_generated": 0.25,
+				"stress_limit_tiles": 25.0,
 				"stress_limit": 25.0,
 				"stress_aim_factor": 0.5,
 				"range_falloff": "cubic",
@@ -117,6 +118,7 @@
 				"close_range_tiles": 0,
 				"bullet_speed": 6,
 				"suppression_generated": 0.6,
+				"stress_limit_tiles": 25.0,
 				"stress_limit": 25.0,
 				"stress_aim_factor": 2.0,
 				"range_falloff": "cubic",
@@ -134,6 +136,7 @@
 				"close_range_tiles": 4,
 				"bullet_speed": 6,
 				"suppression_generated": 2.0,
+				"stress_limit_tiles": 13.0,
 				"stress_limit": 13.0,
 				"stress_aim_factor": 1.5,
 				"range_falloff": "pentic",
@@ -151,6 +154,7 @@
 				"close_range_tiles": 0,
 				"bullet_speed": 6,
 				"suppression_generated": 0.25,
+				"stress_limit_tiles": 25.0,
 				"stress_limit": 25.0,
 				"stress_aim_factor": 0.5,
 				"range_falloff": "cubic",
@@ -168,6 +172,7 @@
 				"close_range_tiles": 0,
 				"bullet_speed": 7,
 				"suppression_generated": 0.6,
+				"stress_limit_tiles": 25.0,
 				"stress_limit": 25.0,
 				"stress_aim_factor": 2.0,
 				"range_falloff": "cubic",
@@ -185,6 +190,7 @@
 				"close_range_tiles": 4,
 				"bullet_speed": 6,
 				"suppression_generated": 2.0,
+				"stress_limit_tiles": 13.0,
 				"stress_limit": 13.0,
 				"stress_aim_factor": 1.5,
 				"range_falloff": "pentic",

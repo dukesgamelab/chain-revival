@@ -1,6 +1,11 @@
 {
-	"comment": "RECOVERED Exp-Str × Range0..Range6 accuracy weights from Initial-*.oin (verbatim). Values are relative weights, NOT hit probabilities — SuppressionPolicy normalizes by the best tier (+4) at the same range band before multiplying hit chance. Tier axis meaning is PROBABLE (Experience − Stress), not proven.",
+	"comment": "RECOVERED Exp-Str × Range0..Range6 accuracy weights from Initial-*.oin (verbatim for -8/-4/0/+4). Values are relative weights, NOT hit probabilities — SuppressionPolicy normalizes by the best tier key at the same range band before multiplying hit chance. Tier axis meaning is PROBABLE (Experience − Stress), not proven. +8 key added per combat model; Initial.oin has no Exp-Str8 row so values match Exp-Str4 until recovered.",
 	"tiers": [
+		{
+			"effective_tier": 8,
+			"label": "Exp-Str8",
+			"ranges": [1.0, 4.0, 4.5, 4.5, 5.0, 5.0, 5.0]
+		},
 		{
 			"effective_tier": 4,
 			"label": "Exp-Str4",
