@@ -2,6 +2,8 @@ class_name MissionDebriefDialog
 extends AcceptDialog
 ## Mission-End Debriefing — layout mirrors the original Close Combat results screen.
 
+signal finished
+
 const ScenarioEndCauseClass := preload("res://scripts/enums/scenario_end_cause.gd")
 const ScenarioWinnerClass := preload("res://scripts/enums/scenario_winner.gd")
 const ScenarioRulesClass := preload("res://scripts/core/scenario_rules.gd")
@@ -11,6 +13,7 @@ var _game_state: GameState = null
 var _body: VBoxContainer = null
 var _close_countdown_sec: float = 23.0
 var _countdown_label: Label = null
+var _finish_emitted: bool = false
 
 
 func _ready() -> void:
@@ -21,6 +24,9 @@ func _ready() -> void:
 	exclusive = true
 	unresizable = true
 	CocUiTheme.apply_to(self)
+	confirmed.connect(_notify_finished)
+	close_requested.connect(_on_close_requested)
+	visibility_changed.connect(_on_visibility_changed)
 	_build_layout()
 
 
@@ -37,7 +43,25 @@ func _process(delta: float) -> void:
 func bind_game_state(game_state: GameState) -> void:
 	_game_state = game_state
 	_close_countdown_sec = 23.0
+	_finish_emitted = false
 	_rebuild_content()
+
+
+func _on_close_requested() -> void:
+	hide()
+	_notify_finished()
+
+
+func _on_visibility_changed() -> void:
+	if not visible:
+		_notify_finished()
+
+
+func _notify_finished() -> void:
+	if _finish_emitted:
+		return
+	_finish_emitted = true
+	finished.emit()
 
 
 func _build_layout() -> void:

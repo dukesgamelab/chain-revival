@@ -131,16 +131,14 @@ func _ready() -> void:
 	_connect_command_bar()
 	_apply_multiplayer_side_lock()
 
-	_set_loading_status("Building terrain…")
-	await get_tree().process_frame
-	_apply_map_presentation()
-	## Prewarm cover-stand cache so first DEFEND think does not hitch on object scan.
-	if _map_data != null and _map_data.has_method("get_cover_stand_cells"):
-		_map_data.get_cover_stand_cells()
+	## Staged presentation — one big apply_map_data froze on "Spawning units" while the
+	## first ground/object frame painted under that label.
+	await _boot_apply_map_presentation_staged()
 
 	_set_loading_status("Spawning units…")
 	await get_tree().process_frame
 	_spawn_all_soldier_views()
+	await get_tree().process_frame
 	_log_fireteam_loadouts()
 	_command_bar.set_active_team(_session.active_team_id)
 	## Side default camera (FF: USA 90° / GE 270°) + center on that fireteam.
@@ -151,9 +149,73 @@ func _ready() -> void:
 	_show_startup_status()
 	_start_ai_framework()
 	_ensure_command_dialog()
+	## Let the first heavy draw frames finish while the overlay still covers them.
+	_set_loading_status("Almost ready…")
+	await get_tree().process_frame
+	await get_tree().process_frame
 	_boot_complete = true
 	_hide_loading_overlay()
 	call_deferred("_open_command_dialog_for_deployment")
+
+
+## Yieldable map boot: pathfinding → ground prewarm → chunked object sprites → first draw.
+func _boot_apply_map_presentation_staged() -> void:
+	if _map_data == null or _world == null:
+		return
+	_world.map_data = _map_data
+	IsometricGrid.set_original_projection_enabled(_map_data.uses_original_projection)
+	IsometricGrid.set_view_pivot_for_map(_map_data.width, _map_data.height)
+
+	_set_loading_status("Building pathfinding…")
+	await get_tree().process_frame
+	if _iso_map != null:
+		_iso_map.apply_map_data(_map_data)
+
+	_set_loading_status("Loading ground…")
+	await get_tree().process_frame
+	if _grass_layer != null:
+		_grass_layer.apply_map_data(_map_data)
+	if _original_ground_layer != null:
+		_original_ground_layer.apply_map_data(_map_data)
+		if _original_ground_layer.has_method("prewarm_textures"):
+			_original_ground_layer.prewarm_textures()
+	if _floor_layer != null:
+		_floor_layer.apply_map_data(_map_data)
+	if _underlay_layer != null:
+		_underlay_layer.apply_map_data(_map_data)
+	if _label_layer != null:
+		_label_layer.apply_map_data(_map_data)
+	## Victory / debug overlays if present on the world scene.
+	if _world.victory_point_layer != null:
+		_world.victory_point_layer.apply_map_data(_map_data)
+	if _coc_debug_overlay != null:
+		_coc_debug_overlay.apply_map_data(_map_data)
+	if _world.handedness_overlay != null:
+		_world.handedness_overlay.apply_map_data(_map_data)
+	if _world.terrain_overlay != null:
+		_world.terrain_overlay.apply_map_data(_map_data)
+	_world.set_grass_visible(_grass_layer_visible)
+
+	_set_loading_status("Placing map objects…")
+	await get_tree().process_frame
+	if _depth_sorted != null and _depth_sorted.has_method("begin_chunked_apply"):
+		_depth_sorted.begin_chunked_apply(_map_data)
+		while not _depth_sorted.process_chunked_apply(36):
+			var pct := int(_depth_sorted.chunked_apply_progress() * 100.0)
+			_set_loading_status("Placing map objects… %d%%" % pct)
+			await get_tree().process_frame
+		_set_loading_status("Placing map objects… 100%")
+		await get_tree().process_frame
+	elif _depth_sorted != null:
+		_depth_sorted.apply_map_data(_map_data)
+
+	## Prewarm cover-stand cache so first DEFEND think does not hitch on object scan.
+	if _map_data.has_method("get_cover_stand_cells"):
+		_map_data.get_cover_stand_cells()
+
+	_set_loading_status("Drawing map…")
+	await get_tree().process_frame
+	await get_tree().process_frame
 
 
 ## Seeded RNG + sim clock for reproducible gameplay timing (not wall-clock).
@@ -1203,6 +1265,7 @@ func _ensure_mission_debrief_dialog() -> void:
 	if _mission_debrief_dialog != null:
 		return
 	_mission_debrief_dialog = MissionDebriefDialogClass.new()
+	_mission_debrief_dialog.finished.connect(_on_mission_debrief_finished)
 	$UI.add_child(_mission_debrief_dialog)
 
 
@@ -1214,6 +1277,15 @@ func _open_mission_debrief_dialog() -> void:
 		return
 	_mission_debrief_dialog.bind_game_state(_game_state)
 	_mission_debrief_dialog.popup_centered()
+
+
+func _on_mission_debrief_finished() -> void:
+	## End the match and leave the battlefield after debrief Close / countdown.
+	if _return_to_editor_on_exit:
+		EditorPlaySession.clear_return_flag()
+		get_tree().change_scene_to_file("res://scenes/editor/map_editor.tscn")
+		return
+	get_tree().change_scene_to_file("res://scenes/mode_select.tscn")
 
 
 func _on_retreat_requested() -> void:
@@ -1620,8 +1692,7 @@ func _refresh_enemy_spotting_visuals() -> void:
 				soldier_state.team_id == active_team
 				and soldier_state.soldier_id == active_fireteam.selected_soldier_id
 			)
-			var is_spotted := _cached_enemy_spotted(soldier_state)
-			view.apply_spotting_only(is_selected, is_spotted)
+			view.apply_spotting_only(is_selected, _fog_visual_for_enemy(soldier_state))
 
 
 func _refresh_selection_marks() -> void:
@@ -1647,9 +1718,9 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 	var view: Soldier = _get_view(team_id, soldier_id)
 	if view == null:
 		return
-	var is_spotted := true
+	var fog_visual: int = Soldier.FogVisual.REVEALED
 	if soldier_state.team_id != _session.active_team_id and soldier_state.is_alive():
-		is_spotted = _cached_enemy_spotted(soldier_state)
+		fog_visual = _fog_visual_for_enemy(soldier_state)
 	var show_id := (
 		soldier_state.is_alive()
 		and _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id)
@@ -1659,6 +1730,7 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		soldier_state.is_alive()
 		and soldier_state.position_state != PositionState.DOWN
 		and _map_data != null
+		and fog_visual == Soldier.FogVisual.REVEALED
 	):
 		idle_peek = CoverSystem.corner_idle_at_cell(
 			soldier_state.grid_position,
@@ -1666,7 +1738,28 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 			_map_data,
 			_corner_aim_cell_for_soldier(soldier_state),
 		).peek_side
-	view.sync_from_state(soldier_state, is_selected, is_spotted, show_id, idle_peek)
+	view.sync_from_state(soldier_state, is_selected, fog_visual, show_id, idle_peek)
+
+
+## 1v1: always show the other side as ghosts when out of LOS. 2v2: hide until spotted.
+func _is_one_v_one_match() -> bool:
+	if _session != null and _session.match_config != null:
+		return (
+			_session.match_config.match_type
+			== MatchConfigClass.MatchType.ONE_V_ONE
+		)
+	## Offline quick-start / legacy sessions without config — treat two owned FTs as 1v1.
+	return _session != null and _session.owned_fireteams.size() <= 2
+
+
+func _fog_visual_for_enemy(enemy: SoldierState) -> int:
+	if enemy == null or not enemy.is_alive():
+		return Soldier.FogVisual.HIDDEN
+	if _cached_enemy_spotted(enemy):
+		return Soldier.FogVisual.REVEALED
+	if _is_one_v_one_match():
+		return Soldier.FogVisual.GHOST
+	return Soldier.FogVisual.HIDDEN
 
 
 ## Aim cell used to decide corner idle — engaged target, else Fire At / Face preview.
@@ -2818,7 +2911,7 @@ func _sync_views_after_load() -> void:
 					soldier_state.team_id, soldier_state.soldier_id
 				)
 			)
-			view.sync_from_state(soldier_state, is_selected, true, show_id)
+			view.sync_from_state(soldier_state, is_selected, Soldier.FogVisual.REVEALED, show_id)
 
 	_iso_map.clear_path()
 	_command_bar.clear_move_targeting()

@@ -44,8 +44,11 @@ const CONTACT_BOUND_MAX_DIST := 6
 ## TUNED — advance bound length toward objective (cover-to-cover).
 const ADVANCE_BOUND_MIN_DIST := 6
 const ADVANCE_BOUND_MAX_DIST := 10
-## TUNED — defensive posts stay within this Chebyshev of the primary hold (FT cohesion).
-const DEFENSIVE_POST_CLUSTER := 12
+## TUNED — defensive posts stay within this Chebyshev of the primary hold.
+## Wide enough for a 4-man line along a wall with spacing.
+const DEFENSIVE_POST_CLUSTER := 18
+## TUNED — min Chebyshev gap between dig-in posts (spread along cover, not stacked).
+const DEFENSIVE_POST_MIN_SEP := 3
 ## Must match ActionResolver.FIRETEAM_COHESION_RADIUS — AI posts never exceed this span.
 const FIRETEAM_COHESION_RADIUS := 25
 ## TUNED — never bound closer than this Manhattan to a visible threat.
@@ -1144,8 +1147,8 @@ func _try_grenade(game_state, submit_command: Callable, visible: Array) -> void:
 
 ## --- Defensive posts (Stage 2) + cohesion-safe clustering ---
 
-## Assign living soldiers to nearby cover stands around the primary hold.
-## Posts stay inside DEFENSIVE_POST_CLUSTER of the primary and within FT cohesion of each other.
+## Assign living soldiers to behind-cover stands spread along the hold line.
+## Prefer a wall-facing screen vs the enemy approach — not a stacked 2×2 blob.
 func _assign_defensive_posts(game_state, hold_options: Array) -> void:
 	_defensive_posts.clear()
 	var soldiers := _living_soldiers(game_state)
@@ -1153,9 +1156,8 @@ func _assign_defensive_posts(game_state, hold_options: Array) -> void:
 		return
 	var primary := current_objective.cell
 	var approach := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
-	var claimed: Array[Vector2i] = []
-	## Prefer primary, then other hold options sorted by priority (already in options order).
-	var seed_cells: Array[Vector2i] = [primary]
+	## Optional nearby hold seeds widen the candidate search slightly.
+	var search_centers: Array[Vector2i] = [primary]
 	for opt in hold_options:
 		if opt == null or not opt.is_valid():
 			continue
@@ -1164,38 +1166,11 @@ func _assign_defensive_posts(game_state, hold_options: Array) -> void:
 			continue
 		if opt.cell == primary:
 			continue
-		## Only consider lane stands near the primary — never opposite map approaches.
 		if maxi(absi(opt.cell.x - primary.x), absi(opt.cell.y - primary.y)) > DEFENSIVE_POST_CLUSTER:
 			continue
-		seed_cells.append(opt.cell)
-	var posts: Array[Vector2i] = []
-	for seed in seed_cells:
-		if posts.size() >= soldiers.size():
-			break
-		## Dig in on the far side of cover from the enemy approach (USA for GE).
-		var stand := AiSectorObjectivesClass.nearest_cover_within(
-			game_state, seed, approach, DEFENSIVE_POST_CLUSTER, claimed, true, true
-		)
-		if stand.x <= -900:
-			stand = seed
-		if not _post_fits_cluster(stand, posts, primary):
-			continue
-		posts.append(stand)
-		claimed.append(stand)
-	## Fill remaining soldiers with nearby distinct cover around primary.
-	while posts.size() < soldiers.size():
-		var stand2 := AiSectorObjectivesClass.nearest_cover_within(
-			game_state, primary, approach, DEFENSIVE_POST_CLUSTER, claimed, true, true
-		)
-		if stand2.x <= -900 or not _post_fits_cluster(stand2, posts, primary):
-			## Offset walkable fallback near primary.
-			stand2 = primary + Vector2i(posts.size() % 3 - 1, posts.size() / 3)
-			if game_state.map_data != null and not game_state.map_data.is_walkable(stand2):
-				stand2 = primary
-			if stand2 in claimed or not _post_fits_cluster(stand2, posts, primary):
-				break
-		posts.append(stand2)
-		claimed.append(stand2)
+		search_centers.append(opt.cell)
+	var candidates := _collect_defend_post_candidates(game_state, search_centers, approach)
+	var posts := _spread_defend_posts(game_state, candidates, soldiers.size(), primary, approach)
 	## Assign nearest free post to each soldier (stable by soldier_id).
 	var sorted_soldiers: Array = soldiers.duplicate()
 	sorted_soldiers.sort_custom(func(a, b) -> bool: return a.soldier_id < b.soldier_id)
@@ -1218,6 +1193,186 @@ func _assign_defensive_posts(game_state, hold_options: Array) -> void:
 		else:
 			used[best_i] = true
 			_defensive_posts[soldier.soldier_id] = posts[best_i]
+
+
+## Covered stands near the hold, facing the enemy approach.
+func _collect_defend_post_candidates(
+	game_state,
+	search_centers: Array[Vector2i],
+	approach: Vector2i,
+) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	var map_data = game_state.map_data if game_state != null else null
+	if map_data == null or search_centers.is_empty():
+		return out
+	var seen: Dictionary = {}
+	var checks := 0
+	for stand in map_data.get_cover_stand_cells():
+		var near_hold := false
+		for center in search_centers:
+			if maxi(absi(stand.x - center.x), absi(stand.y - center.y)) <= DEFENSIVE_POST_CLUSTER:
+				near_hold = true
+				break
+		if not near_hold or seen.has(stand):
+			continue
+		if approach.x > -900:
+			if checks >= 160:
+				break
+			checks += 1
+			AiSectorObjectivesClass.cover_checks_this_think += 1
+			if not AiSectorObjectivesClass.stand_covered_vs_threat(stand, approach, map_data):
+				continue
+		seen[stand] = true
+		out.append(stand)
+	return out
+
+
+## Spread posts along the axis perpendicular to the enemy approach (along the wall).
+func _spread_defend_posts(
+	game_state,
+	candidates: Array[Vector2i],
+	count: int,
+	primary: Vector2i,
+	approach: Vector2i,
+) -> Array[Vector2i]:
+	var posts: Array[Vector2i] = []
+	if count <= 0:
+		return posts
+	var map_data = game_state.map_data if game_state != null else null
+	## Fallback lateral axis = perpendicular to enemy approach.
+	var ax := 1
+	var ay := 0
+	if approach.x > -900:
+		ax = approach.x - primary.x
+		ay = approach.y - primary.y
+	var lx := -ay
+	var ly := ax
+	if lx == 0 and ly == 0:
+		lx = 1
+	var pool: Array[Vector2i] = []
+	if not candidates.is_empty():
+		## Prefer true behind-cover stands when we have enough to spread.
+		var behind: Array[Vector2i] = []
+		for stand in candidates:
+			if (
+				approach.x > -900
+				and map_data != null
+				and AiSectorObjectivesClass.stand_is_directly_behind(stand, approach, map_data)
+			):
+				behind.append(stand)
+		pool = behind if behind.size() >= count else candidates.duplicate()
+		## Spread along the cover line's long axis (wall length), not into a blob.
+		var min_x := pool[0].x
+		var max_x := pool[0].x
+		var min_y := pool[0].y
+		var max_y := pool[0].y
+		for stand in pool:
+			min_x = mini(min_x, stand.x)
+			max_x = maxi(max_x, stand.x)
+			min_y = mini(min_y, stand.y)
+			max_y = maxi(max_y, stand.y)
+		if max_x - min_x >= max_y - min_y:
+			lx = 1
+			ly = 0
+		else:
+			lx = 0
+			ly = 1
+		pool.sort_custom(func(a, b) -> bool:
+			var pa: int = a.x * lx + a.y * ly
+			var pb: int = b.x * lx + b.y * ly
+			if pa != pb:
+				return pa < pb
+			var da := absi(a.x - primary.x) + absi(a.y - primary.y)
+			var db := absi(b.x - primary.x) + absi(b.y - primary.y)
+			if da != db:
+				return da < db
+			if a.x != b.x:
+				return a.x < b.x
+			return a.y < b.y
+		)
+		if count == 1:
+			## Lone dig-in: pick nearest to primary among spaced pool.
+			var best := pool[0]
+			var best_d := 999999
+			for stand in pool:
+				var d := absi(stand.x - primary.x) + absi(stand.y - primary.y)
+				if d < best_d:
+					best_d = d
+					best = stand
+			posts.append(best)
+		else:
+			for i in count:
+				var target_idx := int(round(float(i) * float(pool.size() - 1) / float(count - 1)))
+				var picked := _pick_spaced_from_pool(pool, target_idx, posts, primary)
+				if picked.x > -900:
+					posts.append(picked)
+	## Fill gaps with lateral walkable offsets if cover was sparse.
+	var plen := maxf(1.0, sqrt(float(lx * lx + ly * ly)))
+	var ux := float(lx) / plen
+	var uy := float(ly) / plen
+	var step := 0
+	while posts.size() < count and step < 24:
+		var side := 1 if (step % 2) == 0 else -1
+		var mag := ((step / 2) + 1) * DEFENSIVE_POST_MIN_SEP
+		var offset := Vector2i(int(round(ux * float(side * mag))), int(round(uy * float(side * mag))))
+		if offset == Vector2i.ZERO:
+			offset = Vector2i(side * mag, 0)
+		var cell := primary + offset
+		if map_data != null and not map_data.is_walkable(cell):
+			step += 1
+			continue
+		if (
+			cell not in posts
+			and _post_fits_cluster(cell, posts, primary)
+			and _post_has_min_sep(cell, posts)
+		):
+			posts.append(cell)
+		step += 1
+	## Last resort — allow closer posts rather than leaving soldiers unassigned.
+	while posts.size() < count:
+		var fallback := primary + Vector2i(posts.size() % 3 - 1, posts.size() / 3)
+		if map_data != null and not map_data.is_walkable(fallback):
+			fallback = primary
+		if fallback in posts:
+			fallback = primary + Vector2i(posts.size(), 0)
+		posts.append(fallback)
+	return posts
+
+
+func _pick_spaced_from_pool(
+	pool: Array[Vector2i],
+	target_idx: int,
+	posts: Array[Vector2i],
+	primary: Vector2i,
+) -> Vector2i:
+	if pool.is_empty():
+		return Vector2i(-999, -999)
+	var none := Vector2i(-999, -999)
+	var best_sep := none
+	var best_sep_delta := 999999
+	var best_any := none
+	var best_any_delta := 999999
+	for idx in pool.size():
+		var cell: Vector2i = pool[idx]
+		if cell in posts or not _post_fits_cluster(cell, posts, primary):
+			continue
+		var delta := absi(idx - target_idx)
+		if _post_has_min_sep(cell, posts):
+			if delta < best_sep_delta:
+				best_sep_delta = delta
+				best_sep = cell
+		elif delta < best_any_delta:
+			best_any_delta = delta
+			best_any = cell
+	if best_sep.x > -900:
+		return best_sep
+	return best_any
+
+func _post_has_min_sep(cell: Vector2i, posts: Array[Vector2i]) -> bool:
+	for other in posts:
+		if maxi(absi(cell.x - other.x), absi(cell.y - other.y)) < DEFENSIVE_POST_MIN_SEP:
+			return false
+	return true
 
 
 func _post_fits_cluster(cell: Vector2i, posts: Array[Vector2i], primary: Vector2i) -> bool:

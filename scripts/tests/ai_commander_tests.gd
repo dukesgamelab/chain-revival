@@ -59,6 +59,7 @@ func _ready() -> void:
 	_test_defend_skips_owned_vp()
 	_test_defend_hold_faces_approach()
 	_test_defensive_posts_stay_cohesive()
+	_test_defensive_posts_spread_along_cover()
 	_test_threat_scoring_prefers_close_exposed()
 	_test_dedup_expires()
 	print("")
@@ -908,6 +909,47 @@ func _test_defensive_posts_stay_cohesive() -> void:
 				d <= AiCommanderClass.DEFENSIVE_POST_CLUSTER,
 				"post=%s primary=%s d=%d" % [post, commander.current_objective.cell, d],
 			)
+
+
+func _test_defensive_posts_spread_along_cover() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	gs.command_hierarchy.set_selected_ai_plan(2, AiPlanClass.ID_DEFEND)
+	gs.command_hierarchy.set_active_ai_plan(2, AiPlanClass.ID_DEFEND)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	## Long wall — soldiers should dig in spaced along the friendly side.
+	for x in range(24, 40):
+		map_data.set_object(Vector2i(x, 28), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	_think_cycle(fw, gs)
+	commander = fw.get_commander(2)
+	_assert("spread defend assigned posts", not commander._defensive_posts.is_empty())
+	var posts: Array[Vector2i] = []
+	for sid in commander._defensive_posts.keys():
+		posts.append(commander._defensive_posts[sid])
+	var close_pairs := 0
+	var total_pairs := 0
+	for i in range(posts.size()):
+		for j in range(i + 1, posts.size()):
+			total_pairs += 1
+			var sep := maxi(absi(posts[i].x - posts[j].x), absi(posts[i].y - posts[j].y))
+			if sep < AiCommanderClass.DEFENSIVE_POST_MIN_SEP:
+				close_pairs += 1
+	_assert(
+		"defensive posts mostly keep min separation along cover",
+		total_pairs > 0 and close_pairs == 0,
+		"close_pairs=%d posts=%s" % [close_pairs, posts],
+	)
+	var unique := {}
+	for p in posts:
+		unique[p] = true
+	_assert(
+		"defensive posts are distinct cells",
+		unique.size() == posts.size(),
+		"posts=%s" % posts,
+	)
 
 
 func _test_threat_scoring_prefers_close_exposed() -> void:

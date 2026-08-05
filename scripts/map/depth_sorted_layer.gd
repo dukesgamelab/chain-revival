@@ -18,6 +18,10 @@ var map_data: MapData = null
 
 var _object_textures: Dictionary = {}
 var _placeholder_count: int = 0
+## Chunked rebuild state (match boot yields so Windows can paint the loading overlay).
+var _chunk_placements: Array = []
+var _chunk_index: int = 0
+var _chunk_total: int = 0
 
 
 func _ready() -> void:
@@ -36,6 +40,44 @@ func apply_map_data(data: MapData) -> void:
 	_rebuild_map_object_sprites()
 
 
+## Start a yieldable original-map object rebuild. Returns total placements to process.
+func begin_chunked_apply(data: MapData) -> int:
+	map_data = data
+	_chunk_placements.clear()
+	_chunk_index = 0
+	_chunk_total = 0
+	_clear_map_object_sprites()
+	_placeholder_count = 0
+	if map_data == null:
+		return 0
+	if not map_data.is_original_visual_map():
+		_rebuild_map_object_sprites()
+		return 0
+	_chunk_placements = _sorted_original_placements()
+	_chunk_total = _chunk_placements.size()
+	return _chunk_total
+
+
+## Build up to `budget` placements. Returns true when finished.
+func process_chunked_apply(budget: int = 40) -> bool:
+	if map_data == null or not map_data.is_original_visual_map():
+		return true
+	if _chunk_placements.is_empty():
+		return true
+	var scale := OriginalMapProjection.map_scale()
+	var end_i := mini(_chunk_index + maxi(budget, 1), _chunk_placements.size())
+	while _chunk_index < end_i:
+		_add_original_placement(_chunk_placements[_chunk_index], scale)
+		_chunk_index += 1
+	return _chunk_index >= _chunk_placements.size()
+
+
+func chunked_apply_progress() -> float:
+	if _chunk_total <= 0:
+		return 1.0
+	return float(_chunk_index) / float(_chunk_total)
+
+
 func refresh_view_rotation() -> void:
 	if map_data != null:
 		_rebuild_map_object_sprites()
@@ -45,6 +87,9 @@ func _rebuild_map_object_sprites() -> void:
 	## Free immediately — queue_free leaves stale camera facets visible until idle frame.
 	## Only clears map objects; soldier children are left alone.
 	_clear_map_object_sprites()
+	_chunk_placements.clear()
+	_chunk_index = 0
+	_chunk_total = 0
 
 	if map_data == null:
 		return
@@ -91,8 +136,7 @@ func _clear_map_object_sprites() -> void:
 		child.free()
 
 
-func _rebuild_original_sprites() -> void:
-	var scale := OriginalMapProjection.map_scale()
+func _sorted_original_placements() -> Array:
 	var placements: Array = map_data.visual_placements.duplicate()
 	## One-time draw order at map apply / camera rotate — never during movement.
 	placements.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
@@ -106,57 +150,67 @@ func _rebuild_original_sprites() -> void:
 			return int(a.get("z", 0)) < int(b.get("z", 0))
 		return a_key < b_key
 	)
+	return placements
 
-	for entry in placements:
-		var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
-		if not map_data.is_in_bounds(cell):
-			continue
-		var family := str(entry.get("family", "")).to_upper()
-		if family.is_empty():
-			var source: Dictionary = entry.get("source", {}) if entry.get("source", {}) is Dictionary else {}
-			family = str(source.get("image", "")).to_upper()
-		if family.is_empty() or family == "NEAR":
-			continue
 
-		## Authoritative data: family + world direction only. Never read baked sprite paths.
-		var direction := int(entry.get("direction", 0))
-		var image1 := str(entry.get("image1", "")).to_upper()
-		var draw_info := CocSpriteResolver.resolve_placement(family, direction, image1)
-		if bool(draw_info.get("unusable", false)):
-			_placeholder_count += 1
-			continue
-		var path := str(draw_info.get("path", ""))
-		var texture := _get_object_texture(path)
-		if texture == null:
-			_placeholder_count += 1
-			continue
+func _rebuild_original_sprites() -> void:
+	var scale := OriginalMapProjection.map_scale()
+	for entry in _sorted_original_placements():
+		_add_original_placement(entry, scale)
 
-		var holder := Node2D.new()
-		holder.set_meta(META_MAP_OBJECT, true)
-		holder.set_meta(&"coc_family", family)
-		holder.set_meta(&"coc_direction", direction)
-		holder.set_meta(&"coc_letter", str(draw_info.get("letter", "")))
-		holder.set_meta(&"coc_path", path)
-		holder.set_meta(&"coc_cell", cell)
-		holder.set_meta(&"coc_z", int(entry.get("z", 0)))
-		holder.set_meta(&"coc_image1", image1)
-		holder.z_index = 0
-		## Ground-contact sort point = cell world pos (+ authored depth_offset).
-		var ground := IsometricGrid.grid_to_world(cell)
-		var present := _presentation_offsets(family, draw_info)
-		ground.y += float(present.get("depth_offset", 0.0)) * scale
-		holder.position = ground
-		add_child(holder)
 
-		var hotspot: Vector2 = present.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
-		var render_offset: Vector2 = present.get("render_offset", Vector2.ZERO)
-		var sprite := Sprite2D.new()
-		sprite.centered = false
-		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		sprite.texture = texture
-		sprite.scale = Vector2(scale, scale)
-		sprite.position = hotspot * scale + render_offset * scale
-		holder.add_child(sprite)
+func _add_original_placement(entry: Variant, scale: float) -> void:
+	if map_data == null or not (entry is Dictionary):
+		return
+	var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
+	if not map_data.is_in_bounds(cell):
+		return
+	var family := str(entry.get("family", "")).to_upper()
+	if family.is_empty():
+		var source: Dictionary = entry.get("source", {}) if entry.get("source", {}) is Dictionary else {}
+		family = str(source.get("image", "")).to_upper()
+	if family.is_empty() or family == "NEAR":
+		return
+
+	## Authoritative data: family + world direction only. Never read baked sprite paths.
+	var direction := int(entry.get("direction", 0))
+	var image1 := str(entry.get("image1", "")).to_upper()
+	var draw_info := CocSpriteResolver.resolve_placement(family, direction, image1)
+	if bool(draw_info.get("unusable", false)):
+		_placeholder_count += 1
+		return
+	var path := str(draw_info.get("path", ""))
+	var texture := _get_object_texture(path)
+	if texture == null:
+		_placeholder_count += 1
+		return
+
+	var holder := Node2D.new()
+	holder.set_meta(META_MAP_OBJECT, true)
+	holder.set_meta(&"coc_family", family)
+	holder.set_meta(&"coc_direction", direction)
+	holder.set_meta(&"coc_letter", str(draw_info.get("letter", "")))
+	holder.set_meta(&"coc_path", path)
+	holder.set_meta(&"coc_cell", cell)
+	holder.set_meta(&"coc_z", int(entry.get("z", 0)))
+	holder.set_meta(&"coc_image1", image1)
+	holder.z_index = 0
+	## Ground-contact sort point = cell world pos (+ authored depth_offset).
+	var ground := IsometricGrid.grid_to_world(cell)
+	var present := _presentation_offsets(family, draw_info)
+	ground.y += float(present.get("depth_offset", 0.0)) * scale
+	holder.position = ground
+	add_child(holder)
+
+	var hotspot: Vector2 = present.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
+	var render_offset: Vector2 = present.get("render_offset", Vector2.ZERO)
+	var sprite := Sprite2D.new()
+	sprite.centered = false
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sprite.texture = texture
+	sprite.scale = Vector2(scale, scale)
+	sprite.position = hotspot * scale + render_offset * scale
+	holder.add_child(sprite)
 
 
 ## Hotspot places sprite pixels relative to the holder's ground-contact origin.

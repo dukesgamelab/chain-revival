@@ -7,6 +7,15 @@ extends Node2D
 
 const UsSoldierSpriteFrames := preload("res://scripts/soldiers/us_soldier_sprite_frames.gd")
 
+## Fog-of-war presentation. Gameplay spotting is separate — this is display only.
+enum FogVisual {
+	REVEALED, ## Full sprite (in LOS / own side).
+	GHOST, ## Translucent silhouette (1v1 intel when out of LOS).
+	HIDDEN, ## Not drawn (2v2 fog).
+}
+
+const GHOST_MODULATE := Color(0.62, 0.72, 0.92, 0.58)
+
 ## OG art uses a 100×100 PNG canvas with transparency — an animation alignment grid,
 ## not the on-screen soldier height. Same scale for USA and Germany.
 const OG_FRAME_SIZE := Vector2(100.0, 100.0)
@@ -49,6 +58,7 @@ var _corpse_world_direction: String = "n"
 var _death_sprite_family: String = ""
 var _corpse_direction_locked: bool = false
 var _dead_static_logged: bool = false
+var _fog_visual: int = FogVisual.REVEALED
 var _hit_reaction_active: bool = false
 var _hit_semantic: String = ""
 var _hit_return_prone: bool = false
@@ -191,7 +201,7 @@ func _corner_phase_blocks_locomotion() -> bool:
 func sync_from_state(
 	state: SoldierState,
 	is_selected: bool,
-	is_spotted: bool = true,
+	fog_visual: int = FogVisual.REVEALED,
 	show_id_marker: bool = false,
 	idle_peek_side: int = CoverSystem.PeekSide.NONE,
 ) -> void:
@@ -221,11 +231,13 @@ func sync_from_state(
 		soldier_id = state.soldier_id
 		team_id = state.team_id
 		position = IsometricGrid.grid_to_world(state.grid_position)
+		_apply_fog_visual(fog_visual, is_selected)
 		_refresh_id_marker(state)
 		return
 
 	if state.is_dead:
 		stop_movement()
+		visible = true
 		position = IsometricGrid.grid_to_world(state.grid_position)
 		_facing_from_cell = state.grid_position
 		_apply_facing(state.facing_direction, _facing_from_cell)
@@ -242,7 +254,7 @@ func sync_from_state(
 	_facing_from_cell = state.grid_position
 	_apply_facing(state.facing_direction, _facing_from_cell)
 	_apply_position_visual(state)
-	_apply_spotted_visual(is_selected, is_spotted)
+	_apply_fog_visual(fog_visual, is_selected)
 	set_selected(is_selected)
 	_refresh_id_marker(state)
 	## Do not force walk=true here — sync_movement_chase_from_state already chose
@@ -252,7 +264,13 @@ func sync_from_state(
 func _refresh_id_marker(state: SoldierState) -> void:
 	if _id_marker == null:
 		return
-	if not _show_id_marker or state == null or state.is_dead:
+	if (
+		not _show_id_marker
+		or state == null
+		or state.is_dead
+		or _fog_visual == FogVisual.GHOST
+		or _fog_visual == FogVisual.HIDDEN
+	):
 		_id_marker.visible = false
 		return
 	if _dot_textures.is_empty() or _dtt_textures.is_empty():
@@ -272,22 +290,45 @@ func _refresh_id_marker(state: SoldierState) -> void:
 	_id_marker.visible = true
 
 
-
 func _apply_spotted_visual(is_selected: bool, is_spotted: bool) -> void:
+	_apply_fog_visual(FogVisual.REVEALED if is_spotted else FogVisual.GHOST, is_selected)
+
+
+## Presentation fog: revealed / ghost / hidden. Does not affect gameplay LOS.
+func apply_fog_visual(mode: int, is_selected: bool = false) -> void:
+	_apply_fog_visual(mode, is_selected)
+
+
+func _apply_fog_visual(mode: int, is_selected: bool = false) -> void:
+	_fog_visual = mode
 	if _is_dead:
+		visible = true
 		return
-	if is_spotted:
-		if is_selected:
-			_anim.modulate = Color(1.14, 1.14, 1.08, 1.0)
-		else:
-			_anim.modulate = Color.WHITE
-	else:
-		_anim.modulate = Color(0.55, 0.55, 0.58, 0.45)
+	match mode:
+		FogVisual.HIDDEN:
+			visible = false
+			return
+		FogVisual.GHOST:
+			visible = true
+			_anim.modulate = GHOST_MODULATE
+			## Ghosts are intel silhouettes — no facing chrome.
+			if _facing_arrow != null:
+				_facing_arrow.visible = false
+			if _prone_marker != null:
+				_prone_marker.visible = false
+			if _id_marker != null:
+				_id_marker.visible = false
+		_:
+			visible = true
+			if is_selected:
+				_anim.modulate = Color(1.14, 1.14, 1.08, 1.0)
+			else:
+				_anim.modulate = Color.WHITE
 
 
 ## Fog-of-war only — used by Main on combat scans to avoid full sync_from_state.
-func apply_spotting_only(is_selected: bool, is_spotted: bool) -> void:
-	_apply_spotted_visual(is_selected, is_spotted)
+func apply_spotting_only(is_selected: bool, fog_visual: int) -> void:
+	_apply_fog_visual(fog_visual, is_selected)
 
 
 func set_selected(is_selected: bool) -> void:
@@ -569,7 +610,12 @@ func _show_facing_arrow() -> bool:
 func _sync_facing_arrow_visibility() -> void:
 	if _facing_arrow == null:
 		return
-	if _is_dead or not _show_facing_arrow():
+	if (
+		_is_dead
+		or not _show_facing_arrow()
+		or _fog_visual == FogVisual.GHOST
+		or _fog_visual == FogVisual.HIDDEN
+	):
 		_facing_arrow.visible = false
 		return
 	_facing_arrow.visible = _applied_position_state != PositionState.DOWN

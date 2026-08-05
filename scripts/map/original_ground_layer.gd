@@ -17,6 +17,15 @@ func apply_map_data(data: MapData) -> void:
 	queue_redraw()
 
 
+## Load every ground variant once so the first full-map _draw does not hitch on disk I/O.
+func prewarm_textures() -> void:
+	CocTileCatalog.ensure_loaded()
+	var n := CocTileCatalog.ground_variant_count()
+	for i in n:
+		var info := CocTileCatalog.ground_sprite(i)
+		_get_texture(str(info.get("path", "")))
+
+
 func set_layer_visible(show_layer: bool) -> void:
 	_layer_visible = show_layer
 	visible = show_layer
