@@ -157,7 +157,7 @@ func _build_layout() -> void:
 	back.pressed.connect(func() -> void: get_tree().change_scene_to_file(MODE_SELECT_SCENE))
 	footer.add_child(back)
 	var start := Button.new()
-	start.text = "Start Match"
+	start.text = "Start Game"
 	start.custom_minimum_size = Vector2(160, 36)
 	start.pressed.connect(_on_start)
 	footer.add_child(start)

@@ -7,7 +7,7 @@ const PANEL_FACE := Color("8A8680")
 const PANEL_FACE_DARK := Color("6E6A64")
 const BUTTON_FACE := Color("C0C0C0")
 const BUTTON_FACE_HOVER := Color("CACACA")
-const BUTTON_FACE_PRESSED := Color("A8A8A8")
+const BUTTON_FACE_PRESSED := Color("808080")
 const BUTTON_FACE_DISABLED := Color("9A9A9A")
 const BEVEL_LIGHT := Color("F0F0F0")
 const BEVEL_DARK := Color("404040")
@@ -23,13 +23,14 @@ const FONT_PATH := "res://assets/ui/fonts/tahoma.ttf"
 const FONT_FALLBACK_PATH := "res://assets/ui/fonts/microsoft_sans_serif.ttf"
 const BLANK_BUTTON_PATH := "res://assets/ui/toolbar/blank_button.png"
 const GRENADE_BUTTON_PATH := "res://assets/ui/toolbar/grenade_button.png"
-const FONT_SIZE := 11
-const ROW_HEIGHT := 26
-const BUTTON_HEIGHT := 26
+## OG toolbar rows are short — one text line with minimal padding.
+const FONT_SIZE := 10
+const ROW_HEIGHT := 18
+const BUTTON_HEIGHT := 18
 const BUTTON_WIDTH_DEFAULT := 60
-const GRENADE_BUTTON_SIZE := Vector2(60, 26)
-const PANEL_MARGIN := 3
-const BUTTON_GAP := 2
+const GRENADE_BUTTON_SIZE := Vector2(60, 18)
+const PANEL_MARGIN := 2
+const BUTTON_GAP := 1
 
 static var _cached_theme: Theme
 static var _font: Font
@@ -146,7 +147,7 @@ static func style_grenade_button(button: Button) -> void:
 	button.add_theme_color_override("font_hover_pressed_color", TEXT_WHITE)
 	button.add_theme_color_override("font_disabled_color", Color(0.75, 0.75, 0.75, 1.0))
 	button.add_theme_color_override("font_focus_color", TEXT_WHITE)
-	button.add_theme_font_size_override("font_size", 12)
+	button.add_theme_font_size_override("font_size", FONT_SIZE)
 	button.alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	button.clip_text = true
 
@@ -223,9 +224,9 @@ static func blank_button_style(pressed: bool, hover: bool, disabled: bool = fals
 		tex = _blank_tex_disabled
 	elif pressed:
 		tex = _blank_tex_pressed
-	var content_l := 5 if pressed else 4
-	var content_t := 3 if pressed else 2
-	var sb := _style_from_texture(tex, 3, content_l, content_t)
+	var content_l := 4 if pressed else 3
+	var content_t := 1
+	var sb := _style_from_texture(tex, 2, content_l, content_t)
 	_blank_styles[key] = sb
 	return sb
 
@@ -242,10 +243,10 @@ static func grenade_button_style(pressed: bool, hover: bool, disabled: bool = fa
 		tex = _grenade_tex_disabled
 	elif pressed:
 		tex = _grenade_tex_pressed
-	var content_l := 29 if pressed else 28
-	var content_r := 5 if pressed else 6
-	var content_t := 3 if pressed else 2
-	var sb := _style_from_texture(tex, 3, content_l, content_t)
+	var content_l := 27 if pressed else 26
+	var content_r := 4 if pressed else 5
+	var content_t := 1
+	var sb := _style_from_texture(tex, 2, content_l, content_t)
 	sb.content_margin_right = content_r
 	_grenade_styles[key] = sb
 	return sb
@@ -302,16 +303,24 @@ static func _image_from_texture(tex: Texture2D) -> Image:
 
 static func _make_pressed_texture(src: Texture2D) -> Texture2D:
 	var img := _image_from_texture(src)
-	img.adjust_bcs(0.92, 1.0, 1.0)
-	## Cheap sunken bevel: darken top/left edge, lighten bottom/right.
+	## OG Hold Fire / Fire at Will: pressed is clearly darker + sunken bevel.
+	img.adjust_bcs(0.70, 1.0, 1.0)
 	var w := img.get_width()
 	var h := img.get_height()
 	for x in w:
-		img.set_pixel(x, 0, img.get_pixel(x, 0).darkened(0.35))
-		img.set_pixel(x, h - 1, img.get_pixel(x, h - 1).lightened(0.2))
+		img.set_pixel(x, 0, img.get_pixel(x, 0).darkened(0.55))
+		if h > 2:
+			img.set_pixel(x, 1, img.get_pixel(x, 1).darkened(0.28))
+		img.set_pixel(x, h - 1, img.get_pixel(x, h - 1).lightened(0.40))
+		if h > 3:
+			img.set_pixel(x, h - 2, img.get_pixel(x, h - 2).lightened(0.18))
 	for y in h:
-		img.set_pixel(0, y, img.get_pixel(0, y).darkened(0.35))
-		img.set_pixel(w - 1, y, img.get_pixel(w - 1, y).lightened(0.2))
+		img.set_pixel(0, y, img.get_pixel(0, y).darkened(0.55))
+		if w > 2:
+			img.set_pixel(1, y, img.get_pixel(1, y).darkened(0.28))
+		img.set_pixel(w - 1, y, img.get_pixel(w - 1, y).lightened(0.40))
+		if w > 3:
+			img.set_pixel(w - 2, y, img.get_pixel(w - 2, y).lightened(0.18))
 	return ImageTexture.create_from_image(img)
 
 

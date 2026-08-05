@@ -20,6 +20,9 @@ signal fire_control_selected(fire_control_state: int)
 @onready var _hold_fire_button: Button = %HoldFireButton
 
 var _move_buttons: Dictionary = {}
+## Stance for Down/Up label; button itself stays momentary (not latched).
+var _position_is_down: bool = false
+const _ACTION_FLASH_SEC := 0.1
 
 
 func _ready() -> void:
@@ -61,6 +64,27 @@ func clear_move_modes() -> void:
 		(button as Button).set_pressed_no_signal(false)
 
 
+## Brief pressed flash then release — mode stays active in CommandBar.
+func flash_move_mode(movement_mode: int) -> void:
+	_flash_release_button(_move_buttons.get(movement_mode) as Button)
+
+
+func flash_fire_at() -> void:
+	_flash_release_button(_fire_at_button, func() -> void: _update_fire_at_highlight(false))
+
+
+func flash_face() -> void:
+	_flash_release_button(_face_button, func() -> void: _face_button.modulate = Color.WHITE)
+
+
+func flash_grenade() -> void:
+	_flash_release_button(_grenade_button, func() -> void: _grenade_button.modulate = Color.WHITE)
+
+
+func flash_position() -> void:
+	_flash_release_button(_position_button)
+
+
 func set_fire_at_pressed(is_pressed: bool) -> void:
 	_fire_at_button.set_pressed_no_signal(is_pressed)
 	_update_fire_at_highlight(is_pressed)
@@ -77,11 +101,11 @@ func set_grenade_pressed(is_pressed: bool) -> void:
 
 
 func set_position_state(position_state: int) -> void:
-	var is_down := position_state == PositionState.DOWN
-	_position_button.set_pressed_no_signal(is_down)
-	## Label shows the action you'll take next (opposite of current stance).
-	_position_button.text = "Up" if is_down else "Down"
-	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
+	_position_is_down = position_state == PositionState.DOWN
+	## Momentary control — never latch pressed; label is the next action.
+	_position_button.set_pressed_no_signal(false)
+	_position_button.text = "Up" if _position_is_down else "Down"
+	_position_button.modulate = Color.WHITE
 
 
 func apply_coc_inset_wells(inset: StyleBox) -> void:
@@ -110,10 +134,35 @@ func _on_grenade_toggled(is_pressed: bool) -> void:
 	grenade_toggled.emit(is_pressed)
 
 
-func _on_position_toggled(is_down: bool) -> void:
-	_position_button.text = "Up" if is_down else "Down"
-	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
-	position_toggled.emit(is_down)
+func _on_position_toggled(is_pressed: bool) -> void:
+	## Ignore our own unpress; click means "do the labeled next stance".
+	if not is_pressed:
+		return
+	var want_down := not _position_is_down
+	_position_is_down = want_down
+	_position_button.text = "Up" if want_down else "Down"
+	_position_button.modulate = Color.WHITE
+	flash_position()
+	position_toggled.emit(want_down)
+
+
+func _flash_release_button(button: Button, on_release: Callable = Callable()) -> void:
+	if button == null:
+		return
+	var tree := get_tree()
+	if tree == null:
+		button.set_pressed_no_signal(false)
+		if on_release.is_valid():
+			on_release.call()
+		return
+	tree.create_timer(_ACTION_FLASH_SEC).timeout.connect(
+		func() -> void:
+			if not is_instance_valid(button):
+				return
+			button.set_pressed_no_signal(false)
+			if on_release.is_valid():
+				on_release.call()
+	)
 
 
 func _on_hold_fire_pressed() -> void:

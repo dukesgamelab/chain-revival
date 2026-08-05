@@ -10,9 +10,7 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 2.0
-offset_top = -178.0
-offset_right = -2.0
+offset_top = -130.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("1_cmdbar")
@@ -27,14 +25,14 @@ grow_vertical = 2
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 3
+theme_override_constants/margin_left = 2
 theme_override_constants/margin_top = 2
-theme_override_constants/margin_right = 3
-theme_override_constants/margin_bottom = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 1
 
 [node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 1
 
 [node name="TopBar" type="HBoxContainer" parent="Panel/Margin/VBox"]
 unique_name_in_owner = true
@@ -43,55 +41,55 @@ theme_override_constants/separation = 3
 
 [node name="RetreatButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 26)
+custom_minimum_size = Vector2(64, 18)
 layout_mode = 2
 text = "Retreat"
 
 [node name="DeploymentStageLabel" type="Label" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(118, 26)
+custom_minimum_size = Vector2(118, 18)
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "Deployment Stage"
 vertical_alignment = 1
 
 [node name="DeploymentTimerLabel" type="Label" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(48, 26)
+custom_minimum_size = Vector2(48, 18)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0, 0, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "15:00"
 vertical_alignment = 1
 
 [node name="RotateLeftButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(78, 26)
+custom_minimum_size = Vector2(78, 18)
 layout_mode = 2
 text = "Rotate Left"
 
 [node name="RotateRightButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(84, 26)
+custom_minimum_size = Vector2(84, 18)
 layout_mode = 2
 text = "Rotate Right"
 
 [node name="CenterButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 26)
+custom_minimum_size = Vector2(58, 18)
 layout_mode = 2
 text = "Center"
 
 [node name="SetCommandersButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(118, 26)
+custom_minimum_size = Vector2(118, 18)
 layout_mode = 2
 text = "Set Commander(s)"
 
 [node name="AssignWeaponsButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(110, 26)
+custom_minimum_size = Vector2(110, 18)
 layout_mode = 2
 text = "Assign Weapons"
 
@@ -101,17 +99,17 @@ size_flags_horizontal = 3
 
 [node name="TeamLabel" type="Label" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(42, 26)
+custom_minimum_size = Vector2(42, 18)
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "USA"
 vertical_alignment = 1
 
 [node name="MapEditButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
 toggle_mode = true
-custom_minimum_size = Vector2(72, 26)
+custom_minimum_size = Vector2(72, 18)
 layout_mode = 2
 text = "Map Edit"
 
@@ -124,14 +122,14 @@ theme_override_constants/separation = 2
 [node name="TreeButton" type="Button" parent="Panel/Margin/VBox/TopBar/MapEditPanel"]
 unique_name_in_owner = true
 toggle_mode = true
-custom_minimum_size = Vector2(40, 26)
+custom_minimum_size = Vector2(40, 18)
 layout_mode = 2
 text = "Tree"
 
 [node name="HaybailButton" type="Button" parent="Panel/Margin/VBox/TopBar/MapEditPanel"]
 unique_name_in_owner = true
 toggle_mode = true
-custom_minimum_size = Vector2(52, 26)
+custom_minimum_size = Vector2(52, 18)
 layout_mode = 2
 text = "Haybail"
 
@@ -139,44 +137,43 @@ text = "Haybail"
 unique_name_in_owner = true
 toggle_mode = true
 button_pressed = true
-custom_minimum_size = Vector2(40, 26)
+custom_minimum_size = Vector2(40, 18)
 layout_mode = 2
 text = "Wall"
 
 [node name="EraseButton" type="Button" parent="Panel/Margin/VBox/TopBar/MapEditPanel"]
 unique_name_in_owner = true
 toggle_mode = true
-custom_minimum_size = Vector2(44, 26)
+custom_minimum_size = Vector2(44, 18)
 layout_mode = 2
 text = "Erase"
 
 [node name="SaveButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(48, 26)
+custom_minimum_size = Vector2(48, 18)
 layout_mode = 2
 text = "Save"
 
 [node name="LoadButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(48, 26)
+custom_minimum_size = Vector2(48, 18)
 layout_mode = 2
 text = "Load"
 
 [node name="MapSaveButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(68, 26)
+custom_minimum_size = Vector2(68, 18)
 layout_mode = 2
 text = "Map Save"
 
 [node name="MapLoadButton" type="Button" parent="Panel/Margin/VBox/TopBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(68, 26)
+custom_minimum_size = Vector2(68, 18)
 layout_mode = 2
 text = "Map Load"
 
 [node name="MainRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2
-size_flags_vertical = 3
 theme_override_constants/separation = 4
 
 [node name="SoldierRows" type="VBoxContainer" parent="Panel/Margin/VBox/MainRow"]
@@ -218,9 +215,8 @@ theme_override_constants/separation = 2
 
 [node name="ChatLog" type="RichTextLabel" parent="Panel/Margin/VBox/MainRow/ChatPanel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 90)
+custom_minimum_size = Vector2(220, 98)
 layout_mode = 2
-size_flags_vertical = 3
 bbcode_enabled = true
 fit_content = false
 scroll_active = true
@@ -232,7 +228,7 @@ theme_override_constants/separation = 2
 
 [node name="ChatInput" type="LineEdit" parent="Panel/Margin/VBox/MainRow/ChatPanel/ChatInputRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 22)
+custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Enter message..."
@@ -244,28 +240,28 @@ theme_override_constants/separation = 2
 
 [node name="ChatDefaultButton" type="Button" parent="Panel/Margin/VBox/MainRow/ChatPanel/ChatButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(78, 22)
+custom_minimum_size = Vector2(78, 18)
 layout_mode = 2
 disabled = true
 text = "[No default]"
 
 [node name="WhisperButton" type="Button" parent="Panel/Margin/VBox/MainRow/ChatPanel/ChatButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(84, 22)
+custom_minimum_size = Vector2(84, 18)
 layout_mode = 2
 disabled = true
 text = "Whisper To..."
 
 [node name="AnnounceButton" type="Button" parent="Panel/Margin/VBox/MainRow/ChatPanel/ChatButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 22)
+custom_minimum_size = Vector2(72, 18)
 layout_mode = 2
 disabled = true
 text = "Announce"
 
 [node name="IgnoreButton" type="Button" parent="Panel/Margin/VBox/MainRow/ChatPanel/ChatButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 22)
+custom_minimum_size = Vector2(64, 18)
 layout_mode = 2
 disabled = true
 text = "Ignore..."

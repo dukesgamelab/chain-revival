@@ -680,19 +680,6 @@ func _sync_fire_at_ui_from_engagements() -> void:
 	var has_engaged := _active_fireteam_has_engaged_soldier()
 	_fire_at_engaged = has_engaged
 	_command_bar.set_fire_at_engaged(has_engaged)
-	if has_engaged and _fire_at_mode:
-		_affirm_fire_at_ui()
-	elif not has_engaged and _fire_at_mode:
-		_command_bar.set_fire_at_engaged(false)
-
-
-func _affirm_fire_at_ui() -> void:
-	if not _fire_at_mode:
-		return
-	if _squad_fire_at_mode:
-		_command_bar.affirm_fire_at_pressed(true, CommandBar.SQUAD_ID)
-	else:
-		_command_bar.affirm_fire_at_pressed(false, _fire_at_soldier_id)
 
 
 func _exit_fire_at_mode(message: String = "") -> void:
@@ -2185,10 +2172,6 @@ func _apply_grenade_command(target_cell: Vector2i) -> void:
 		cmd,
 		_make_grenade_context(soldier_state),
 	)
-	if result.success:
-		_grenade_mode = false
-		_command_bar.clear_grenade_mode()
-		_los_visualizer.hide_preview()
 	_present_action_result(result)
 
 
@@ -2230,9 +2213,6 @@ func _apply_squad_grenade_command(target_cell: Vector2i) -> void:
 						soldier_state.facing_direction,
 					)
 	if thrown > 0:
-		_grenade_mode = false
-		_command_bar.clear_grenade_mode()
-		_los_visualizer.hide_preview()
 		if last_result != null:
 			## Avoid replaying throw anims already started above.
 			last_result.throw_orders.clear()

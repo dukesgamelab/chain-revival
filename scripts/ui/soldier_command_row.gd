@@ -33,6 +33,9 @@ signal ammo_adjust_requested(soldier_id: int, delta: int)
 var _row_enabled: bool = true
 var _move_buttons: Dictionary = {}
 var _team_id: int = Team.USA
+## Stance for Down/Up label; button itself stays momentary (not latched).
+var _position_is_down: bool = false
+const _ACTION_FLASH_SEC := 0.1
 
 
 func _ready() -> void:
@@ -59,10 +62,14 @@ func _ready() -> void:
 	_face_button.toggled.connect(_on_face_toggled)
 	_grenade_button.toggled.connect(_on_grenade_toggled)
 	_position_button.toggled.connect(_on_position_toggled)
-	_ammo_up_button.pressed.connect(func() -> void: ammo_adjust_requested.emit(soldier_id, 1))
-	_ammo_down_button.pressed.connect(func() -> void: ammo_adjust_requested.emit(soldier_id, -1))
-	_ammo_up_button.tooltip_text = "Add ammo to this gun"
-	_ammo_down_button.tooltip_text = "Reduce ammo on this gun"
+	## Ammo ▲/▼ removed — match OG toolbar; ammo changes via Assign Weapons.
+	if _ammo_up_button != null:
+		_ammo_up_button.visible = false
+	if _ammo_down_button != null:
+		_ammo_down_button.visible = false
+	var ammo_col := get_node_or_null("WeaponAmmoPanel/WeaponAmmoRow/AmmoAdjustCol")
+	if ammo_col != null:
+		ammo_col.visible = false
 	set_position_state(PositionState.UP)
 	set_fire_control_state(FireControlState.FIRE_AT_WILL)
 	set_grenade_count(5)
@@ -78,6 +85,27 @@ func set_move_mode_pressed(movement_mode: int, is_pressed: bool) -> void:
 func clear_move_modes() -> void:
 	for button in _move_buttons.values():
 		(button as Button).set_pressed_no_signal(false)
+
+
+## Brief pressed flash then release — mode stays active in CommandBar.
+func flash_move_mode(movement_mode: int) -> void:
+	_flash_release_button(_move_buttons.get(movement_mode) as Button)
+
+
+func flash_fire_at() -> void:
+	_flash_release_button(_fire_at_button, func() -> void: _update_fire_at_highlight(false))
+
+
+func flash_face() -> void:
+	_flash_release_button(_face_button, func() -> void: _face_button.modulate = Color.WHITE)
+
+
+func flash_grenade() -> void:
+	_flash_release_button(_grenade_button, func() -> void: _update_grenade_highlight(false))
+
+
+func flash_position() -> void:
+	_flash_release_button(_position_button)
 
 
 func set_fire_at_pressed(is_pressed: bool) -> void:
@@ -187,11 +215,11 @@ func set_move_button_enabled(movement_mode: int, enabled: bool) -> void:
 
 
 func set_position_state(position_state: int) -> void:
-	var is_down := position_state == PositionState.DOWN
-	_position_button.set_pressed_no_signal(is_down)
-	## Label shows the action you'll take next (opposite of current stance).
-	_position_button.text = "Up" if is_down else "Down"
-	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
+	_position_is_down = position_state == PositionState.DOWN
+	## Momentary control — never latch pressed; label is the next action.
+	_position_button.set_pressed_no_signal(false)
+	_position_button.text = "Up" if _position_is_down else "Down"
+	_position_button.modulate = Color.WHITE
 
 
 func set_fire_control_state(fire_control_state: int) -> void:
@@ -249,12 +277,38 @@ func _on_grenade_toggled(is_pressed: bool) -> void:
 	grenade_toggled.emit(soldier_id, is_pressed)
 
 
-func _on_position_toggled(is_down: bool) -> void:
+func _on_position_toggled(is_pressed: bool) -> void:
 	if not _row_enabled:
 		return
-	_position_button.text = "Up" if is_down else "Down"
-	_position_button.modulate = CocUiTheme.selected_modulate(is_down)
-	position_toggled.emit(soldier_id, is_down)
+	## Ignore our own unpress; click means "do the labeled next stance".
+	if not is_pressed:
+		return
+	var want_down := not _position_is_down
+	_position_is_down = want_down
+	_position_button.text = "Up" if want_down else "Down"
+	_position_button.modulate = Color.WHITE
+	flash_position()
+	position_toggled.emit(soldier_id, want_down)
+
+
+func _flash_release_button(button: Button, on_release: Callable = Callable()) -> void:
+	if button == null:
+		return
+	## Click already pressed the toggle; release shortly so it reads as a click.
+	var tree := get_tree()
+	if tree == null:
+		button.set_pressed_no_signal(false)
+		if on_release.is_valid():
+			on_release.call()
+		return
+	tree.create_timer(_ACTION_FLASH_SEC).timeout.connect(
+		func() -> void:
+			if not is_instance_valid(button):
+				return
+			button.set_pressed_no_signal(false)
+			if on_release.is_valid():
+				on_release.call()
+	)
 
 
 func _on_hold_fire_pressed() -> void:

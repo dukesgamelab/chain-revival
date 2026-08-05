@@ -7,123 +7,123 @@ theme_override_constants/separation = 2
 script = ExtResource("1_row")
 
 [node name="DotSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(56, 26)
+custom_minimum_size = Vector2(56, 18)
 layout_mode = 2
 
 [node name="AllLabel" type="Label" parent="DotSpacer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "All"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="WeaponAmmoSpacer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(120, 26)
+custom_minimum_size = Vector2(120, 18)
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="FireAtButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 26)
+custom_minimum_size = Vector2(52, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Fire at"
 
 [node name="RunToButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 26)
+custom_minimum_size = Vector2(52, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Run To"
 
 [node name="CrawlToButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 26)
+custom_minimum_size = Vector2(58, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Crawl To"
 
 [node name="FaceButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(50, 26)
+custom_minimum_size = Vector2(50, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Face..."
 
 [node name="PositionButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(40, 26)
+custom_minimum_size = Vector2(40, 18)
 layout_mode = 2
 toggle_mode = true
 text = "Down"
 
 [node name="GrenadeButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 26)
+custom_minimum_size = Vector2(60, 18)
 layout_mode = 2
 toggle_mode = true
 text = ""
 
 [node name="AssaultButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 26)
+custom_minimum_size = Vector2(58, 18)
 layout_mode = 2
 disabled = true
 text = "Assault!"
 
 [node name="WalkToButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(58, 26)
+custom_minimum_size = Vector2(58, 18)
 layout_mode = 2
 disabled = true
 text = "Walk To"
 
 [node name="FireAtWillButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(74, 26)
+custom_minimum_size = Vector2(74, 18)
 layout_mode = 2
 text = "Fire at Will"
 
 [node name="HoldFireButton" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 26)
+custom_minimum_size = Vector2(64, 18)
 layout_mode = 2
 text = "Hold Fire"
 
 [node name="StatusHeader" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(58, 26)
+custom_minimum_size = Vector2(58, 18)
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="StatusHeaderLabel" type="Label" parent="StatusHeader"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "Center"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="StressHeader" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(42, 26)
+custom_minimum_size = Vector2(42, 18)
 layout_mode = 2
 
 [node name="StressHeaderLabel" type="Label" parent="StressHeader"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "Stress"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HitHeader" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(42, 26)
+custom_minimum_size = Vector2(42, 18)
 layout_mode = 2
 
 [node name="HitHeaderLabel" type="Label" parent="HitHeader"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "Hit %"
 horizontal_alignment = 1
 vertical_alignment = 1

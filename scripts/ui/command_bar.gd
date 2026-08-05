@@ -60,6 +60,8 @@ func _ready() -> void:
 	var ui := get_parent()
 	if ui != null:
 		_status_hud = ui.get_node_or_null("StatusHud") as StatusHud
+	## Bottom-flush OG toolbar: height follows content (no dead strip under buttons).
+	call_deferred("_snap_flush_to_bottom")
 	_squad_row.move_mode_toggled.connect(_on_squad_move_mode_toggled)
 	_squad_row.fire_at_toggled.connect(_on_squad_fire_at_toggled)
 	_squad_row.face_toggled.connect(_on_squad_face_toggled)
@@ -101,6 +103,24 @@ func _ready() -> void:
 
 	_select_soldier(1, false, false)
 	_refresh_deployment_stage_label(true)
+
+
+## Pin bar to the window bottom and shrink height to the real control content.
+func _snap_flush_to_bottom() -> void:
+	var panel := get_node_or_null("Panel") as Control
+	if panel == null:
+		return
+	var min_size := panel.get_combined_minimum_size()
+	var h := maxi(ceili(min_size.y), 1)
+	set_anchor(SIDE_LEFT, 0.0)
+	set_anchor(SIDE_TOP, 1.0)
+	set_anchor(SIDE_RIGHT, 1.0)
+	set_anchor(SIDE_BOTTOM, 1.0)
+	offset_left = 0.0
+	offset_right = 0.0
+	offset_bottom = 0.0
+	offset_top = -float(h)
+	grow_vertical = Control.GROW_DIRECTION_BEGIN
 
 
 func set_active_team(team_id: int) -> void:
@@ -343,85 +363,79 @@ func _refresh_team_score_label() -> void:
 		_usa_score_total,
 		_ger_score_total,
 	]
-	_team_label.custom_minimum_size = Vector2(96, 26)
+	_team_label.custom_minimum_size = Vector2(96, CocUiTheme.ROW_HEIGHT)
 
 
 func _on_squad_move_mode_toggled(movement_mode: int, is_pressed: bool) -> void:
-	if is_pressed:
-		clear_map_edit_mode()
-		clear_fire_at_mode()
-		clear_face_mode()
-		clear_grenade_mode()
-		for row in _rows:
-			row.clear_move_modes()
-		_squad_row.clear_move_modes()
-		_squad_row.set_move_mode_pressed(movement_mode, true)
-		_move_target_soldier_id = SQUAD_ID
-		_active_movement_mode = movement_mode
-		move_targeting_changed.emit(true, SQUAD_ID, movement_mode)
-	else:
-		if _move_target_soldier_id == SQUAD_ID:
-			_move_target_soldier_id = -1
-		move_targeting_changed.emit(false, SQUAD_ID, movement_mode)
-
+	## Action buttons are click-flash only; mode stays until another action clears it.
+	if not is_pressed:
+		return
+	clear_map_edit_mode()
+	clear_fire_at_mode()
+	clear_face_mode()
+	clear_grenade_mode()
+	for row in _rows:
+		row.clear_move_modes()
+	_squad_row.clear_move_modes()
+	_squad_row.set_move_mode_pressed(movement_mode, true)
+	_move_target_soldier_id = SQUAD_ID
+	_active_movement_mode = movement_mode
+	move_targeting_changed.emit(true, SQUAD_ID, movement_mode)
+	_squad_row.flash_move_mode(movement_mode)
 	_update_status()
 
 
 func _on_squad_fire_at_toggled(is_pressed: bool) -> void:
-	if is_pressed:
-		clear_map_edit_mode()
-		clear_move_targeting()
-		clear_face_mode()
-		clear_grenade_mode()
-		for row in _rows:
-			row.set_fire_at_pressed(false)
-		_fire_at_soldier_id = SQUAD_ID
-		fire_at_mode_changed.emit(true, SQUAD_ID)
-	else:
-		if _fire_at_soldier_id == SQUAD_ID:
-			_fire_at_soldier_id = -1
-		fire_at_mode_changed.emit(false, SQUAD_ID)
-
+	if not is_pressed:
+		return
+	clear_map_edit_mode()
+	clear_move_targeting()
+	clear_face_mode()
+	clear_grenade_mode()
+	for row in _rows:
+		row.set_fire_at_pressed(false)
+	_fire_at_soldier_id = SQUAD_ID
+	fire_at_mode_changed.emit(true, SQUAD_ID)
+	_squad_row.flash_fire_at()
 	_update_status()
 
 
 func _on_squad_face_toggled(is_pressed: bool) -> void:
-	if is_pressed:
-		clear_map_edit_mode()
-		clear_move_targeting()
-		clear_fire_at_mode()
-		clear_grenade_mode()
-		for row in _rows:
-			row.set_face_pressed(false)
-		_face_soldier_id = SQUAD_ID
-		face_mode_changed.emit(true, SQUAD_ID)
-	else:
-		if _face_soldier_id == SQUAD_ID:
-			_face_soldier_id = -1
-		face_mode_changed.emit(false, SQUAD_ID)
-
+	if not is_pressed:
+		return
+	clear_map_edit_mode()
+	clear_move_targeting()
+	clear_fire_at_mode()
+	clear_grenade_mode()
+	for row in _rows:
+		row.set_face_pressed(false)
+	_face_soldier_id = SQUAD_ID
+	face_mode_changed.emit(true, SQUAD_ID)
+	_squad_row.flash_face()
 	_update_status()
 
 
 func _on_squad_grenade_toggled(is_pressed: bool) -> void:
-	if is_pressed:
-		clear_map_edit_mode()
-		clear_move_targeting()
-		clear_fire_at_mode()
-		clear_face_mode()
-		for row in _rows:
-			row.set_grenade_pressed(false)
-		_grenade_soldier_id = SQUAD_ID
-		grenade_mode_changed.emit(true, SQUAD_ID)
-	else:
-		if _grenade_soldier_id == SQUAD_ID:
-			_grenade_soldier_id = -1
-		grenade_mode_changed.emit(false, SQUAD_ID)
-
+	if not is_pressed:
+		return
+	clear_map_edit_mode()
+	clear_move_targeting()
+	clear_fire_at_mode()
+	clear_face_mode()
+	for row in _rows:
+		row.set_grenade_pressed(false)
+	_grenade_soldier_id = SQUAD_ID
+	grenade_mode_changed.emit(true, SQUAD_ID)
+	_squad_row.flash_grenade()
 	_update_status()
 
 
 func _on_squad_position_toggled(is_down: bool) -> void:
+	clear_map_edit_mode()
+	clear_move_targeting()
+	clear_fire_at_mode()
+	clear_face_mode()
+	clear_grenade_mode()
 	position_change_requested.emit(
 		SQUAD_ID,
 		PositionState.DOWN if is_down else PositionState.UP,
@@ -433,89 +447,94 @@ func _on_squad_fire_control_selected(fire_control_state: int) -> void:
 
 
 func _on_row_move_mode_toggled(soldier_id: int, movement_mode: int, is_pressed: bool) -> void:
-	if is_pressed:
-		clear_map_edit_mode()
-		clear_fire_at_mode()
-		clear_face_mode()
-		clear_grenade_mode()
-		_squad_row.clear_move_modes()
-		for row in _rows:
-			if row.soldier_id != soldier_id:
-				row.clear_move_modes()
-			else:
-				row.set_move_mode_pressed(movement_mode, true)
-		_move_target_soldier_id = soldier_id
-		_active_movement_mode = movement_mode
-		_select_soldier(soldier_id, true)
-		move_targeting_changed.emit(true, soldier_id, movement_mode)
-	else:
-		if _move_target_soldier_id == soldier_id and _active_movement_mode == movement_mode:
-			_move_target_soldier_id = -1
-		move_targeting_changed.emit(false, soldier_id, movement_mode)
-
+	## Action buttons are click-flash only; mode stays until another action clears it.
+	if not is_pressed:
+		return
+	clear_map_edit_mode()
+	clear_fire_at_mode()
+	clear_face_mode()
+	clear_grenade_mode()
+	_squad_row.clear_move_modes()
+	var active_row: SoldierCommandRow = null
+	for row in _rows:
+		if row.soldier_id != soldier_id:
+			row.clear_move_modes()
+		else:
+			row.clear_move_modes()
+			row.set_move_mode_pressed(movement_mode, true)
+			active_row = row
+	_move_target_soldier_id = soldier_id
+	_active_movement_mode = movement_mode
+	_select_soldier(soldier_id, true)
+	move_targeting_changed.emit(true, soldier_id, movement_mode)
+	if active_row != null:
+		active_row.flash_move_mode(movement_mode)
 	_update_status()
 
 
 func _on_row_fire_at_toggled(soldier_id: int, is_pressed: bool) -> void:
-	if is_pressed:
-		clear_map_edit_mode()
-		clear_move_targeting()
-		clear_face_mode()
-		clear_grenade_mode()
-		_squad_row.set_fire_at_pressed(false)
-		for row in _rows:
-			if row.soldier_id != soldier_id:
-				row.set_fire_at_pressed(false)
-		_fire_at_soldier_id = soldier_id
-		_select_soldier(soldier_id, true)
-		fire_at_mode_changed.emit(true, soldier_id)
-	else:
-		if _fire_at_soldier_id == soldier_id:
-			_fire_at_soldier_id = -1
-		fire_at_mode_changed.emit(false, soldier_id)
-
+	if not is_pressed:
+		return
+	clear_map_edit_mode()
+	clear_move_targeting()
+	clear_face_mode()
+	clear_grenade_mode()
+	_squad_row.set_fire_at_pressed(false)
+	var active_row: SoldierCommandRow = null
+	for row in _rows:
+		if row.soldier_id != soldier_id:
+			row.set_fire_at_pressed(false)
+		else:
+			active_row = row
+	_fire_at_soldier_id = soldier_id
+	_select_soldier(soldier_id, true)
+	fire_at_mode_changed.emit(true, soldier_id)
+	if active_row != null:
+		active_row.flash_fire_at()
 	_update_status()
 
 
 func _on_row_face_toggled(soldier_id: int, is_pressed: bool) -> void:
-	if is_pressed:
-		clear_map_edit_mode()
-		clear_move_targeting()
-		clear_fire_at_mode()
-		clear_grenade_mode()
-		_squad_row.set_face_pressed(false)
-		for row in _rows:
-			if row.soldier_id != soldier_id:
-				row.set_face_pressed(false)
-		_face_soldier_id = soldier_id
-		_select_soldier(soldier_id, true)
-		face_mode_changed.emit(true, soldier_id)
-	else:
-		if _face_soldier_id == soldier_id:
-			_face_soldier_id = -1
-		face_mode_changed.emit(false, soldier_id)
-
+	if not is_pressed:
+		return
+	clear_map_edit_mode()
+	clear_move_targeting()
+	clear_fire_at_mode()
+	clear_grenade_mode()
+	_squad_row.set_face_pressed(false)
+	var active_row: SoldierCommandRow = null
+	for row in _rows:
+		if row.soldier_id != soldier_id:
+			row.set_face_pressed(false)
+		else:
+			active_row = row
+	_face_soldier_id = soldier_id
+	_select_soldier(soldier_id, true)
+	face_mode_changed.emit(true, soldier_id)
+	if active_row != null:
+		active_row.flash_face()
 	_update_status()
 
 
 func _on_row_grenade_toggled(soldier_id: int, is_pressed: bool) -> void:
-	if is_pressed:
-		clear_map_edit_mode()
-		clear_move_targeting()
-		clear_fire_at_mode()
-		clear_face_mode()
-		_squad_row.set_grenade_pressed(false)
-		for row in _rows:
-			if row.soldier_id != soldier_id:
-				row.set_grenade_pressed(false)
-		_grenade_soldier_id = soldier_id
-		_select_soldier(soldier_id, true)
-		grenade_mode_changed.emit(true, soldier_id)
-	else:
-		if _grenade_soldier_id == soldier_id:
-			_grenade_soldier_id = -1
-		grenade_mode_changed.emit(false, soldier_id)
-
+	if not is_pressed:
+		return
+	clear_map_edit_mode()
+	clear_move_targeting()
+	clear_fire_at_mode()
+	clear_face_mode()
+	_squad_row.set_grenade_pressed(false)
+	var active_row: SoldierCommandRow = null
+	for row in _rows:
+		if row.soldier_id != soldier_id:
+			row.set_grenade_pressed(false)
+		else:
+			active_row = row
+	_grenade_soldier_id = soldier_id
+	_select_soldier(soldier_id, true)
+	grenade_mode_changed.emit(true, soldier_id)
+	if active_row != null:
+		active_row.flash_grenade()
 	_update_status()
 
 
@@ -525,6 +544,11 @@ func _on_row_fire_control_selected(soldier_id: int, fire_control_state: int) -> 
 
 
 func _on_row_position_toggled(soldier_id: int, is_down: bool) -> void:
+	clear_map_edit_mode()
+	clear_move_targeting()
+	clear_fire_at_mode()
+	clear_face_mode()
+	clear_grenade_mode()
 	_select_soldier(soldier_id, true)
 	position_change_requested.emit(
 		soldier_id,
