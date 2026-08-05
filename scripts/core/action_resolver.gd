@@ -1066,8 +1066,6 @@ static func execute_grenade(
 		return ActionResult.fail("Soldier unavailable.")
 	if soldier.is_stunned():
 		return ActionResult.fail("Soldier is stunned.")
-	if soldier.is_moving:
-		return ActionResult.fail("Cannot throw a grenade while moving.")
 	if soldier.has_pending_grenade():
 		return ActionResult.fail("Soldier already has a grenade in the air.")
 	if soldier.grenade_count <= 0:
@@ -1075,14 +1073,18 @@ static func execute_grenade(
 	if not game_state.map_data.is_in_bounds(cmd.target_cell):
 		return ActionResult.fail("That tile is outside the map.")
 
+	## Range / friendly checks use current cell (where a runner would halt).
 	var throw_distance := CombatSystem.grenade_throw_distance(
 		soldier.grid_position,
 		cmd.target_cell,
 	)
 	if throw_distance > GameplayPolicies.grenade.throw_range:
 		return ActionResult.fail("Target is out of grenade range.")
+	if CombatSystem.grenade_would_hit_friendly(game_state, soldier.team_id, cmd.target_cell):
+		return ActionResult.fail("Cannot throw — friendly soldiers in blast radius.")
 
 	var result := ActionResult.new()
+	## In range: stop running and throw from the current tile.
 	if _halt_soldier_for_combat(game_state, soldier, result):
 		result.clear_path_overlay = true
 		result.clear_move_targeting = true

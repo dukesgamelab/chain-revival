@@ -31,6 +31,9 @@ func _ready() -> void:
 	_test_squad_run_to_redirect_keeps_formation()
 	_test_firing()
 	_test_grenade_throwing()
+	_test_grenade_rejects_friendly_blast()
+	_test_grenade_skips_friendly_stun()
+	_test_grenade_halt_and_throw_while_moving()
 	_test_los_fixture()
 	_test_climb_short_wall_fire_over()
 	_test_wall_cover_fixture()
@@ -331,13 +334,26 @@ func _test_firing() -> void:
 	)
 
 
+func _park_friendlies_away(game_state: GameState, thrower_team: int, thrower_id: int) -> void:
+	for fireteam in game_state.session.all_fireteams():
+		if fireteam.team_id != thrower_team:
+			continue
+		for state in fireteam.soldiers:
+			if state == null or state.soldier_id == thrower_id:
+				continue
+			state.grid_position = Vector2i(2, 2)
+			state.clear_path()
+
+
 func _test_grenade_throwing() -> void:
 	_bootstrap()
 	var game_state := _make_game_state()
 	var thrower := game_state.get_soldier(Team.USA, 1)
 	thrower.grid_position = Vector2i(20, 30)
 	thrower.clear_path()
-	var target_cell := Vector2i(22, 30)
+	_park_friendlies_away(game_state, Team.USA, 1)
+	## Far enough that blast (radius 3) cannot reach the thrower.
+	var target_cell := Vector2i(24, 30)
 	var count_before := thrower.grenade_count
 
 	var cmd := GrenadeCommandClass.new()
@@ -366,6 +382,94 @@ func _test_grenade_throwing() -> void:
 		tick.grenade_explosions.size() == 1 and not thrower.has_pending_grenade(),
 		"explosions=%d pending=%s"
 		% [tick.grenade_explosions.size(), thrower.has_pending_grenade()],
+	)
+
+
+func _test_grenade_rejects_friendly_blast() -> void:
+	_bootstrap()
+	var game_state := _make_game_state()
+	var thrower := game_state.get_soldier(Team.USA, 1)
+	var buddy := game_state.get_soldier(Team.USA, 2)
+	thrower.grid_position = Vector2i(20, 30)
+	buddy.grid_position = Vector2i(24, 30)
+	thrower.clear_path()
+	buddy.clear_path()
+	_park_friendlies_away(game_state, Team.USA, 1)
+	## Put buddy back inside the intended blast after parking others.
+	buddy.grid_position = Vector2i(24, 30)
+	var cmd := GrenadeCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = 1
+	cmd.target_cell = Vector2i(24, 30)
+	var result := ActionResolverClass.execute_grenade(
+		game_state, cmd, CommandContextClass.new()
+	)
+	_assert(
+		"Grenade throw rejected when friendly in blast",
+		not result.success,
+		result.status_message,
+	)
+	_assert(
+		"Friendly-blast helper detects buddy",
+		CombatSystemClass.grenade_would_hit_friendly(game_state, Team.USA, Vector2i(24, 30)),
+	)
+
+
+func _test_grenade_skips_friendly_stun() -> void:
+	_bootstrap()
+	var game_state := _make_game_state()
+	var thrower := game_state.get_soldier(Team.USA, 1)
+	var buddy := game_state.get_soldier(Team.USA, 2)
+	var enemy := game_state.get_soldier(Team.GERMANY, 1)
+	thrower.grid_position = Vector2i(10, 10)
+	buddy.grid_position = Vector2i(21, 30)
+	enemy.grid_position = Vector2i(22, 30)
+	thrower.clear_path()
+	buddy.clear_path()
+	enemy.clear_path()
+	var explosion := CombatSystemClass.resolve_grenade(game_state, thrower, Vector2i(22, 30))
+	var buddy_hit := false
+	for entry in explosion.stunned:
+		if int(entry.get("team_id", -1)) == Team.USA:
+			buddy_hit = true
+	for entry in explosion.killed:
+		if int(entry.get("team_id", -1)) == Team.USA:
+			buddy_hit = true
+	_assert("Grenade blast does not stun/kill friendlies", not buddy_hit)
+	_assert("Buddy remains unstunned", not buddy.is_stunned())
+	_assert(
+		"Enemy still affected by blast",
+		not explosion.stunned.is_empty() or not explosion.killed.is_empty(),
+	)
+
+
+func _test_grenade_halt_and_throw_while_moving() -> void:
+	_bootstrap()
+	var game_state := _make_game_state()
+	var thrower := game_state.get_soldier(Team.USA, 1)
+	thrower.grid_position = Vector2i(20, 30)
+	_park_friendlies_away(game_state, Team.USA, 1)
+	var path: Array[Vector2i] = [
+		Vector2i(20, 30),
+		Vector2i(21, 30),
+		Vector2i(22, 30),
+		Vector2i(23, 30),
+	]
+	thrower.assign_path(path, 1.0)
+	_assert("Thrower starts moving", thrower.is_moving)
+	var cmd := GrenadeCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = 1
+	cmd.target_cell = Vector2i(24, 30)
+	var result := ActionResolverClass.execute_grenade(
+		game_state, cmd, CommandContextClass.new()
+	)
+	_assert("Moving soldier can halt and throw in range", result.success, result.status_message)
+	_assert("Thrower stopped moving after grenade", not thrower.is_moving)
+	_assert("Grenade armed after drain-and-throw", thrower.has_pending_grenade())
+	_assert(
+		"Movement halt recorded for presentation",
+		not result.movement_halts.is_empty(),
 	)
 
 
@@ -986,6 +1090,7 @@ func _test_grenade_range_cap() -> void:
 	var thrower := game_state.get_soldier(Team.USA, 1)
 	thrower.grid_position = Vector2i(20, 30)
 	thrower.clear_path()
+	_park_friendlies_away(game_state, Team.USA, 1)
 	var cmd := GrenadeCommandClass.new()
 	cmd.team_id = Team.USA
 	cmd.soldier_id = 1
@@ -1218,7 +1323,8 @@ func _test_grenade_object_registry() -> void:
 	var thrower := game_state.get_soldier(Team.USA, 1)
 	thrower.grid_position = Vector2i(20, 30)
 	thrower.clear_path()
-	var target_cell := Vector2i(22, 30)
+	_park_friendlies_away(game_state, Team.USA, 1)
+	var target_cell := Vector2i(24, 30)
 	var grenade_id := ObjectId.grenade(Team.USA, 1)
 
 	var cmd := GrenadeCommandClass.new()

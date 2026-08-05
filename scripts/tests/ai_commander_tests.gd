@@ -274,6 +274,8 @@ func _test_submits_move_face_fire_grenade() -> void:
 		soldier_g.clear_path()
 		soldier_g.is_moving = false
 		soldier_g.grenade_count = maxi(soldier_g.grenade_count, 1)
+		## Stay in throw range (5) but outside blast (3) of the USA cluster.
+		soldier_g.grid_position = Vector2i(27 + (i % 2), 20 + (i / 2))
 	## Pack USA on adjacent cells so cluster >= 2.
 	for sid in range(1, 5):
 		var usa_s = gs.get_soldier(Team.USA, sid)

@@ -1114,12 +1114,19 @@ func _try_grenade(game_state, submit_command: Callable, visible: Array) -> void:
 			cluster += 1
 	if cluster < 2 and aggression < 1.5:
 		return
+	var team_id: int = game_state.command_hierarchy.get_team_id(player_id)
+	if CombatSystem.grenade_would_hit_friendly(game_state, team_id, impact):
+		return
+	## Prefer a thrower already in range (movers halt-and-throw from current cell).
 	for soldier in _living_soldiers(game_state):
 		if soldier.grenade_count <= 0:
 			continue
 		if soldier.has_pending_grenade():
 			continue
-		if soldier.is_moving:
+		if (
+			CombatSystem.grenade_throw_distance(soldier.grid_position, impact)
+			> GameplayPolicies.grenade.throw_range
+		):
 			continue
 		var cmd := GrenadeCommandClass.new()
 		cmd.team_id = soldier.team_id

@@ -2015,7 +2015,29 @@ static func _is_wall_blocker_type(blocking_type: String) -> bool:
 	return def != null and def.cover_type == CoverSystemClass.CoverType.COMPLETE
 
 
+## True when a living same-team soldier (including the thrower) is inside the blast.
+static func grenade_would_hit_friendly(
+	game_state: GameStateClass,
+	thrower_team_id: int,
+	explosion_cell: Vector2i,
+) -> bool:
+	if game_state == null or game_state.session == null:
+		return false
+	var radius := GameplayPolicies.grenade.blast_radius
+	for fireteam in game_state.session.all_fireteams():
+		if fireteam == null or fireteam.team_id != thrower_team_id:
+			continue
+		for state in fireteam.soldiers:
+			var soldier: SoldierStateClass = state
+			if soldier == null or soldier.is_dead:
+				continue
+			if _chebyshev_distance(soldier.grid_position, explosion_cell) <= radius:
+				return true
+	return false
+
+
 ## Grenade blast resolution — Chebyshev radius; cover ignored for V1.
+## Same-team soldiers are never killed or stunned (friendly fire off for nades).
 static func resolve_grenade(
 	game_state: GameStateClass,
 	thrower: SoldierStateClass,
@@ -2034,6 +2056,9 @@ static func resolve_grenade(
 		for state in fireteam.soldiers:
 			var soldier: SoldierStateClass = state
 			if soldier.is_dead:
+				continue
+			## Own / friendly team — never affected by this thrower's blast.
+			if soldier.team_id == thrower.team_id:
 				continue
 
 			var distance := _chebyshev_distance(soldier.grid_position, explosion_cell)

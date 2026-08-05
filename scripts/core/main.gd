@@ -888,7 +888,13 @@ func _update_grenade_preview() -> void:
 		and CombatSystem.grenade_throw_distance(shooter.grid_position, target_cell)
 		<= CombatSystem.GRENADE_THROW_RANGE
 	)
-	_los_visualizer.show_grenade_throw_preview(from_world, target_world, in_range)
+	var safe_for_friendlies := (
+		in_range
+		and not CombatSystem.grenade_would_hit_friendly(
+			_game_state, shooter.team_id, target_cell
+		)
+	)
+	_los_visualizer.show_grenade_throw_preview(from_world, target_world, safe_for_friendlies)
 
 	if _grenade_soldier_id == CommandBar.SQUAD_ID:
 		var fireteam: Fireteam = _control_fireteam()
@@ -2305,11 +2311,11 @@ func _apply_squad_grenade_command(target_cell: Vector2i) -> void:
 			or soldier_state.grenade_count <= 0
 			or soldier_state.is_stunned()
 			or soldier_state.has_pending_grenade()
-			or soldier_state.is_moving
 		):
 			continue
 		if not _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id):
 			continue
+		## Movers may halt-and-throw when the target is in range (resolver enforces).
 		var cmd := GrenadeCommand.new()
 		cmd.team_id = _session.active_team_id
 		cmd.soldier_id = soldier_state.soldier_id
