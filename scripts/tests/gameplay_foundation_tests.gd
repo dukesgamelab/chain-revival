@@ -46,6 +46,7 @@ func _ready() -> void:
 	_test_grenade_sequence_reproducibility()
 	_test_policy_defaults_unchanged()
 	_test_lethality_multiplier()
+	_test_min_hit_chance_not_after_modifiers()
 	_test_recovered_weapon_stats()
 	_test_smg_vs_rifle_range_falloff()
 	_test_grenade_range_cap()
@@ -1125,6 +1126,71 @@ func _test_lethality_multiplier() -> void:
 		"a=%.4f b=%.4f" % [chance_a, chance_b],
 	)
 	GameplayPolicies.reload_from_config()
+
+
+func _test_min_hit_chance_not_after_modifiers() -> void:
+	## Stage 2: min_hit_chance floors base hit_chance only; cover/prone may go lower.
+	_bootstrap()
+	GameplayPolicies.reset_all_to_defaults()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+
+	var shooter_cell := Vector2i(10, 20)
+	var target_cell := Vector2i(28, 20) ## Manhattan 18 — long range
+	var cover_cell := Vector2i(27, 20) ## moderate cover on shooter-facing side
+	map_data.set_object(cover_cell, MapObjectRegistryClass.TYPE_HAYBAIL)
+
+	var game_state := _make_game_state(map_data)
+	var shooter := game_state.get_soldier(Team.USA, 1)
+	var target := game_state.get_soldier(Team.GERMANY, 1)
+	shooter.grid_position = shooter_cell
+	target.grid_position = target_cell
+	shooter.clear_path()
+	target.clear_path()
+	shooter.stress = 0.0
+	target.stress = 0.0
+	target.position_state = PositionStateClass.DOWN
+	game_state.session.get_fireteam(Team.USA).face_toward_tile(1, target.grid_position)
+
+	var weapon := shooter.get_weapon_data()
+	var base := CombatSystemClass.hit_chance(shooter_cell, target_cell, weapon)
+	_assert(
+		"Base hit_chance still floors at min_hit_chance",
+		base >= GameplayPolicies.hit.min_hit_chance - 0.0001,
+		"base=%.4f min=%.4f" % [base, GameplayPolicies.hit.min_hit_chance],
+	)
+
+	var los := LOSSystemClass.evaluate(shooter_cell, target_cell, map_data, game_state)
+	_assert(
+		"Long-range haybail setup grants moderate cover (not blocked)",
+		los.status != LOSSystemClass.Status.BLOCKED
+		and los.cover_type == CoverSystemClass.CoverType.MODERATE,
+		"status=%s cover=%s" % [los.status, los.cover_type],
+	)
+
+	var final_chance: float = CombatSystemClass._final_hit_chance(shooter, target, weapon, los)
+	var expected_ceiling := (
+		base
+		* GameplayPolicies.cover.moderate_hit_mult
+		* GameplayPolicies.hit.target_prone_hit_mult
+	)
+	_assert(
+		"Cover+prone final chance may fall below min_hit_chance",
+		final_chance < GameplayPolicies.hit.min_hit_chance,
+		"final=%.4f min=%.4f base=%.4f expected~%.4f"
+		% [final_chance, GameplayPolicies.hit.min_hit_chance, base, expected_ceiling],
+	)
+	_assert(
+		"Final chance stays in [0, 1]",
+		final_chance >= 0.0 and final_chance <= 1.0,
+		"final=%.4f" % final_chance,
+	)
+	_assert(
+		"Final chance roughly matches base × cover × prone",
+		is_equal_approx(final_chance, expected_ceiling),
+		"final=%.4f expected=%.4f" % [final_chance, expected_ceiling],
+	)
 
 
 func _test_recovered_weapon_stats() -> void:

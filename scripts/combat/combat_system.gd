@@ -1578,7 +1578,9 @@ static func _final_hit_chance(
 		chance *= GameplayPolicies.hit.shooter_prone_accuracy_mult
 	if target.position_state == PositionStateClass.DOWN:
 		chance *= GameplayPolicies.hit.target_prone_hit_mult
-	return clampf(chance, GameplayPolicies.hit.min_hit_chance, 1.0)
+	## Cover / prone / suppression may push below min_hit_chance — that floor
+	## applies only to base hit_chance(), not after situational multipliers.
+	return clampf(chance, 0.0, 1.0)
 
 
 static func is_in_weapon_range(
@@ -1808,7 +1810,8 @@ static func _get_engaged_target(
 	return target
 
 
-## Base hit chance before cover modifiers (distance + weapon bonus + range falloff).
+## Base hit chance before cover / prone / suppression (distance + weapon falloff).
+## min_hit_chance floors here only — situational multipliers may go lower.
 static func hit_chance(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
