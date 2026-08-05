@@ -529,7 +529,7 @@ func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> voi
 ## Manual / debug validation snapshot for 8-way facing + camera remap.
 func dump_facing_validation() -> Dictionary:
 	var world := FacingDirection.normalize(_last_applied_facing)
-	var cam := IsometricGrid.camera_direction_degrees()
+	var cam := _presentation_camera_degrees()
 	var anim_dir := UsSoldierSpriteFrames.direction_from_step(world)
 	var display_dir := AnimationDatabase.display_direction(anim_dir, cam)
 	var anim_name := str(_anim.animation) if _anim != null else ""
@@ -604,12 +604,14 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 	if _anim.sprite_frames == null:
 		return
 	## Presentation-only: prone locomotion uses crawl_* (APMOA/GPMOA). No root motion.
+	## `direction` is world letter; sprites use camera-remapped display letter.
 	var move_prefix := _locomotion_move_prefix()
+	var display_dir := _idle_display_direction(direction)
 	if walking and _locomotion_direction == direction and _locomotion_walking:
 		## Do not restart crawl/walk while stance, logical anim, and facing are unchanged.
 		if str(_anim.animation).begins_with("%s_" % move_prefix):
 			if not _anim.is_playing():
-				_anim.play("%s_%s" % [move_prefix, direction])
+				_anim.play("%s_%s" % [move_prefix, display_dir])
 			return
 	if not walking and _locomotion_direction == direction and not _locomotion_walking:
 		## Keep an in-flight standing fidget until it finishes or is cancelled.
@@ -618,7 +620,7 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		## Already stationary in this world facing — keep current idle pose
 		## unless peek side changed or we still need to start the correct idle.
 		var idle_semantic := _idle_standing_semantic()
-		var idle_anim_name := "%s_%s" % [idle_semantic, _idle_display_direction(direction)]
+		var idle_anim_name := "%s_%s" % [idle_semantic, display_dir]
 		if (
 			_idle_peek_side == _played_idle_peek_side
 			and _anim.sprite_frames.has_animation(idle_anim_name)
@@ -633,9 +635,7 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			and (
 				str(_anim.animation).begins_with("idle_prone_")
 				or (
-					not _anim.sprite_frames.has_animation(
-						"idle_prone_%s" % _idle_display_direction(direction)
-					)
+					not _anim.sprite_frames.has_animation("idle_prone_%s" % display_dir)
 					and (
 						str(_anim.animation).begins_with("walk_")
 						or str(_anim.animation).begins_with("crawl_")
@@ -652,10 +652,10 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 	_locomotion_walking = walking
 
 	if walking:
-		var move_name := "%s_%s" % [move_prefix, direction]
+		var move_name := "%s_%s" % [move_prefix, display_dir]
 		if not _anim.sprite_frames.has_animation(move_name) and move_prefix == "crawl":
 			## Fallback if a family still has an empty crawl stub.
-			move_name = "walk_%s" % direction
+			move_name = "walk_%s" % display_dir
 		if not _anim.sprite_frames.has_animation(move_name):
 			push_warning("Soldier: missing animation %s" % move_name)
 			return
@@ -677,10 +677,15 @@ func _locomotion_move_prefix() -> String:
 	return "walk"
 
 
+## Presentation camera for soldier sprites — same facet cam walls/windows use.
+func _presentation_camera_degrees() -> int:
+	return IsometricGrid.facet_camera_direction_degrees()
+
+
 func _idle_display_direction(world_direction: String) -> String:
 	return AnimationDatabase.display_direction(
 		world_direction,
-		IsometricGrid.camera_direction_degrees(),
+		_presentation_camera_degrees(),
 	)
 
 
@@ -815,17 +820,69 @@ func refresh_action_visual_for_camera() -> void:
 	if _stance_transition_active:
 		_remap_stance_transition_for_camera()
 		return
+	if _hit_reaction_active or _death_sequence_active:
+		_remap_hit_or_fall_for_camera()
+		return
 	if _idle_fidget_active:
 		_remap_standing_idle_fidget_for_camera()
 		return
 	if _blocks_action_override():
 		return
-	if _is_moving:
+	if _is_moving or _locomotion_walking:
+		_remap_locomotion_for_camera()
 		return
 	if _applied_position_state == PositionState.DOWN:
 		_remap_idle_prone_for_camera()
 		return
 	_remap_idle_standing_for_camera()
+
+
+func _remap_locomotion_for_camera() -> void:
+	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	var display_dir := _idle_display_direction(world_dir)
+	var move_prefix := _locomotion_move_prefix()
+	var anim_name := "%s_%s" % [move_prefix, display_dir]
+	if not _anim.sprite_frames.has_animation(anim_name) and move_prefix == "crawl":
+		anim_name = "walk_%s" % display_dir
+	if not _anim.sprite_frames.has_animation(anim_name):
+		return
+	var frame := _anim.frame
+	var progress := _anim.frame_progress
+	var was_playing := _anim.is_playing()
+	_anim.play(anim_name)
+	_anim.frame = mini(frame, maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0))
+	_anim.frame_progress = progress
+	if not was_playing:
+		_anim.pause()
+
+
+func _remap_hit_or_fall_for_camera() -> void:
+	var world_dir := _death_direction if not _death_direction.is_empty() else "n"
+	var display_dir := _idle_display_direction(world_dir)
+	var anim_name := str(_anim.animation)
+	var semantic := ""
+	if anim_name.begins_with("fall_"):
+		semantic = "fall"
+	elif not _hit_semantic.is_empty() and anim_name.begins_with("%s_" % _hit_semantic):
+		semantic = _hit_semantic
+	elif anim_name.begins_with("hit_"):
+		## hit_standing_n / hit_prone_n — first two tokens
+		var parts := anim_name.split("_")
+		if parts.size() >= 3:
+			semantic = "%s_%s" % [parts[0], parts[1]]
+	if semantic.is_empty():
+		return
+	var remapped := "%s_%s" % [semantic, display_dir]
+	if not _anim.sprite_frames.has_animation(remapped):
+		return
+	var frame := _anim.frame
+	var progress := _anim.frame_progress
+	var was_playing := _anim.is_playing()
+	_anim.play(remapped)
+	_anim.frame = mini(frame, maxi(_anim.sprite_frames.get_frame_count(remapped) - 1, 0))
+	_anim.frame_progress = progress
+	if not was_playing:
+		_anim.pause()
 
 
 func _remap_idle_standing_for_camera() -> void:
@@ -920,7 +977,7 @@ func play_hit_reaction(threat_step: Vector2i, position_state: int = PositionStat
 	_apply_hit_reaction_scale(position_state)
 	stop_movement()
 
-	var anim_name := "%s_%s" % [_hit_semantic, _death_direction]
+	var anim_name := "%s_%s" % [_hit_semantic, _idle_display_direction(_death_direction)]
 	if not _play_hit_animation(anim_name, position_state, false):
 		_hit_reaction_active = false
 		return
@@ -959,10 +1016,11 @@ func play_death_sequence(
 	_apply_hit_reaction_scale(position_state)
 	stop_movement()
 
-	var anim_name := "%s_%s" % [_hit_semantic, _death_direction]
+	var hit_display := _idle_display_direction(_death_direction)
+	var anim_name := "%s_%s" % [_hit_semantic, hit_display]
 	if not _play_hit_animation(anim_name, position_state, true):
 		## Missing hit frames must not invent idle; skip straight to fall if available.
-		_play_animation("fall_%s" % _death_direction)
+		_play_animation("fall_%s" % hit_display)
 
 
 ## Presentation-only grenade throw (ASTGA / GSPRA). Does not consume inventory or arm fuse.
@@ -1380,7 +1438,7 @@ func _remap_corner_presentation_for_camera() -> void:
 func dump_throw_grenade_validation() -> Dictionary:
 	var display_dir := _throw_display_direction() if _throw_grenade_active else AnimationDatabase.display_direction(
 		_throw_world_direction if not _throw_world_direction.is_empty() else "n",
-		IsometricGrid.camera_direction_degrees(),
+		IsometricGrid.facet_camera_direction_degrees(),
 	)
 	var anim_name := "throw_grenade_%s" % display_dir
 	var family_id := (
@@ -1398,7 +1456,7 @@ func dump_throw_grenade_validation() -> Dictionary:
 		"semantic": "throw_grenade",
 		"source_family": _throw_source_family(),
 		"world_facing": _throw_world_direction,
-		"camera_rotation": IsometricGrid.camera_direction_degrees(),
+		"camera_rotation": IsometricGrid.facet_camera_direction_degrees(),
 		"resolved_source_direction": display_dir,
 		"animation": anim_name,
 		"frame_index": frame_idx,
@@ -1413,7 +1471,7 @@ func dump_throw_grenade_validation() -> Dictionary:
 func _throw_display_direction() -> String:
 	return AnimationDatabase.display_direction(
 		_throw_world_direction,
-		IsometricGrid.camera_direction_degrees(),
+		_presentation_camera_degrees(),
 	)
 
 
@@ -1432,7 +1490,7 @@ func _cancel_throw_grenade_visual(resume_idle: bool) -> void:
 func _fire_display_direction() -> String:
 	return AnimationDatabase.display_direction(
 		_fire_world_direction,
-		IsometricGrid.camera_direction_degrees(),
+		_presentation_camera_degrees(),
 	)
 
 
@@ -1508,7 +1566,7 @@ func dump_fire_validation() -> Dictionary:
 	)
 	var display_dir := _fire_display_direction() if _fire_active else AnimationDatabase.display_direction(
 		_fire_world_direction if not _fire_world_direction.is_empty() else "n",
-		IsometricGrid.camera_direction_degrees(),
+		IsometricGrid.facet_camera_direction_degrees(),
 	)
 	var anim_name := "%s_%s" % [semantic, display_dir]
 	var family_id := (
@@ -1530,7 +1588,7 @@ func dump_fire_validation() -> Dictionary:
 		"semantic": semantic,
 		"source_family": _fire_source_family(),
 		"world_facing": _fire_world_direction,
-		"camera_rotation": IsometricGrid.camera_direction_degrees(),
+		"camera_rotation": IsometricGrid.facet_camera_direction_degrees(),
 		"resolved_source_direction": display_dir,
 		"animation": anim_name,
 		"frame_index": frame_idx,
@@ -1645,8 +1703,9 @@ func _on_anim_animation_finished() -> void:
 		return
 
 	if _is_hit_reaction_anim(anim_name):
-		_log_hit_completion(anim_name, "→ fall_%s" % _death_direction)
-		_play_animation("fall_%s" % _death_direction)
+		var fall_dir := _idle_display_direction(_death_direction)
+		_log_hit_completion(anim_name, "→ fall_%s" % fall_dir)
+		_play_animation("fall_%s" % fall_dir)
 	elif anim_name.begins_with("fall_"):
 		_log_hit_completion(anim_name, "→ dead_%s" % _death_direction)
 		_finish_death_sequence()
@@ -1769,10 +1828,7 @@ func _finish_death_sequence() -> void:
 func _show_dead_static(direction: String) -> void:
 	var world_dir := direction if not direction.is_empty() else "n"
 	_corpse_world_direction = world_dir
-	var display_dir := AnimationDatabase.display_direction(
-		world_dir,
-		IsometricGrid.camera_direction_degrees(),
-	)
+	var display_dir := _idle_display_direction(world_dir)
 	var family := _death_sprite_family.strip_edges().to_upper()
 	var anim_name := ""
 	if not family.is_empty():
@@ -1826,7 +1882,7 @@ func _log_dead_static_once(world_dir: String, display_dir: String, anim_name: St
 			soldier_id,
 			family,
 			world_dir.to_upper(),
-			IsometricGrid.camera_direction_degrees(),
+			IsometricGrid.facet_camera_direction_degrees(),
 			source_dir,
 			frame_stem,
 		]
@@ -1838,7 +1894,7 @@ func dump_dead_static_validation() -> Dictionary:
 	var world_dir := _corpse_world_direction
 	if world_dir.is_empty():
 		world_dir = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
-	var cam := IsometricGrid.camera_direction_degrees()
+	var cam := IsometricGrid.facet_camera_direction_degrees()
 	var display_dir := AnimationDatabase.display_direction(world_dir, cam)
 	return {
 		"soldier_id": soldier_id,
@@ -1903,7 +1959,7 @@ func _source_family_for_semantic(semantic: String) -> String:
 func _log_throw_grenade(anim_name: String, status: String) -> void:
 	if not DEBUG_THROW_GRENADE:
 		return
-	var cam_rot := IsometricGrid.camera_direction_degrees()
+	var cam_rot := IsometricGrid.facet_camera_direction_degrees()
 	var display_dir := _throw_display_direction()
 	var family_id := (
 		UsSoldierSpriteFrames.DB_FAMILY_USA
@@ -1952,7 +2008,7 @@ func _log_throw_grenade(anim_name: String, status: String) -> void:
 func _log_fire_anim(anim_name: String, status: String) -> void:
 	if not DEBUG_FIRE_ANIM:
 		return
-	var cam_rot := IsometricGrid.camera_direction_degrees()
+	var cam_rot := IsometricGrid.facet_camera_direction_degrees()
 	var display_dir := _fire_display_direction()
 	var family_id := (
 		UsSoldierSpriteFrames.DB_FAMILY_USA
@@ -2109,7 +2165,7 @@ func _finish_standing_idle_fidget(anim_name: String) -> void:
 func _log_idle_standing(anim_name: String, status: String) -> void:
 	if not DEBUG_IDLE_STANDING:
 		return
-	var cam_rot := IsometricGrid.camera_direction_degrees()
+	var cam_rot := IsometricGrid.facet_camera_direction_degrees()
 	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
 	var display_dir := _idle_display_direction(world_dir)
 	var family_id := (
@@ -2167,7 +2223,7 @@ func _log_idle_standing(anim_name: String, status: String) -> void:
 func _log_stance_transition(anim_name: String, status: String) -> void:
 	if not DEBUG_STANCE_TRANSITION:
 		return
-	var cam_rot := IsometricGrid.camera_direction_degrees()
+	var cam_rot := IsometricGrid.facet_camera_direction_degrees()
 	var world_dir := (
 		_stance_transition_world_direction
 		if not _stance_transition_world_direction.is_empty()
@@ -2237,7 +2293,7 @@ func _log_hit_reaction(
 ) -> void:
 	if not DEBUG_HIT_REACTION:
 		return
-	var cam_rot := IsometricGrid.camera_direction_degrees()
+	var cam_rot := IsometricGrid.facet_camera_direction_degrees()
 	var world_dir := _death_direction
 	var display_dir := AnimationDatabase.display_direction(world_dir, cam_rot)
 	var fps := 0.0
