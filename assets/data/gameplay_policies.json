@@ -7,6 +7,7 @@
 		"shooter_prone_accuracy_mult": 1.15,
 		"target_prone_hit_mult": 0.55,
 		"moderate_cover_hit_mult": 0.5,
+		"lethality_multiplier": 0.4,
 		"auto_target_engaged_bonus": 10.0,
 		"auto_fire_scan_interval": 0.5,
 		"fire_prep_delay_sec": 1.0,

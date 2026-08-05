@@ -9,6 +9,11 @@ const DEFAULT_MIN_HIT_CHANCE := 0.10
 const DEFAULT_SHOOTER_PRONE_ACCURACY_MULT := 1.15
 const DEFAULT_TARGET_PRONE_HIT_MULT := 0.55
 const DEFAULT_MODERATE_COVER_HIT_MULT := 0.5
+## RECOVERED INITKilledProbability = 0.20 (separate kill roll after hit).
+const RECOVERED_LETHALITY_MULTIPLIER := 0.20
+## TUNED — compensates for missing wound state; drop to RECOVERED (0.20) when WIA lands.
+## Folded into the hit roll as P(death) = HitFinal × lethality_multiplier until wounds exist.
+const DEFAULT_LETHALITY_MULTIPLIER := 0.40
 const DEFAULT_AUTO_TARGET_ENGAGED_BONUS := 10.0
 const DEFAULT_AUTO_FIRE_SCAN_INTERVAL := 0.5
 const DEFAULT_FIRE_PREP_DELAY_SEC := 1.0
@@ -43,6 +48,8 @@ var shooter_prone_accuracy_mult: float = DEFAULT_SHOOTER_PRONE_ACCURACY_MULT
 var target_prone_hit_mult: float = DEFAULT_TARGET_PRONE_HIT_MULT
 ## Kept in sync with CoverPolicy.moderate_hit_mult for backward-compatible callers.
 var moderate_cover_hit_mult: float = DEFAULT_MODERATE_COVER_HIT_MULT
+## Multiplies HitFinal immediately before the kill roll. Not baked into hit_chance().
+var lethality_multiplier: float = DEFAULT_LETHALITY_MULTIPLIER
 var auto_target_engaged_bonus: float = DEFAULT_AUTO_TARGET_ENGAGED_BONUS
 var auto_fire_scan_interval: float = DEFAULT_AUTO_FIRE_SCAN_INTERVAL
 var fire_prep_delay_sec: float = DEFAULT_FIRE_PREP_DELAY_SEC
@@ -76,6 +83,7 @@ func reset_to_defaults() -> void:
 	shooter_prone_accuracy_mult = DEFAULT_SHOOTER_PRONE_ACCURACY_MULT
 	target_prone_hit_mult = DEFAULT_TARGET_PRONE_HIT_MULT
 	moderate_cover_hit_mult = DEFAULT_MODERATE_COVER_HIT_MULT
+	lethality_multiplier = DEFAULT_LETHALITY_MULTIPLIER
 	auto_target_engaged_bonus = DEFAULT_AUTO_TARGET_ENGAGED_BONUS
 	auto_fire_scan_interval = DEFAULT_AUTO_FIRE_SCAN_INTERVAL
 	fire_prep_delay_sec = DEFAULT_FIRE_PREP_DELAY_SEC
@@ -107,6 +115,7 @@ func apply_config(section: Dictionary) -> void:
 	_set_float(section, "shooter_prone_accuracy_mult", "shooter_prone_accuracy_mult")
 	_set_float(section, "target_prone_hit_mult", "target_prone_hit_mult")
 	_set_float(section, "moderate_cover_hit_mult", "moderate_cover_hit_mult")
+	_set_float(section, "lethality_multiplier", "lethality_multiplier")
 	_set_float(section, "auto_target_engaged_bonus", "auto_target_engaged_bonus")
 	_set_float(section, "auto_fire_scan_interval", "auto_fire_scan_interval")
 	_set_float(section, "fire_prep_delay_sec", "fire_prep_delay_sec")

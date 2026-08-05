@@ -17,6 +17,7 @@ const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
 const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
 const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
 const CombatSystemClass := preload("res://scripts/combat/combat_system.gd")
+const HitChancePolicyClass := preload("res://scripts/gameplay_policies/hit_chance_policy.gd")
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
 const MapAssetRegistryClass := preload("res://scripts/map/map_asset_registry.gd")
 
@@ -44,6 +45,7 @@ func _ready() -> void:
 	_test_firing_sequence_reproducibility()
 	_test_grenade_sequence_reproducibility()
 	_test_policy_defaults_unchanged()
+	_test_lethality_multiplier()
 	_test_recovered_weapon_stats()
 	_test_smg_vs_rifle_range_falloff()
 	_test_grenade_range_cap()
@@ -997,6 +999,10 @@ func _test_grenade_sequence_reproducibility() -> void:
 func _test_policy_defaults_unchanged() -> void:
 	GameplayPolicies.reset_all_to_defaults()
 	_assert("Hit chance policy base unchanged", is_equal_approx(GameplayPolicies.hit.clear_base_hit_chance, 0.78))
+	_assert(
+		"Hit lethality multiplier is tuned 0.40",
+		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.40),
+	)
 	_assert("Grenade policy range is recovered 5", GameplayPolicies.grenade.throw_range == 5)
 	_assert("Grenade policy blast unchanged", GameplayPolicies.grenade.blast_radius == 3)
 	_assert("Grenade policy kill chance unchanged", is_equal_approx(GameplayPolicies.grenade.kill_chance, 0.25))
@@ -1023,6 +1029,102 @@ func _test_policy_defaults_unchanged() -> void:
 	)
 	_assert("Simulation tick hz default 20", SimulationClock.tick_hz == 20)
 	_assert("Simulation tick msec is 50", SimulationClock.tick_msec() == 50)
+
+
+func _advance_past_fire_prep(shooter: SoldierState) -> void:
+	var delay_msec := int(ceil(CombatSystemClass.get_aim_delay_sec(shooter) * 1000.0)) + 50
+	SimulationClock.advance_msec(delay_msec)
+
+
+func _test_lethality_multiplier() -> void:
+	## HitFinal numbers stay untouched; lethality only scales the kill roll.
+	_bootstrap()
+	GameplayPolicies.reset_all_to_defaults()
+	_assert(
+		"Default lethality is TUNED 0.40 (not recovered 0.20)",
+		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.40),
+		"got=%s" % GameplayPolicies.hit.lethality_multiplier,
+	)
+	_assert(
+		"Recovered INITKilledProbability constant is 0.20",
+		is_equal_approx(HitChancePolicyClass.RECOVERED_LETHALITY_MULTIPLIER, 0.20),
+	)
+
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var shooter := game_state.get_soldier(Team.USA, 1)
+	var target := game_state.get_soldier(Team.GERMANY, 1)
+	shooter.grid_position = Vector2i(20, 30)
+	target.grid_position = Vector2i(22, 30)
+	shooter.clear_path()
+	target.clear_path()
+	shooter.stress = 0.0
+	target.stress = 0.0
+	game_state.session.get_fireteam(Team.USA).face_toward_tile(1, target.grid_position)
+
+	## lethality 0 → never kills even when shots fire.
+	GameplayPolicies.hit.lethality_multiplier = 0.0
+	GameRandom.reseed(11)
+	var never_killed := true
+	var zero_lethality_fired := 0
+	for _i in range(12):
+		target.is_dead = false
+		target.position_state = PositionStateClass.UP
+		target.death_sprite_family = ""
+		shooter.ammo_current = maxi(shooter.ammo_current, 30)
+		CombatSystemClass.begin_fire_prep(shooter)
+		_advance_past_fire_prep(shooter)
+		var miss_shot := CombatSystemClass.resolve_shot(game_state, shooter, target, false)
+		if miss_shot.fired:
+			zero_lethality_fired += 1
+		if miss_shot.killed or target.is_dead:
+			never_killed = false
+			break
+		SimulationClock.advance_msec(2000)
+	_assert("lethality 0.0 still fires shots", zero_lethality_fired >= 1)
+	_assert("lethality 0.0 never kills", never_killed)
+
+	## lethality 1.0 → kill rate matches HitFinal (pre-fold behavior).
+	GameplayPolicies.hit.lethality_multiplier = 1.0
+	GameRandom.reseed(42)
+	var kills_at_full := 0
+	var full_lethality_fired := 0
+	for _i in range(20):
+		target.is_dead = false
+		target.position_state = PositionStateClass.UP
+		target.death_sprite_family = ""
+		target.stress = 0.0
+		shooter.stress = 0.0
+		shooter.ammo_current = maxi(shooter.ammo_current, 30)
+		CombatSystemClass.begin_fire_prep(shooter)
+		_advance_past_fire_prep(shooter)
+		var full_shot := CombatSystemClass.resolve_shot(game_state, shooter, target, false)
+		if full_shot.fired:
+			full_lethality_fired += 1
+		if full_shot.killed:
+			kills_at_full += 1
+		SimulationClock.advance_msec(2000)
+	_assert("lethality 1.0 fires shots", full_lethality_fired >= 1)
+	_assert(
+		"lethality 1.0 can kill at close range",
+		kills_at_full >= 1,
+		"kills=%d fired=%d/20" % [kills_at_full, full_lethality_fired],
+	)
+
+	## Tuned 0.40 must leave hit_chance() itself unchanged.
+	GameplayPolicies.hit.lethality_multiplier = 0.40
+	var rifle := GameplayPolicies.weapons.create_weapon("m1_garand")
+	var chance_a := CombatSystemClass.hit_chance(Vector2i(0, 0), Vector2i(8, 0), rifle)
+	GameplayPolicies.hit.lethality_multiplier = 0.0
+	var chance_b := CombatSystemClass.hit_chance(Vector2i(0, 0), Vector2i(8, 0), rifle)
+	_assert(
+		"hit_chance() ignores lethality_multiplier",
+		is_equal_approx(chance_a, chance_b),
+		"a=%.4f b=%.4f" % [chance_a, chance_b],
+	)
+	GameplayPolicies.reload_from_config()
 
 
 func _test_recovered_weapon_stats() -> void:

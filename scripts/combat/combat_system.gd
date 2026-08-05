@@ -380,8 +380,16 @@ static func resolve_shot(
 			% [int(round(base_chance * 100.0)), int(round(chance * 100.0))],
 		)
 
+	## P(death) = HitFinal × lethality. Hit curve stays untouched so WIA can split
+	## this back into a second roll later (set lethality_multiplier to 1.0 then).
+	var kill_chance := clampf(
+		chance * GameplayPolicies.hit.lethality_multiplier,
+		0.0,
+		1.0,
+	)
+
 	# V1: one hit roll per burst; future version can roll once per bullet in rounds_per_attack.
-	if GameRandom.chance(chance):
+	if GameRandom.chance(kill_chance):
 		result.hit = true
 		result.messages.append("%s hit" % weapon.weapon_name)
 		target.mark_killed()
