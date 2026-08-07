@@ -429,9 +429,9 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 					request_replan("contact_lost")
 			else:
 				## Fight from cover — do not push the objective while enemies are visible.
-				## Hold objectives: if a soldier left their post, send them back first.
-				if _is_hold_objective() and not _defensive_posts_reached(game_state):
-					_move_to_defensive_posts(game_state, find_path, submit_command)
+				## Under fire, do NOT bounce back to defensive posts: post moves are not
+				## contact-bound, so _engage_contact would Halt them every tick (stutter-step).
+				## Return to posts only after contact is lost (branch above).
 				_engage_contact(game_state, find_path, submit_command, visible)
 		AiCommanderStateClass.OBJECTIVE_COMPLETE:
 			if _is_hold_objective():

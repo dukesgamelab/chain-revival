@@ -60,6 +60,7 @@ func _ready() -> void:
 	_test_defend_hold_faces_approach()
 	_test_defensive_posts_stay_cohesive()
 	_test_defensive_posts_spread_along_cover()
+	_test_defend_under_fire_does_not_stutter_to_posts()
 	_test_threat_scoring_prefers_close_exposed()
 	_test_dedup_expires()
 	print("")
@@ -950,6 +951,80 @@ func _test_defensive_posts_spread_along_cover() -> void:
 		unique.size() == posts.size(),
 		"posts=%s" % posts,
 	)
+
+
+func _test_defend_under_fire_does_not_stutter_to_posts() -> void:
+	## Regression: FIGHT + hold used to Move→posts then Halt every tick (stutter-step).
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	gs.command_hierarchy.set_selected_ai_plan(2, AiPlanClass.ID_DEFEND)
+	gs.command_hierarchy.set_active_ai_plan(2, AiPlanClass.ID_DEFEND)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var wall := Vector2i(34, 22)
+	map_data.set_object(wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	## Germans off their posts; USA in LOS so contact engages.
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = Vector2i(35, 22)
+		ger.clear_path()
+		ger.is_moving = false
+		ger.position_state = PositionStateClass.UP
+		ger.facing_direction = FacingDirectionClass.WEST
+	for sid in range(1, 5):
+		var usa = gs.get_soldier(Team.USA, sid)
+		if usa == null:
+			continue
+		usa.grid_position = Vector2i(28, 22)
+		usa.facing_direction = FacingDirectionClass.EAST
+		usa.clear_path()
+	CombatSystem.clear_player_visibility_cache()
+	CombatSystem.notify_command_hierarchy_changed(gs)
+	CombatSystem.update_spotting(gs)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	_think_cycle(fw, gs)
+	commander = fw.get_commander(2)
+	_assert("defend under fire has hold objective", commander._is_hold_objective())
+	_assert("defend under fire assigned posts", not commander._defensive_posts.is_empty())
+	## Force posts away so "return to post" would fire if the bug returned.
+	var post_cell := Vector2i(42, 22)
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		commander._defensive_posts[int(sid)] = post_cell
+	commander.state_id = AiCommanderStateClass.FIGHT
+	commander._settled_in_cover = true
+	commander._contact_bound_active = false
+	commander._cover_threat_cell = Vector2i(28, 22)
+	_assert("posts not reached before fight tick", not commander._defensive_posts_reached(gs))
+	for _i in 3:
+		for sid in gs.command_hierarchy.get_soldier_ids(2):
+			var ger2 = gs.get_soldier(Team.GERMANY, int(sid))
+			if ger2 == null:
+				continue
+			ger2.clear_path()
+			ger2.is_moving = false
+		_submitted.clear()
+		_think_cycle(fw, gs)
+		SimulationClock.advance_msec(200)
+		var saw_halt := false
+		var saw_post_move := false
+		for cmd in _submitted:
+			if cmd is HaltCommandClass:
+				saw_halt = true
+			if cmd is MoveCommandClass and cmd.target_cell == post_cell:
+				saw_post_move = true
+		_assert(
+			"defend under fire does not Move back to posts",
+			not saw_post_move,
+			"tick submitted=%s" % str(_submitted),
+		)
+		_assert(
+			"defend under fire does not Halt post bounce",
+			not saw_halt,
+			"tick submitted=%s" % str(_submitted),
+		)
 
 
 func _test_threat_scoring_prefers_close_exposed() -> void:
