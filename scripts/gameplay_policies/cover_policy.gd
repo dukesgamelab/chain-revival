@@ -1,29 +1,49 @@
 class_name CoverPolicy
 extends RefCounted
-## Cover hit / visibility modifiers + directional geometric cover check.
-## Geometry matches the original's shooter-facing scan around the target.
-## Gameplay asks: "Is the target in cover from this shot direction?"
+## Cover hit / visibility modifiers + 8-direction adjacency cover check.
+## Geometry: one compass-slot lookup on the target (shot-direction facing).
+## Hit curve: recovered INITCoverHitMultiplier / INITCoverRangeLimit.
 
-## TUNED magnitude — keep existing feel; this policy changes *when* cover applies.
+## Deprecated flat mult — replaced by cover_multiplier_for_range(). Kept for config compat.
 const DEFAULT_MODERATE_HIT_MULT := 0.5
 const DEFAULT_MODERATE_VISIBILITY_MULT := 0.65
 
-## RECOVERED from Initial-*.oin (values confirmed; combination arithmetic unresolved).
+## RECOVERED from Initial-*.oin.
 const INIT_COVER_IN_MULTIPLIER := 1.0
-const INIT_COVER_HIT_MULTIPLIER := 0.005 ## how this combines into hit chance is UNRESOLVED
-const INIT_COVER_RANGE_LIMIT := 3 ## Chebyshev scan radius around target (leaning; OG used OffsetX/Y box)
+const INIT_COVER_HIT_MULTIPLIER := 0.005 ## full-strength cover hit mult at range >= limit
+const INIT_COVER_RANGE_LIMIT := 3 ## range (tiles) at which cover reaches full strength
 const INIT_MIN_DUCKING_RANGE := 4
 const INIT_KILLED_PROBABILITY := 20
 
-## UNRESOLVED: whether multiple qualifying tiles stack. Default FIRST = boolean / first hit
-## (weakly supported by original int flag datatypes).
+## TUNED optional per-obstruction strength. Original treats wall/hedge identically (= 1.0).
+const DEFAULT_OBJECT_COVER_STRENGTH := 1.0
+
+## Eight compass offsets stored on the target (N, NE, E, SE, S, SW, W, NW).
+const DIR8_OFFSETS: Array[Vector2i] = [
+	Vector2i(0, -1),
+	Vector2i(1, -1),
+	Vector2i(1, 0),
+	Vector2i(1, 1),
+	Vector2i(0, 1),
+	Vector2i(-1, 1),
+	Vector2i(-1, 0),
+	Vector2i(-1, -1),
+]
+
+## UNRESOLVED: whether multiple qualifying tiles stack. Default FIRST = single slot.
 enum StackMode { FIRST, COUNT }
 
-enum Qualifier { NONE, CORNER } ## CORNER models PseudoCover / CoverCorner — not a weaker tier
+enum Qualifier { NONE, CORNER } ## CORNER = diagonal compass slot (PseudoCover)
 
-var moderate_hit_mult: float = DEFAULT_MODERATE_HIT_MULT
+
+var moderate_hit_mult: float = DEFAULT_MODERATE_HIT_MULT ## deprecated flat alias
 var moderate_visibility_mult: float = DEFAULT_MODERATE_VISIBILITY_MULT
+## RECOVERED — full-strength cover hit multiplier (not a geometry radius).
+var cover_hit_multiplier: float = INIT_COVER_HIT_MULTIPLIER
+## RECOVERED — combat range at which cover_hit_multiplier applies in full.
 var cover_range_limit: int = INIT_COVER_RANGE_LIMIT
+## TUNED — multiplies the recovered curve; default 1.0 (no type differentiation).
+var object_cover_strength: float = DEFAULT_OBJECT_COVER_STRENGTH
 var stack_mode: int = StackMode.FIRST
 
 
@@ -31,25 +51,48 @@ class CoverCheckResult extends RefCounted:
 	var in_cover: bool = false
 	var qualifier: int = Qualifier.NONE
 	var source_cell: Vector2i = Vector2i(-999, -999)
-	## All tiles that passed the geometric test (debug overlay / COUNT mode).
+	## Slots that passed (debug). With 8-dir lookup this is 0–1 cells.
 	var qualifying_cells: Array[Vector2i] = []
+	var cover_offset: Vector2i = Vector2i.ZERO
 
 
 func reset_to_defaults() -> void:
 	moderate_hit_mult = DEFAULT_MODERATE_HIT_MULT
 	moderate_visibility_mult = DEFAULT_MODERATE_VISIBILITY_MULT
+	cover_hit_multiplier = INIT_COVER_HIT_MULTIPLIER
 	cover_range_limit = INIT_COVER_RANGE_LIMIT
+	object_cover_strength = DEFAULT_OBJECT_COVER_STRENGTH
 	stack_mode = StackMode.FIRST
 
 
-func apply_hit_modifier(chance: float, is_moderate_cover: bool) -> float:
-	if is_moderate_cover:
-		return chance * moderate_hit_mult
-	return chance
+## RECOVERED cover curve (combat range in tiles, Euclidean).
+## range 1 → 1.0 · range 2 → ~0.668 · range >= cover_range_limit → cover_hit_multiplier.
+func cover_multiplier_for_range(combat_range: float) -> float:
+	var limit := float(maxi(cover_range_limit, 1))
+	var r := maxf(combat_range, 1.0)
+	var mult: float
+	if r >= limit:
+		mult = cover_hit_multiplier
+	else:
+		mult = (cover_hit_multiplier - 1.0) * (r - 1.0) / limit + 1.0
+	return clampf(mult * object_cover_strength, 0.0, 1.0)
 
 
-## Pure geometric cover: obstruction tiles on the shooter-facing side of the target.
-## Uses obstruction_height (>=1), not blocks_movement. No node access.
+func apply_hit_modifier(
+	chance: float,
+	is_in_cover: bool,
+	combat_range: float = -1.0,
+) -> float:
+	if not is_in_cover:
+		return chance
+	var range_tiles := combat_range
+	if range_tiles < 0.0:
+		## Missing range → full-strength cover (conservative for callers).
+		range_tiles = float(cover_range_limit)
+	return chance * cover_multiplier_for_range(range_tiles)
+
+
+## One compass-slot lookup: cover occupies the 8-adjacent cell facing the shooter.
 func cover_check(
 	shooter_cell: Vector2i,
 	target_cell: Vector2i,
@@ -59,58 +102,38 @@ func cover_check(
 	if map_data == null or shooter_cell == target_cell:
 		return result
 
-	var delta := Vector2(target_cell - shooter_cell)
-	var length := delta.length()
-	if length <= 0.0001:
+	var toward_shooter := Vector2(shooter_cell - target_cell)
+	if toward_shooter.length_squared() <= 0.0001:
 		return result
-	var shot_dir := delta / length ## v = normalize(target - shooter)
-	var toward_shooter := -shot_dir ## cover must lie on the side fire comes from
 
-	var radius := cover_range_limit
-	for oy in range(-radius, radius + 1):
-		for ox in range(-radius, radius + 1):
-			if ox == 0 and oy == 0:
-				continue
-			var cell := target_cell + Vector2i(ox, oy)
-			if not map_data.is_in_bounds(cell):
-				continue
-			if map_data.obstruction_height(cell) < 1:
-				continue
-			if not _on_shooter_facing_side(cell, target_cell, toward_shooter):
-				continue
-			result.qualifying_cells.append(cell)
-			var is_corner := _is_corner_relative(cell, target_cell, shot_dir)
-			if not result.in_cover:
-				result.in_cover = true
-				result.source_cell = cell
-				if is_corner:
-					result.qualifier = Qualifier.CORNER
-				if stack_mode == StackMode.FIRST:
-					return result
-			elif is_corner:
-				result.qualifier = Qualifier.CORNER
+	var offset := snap_to_cover_offset(toward_shooter)
+	result.cover_offset = offset
+	var cell := target_cell + offset
+	if not map_data.is_in_bounds(cell):
+		return result
+	if map_data.obstruction_height(cell) < 1:
+		return result
+
+	result.in_cover = true
+	result.source_cell = cell
+	result.qualifying_cells.append(cell)
+	if offset.x != 0 and offset.y != 0:
+		result.qualifier = Qualifier.CORNER
 	return result
 
 
-## Cover tile C is between target and shooter: (C - target) · (-v) > 0.
-static func _on_shooter_facing_side(
-	cover_cell: Vector2i,
-	target_cell: Vector2i,
-	toward_shooter: Vector2,
-) -> bool:
-	var from_target := Vector2(cover_cell - target_cell)
-	return from_target.dot(toward_shooter) > 0.0001
-
-
-## PseudoCover / corner: offset from target is not collinear with the shot vector.
-static func _is_corner_relative(
-	cover_cell: Vector2i,
-	target_cell: Vector2i,
-	shot_dir: Vector2,
-) -> bool:
-	var offset := Vector2(cover_cell - target_cell)
-	var cross := offset.x * shot_dir.y - offset.y * shot_dir.x
-	return absf(cross) > 0.0001
+## Nearest of 8 compass offsets to the vector from target toward shooter.
+static func snap_to_cover_offset(toward_shooter: Vector2) -> Vector2i:
+	var dir := toward_shooter.normalized()
+	var best := DIR8_OFFSETS[0]
+	var best_dot := -INF
+	for offset in DIR8_OFFSETS:
+		var slot_dir := Vector2(offset).normalized()
+		var d := dir.dot(slot_dir)
+		if d > best_dot:
+			best_dot = d
+			best = offset
+	return best
 
 
 func apply_config(section: Dictionary) -> void:
@@ -118,8 +141,12 @@ func apply_config(section: Dictionary) -> void:
 		moderate_hit_mult = float(section.moderate_hit_mult)
 	if section.has("moderate_visibility_mult"):
 		moderate_visibility_mult = float(section.moderate_visibility_mult)
+	if section.has("cover_hit_multiplier"):
+		cover_hit_multiplier = float(section.cover_hit_multiplier)
 	if section.has("cover_range_limit"):
 		cover_range_limit = int(section.cover_range_limit)
+	if section.has("object_cover_strength"):
+		object_cover_strength = float(section.object_cover_strength)
 	if section.has("stack_mode"):
 		var mode := str(section.stack_mode).to_lower()
 		if mode == "count" or mode == "1":

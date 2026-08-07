@@ -6,18 +6,6 @@
 			"y": 53
 		},
 		{
-			"x": 28,
-			"y": 63
-		},
-		{
-			"x": 40,
-			"y": 18
-		},
-		{
-			"x": 40,
-			"y": 12
-		},
-		{
 			"x": 7,
 			"y": 49
 		},
@@ -43,31 +31,15 @@
 		},
 		{
 			"x": 8,
-			"y": 38
-		},
-		{
-			"x": 8,
-			"y": 29
-		},
-		{
-			"x": 14,
 			"y": 29
 		},
 		{
 			"x": 8,
-			"y": 22
-		},
-		{
-			"x": 15,
 			"y": 22
 		},
 		{
 			"x": 52,
 			"y": 43
-		},
-		{
-			"x": 43,
-			"y": 23
 		},
 		{
 			"x": 11,
@@ -126,32 +98,12 @@
 			"y": 48
 		},
 		{
-			"x": 40,
-			"y": 60
-		},
-		{
-			"x": 35,
-			"y": 67
-		},
-		{
-			"x": 32,
-			"y": 60
-		},
-		{
 			"x": 32,
 			"y": 67
 		},
 		{
 			"x": 25,
-			"y": 67
-		},
-		{
-			"x": 25,
 			"y": 60
-		},
-		{
-			"x": 22,
-			"y": 17
 		},
 		{
 			"x": 15,
@@ -175,10 +127,6 @@
 		},
 		{
 			"x": 36,
-			"y": 33
-		},
-		{
-			"x": 43,
 			"y": 33
 		},
 		{
@@ -246,28 +194,12 @@
 			"y": 44
 		},
 		{
-			"x": 37,
-			"y": 43
-		},
-		{
 			"x": 32,
 			"y": 45
 		},
 		{
-			"x": 34,
-			"y": 43
-		},
-		{
-			"x": 23,
-			"y": 40
-		},
-		{
 			"x": 23,
 			"y": 41
-		},
-		{
-			"x": 38,
-			"y": 24
 		},
 		{
 			"x": 38,
@@ -336,10 +268,6 @@
 		{
 			"x": 31,
 			"y": 35
-		},
-		{
-			"x": 23,
-			"y": 33
 		},
 		{
 			"x": 23,
@@ -418,10 +346,6 @@
 			"y": 55
 		},
 		{
-			"x": 35,
-			"y": 51
-		},
-		{
 			"x": 27,
 			"y": 54
 		},
@@ -496,14 +420,6 @@
 		{
 			"x": 46,
 			"y": 49
-		},
-		{
-			"x": 45,
-			"y": 43
-		},
-		{
-			"x": 45,
-			"y": 47
 		},
 		{
 			"x": 45,
@@ -691,10 +607,6 @@
 		},
 		{
 			"x": 27,
-			"y": 11
-		},
-		{
-			"x": 27,
 			"y": 12
 		},
 		{
@@ -752,10 +664,6 @@
 		{
 			"x": 43,
 			"y": 32
-		},
-		{
-			"x": 43,
-			"y": 34
 		},
 		{
 			"x": 43,
@@ -924,26 +832,6 @@
 		{
 			"x": 52,
 			"y": 19
-		},
-		{
-			"x": 37,
-			"y": 17
-		},
-		{
-			"x": 27,
-			"y": 28
-		},
-		{
-			"x": 15,
-			"y": 29
-		},
-		{
-			"x": 15,
-			"y": 38
-		},
-		{
-			"x": 60,
-			"y": 50
 		},
 		{
 			"x": 55,
@@ -1022,10 +910,6 @@
 			"y": 66
 		},
 		{
-			"x": 40,
-			"y": 67
-		},
-		{
 			"x": 35,
 			"y": 63
 		},
@@ -1084,10 +968,6 @@
 		{
 			"x": 23,
 			"y": 38
-		},
-		{
-			"x": 38,
-			"y": 27
 		},
 		{
 			"x": 23,
@@ -1710,62 +1590,6 @@
 			"y": 30
 		},
 		{
-			"x": 34,
-			"y": 4
-		},
-		{
-			"x": 34,
-			"y": 5
-		},
-		{
-			"x": 34,
-			"y": 6
-		},
-		{
-			"x": 35,
-			"y": 7
-		},
-		{
-			"x": 36,
-			"y": 7
-		},
-		{
-			"x": 34,
-			"y": 7
-		},
-		{
-			"x": 37,
-			"y": 7
-		},
-		{
-			"x": 35,
-			"y": 4
-		},
-		{
-			"x": 36,
-			"y": 4
-		},
-		{
-			"x": 37,
-			"y": 4
-		},
-		{
-			"x": 38,
-			"y": 5
-		},
-		{
-			"x": 38,
-			"y": 6
-		},
-		{
-			"x": 38,
-			"y": 7
-		},
-		{
-			"x": 38,
-			"y": 4
-		},
-		{
 			"x": 43,
 			"y": 42
 		},
@@ -1871,14 +1695,6 @@
 		},
 		{
 			"x": 40,
-			"y": 27
-		},
-		{
-			"x": 40,
-			"y": 28
-		},
-		{
-			"x": 40,
 			"y": 29
 		},
 		{
@@ -1920,10 +1736,6 @@
 		{
 			"x": 25,
 			"y": 34
-		},
-		{
-			"x": 25,
-			"y": 35
 		},
 		{
 			"x": 20,
@@ -2060,6 +1872,118 @@
 		{
 			"x": 52,
 			"y": 33
+		},
+		{
+			"x": 60,
+			"y": 50
+		},
+		{
+			"x": 43,
+			"y": 23
+		},
+		{
+			"x": 43,
+			"y": 33
+		},
+		{
+			"x": 37,
+			"y": 43
+		},
+		{
+			"x": 34,
+			"y": 43
+		},
+		{
+			"x": 10,
+			"y": 39
+		},
+		{
+			"x": 40,
+			"y": 12
+		},
+		{
+			"x": 40,
+			"y": 18
+		},
+		{
+			"x": 38,
+			"y": 24
+		},
+		{
+			"x": 38,
+			"y": 27
+		},
+		{
+			"x": 27,
+			"y": 28
+		},
+		{
+			"x": 37,
+			"y": 17
+		},
+		{
+			"x": 40,
+			"y": 67
+		},
+		{
+			"x": 40,
+			"y": 60
+		},
+		{
+			"x": 32,
+			"y": 60
+		},
+		{
+			"x": 25,
+			"y": 67
+		},
+		{
+			"x": 35,
+			"y": 67
+		},
+		{
+			"x": 28,
+			"y": 63
+		},
+		{
+			"x": 35,
+			"y": 51
+		},
+		{
+			"x": 25,
+			"y": 35
+		},
+		{
+			"x": 23,
+			"y": 40
+		},
+		{
+			"x": 23,
+			"y": 33
+		},
+		{
+			"x": 15,
+			"y": 29
+		},
+		{
+			"x": 15,
+			"y": 22
+		},
+		{
+			"x": 27,
+			"y": 11
+		},
+		{
+			"x": 22,
+			"y": 17
+		},
+		{
+			"x": 15,
+			"y": 38
+		},
+		{
+			"x": 8,
+			"y": 38
 		}
 	],
 	"floors": [
@@ -2706,12 +2630,6 @@
 			"y": 35.0
 		},
 		{
-			"direction": 90.0,
-			"image": "WFL5",
-			"x": 32.0,
-			"y": 55.0
-		},
-		{
 			"direction": 0.0,
 			"image": "SFLO",
 			"x": 32.0,
@@ -2986,6 +2904,24 @@
 			"image": "SFLO",
 			"x": 39.0,
 			"y": 26.0
+		},
+		{
+			"direction": 0.0,
+			"image": "WFLO",
+			"x": 35.0,
+			"y": 27.0
+		},
+		{
+			"direction": 0.0,
+			"image": "WFLO",
+			"x": 40.0,
+			"y": 27.0
+		},
+		{
+			"direction": 0.0,
+			"image": "WFLO",
+			"x": 40.0,
+			"y": 28.0
 		}
 	],
 	"height": 100,
@@ -3089,72 +3025,6 @@
 			"type": "coc_bush",
 			"x": 50,
 			"y": 53
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 28,
-				"y": 63
-			},
-			"object_id": "coc_bush@28,63",
-			"object_type": "coc_bush",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "BH01",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_bush",
-			"x": 28,
-			"y": 63
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 40,
-				"y": 18
-			},
-			"object_id": "coc_bush@40,18",
-			"object_type": "coc_bush",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "BH01",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_bush",
-			"x": 40,
-			"y": 18
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 40,
-				"y": 12
-			},
-			"object_id": "coc_bush@40,12",
-			"object_type": "coc_bush",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "BH01",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_bush",
-			"x": 40,
-			"y": 12
 		},
 		{
 			"blocks_los": true,
@@ -3295,28 +3165,6 @@
 			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 8,
-				"y": 38
-			},
-			"object_id": "coc_window@8,38",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 180.0,
-				"image": "WH11",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 8,
-			"y": 38
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 8,
 				"y": 29
 			},
 			"object_id": "coc_window@8,29",
@@ -3330,28 +3178,6 @@
 			"sprite_path": "",
 			"type": "coc_window",
 			"x": 8,
-			"y": 29
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 14,
-				"y": 29
-			},
-			"object_id": "coc_window@14,29",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "WH01",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 14,
 			"y": 29
 		},
 		{
@@ -3382,28 +3208,6 @@
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
-				"x": 15,
-				"y": 22
-			},
-			"object_id": "coc_window@15,22",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WH11",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 15,
-			"y": 22
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
 				"x": 52,
 				"y": 43
 			},
@@ -3419,28 +3223,6 @@
 			"type": "coc_window",
 			"x": 52,
 			"y": 43
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 43,
-				"y": 23
-			},
-			"object_id": "coc_window@43,23",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 180.0,
-				"image": "WH11",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 43,
-			"y": 23
 		},
 		{
 			"blocks_los": true,
@@ -3756,72 +3538,6 @@
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
-				"x": 40,
-				"y": 60
-			},
-			"object_id": "coc_window@40,60",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "WH02",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 40,
-			"y": 60
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 35,
-				"y": 67
-			},
-			"object_id": "coc_window@35,67",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "WH11",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 35,
-			"y": 67
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 32,
-				"y": 60
-			},
-			"object_id": "coc_window@32,60",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "WH11",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 32,
-			"y": 60
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
 				"x": 32,
 				"y": 67
 			},
@@ -3845,28 +3561,6 @@
 			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 25,
-				"y": 67
-			},
-			"object_id": "coc_window@25,67",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 180.0,
-				"image": "WH11",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 25,
-			"y": 67
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 25,
 				"y": 60
 			},
 			"object_id": "coc_window@25,60",
@@ -3881,28 +3575,6 @@
 			"type": "coc_window",
 			"x": 25,
 			"y": 60
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 22,
-				"y": 17
-			},
-			"object_id": "coc_window@22,17",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "WH11",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 22,
-			"y": 17
 		},
 		{
 			"blocks_los": false,
@@ -4034,28 +3706,6 @@
 			"sprite_path": "",
 			"type": "coc_window",
 			"x": 36,
-			"y": 33
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 43,
-				"y": 33
-			},
-			"object_id": "coc_window@43,33",
-			"object_type": "coc_window",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WH00",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_window",
-			"x": 43,
 			"y": 33
 		},
 		{
@@ -4416,28 +4066,6 @@
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
-				"x": 37,
-				"y": 43
-			},
-			"object_id": "coc_bush@37,43",
-			"object_type": "coc_bush",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "BH01",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_bush",
-			"x": 37,
-			"y": 43
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
 				"x": 32,
 				"y": 45
 			},
@@ -4453,50 +4081,6 @@
 			"type": "coc_bush",
 			"x": 32,
 			"y": 45
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 34,
-				"y": 43
-			},
-			"object_id": "coc_bush@34,43",
-			"object_type": "coc_bush",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "BH01",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_bush",
-			"x": 34,
-			"y": 43
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 23,
-				"y": 40
-			},
-			"object_id": "coc_wall@23,40",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "LIHW",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 23,
-			"y": 40
 		},
 		{
 			"blocks_los": true,
@@ -4519,28 +4103,6 @@
 			"type": "coc_wall",
 			"x": 23,
 			"y": 41
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 38,
-				"y": 24
-			},
-			"object_id": "coc_wall@38,24",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "LIHW",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 38,
-			"y": 24
 		},
 		{
 			"blocks_los": true,
@@ -4915,28 +4477,6 @@
 			"type": "coc_wall",
 			"x": 31,
 			"y": 35
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 23,
-				"y": 33
-			},
-			"object_id": "coc_wall@23,33",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "LIHW",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 23,
-			"y": 33
 		},
 		{
 			"blocks_los": true,
@@ -5362,28 +4902,6 @@
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 35,
-				"y": 51
-			},
-			"object_id": "coc_wall@35,51",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "LIHW",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 35,
-			"y": 51
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
 				"x": 27,
 				"y": 54
 			},
@@ -5795,50 +5313,6 @@
 			"type": "coc_wall",
 			"x": 46,
 			"y": 49
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 45,
-				"y": 43
-			},
-			"object_id": "coc_wall@45,43",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "LIHW",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 45,
-			"y": 43
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 45,
-				"y": 47
-			},
-			"object_id": "coc_wall@45,47",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 180.0,
-				"image": "LIHW",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 45,
-			"y": 47
 		},
 		{
 			"blocks_los": true,
@@ -6859,28 +6333,6 @@
 			"cover_type_name": "MODERATE",
 			"grid_position": {
 				"x": 27,
-				"y": 11
-			},
-			"object_id": "coc_swal@27,11",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WH00",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 27,
-			"y": 11
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 27,
 				"y": 12
 			},
 			"object_id": "coc_swal@27,12",
@@ -7203,28 +6655,6 @@
 			"type": "coc_swal",
 			"x": 43,
 			"y": 32
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 43,
-				"y": 34
-			},
-			"object_id": "coc_swal@43,34",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WH00",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 43,
-			"y": 34
 		},
 		{
 			"blocks_los": false,
@@ -8156,116 +7586,6 @@
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
-				"x": 37,
-				"y": 17
-			},
-			"object_id": "coc_swal@37,17",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WH01",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 37,
-			"y": 17
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 27,
-				"y": 28
-			},
-			"object_id": "coc_swal@27,28",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WH01",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 27,
-			"y": 28
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 15,
-				"y": 29
-			},
-			"object_id": "coc_swal@15,29",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WH01",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 15,
-			"y": 29
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 15,
-				"y": 38
-			},
-			"object_id": "coc_swal@15,38",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WH01",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 15,
-			"y": 38
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
-				"x": 60,
-				"y": 50
-			},
-			"object_id": "coc_swal@60,50",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WH01",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 60,
-			"y": 50
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
 				"x": 55,
 				"y": 24
 			},
@@ -8684,28 +8004,6 @@
 			"cover_type": 1,
 			"cover_type_name": "MODERATE",
 			"grid_position": {
-				"x": 40,
-				"y": 67
-			},
-			"object_id": "coc_swal@40,67",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WH01",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 40,
-			"y": 67
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 1,
-			"cover_type_name": "MODERATE",
-			"grid_position": {
 				"x": 35,
 				"y": 63
 			},
@@ -9073,28 +8371,6 @@
 			"type": "coc_wall",
 			"x": 25,
 			"y": 38
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 38,
-				"y": 27
-			},
-			"object_id": "coc_door_wood@38,27",
-			"object_type": "coc_door_wood",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "WWAI",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_door_wood",
-			"x": 38,
-			"y": 27
 		},
 		{
 			"blocks_los": false,
@@ -9534,28 +8810,6 @@
 			"sprite_path": "",
 			"type": "coc_wall",
 			"x": 37,
-			"y": 27
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 35,
-				"y": 27
-			},
-			"object_id": "coc_wall@35,27",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWWLS1C",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 35,
 			"y": 27
 		},
 		{
@@ -12974,314 +12228,6 @@
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
 			"grid_position": {
-				"x": 34,
-				"y": 4
-			},
-			"object_id": "coc_swal@34,4",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 34,
-			"y": 4
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 34,
-				"y": 5
-			},
-			"object_id": "coc_swal@34,5",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 34,
-			"y": 5
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 34,
-				"y": 6
-			},
-			"object_id": "coc_swal@34,6",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 34,
-			"y": 6
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 35,
-				"y": 7
-			},
-			"object_id": "coc_swal@35,7",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 35,
-			"y": 7
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 36,
-				"y": 7
-			},
-			"object_id": "coc_swal@36,7",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 36,
-			"y": 7
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 34,
-				"y": 7
-			},
-			"object_id": "coc_swal@34,7",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 34,
-			"y": 7
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 37,
-				"y": 7
-			},
-			"object_id": "coc_swal@37,7",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 37,
-			"y": 7
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 35,
-				"y": 4
-			},
-			"object_id": "coc_swal@35,4",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 35,
-			"y": 4
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 36,
-				"y": 4
-			},
-			"object_id": "coc_swal@36,4",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 36,
-			"y": 4
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 37,
-				"y": 4
-			},
-			"object_id": "coc_swal@37,4",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 90.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 37,
-			"y": 4
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 38,
-				"y": 5
-			},
-			"object_id": "coc_swal@38,5",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 180.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 38,
-			"y": 5
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 38,
-				"y": 6
-			},
-			"object_id": "coc_swal@38,6",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 180.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 38,
-			"y": 6
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 38,
-				"y": 7
-			},
-			"object_id": "coc_swal@38,7",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 180.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 38,
-			"y": 7
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 38,
-				"y": 4
-			},
-			"object_id": "coc_swal@38,4",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 180.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 38,
-			"y": 4
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
 				"x": 43,
 				"y": 42
 			},
@@ -13855,50 +12801,6 @@
 			"cover_type_name": "COMPLETE",
 			"grid_position": {
 				"x": 40,
-				"y": 27
-			},
-			"object_id": "coc_swal@40,27",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 40,
-			"y": 27
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 40,
-				"y": 28
-			},
-			"object_id": "coc_swal@40,28",
-			"object_type": "coc_swal",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "SWAL",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_swal",
-			"x": 40,
-			"y": 28
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 40,
 				"y": 29
 			},
 			"object_id": "coc_swal@40,29",
@@ -14133,28 +13035,6 @@
 			"type": "coc_wwal",
 			"x": 25,
 			"y": 34
-		},
-		{
-			"blocks_los": true,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 25,
-				"y": 35
-			},
-			"object_id": "coc_wall_corner@25,35",
-			"object_type": "coc_wall_corner",
-			"provides_cover": true,
-			"source": {
-				"direction": 270.0,
-				"image": "WCOR",
-				"z": 200.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall_corner",
-			"x": 25,
-			"y": 35
 		},
 		{
 			"blocks_los": true,
@@ -14807,9 +13687,9 @@
 			"object_type": "coc_bg01",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "BG01",
-				"z": 0
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_bg01",
@@ -14829,9 +13709,9 @@
 			"object_type": "coc_bg01",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "BG01",
-				"z": 0
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_bg01",
@@ -14851,9 +13731,9 @@
 			"object_type": "coc_bg01",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "BG01",
-				"z": 0
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_bg01",
@@ -14873,9 +13753,9 @@
 			"object_type": "coc_bg01",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "BG01",
-				"z": 0
+				"z": 0.0
 			},
 			"sprite_path": "",
 			"type": "coc_bg01",
@@ -14895,14 +13775,674 @@
 			"object_type": "coc_swal",
 			"provides_cover": true,
 			"source": {
+				"direction": 0.0,
+				"image": "WH11",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 52,
+			"y": 33
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 60,
+				"y": 50
+			},
+			"object_id": "coc_swal@60,50",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WH02",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 60,
+			"y": 50
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 43,
+				"y": 23
+			},
+			"object_id": "coc_swal@43,23",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 180.0,
+				"image": "WH02",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 43,
+			"y": 23
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 43,
+				"y": 33
+			},
+			"object_id": "coc_swal@43,33",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WH11",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 43,
+			"y": 33
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 37,
+				"y": 43
+			},
+			"object_id": "coc_bg01@37,43",
+			"object_type": "coc_bg01",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "BG01",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_bg01",
+			"x": 37,
+			"y": 43
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 34,
+				"y": 43
+			},
+			"object_id": "coc_bg01@34,43",
+			"object_type": "coc_bg01",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "BG01",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_bg01",
+			"x": 34,
+			"y": 43
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 10,
+				"y": 39
+			},
+			"object_id": "coc_bg01@10,39",
+			"object_type": "coc_bg01",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "BG01",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_bg01",
+			"x": 10,
+			"y": 39
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 45,
+				"y": 43
+			},
+			"object_id": "coc_wall@45,43",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWDRS7A",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 45,
+			"y": 43
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 45,
+				"y": 47
+			},
+			"object_id": "coc_wall@45,47",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWDRS7A",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 45,
+			"y": 47
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 40,
+				"y": 12
+			},
+			"object_id": "coc_bg01@40,12",
+			"object_type": "coc_bg01",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "BG01",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_bg01",
+			"x": 40,
+			"y": 12
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 40,
+				"y": 18
+			},
+			"object_id": "coc_bg01@40,18",
+			"object_type": "coc_bg01",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "BG01",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_bg01",
+			"x": 40,
+			"y": 18
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 38,
+				"y": 24
+			},
+			"object_id": "coc_wall@38,24",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWWL",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 38,
+			"y": 24
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 38,
+				"y": 27
+			},
+			"object_id": "coc_wall@38,27",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "IWCR",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 38,
+			"y": 27
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 27,
+				"y": 28
+			},
+			"object_id": "coc_swal@27,28",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WH02",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 27,
+			"y": 28
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 37,
+				"y": 17
+			},
+			"object_id": "coc_swal@37,17",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WH02",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 37,
+			"y": 17
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 40,
+				"y": 67
+			},
+			"object_id": "coc_swal@40,67",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WH02",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 40,
+			"y": 67
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 40,
+				"y": 60
+			},
+			"object_id": "coc_swal@40,60",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "WH02",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 40,
+			"y": 60
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 32,
+				"y": 60
+			},
+			"object_id": "coc_swal@32,60",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WH11",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 32,
+			"y": 60
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 25,
+				"y": 67
+			},
+			"object_id": "coc_swal@25,67",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 270.0,
+				"image": "WH02",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 25,
+			"y": 67
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 35,
+				"y": 67
+			},
+			"object_id": "coc_swal@35,67",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "WH11",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 35,
+			"y": 67
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 28,
+				"y": 63
+			},
+			"object_id": "coc_bg01@28,63",
+			"object_type": "coc_bg01",
+			"provides_cover": true,
+			"source": {
+				"direction": 0.0,
+				"image": "BG01",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_bg01",
+			"x": 28,
+			"y": 63
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 35,
+				"y": 51
+			},
+			"object_id": "coc_wall@35,51",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "LIHW",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 35,
+			"y": 51
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 25,
+				"y": 35
+			},
+			"object_id": "coc_wall_corner@25,35",
+			"object_type": "coc_wall_corner",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "WCOR",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall_corner",
+			"x": 25,
+			"y": 35
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 23,
+				"y": 40
+			},
+			"object_id": "coc_wall@23,40",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "LIHW",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 23,
+			"y": 40
+		},
+		{
+			"blocks_los": true,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 23,
+				"y": 33
+			},
+			"object_id": "coc_wall@23,33",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "LIHW",
+				"z": 200.0
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 23,
+			"y": 33
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 15,
+				"y": 29
+			},
+			"object_id": "coc_swal@15,29",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 90.0,
+				"image": "WH01",
+				"z": 0.0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 15,
+			"y": 29
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 15,
+				"y": 22
+			},
+			"object_id": "coc_swal@15,22",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
 				"direction": 270,
 				"image": "WH11",
 				"z": 200
 			},
 			"sprite_path": "",
 			"type": "coc_swal",
-			"x": 52,
-			"y": 33
+			"x": 15,
+			"y": 22
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 27,
+				"y": 11
+			},
+			"object_id": "coc_swal@27,11",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0,
+				"image": "WH11",
+				"z": 0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 27,
+			"y": 11
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 22,
+				"y": 17
+			},
+			"object_id": "coc_swal@22,17",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0,
+				"image": "WH11",
+				"z": 200
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 22,
+			"y": 17
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 15,
+				"y": 38
+			},
+			"object_id": "coc_swal@15,38",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 0,
+				"image": "WH02",
+				"z": 0
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 15,
+			"y": 38
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 1,
+			"cover_type_name": "MODERATE",
+			"grid_position": {
+				"x": 8,
+				"y": 38
+			},
+			"object_id": "coc_swal@8,38",
+			"object_type": "coc_swal",
+			"provides_cover": true,
+			"source": {
+				"direction": 270,
+				"image": "WH02",
+				"z": 200
+			},
+			"sprite_path": "",
+			"type": "coc_swal",
+			"x": 8,
+			"y": 38
 		}
 	],
 	"source_format": "Chain of Command OIX (decoded)",

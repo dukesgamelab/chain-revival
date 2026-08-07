@@ -77,15 +77,24 @@
 		"max_stress": 100.0
 	},
 	"movement": {
+		"comment": "Speeds TUNED. Type/Move multipliers RECOVERED values; RUN/WALK/CRAWL binding ## TUNED. Angle sine uses DEG_TO_RAD_OG only while target is running on open ground.",
 		"speed_run": 2.0,
 		"speed_walk": 0.6,
-		"speed_crawl": 0.3
+		"speed_crawl": 0.3,
+		"type_mult_run": 1.0,
+		"type_mult_walk": 1.0,
+		"type_mult_crawl": 0.4,
+		"move_mult_run": 0.8,
+		"move_mult_walk": 0.9,
+		"move_mult_crawl": 1.0
 	},
 	"cover": {
-		"comment": "RECOVERED: INITCoverRangeLimit=3, INITCoverInMultiplier=1.0, INITCoverHitMultiplier=0.005 (combine arithmetic UNRESOLVED), INITMinDuckingRange=4, INITKilledProbability=20. moderate_hit_mult is TUNED magnitude; directional geometry decides when it applies. stack_mode: first|count (UNRESOLVED; default first).",
+		"comment": "RECOVERED curve: cover_hit_multiplier=0.005 at range>=cover_range_limit=3; linear ramp below. Geometry: 8-dir adjacency slot toward shooter. object_cover_strength TUNED (default 1 — wall/hedge identical). moderate_hit_mult deprecated.",
+		"cover_hit_multiplier": 0.005,
+		"cover_range_limit": 3,
+		"object_cover_strength": 1.0,
 		"moderate_hit_mult": 0.5,
 		"moderate_visibility_mult": 0.65,
-		"cover_range_limit": 3,
 		"stack_mode": "first"
 	},
 	"vision": {

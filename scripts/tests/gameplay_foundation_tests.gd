@@ -50,6 +50,8 @@ func _ready() -> void:
 	_test_recovered_weapon_stats()
 	_test_fire_cadence_cycle()
 	_test_hit_polynomial_anchors()
+	_test_cover_curve_and_slot()
+	_test_movement_angle_hit()
 	_test_smg_vs_rifle_range_falloff()
 	_test_grenade_range_cap()
 	_test_stress_model()
@@ -832,15 +834,15 @@ func _test_directional_cover() -> void:
 		"type=%s cells=%s" % [side_check.cover_type, str(side_check.qualifying_cells)],
 	)
 
-	## Wall 4+ tiles from target is outside INITCoverRangeLimit.
+	## Only the adjacent compass slot counts — a wall two tiles out is ignored.
 	map_data.clear_object(side_wall)
-	var far_wall := Vector2i(15, 20) ## Chebyshev 5 from target
+	var far_wall := Vector2i(18, 20) ## two tiles west of target
 	map_data.set_object(far_wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
 	var far_check := GameplayPolicies.cover.cover_check(west_shooter, target, map_data)
 	_assert(
-		"Directional cover: wall beyond range limit grants no cover",
+		"Directional cover: non-adjacent wall grants no cover",
 		not far_check.in_cover,
-		"cells=%s limit=%d" % [str(far_check.qualifying_cells), GameplayPolicies.cover.cover_range_limit],
+		"cells=%s offset=%s" % [str(far_check.qualifying_cells), far_check.cover_offset],
 	)
 
 	## Height 1 (haybail) and height 2 (wall) both grant cover when on the facing side.
@@ -865,15 +867,17 @@ func _test_directional_cover() -> void:
 		"height=%d" % map_data.obstruction_height(high_cover),
 	)
 
-	## Corner offset relative to shot → PseudoCover / CORNER qualifier.
+	## Diagonal shot snaps to a diagonal slot → PseudoCover / CORNER qualifier.
 	map_data.clear_object(high_cover)
-	var corner := Vector2i(19, 19)
+	var corner := Vector2i(19, 19) ## NW of target
 	map_data.set_object(corner, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
-	var corner_check := GameplayPolicies.cover.cover_check(west_shooter, target, map_data)
+	var nw_shooter := Vector2i(16, 16)
+	var corner_check := GameplayPolicies.cover.cover_check(nw_shooter, target, map_data)
 	_assert(
 		"Directional cover: diagonal facing tile is CORNER qualifier",
 		corner_check.in_cover and corner_check.qualifier == CoverPolicyClass.Qualifier.CORNER,
-		"in_cover=%s qualifier=%s" % [corner_check.in_cover, corner_check.qualifier],
+		"in_cover=%s qualifier=%s offset=%s"
+		% [corner_check.in_cover, corner_check.qualifier, corner_check.cover_offset],
 	)
 
 
@@ -1015,7 +1019,11 @@ func _test_policy_defaults_unchanged() -> void:
 	_assert("Suppression pinned threshold unchanged", is_equal_approx(GameplayPolicies.suppression.pinned_threshold, 45.0))
 	_assert("Movement run speed unchanged", is_equal_approx(GameplayPolicies.movement.speed_run, 2.0))
 	_assert("Vision cone range bonus unchanged", GameplayPolicies.vision.cone_range_bonus == 8)
-	_assert("Cover moderate hit mult unchanged", is_equal_approx(GameplayPolicies.cover.moderate_hit_mult, 0.5))
+	_assert(
+		"Cover hit multiplier is recovered 0.005",
+		is_equal_approx(GameplayPolicies.cover.cover_hit_multiplier, 0.005),
+	)
+	_assert("Cover range limit is recovered 3", GameplayPolicies.cover.cover_range_limit == 3)
 	_assert("LOS peek adjacency unchanged", GameplayPolicies.los.peek_adjacency_chebyshev == 1)
 	_assert(
 		"Base fire cycle is recovered ~5.5s",
@@ -1184,11 +1192,9 @@ func _test_min_hit_chance_not_after_modifiers() -> void:
 	)
 
 	var final_chance: float = CombatSystemClass._final_hit_chance(shooter, target, weapon, los)
-	var expected_ceiling := (
-		base
-		* GameplayPolicies.cover.moderate_hit_mult
-		* GameplayPolicies.hit.target_prone_hit_mult
-	)
+	var cover_range := CombatSystemClass._combat_range(shooter_cell, target_cell)
+	var cover_mult := GameplayPolicies.cover.cover_multiplier_for_range(cover_range)
+	var expected_ceiling := base * cover_mult * GameplayPolicies.hit.target_prone_hit_mult
 	_assert(
 		"Cover+prone final chance is below clear base",
 		final_chance < base,
@@ -1307,6 +1313,143 @@ func _test_fire_cadence_cycle() -> void:
 	GameRandom.reseed(8)
 	var second := CombatSystemClass.resolve_shot(game_state, shooter, target, false)
 	_assert("Second shot fires after full cycle", second.fired)
+
+
+func _test_movement_angle_hit() -> void:
+	## Stage 7: open-ground TypeMultipler + running sine crossing term.
+	_bootstrap()
+	GameplayPolicies.reset_all_to_defaults()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var shooter := game_state.get_soldier(Team.USA, 1)
+	var target := game_state.get_soldier(Team.GERMANY, 1)
+	shooter.grid_position = Vector2i(10, 20)
+	target.grid_position = Vector2i(20, 20)
+	shooter.clear_path()
+	target.clear_path()
+	shooter.stress = 0.0
+	target.stress = 0.0
+	shooter.facing_direction = FacingDirection.EAST
+	game_state.session.get_fireteam(Team.USA).face_toward_tile(1, target.grid_position)
+
+	var weapon := shooter.get_weapon_data()
+	var los := LOSSystemClass.evaluate(
+		shooter.grid_position, target.grid_position, map_data, game_state
+	)
+	_assert("Open ground LOS for angle test", los.cover_type == CoverSystemClass.CoverType.NONE)
+
+	var stationary := CombatSystemClass._final_hit_chance(shooter, target, weapon, los)
+	## Charge straight at the shooter (west) while running — angle term ≈ 1.0.
+	target.assign_path([target.grid_position, Vector2i(19, 20), Vector2i(18, 20)])
+	target.movement_mode = MovementModeClass.RUN
+	target.facing_direction = FacingDirection.WEST
+	var charging := CombatSystemClass._final_hit_chance(shooter, target, weapon, los)
+	_assert(
+		"Frontal running rush stays near stationary open-ground hit",
+		absf(charging - stationary) < stationary * 0.08,
+		"stationary=%.4f charging=%.4f" % [stationary, charging],
+	)
+
+	## Cross the front (north) — abs(sin) ≈ 1 → ×(1 − 0.8) = 0.2.
+	target.assign_path([target.grid_position, Vector2i(20, 19), Vector2i(20, 18)])
+	target.movement_mode = MovementModeClass.RUN
+	target.facing_direction = FacingDirection.NORTH
+	var crossing := CombatSystemClass._final_hit_chance(shooter, target, weapon, los)
+	_assert(
+		"Perpendicular running crossing is much harder to hit",
+		crossing < charging * 0.35,
+		"crossing=%.4f charging=%.4f" % [crossing, charging],
+	)
+	var expected_cross := stationary * 0.2
+	_assert(
+		"Crossing multiplier ≈ 0.20 of stationary",
+		absf(crossing - expected_cross) < 0.01,
+		"crossing=%.4f expected≈%.4f" % [crossing, expected_cross],
+	)
+
+	## Crawl type mult 0.4; no sine term.
+	target.assign_path([target.grid_position, Vector2i(20, 19)])
+	target.movement_mode = MovementModeClass.CRAWL
+	var crawling := CombatSystemClass._final_hit_chance(shooter, target, weapon, los)
+	_assert(
+		"Crawling open-ground type mult is 0.4",
+		absf(crawling - stationary * 0.4) < 0.01,
+		"crawling=%.4f expected≈%.4f" % [crawling, stationary * 0.4],
+	)
+
+	## Cover suppresses the movement/angle path.
+	map_data.set_object(Vector2i(19, 20), MapObjectRegistryClass.TYPE_HAYBAIL)
+	var los_cover := LOSSystemClass.evaluate(
+		shooter.grid_position, target.grid_position, map_data, game_state
+	)
+	target.assign_path([target.grid_position, Vector2i(20, 19)])
+	target.movement_mode = MovementModeClass.RUN
+	var bd_cover: Dictionary = {}
+	var under_cover_moving := CombatSystemClass._final_hit_chance(
+		shooter, target, weapon, los_cover, bd_cover
+	)
+	_assert(
+		"Under cover move_angle_mult stays 1.0",
+		is_equal_approx(float(bd_cover.get("move_angle_mult", 0.0)), 1.0),
+		"angle=%s type=%s" % [bd_cover.get("move_angle_mult"), bd_cover.get("move_type_mult")],
+	)
+	_assert(
+		"Under cover still applies cover mult",
+		float(bd_cover.get("cover_mult", 1.0)) < 0.01,
+		"cover=%s" % bd_cover.get("cover_mult"),
+	)
+	_assert("Covered moving chance is non-negative", under_cover_moving >= 0.0)
+
+
+func _test_cover_curve_and_slot() -> void:
+	## Stage 6: recovered cover curve + single 8-dir slot lookup.
+	GameplayPolicies.reset_all_to_defaults()
+	var policy := GameplayPolicies.cover
+	_assert(
+		"Cover mult at range 1 is ~1.0 (point-blank cover useless)",
+		is_equal_approx(policy.cover_multiplier_for_range(1.0), 1.0),
+		"got=%.4f" % policy.cover_multiplier_for_range(1.0),
+	)
+	_assert(
+		"Cover mult at range 2 is ~0.668",
+		absf(policy.cover_multiplier_for_range(2.0) - 0.668333) < 0.01,
+		"got=%.4f" % policy.cover_multiplier_for_range(2.0),
+	)
+	_assert(
+		"Cover mult at range >= 3 is 0.005",
+		is_equal_approx(policy.cover_multiplier_for_range(3.0), 0.005)
+		and is_equal_approx(policy.cover_multiplier_for_range(12.0), 0.005),
+		"r3=%.4f r12=%.4f"
+		% [policy.cover_multiplier_for_range(3.0), policy.cover_multiplier_for_range(12.0)],
+	)
+
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var target := Vector2i(20, 20)
+	var wall := Vector2i(19, 20)
+	map_data.set_object(wall, MapObjectRegistryClass.TYPE_HAYBAIL)
+	var shooter := Vector2i(10, 20)
+	var check := policy.cover_check(shooter, target, map_data)
+	_assert(
+		"8-dir slot selects west-adjacent cover",
+		check.in_cover and check.source_cell == wall and check.cover_offset == Vector2i(-1, 0),
+		"cell=%s offset=%s" % [check.source_cell, check.cover_offset],
+	)
+
+	## HitFinal under cover at long range collapses to ~0.5% of clear.
+	var weapon := GameplayPolicies.weapons.create_weapon("m1_garand")
+	var clear := CombatSystemClass.hit_chance(shooter, target, weapon)
+	var covered := clear * policy.cover_multiplier_for_range(
+		CombatSystemClass._combat_range(shooter, target)
+	)
+	_assert(
+		"Long-range cover reduces hit to ~0.5% of clear",
+		covered < clear * 0.01 and covered > 0.0,
+		"clear=%.4f covered=%.6f" % [clear, covered],
+	)
 
 
 func _test_smg_vs_rifle_range_falloff() -> void:

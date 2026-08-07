@@ -179,18 +179,18 @@ func create_weapon(weapon_id: String) -> WeaponDataClass:
 		str(d.get("weapon_name", weapon_id)),
 		int(d.get("weapon_type", WeaponTypeClass.RIFLE)),
 		int(d.get("range_tiles", ENGAGEMENT_RANGE_TILES)),
-		0.0, ## hit_modifier retired
+		0.0,
 		int(d.get("rounds_per_attack", 1)),
 		ammo,
-		0.0, ## close_range_bonus retired
-		0, ## close_range_tiles retired
+		0.0,
+		0,
 		float(d.get("fire_interval_sec", 0.0)),
 		float(d.get("aim_delay_sec", 0.0)),
 		int(d.get("bullet_speed", 6)),
 		float(d.get("suppression_generated", 0.4)),
 		stress_limit,
 		float(d.get("stress_aim_factor", 0.5)),
-		str(d.get("range_falloff", WeaponDataClass.FALLOFF_CUBIC)),
+		"",
 		stress_limit_tiles,
 	)
 	weapon.aim_factor_sqr = float(d.get("aim_factor_sqr", weapon.aim_factor_sqr))

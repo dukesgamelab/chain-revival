@@ -368,6 +368,15 @@ func clear_path() -> void:
 	path_assigned_msec = 0
 
 
+## Travel heading for the angle hit term (path step while moving, else facing).
+func movement_heading() -> Vector2i:
+	if is_moving and path_index >= 0 and path_index < current_path.size():
+		var step := current_path[path_index] - grid_position
+		if step != Vector2i.ZERO:
+			return FacingDirection.from_step(step)
+	return FacingDirection.normalize(facing_direction)
+
+
 func assign_path(path: Array[Vector2i], speed_mult: float = 1.0) -> void:
 	if is_dead:
 		return

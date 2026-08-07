@@ -5,6 +5,7 @@ extends RefCounted
 const PROJECT_SETTING_GAME_MODE := "game/mode"
 const PROJECT_SETTING_HOTSEAT := "game/hotseat"
 const PROJECT_SETTING_AI_VERBOSE := "game/ai_verbose"
+const PROJECT_SETTING_COMBAT_VERBOSE := "game/combat_verbose"
 const DEFAULT_GAME_MODE: int = GameMode.OFFLINE_DEV
 
 
@@ -29,6 +30,11 @@ static func hotseat_enabled() -> bool:
 ## Log every successful AI command (pid, soldier, type, target). Off by default.
 static func ai_verbose_enabled() -> bool:
 	return _cmdline_or_setting_flag("--ai-verbose", PROJECT_SETTING_AI_VERBOSE)
+
+
+## Log per-shot hit breakdown (base/cover/move/stress/final/lethality). Off by default.
+static func combat_verbose_enabled() -> bool:
+	return _cmdline_or_setting_flag("--combat-verbose", PROJECT_SETTING_COMBAT_VERBOSE)
 
 
 static func _cmdline_or_setting_flag(flag: String, setting_key: String) -> bool:

@@ -4,19 +4,11 @@ extends RefCounted
 
 const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
 
-## Legacy falloff labels kept for config compat; hit chance uses range_const_* fields.
-const FALLOFF_CUBIC := "cubic"
-const FALLOFF_PENTIC := "pentic"
-
 var weapon_id: String = ""
 var weapon_name: String = ""
 var weapon_type: int = WeaponTypeClass.RIFLE
 ## Generous engagement / cone envelope only — does not shape hit chance.
 var range_tiles: int = 40
-## Deprecated TUNED patches (retired by Stage 5 polynomial). Kept for config compat.
-var hit_modifier: float = 0.0
-var close_range_bonus: float = 0.0
-var close_range_tiles: int = 0
 var rounds_per_attack: int = 1
 ## Starting carried ammo (ammo_pool / AmmoMax in original). NOT a hard cap —
 ## Ammunition Boxes add another starting load on top and can be stacked.
@@ -37,13 +29,10 @@ var stress_limit_tiles: float = 25.0
 var stress_limit: float = 25.0
 ## RECOVERED stress_aim_factor$weapon — scales how hard the shooter's stress degrades their aim.
 var stress_aim_factor: float = 0.5
-## Legacy label; prefer range_const_cub / range_const_pent.
-var range_falloff: String = FALLOFF_CUBIC
 
 ## --- Hit polynomial (RECOVERED) ---
 ## HitFinal ∝ (aim_factor_sqr·AimTime² + aim_factor·AimTime + aim_plus)
 ##            / (cub·D³ + sqr·D² + pent·D⁵)
-## aim_factor / aim_plus / range_const_sqr are 0 for every recovered weapon.
 var aim_factor_sqr: float = 2000.0
 var aim_factor: float = 0.0
 var aim_plus: float = 0.0
@@ -57,29 +46,26 @@ func _init(
 	p_weapon_name: String = "",
 	p_weapon_type: int = WeaponTypeClass.RIFLE,
 	p_range_tiles: int = 40,
-	p_hit_modifier: float = 0.0,
+	_p_hit_modifier: float = 0.0,
 	p_rounds_per_attack: int = 1,
 	p_ammo_capacity: int = 200,
-	p_close_range_bonus: float = 0.0,
-	p_close_range_tiles: int = 0,
+	_p_close_range_bonus: float = 0.0,
+	_p_close_range_tiles: int = 0,
 	p_fire_interval_sec: float = 0.0,
 	p_aim_delay_sec: float = 0.0,
 	p_bullet_speed: int = 6,
 	p_suppression_generated: float = 0.4,
 	p_stress_limit: float = 25.0,
 	p_stress_aim_factor: float = 0.5,
-	p_range_falloff: String = FALLOFF_CUBIC,
+	_p_range_falloff: String = "",
 	p_stress_limit_tiles: float = -1.0,
 ) -> void:
 	weapon_id = p_weapon_id
 	weapon_name = p_weapon_name
 	weapon_type = p_weapon_type
 	range_tiles = p_range_tiles
-	hit_modifier = p_hit_modifier
 	rounds_per_attack = p_rounds_per_attack
 	ammo_capacity = p_ammo_capacity
-	close_range_bonus = p_close_range_bonus
-	close_range_tiles = p_close_range_tiles
 	# rounds_per_attack = burst size, ammo cost per attack, and tracer count (V1).
 	tracer_count = p_rounds_per_attack
 	fire_interval_sec = p_fire_interval_sec
@@ -90,14 +76,6 @@ func _init(
 	## Default tiles cutoff to the recovered StressLimit value when not passed separately.
 	stress_limit_tiles = p_stress_limit if p_stress_limit_tiles < 0.0 else p_stress_limit_tiles
 	stress_aim_factor = p_stress_aim_factor
-	range_falloff = p_range_falloff
-	## Infer polynomial defaults from legacy falloff label when fields are not set later.
-	if range_falloff == FALLOFF_PENTIC:
-		range_const_cub = 0.0
-		range_const_pent = 0.02
-	else:
-		range_const_cub = 1.0
-		range_const_pent = 0.0
 
 
 func is_burst() -> bool:

@@ -23,3 +23,7 @@ var messages: Array[String] = []
 var corner_peek: bool = false
 var peek_side: int = 0
 var corner_cell: Vector2i = Vector2i(-999, -999)
+## HitFinal / lethality for observability (--combat-verbose).
+var hit_final: float = 0.0
+var kill_chance: float = 0.0
+var hit_breakdown: Dictionary = {}

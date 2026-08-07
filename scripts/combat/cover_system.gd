@@ -16,8 +16,8 @@ enum WallSkipReason { NONE, SHOOTER_PEEK, TARGET_COVER }
 ## Offensive corner peek lean direction (presentation: PeekLeft / PeekRight).
 enum PeekSide { NONE, LEFT, RIGHT }
 
-## Frozen alias of CoverPolicy default for existing call sites.
-const MODERATE_HIT_MULTIPLIER := CoverPolicyClass.DEFAULT_MODERATE_HIT_MULT
+## Frozen alias of recovered full-strength cover hit mult for existing call sites.
+const MODERATE_HIT_MULTIPLIER := CoverPolicyClass.INIT_COVER_HIT_MULTIPLIER
 
 ## When false, prone shooters cannot lean around a tall wall end.
 const CORNER_PEEK_WHILE_PRONE := true
@@ -738,8 +738,8 @@ static func is_shooter_side_cover_on_line(
 
 
 ## Cover affecting the target when the shot is not blocked.
-## Directional geometry (CoverPolicy.cover_check): only shooter-facing obstructions within
-## Chebyshev INITCoverRangeLimit of the target. Flanking defeats cover.
+## 8-direction adjacency: one compass slot on the shooter-facing side of the target.
+## Flanking (wrong slot) defeats cover. Hit strength uses cover_multiplier_for_range().
 static func evaluate_target_cover(
 	from_cell: Vector2i,
 	target_cell: Vector2i,
@@ -796,8 +796,8 @@ static func wall_skip_reason_name(reason: int) -> String:
 			return "none"
 
 
-static func apply_moderate_cover(chance: float) -> float:
-	return GameplayPolicies.cover.apply_hit_modifier(chance, true)
+static func apply_moderate_cover(chance: float, combat_range: float = -1.0) -> float:
+	return GameplayPolicies.cover.apply_hit_modifier(chance, true, combat_range)
 
 
 static func line_cells_between(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:

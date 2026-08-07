@@ -374,14 +374,12 @@ static func resolve_shot(
 			result.messages.append("Target protected by wall")
 		return result
 
-	var chance := _final_hit_chance(shooter, target, weapon, los)
+	var breakdown: Dictionary = {}
+	var chance := _final_hit_chance(shooter, target, weapon, los, breakdown)
+	result.hit_breakdown = breakdown
+	result.hit_final = chance
 	if not auto_engagement and los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		var base_chance := hit_chance(
-			shooter.grid_position,
-			target.grid_position,
-			weapon,
-			shooter.marksman,
-		)
+		var base_chance := float(breakdown.get("base", chance))
 		result.messages.append(
 			"Hit chance reduced from %d%% to %d%%"
 			% [int(round(base_chance * 100.0)), int(round(chance * 100.0))],
@@ -394,6 +392,9 @@ static func resolve_shot(
 		0.0,
 		1.0,
 	)
+	result.kill_chance = kill_chance
+	if GameConfig.combat_verbose_enabled():
+		_log_combat_verbose(shooter, target, weapon, breakdown, kill_chance)
 
 	# V1: one hit roll per burst; future version can roll once per bullet in rounds_per_attack.
 	if GameRandom.chance(kill_chance):
@@ -413,6 +414,36 @@ static func resolve_shot(
 		result.messages.append("%s missed" % weapon.weapon_name)
 
 	return result
+
+
+static func _log_combat_verbose(
+	shooter: SoldierStateClass,
+	target: SoldierStateClass,
+	weapon: WeaponDataClass,
+	breakdown: Dictionary,
+	kill_chance: float,
+) -> void:
+	GameLog.log_combat(
+		"[CombatVerbose] %s%d→%s%d %s range=%.1f base=%.4f cover×%.4f type×%.4f angle×%.4f stress×%.4f prone×%.2f/%.2f final=%.4f lethality×%.2f kill=%.4f"
+		% [
+			Team.display_name(shooter.team_id),
+			shooter.soldier_id,
+			Team.display_name(target.team_id),
+			target.soldier_id,
+			weapon.weapon_name if weapon != null else "?",
+			float(breakdown.get("range", 0.0)),
+			float(breakdown.get("base", 0.0)),
+			float(breakdown.get("cover_mult", 1.0)),
+			float(breakdown.get("move_type_mult", 1.0)),
+			float(breakdown.get("move_angle_mult", 1.0)),
+			float(breakdown.get("stress_mult", 1.0)),
+			float(breakdown.get("shooter_prone_mult", 1.0)),
+			float(breakdown.get("target_prone_mult", 1.0)),
+			float(breakdown.get("final", 0.0)),
+			float(breakdown.get("lethality", 0.0)),
+			kill_chance,
+		]
+	)
 
 
 ## --- Spotting / visibility (map cover + range + forward arc) vs shot LOS (strict) ---
@@ -1576,6 +1607,7 @@ static func _final_hit_chance(
 	target: SoldierStateClass,
 	weapon: WeaponDataClass,
 	los: LOSSystemClass.LossResult,
+	out_breakdown = null,
 ) -> float:
 	var marksman := shooter.marksman if shooter != null else 0.0
 	var base_chance := hit_chance(
@@ -1584,23 +1616,61 @@ static func _final_hit_chance(
 		weapon,
 		marksman,
 	)
-	var chance := base_chance
-	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
-		chance = CoverSystemClass.apply_moderate_cover(base_chance)
 	var dist := _combat_range(shooter.grid_position, target.grid_position)
+	var chance := base_chance
+	var cover_mult := 1.0
+	var move_type_mult := 1.0
+	var move_angle_mult := 1.0
+	var in_cover := (
+		los.cover_type == CoverSystemClass.CoverType.MODERATE
+		or los.cover_type == CoverSystemClass.CoverType.COMPLETE
+	)
+	## Cover curve when covered; open-ground movement/angle only when not.
+	if in_cover:
+		cover_mult = GameplayPolicies.cover.cover_multiplier_for_range(dist)
+		chance = base_chance * cover_mult
+	elif target != null and target.is_moving:
+		var move_pol := GameplayPolicies.movement
+		move_type_mult = move_pol.type_multiplier(target.movement_mode)
+		chance *= move_type_mult
+		## Sine crossing term only while running.
+		if target.movement_mode == MovementModeClass.RUN:
+			move_angle_mult = move_pol.angle_hit_multiplier(
+				shooter.facing_direction,
+				target.movement_heading(),
+				target.movement_mode,
+			)
+			chance *= move_angle_mult
 	var aim_factor := weapon.stress_aim_factor if weapon != null else 1.0
-	chance *= GameplayPolicies.suppression.accuracy_modifier_for(
+	var stress_mult := GameplayPolicies.suppression.accuracy_modifier_for(
 		shooter.stress,
 		int(round(dist)),
 		aim_factor,
 	)
+	chance *= stress_mult
+	var shooter_prone_mult := 1.0
+	var target_prone_mult := 1.0
 	if shooter.position_state == PositionStateClass.DOWN:
-		chance *= GameplayPolicies.hit.shooter_prone_accuracy_mult
+		shooter_prone_mult = GameplayPolicies.hit.shooter_prone_accuracy_mult
+		chance *= shooter_prone_mult
 	if target.position_state == PositionStateClass.DOWN:
-		chance *= GameplayPolicies.hit.target_prone_hit_mult
+		target_prone_mult = GameplayPolicies.hit.target_prone_hit_mult
+		chance *= target_prone_mult
+	var final_chance := clampf(chance, 0.0, 1.0)
+	if out_breakdown is Dictionary:
+		out_breakdown["base"] = base_chance
+		out_breakdown["cover_mult"] = cover_mult
+		out_breakdown["move_type_mult"] = move_type_mult
+		out_breakdown["move_angle_mult"] = move_angle_mult
+		out_breakdown["stress_mult"] = stress_mult
+		out_breakdown["shooter_prone_mult"] = shooter_prone_mult
+		out_breakdown["target_prone_mult"] = target_prone_mult
+		out_breakdown["final"] = final_chance
+		out_breakdown["range"] = dist
+		out_breakdown["lethality"] = GameplayPolicies.hit.lethality_multiplier
 	## Cover / prone / suppression may push below min_hit_chance — that floor
 	## applies only to base hit_chance(), not after situational multipliers.
-	return clampf(chance, 0.0, 1.0)
+	return final_chance
 
 
 static func is_in_weapon_range(

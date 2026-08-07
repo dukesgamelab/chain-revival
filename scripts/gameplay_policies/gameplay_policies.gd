@@ -91,5 +91,5 @@ func reload_from_config() -> void:
 
 
 func _sync_cross_policy_aliases() -> void:
-	## HitChancePolicy.moderate_cover_hit_mult stays available for older callers.
-	hit.moderate_cover_hit_mult = cover.moderate_hit_mult
+	## Legacy sync: expose full-strength cover mult for older HitChancePolicy callers.
+	hit.moderate_cover_hit_mult = cover.cover_hit_multiplier
