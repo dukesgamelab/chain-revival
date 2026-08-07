@@ -39,6 +39,7 @@ func _ready() -> void:
 	_test_short_walls_four_cameras()
 	_test_sample_families_resolve()
 	_test_camera_rotation_does_not_alter_gameplay()
+	_test_wh02_authored_sprite_square()
 
 	print("")
 	print("Facet camera rotation tests: %d passed, %d failed" % [_passed, _failed])
@@ -312,3 +313,33 @@ func _test_camera_rotation_does_not_alter_gameplay() -> void:
 	_assert("camera rotation does not alter blocked/collision", before_blocked == after_blocked)
 	_assert("camera rotation does not alter obstruction height", before_height == after_height)
 	_assert("camera rotation does not alter world Direction", before_dir == after_dir)
+
+
+func _test_wh02_authored_sprite_square() -> void:
+	## WH02 facet 90/270: s/n (WWAL/WCOR letter order). 0/180 untouched.
+	## Each authored sprite appears exactly 4× across 16 pairs.
+	MapAssetRegistry.reload()
+	var want_by_facet := {
+		0: "WH02_E",
+		90: "WH02_S",
+		180: "WH01S7A_E",
+		270: "WH02_N",
+	}
+	var counts: Dictionary = {}
+	for world_dir in [0, 90, 180, 270]:
+		for cam in [0, 90, 180, 270]:
+			var info := CocSpriteResolver.resolve_placement("WH02", world_dir, "", cam)
+			var stem := str(info.get("path", "")).get_file().get_basename().to_upper()
+			var rel := int(info.get("relative_facet", -1))
+			_assert(
+				"WH02 dir=%d cam=%d facet %d → %s" % [world_dir, cam, rel, want_by_facet.get(rel, "?")],
+				stem == str(want_by_facet.get(rel, "")),
+				"got %s" % stem,
+			)
+			counts[stem] = int(counts.get(stem, 0)) + 1
+	for stem in ["WH02_E", "WH02_S", "WH01S7A_E", "WH02_N"]:
+		_assert(
+			"WH02 authored %s appears exactly 4 times" % stem,
+			int(counts.get(stem, 0)) == 4,
+			"got %d counts=%s" % [int(counts.get(stem, 0)), str(counts)],
+		)

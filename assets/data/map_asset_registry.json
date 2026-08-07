@@ -1991,21 +1991,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WH02_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WH02_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "WH02_n",
 					"fallback": false,
 					"hotspot": [
@@ -2014,6 +1999,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/WH02_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "WH02_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/WH02_s.png",
 					"render_offset": [
 						0.0,
 						0.0
