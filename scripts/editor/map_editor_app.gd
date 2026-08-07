@@ -409,7 +409,7 @@ func _handle_mouse_editor_input(event: InputEvent) -> void:
 		else:
 			_world.clear_hover()
 			_world.clear_placement_preview()
-		if _painting and _tool in [Tool.PLACE, Tool.ERASE]:
+		if _painting and _tool in [Tool.PLACE, Tool.ERASE, Tool.SPAWN_USA, Tool.SPAWN_GER]:
 			_apply_tool_at(cell, false)
 	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
@@ -469,15 +469,11 @@ func _apply_tool_at(cell: Vector2i, is_click: bool) -> void:
 		Tool.SPAWN_USA:
 			if is_click:
 				_push_history()
-				if cell not in _map_data.team_1_spawn_points:
-					_map_data.team_1_spawn_points.append(cell)
-				_refresh_world()
+			_paint_spawn_cell(cell, 1, true)
 		Tool.SPAWN_GER:
 			if is_click:
 				_push_history()
-				if cell not in _map_data.team_2_spawn_points:
-					_map_data.team_2_spawn_points.append(cell)
-				_refresh_world()
+			_paint_spawn_cell(cell, 2, true)
 		Tool.VICTORY:
 			if is_click:
 				_push_history()
@@ -557,11 +553,69 @@ func _rect_fill(cell: Vector2i, is_click: bool) -> void:
 	var x1 := maxi(a.x, cell.x)
 	var y0 := mini(a.y, cell.y)
 	var y1 := maxi(a.y, cell.y)
+	var spawn_team := _spawn_team_for_brush()
+	var painted := 0
 	for y in range(y0, y1 + 1):
 		for x in range(x0, x1 + 1):
-			_place_brush(Vector2i(x, y), false)
+			var c := Vector2i(x, y)
+			if spawn_team > 0:
+				if _paint_spawn_cell(c, spawn_team, false, false):
+					painted += 1
+			else:
+				_place_brush(c, false)
 	_rect_anchor = Vector2i(-1, -1)
 	_refresh_world()
+	if spawn_team > 0:
+		var side := "USA" if spawn_team == 1 else "Germany"
+		_status.text = "Rect filled %d %s spawn cell(s)" % [painted, side]
+
+
+## team 1 = USA, team 2 = Germany. Returns 0 if brush is not a spawn marker.
+func _spawn_team_for_brush() -> int:
+	var kind := str(_brush.get("kind", ""))
+	if kind == "spawn_usa" or _tool == Tool.SPAWN_USA:
+		return 1
+	if kind == "spawn_ger" or _tool == Tool.SPAWN_GER:
+		return 2
+	return 0
+
+
+## Paint or toggle a deployment cell. Returns true when the cell list changed.
+## toggle=true: re-applying the same team removes the cell (brush erase).
+## toggle=false: always add (rect fill). Claims the cell from the other team.
+func _paint_spawn_cell(
+	cell: Vector2i,
+	team: int,
+	toggle: bool,
+	refresh: bool = true,
+) -> bool:
+	if _map_data == null or not _map_data.is_in_bounds(cell):
+		return false
+	var own: Array[Vector2i] = (
+		_map_data.team_1_spawn_points if team == 1 else _map_data.team_2_spawn_points
+	)
+	var other: Array[Vector2i] = (
+		_map_data.team_2_spawn_points if team == 1 else _map_data.team_1_spawn_points
+	)
+	var changed := false
+	if cell in own:
+		if toggle:
+			own.erase(cell)
+			changed = true
+	else:
+		own.append(cell)
+		changed = true
+		if cell in other:
+			other.erase(cell)
+	if team == 1:
+		_map_data.team_1_spawn_points = own
+		_map_data.team_2_spawn_points = other
+	else:
+		_map_data.team_2_spawn_points = own
+		_map_data.team_1_spawn_points = other
+	if changed and refresh:
+		_refresh_world()
+	return changed
 
 
 func _flood_fill(cell: Vector2i) -> void:
@@ -936,19 +990,23 @@ func _on_asset_selected() -> void:
 		"spawn_usa":
 			_tool = Tool.SPAWN_USA
 			_tool_option.select(Tool.SPAWN_USA)
+			_status.text = "USA Spawn — drag to paint, click again to erase"
 		"spawn_ger":
 			_tool = Tool.SPAWN_GER
 			_tool_option.select(Tool.SPAWN_GER)
+			_status.text = "Germany Spawn — drag to paint, click again to erase"
 		"victory":
 			_tool = Tool.VICTORY
 			_tool_option.select(Tool.VICTORY)
+			_status.text = "Brush: %s" % str(_brush.get("label", ""))
 		"label":
 			_tool = Tool.LABEL
 			_tool_option.select(Tool.LABEL)
+			_status.text = "Brush: %s" % str(_brush.get("label", ""))
 		_:
 			_tool = Tool.PLACE
 			_tool_option.select(Tool.PLACE)
-	_status.text = "Brush: %s" % str(_brush.get("label", ""))
+			_status.text = "Brush: %s" % str(_brush.get("label", ""))
 
 
 func _selected_renamable_meta() -> Dictionary:
@@ -1077,6 +1135,16 @@ func _on_tool_selected(index: int) -> void:
 	_rect_anchor = Vector2i(-1, -1)
 	if _tool == Tool.SELECT:
 		_enter_select_tool(false)
+	elif _tool == Tool.SPAWN_USA:
+		_brush = {"kind": "spawn_usa", "family": "SPAWN_USA", "label": "USA Spawn"}
+		if _world != null:
+			_world.clear_placement_preview()
+		_status.text = "USA Spawn — drag to paint, click again to erase"
+	elif _tool == Tool.SPAWN_GER:
+		_brush = {"kind": "spawn_ger", "family": "SPAWN_GER", "label": "Germany Spawn"}
+		if _world != null:
+			_world.clear_placement_preview()
+		_status.text = "Germany Spawn — drag to paint, click again to erase"
 	elif _world != null and _tool not in [Tool.PLACE, Tool.RECT_FILL, Tool.FLOOD_FILL]:
 		_world.clear_placement_preview()
 
