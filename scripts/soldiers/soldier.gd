@@ -92,6 +92,11 @@ var _idle_fidget_semantic: String = ""
 var _idle_rng := RandomNumberGenerator.new()
 ## Seconds remaining until next fidget roll (−1 = inactive). Ticked in _process.
 var _idle_wait_remaining_sec: float = -1.0
+## Mirrored from SoldierState for idle pose selection (stress / hold-fire / post-shot).
+var _presentation_stress: float = 0.0
+var _presentation_fire_control: int = FireControlState.FIRE_AT_WILL
+## Seconds remaining on brief ADHPA/GDHPA kneel-aim hold after an open standing shot.
+var _post_shot_crouch_remaining: float = 0.0
 
 ## When true, log hit-reaction resolution (semantic, family, directions, frames, FPS).
 const DEBUG_HIT_REACTION := false
@@ -210,6 +215,8 @@ func sync_from_state(
 	team_id = state.team_id
 	_show_id_marker = show_id_marker
 	_idle_peek_side = idle_peek_side
+	_presentation_stress = state.stress
+	_presentation_fire_control = state.fire_control_state
 	if previous_team != team_id or _anim.sprite_frames == null:
 		_configure_team_visual()
 	_is_dead = state.is_dead
@@ -329,6 +336,28 @@ func _apply_fog_visual(mode: int, is_selected: bool = false) -> void:
 ## Fog-of-war only — used by Main on combat scans to avoid full sync_from_state.
 func apply_spotting_only(is_selected: bool, fog_visual: int) -> void:
 	_apply_fog_visual(fog_visual, is_selected)
+
+
+## Cheap stress / hold-fire idle pose update without full sync_from_state.
+func apply_idle_pose_inputs(stress: float, fire_control_state: int) -> void:
+	var prev_semantic := _idle_standing_semantic()
+	_presentation_stress = stress
+	_presentation_fire_control = fire_control_state
+	if _is_dead or _blocks_action_override() or _is_moving:
+		return
+	if _applied_position_state == PositionState.DOWN:
+		return
+	var next_semantic := _idle_standing_semantic()
+	if (
+		next_semantic == prev_semantic
+		and str(_anim.animation).begins_with("%s_" % next_semantic)
+	):
+		return
+	_locomotion_walking = true
+	var dir := _locomotion_direction
+	if dir.is_empty():
+		dir = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	_play_locomotion(dir if not dir.is_empty() else "n", false)
 
 
 func set_selected(is_selected: bool) -> void:
@@ -478,9 +507,15 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 func _process(delta: float) -> void:
 	## Standing fidget wait is presentation-only and must tick even when not translating.
 	_tick_standing_idle_wait(delta)
+	_tick_post_shot_crouch(delta)
 	## Interpolates Node2D.position only — never mutates SoldierState or emits gameplay steps.
 	if not _is_moving or _is_dead or _blocks_action_override():
-		if _idle_wait_remaining_sec < 0.0 and not _idle_fidget_active and not _is_moving:
+		if (
+			_idle_wait_remaining_sec < 0.0
+			and not _idle_fidget_active
+			and _post_shot_crouch_remaining <= 0.0
+			and not _is_moving
+		):
 			set_process(false)
 		return
 
@@ -675,6 +710,8 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			## Sync/facing refresh must not drop a stopped idle timer.
 			if idle_semantic == "idle_standing":
 				_ensure_standing_idle_timer()
+			elif idle_semantic == "idle_crouch":
+				_cancel_standing_idle()
 			return
 		if (
 			_applied_position_state == PositionState.DOWN
@@ -736,12 +773,25 @@ func _idle_display_direction(world_direction: String) -> String:
 
 
 func _idle_standing_semantic() -> String:
-	return GameplayPolicies.idle_anim.semantic_for(_idle_peek_side, _applied_position_state)
+	return GameplayPolicies.idle_anim.semantic_for(
+		_idle_peek_side,
+		_applied_position_state,
+		_presentation_stress,
+		_presentation_fire_control,
+		_post_shot_crouch_remaining > 0.0,
+	)
 
 
 func _idle_source_family() -> String:
+	var want_crouch := GameplayPolicies.idle_anim.should_use_crouch(
+		_applied_position_state,
+		_idle_peek_side,
+		_presentation_stress,
+		_presentation_fire_control,
+		_post_shot_crouch_remaining > 0.0,
+	)
 	return GameplayPolicies.idle_anim.source_family_for(
-		team_id, _idle_peek_side, _applied_position_state
+		team_id, _idle_peek_side, _applied_position_state, want_crouch
 	)
 
 
@@ -754,7 +804,7 @@ func _play_idle_standing(world_direction: String) -> void:
 	var semantic := _idle_standing_semantic()
 	var anim_name := "%s_%s" % [semantic, display_dir]
 	if not _anim.sprite_frames.has_animation(anim_name):
-		## Fall back to open standing idle if corner frames are missing.
+		## Fall back: crouch → standing; corner → standing.
 		if semantic != "idle_standing":
 			semantic = "idle_standing"
 			anim_name = "%s_%s" % [semantic, display_dir]
@@ -770,7 +820,7 @@ func _play_idle_standing(world_direction: String) -> void:
 		push_error("Soldier: idle animation %s has zero frames" % anim_name)
 		_log_idle_standing(anim_name, "EMPTY_FRAMES")
 		return
-	## Already on the held standing pose / CIS — do not restart the wait timer.
+	## Already on the held standing / crouch / CIS pose — do not restart the wait timer.
 	if str(_anim.animation) == anim_name and not _idle_fidget_active:
 		_played_idle_peek_side = _idle_peek_side
 		if semantic == "idle_standing":
@@ -778,6 +828,12 @@ func _play_idle_standing(world_direction: String) -> void:
 				_anim.pause()
 				_anim.frame = 0
 			_ensure_standing_idle_timer()
+			return
+		if semantic == "idle_crouch":
+			## ADHPA/GDHPA A–B loop — keep playing; no fidgets while kneeling.
+			_cancel_standing_idle()
+			if not _anim.is_playing():
+				_anim.play(anim_name)
 			return
 		if semantic.begins_with("corner_idle_"):
 			_corner_phase = CornerPresPhase.IDLE
@@ -797,6 +853,14 @@ func _play_idle_standing(world_direction: String) -> void:
 		## Facing/camera remaps must not reset an already-running wait.
 		_ensure_standing_idle_timer()
 		_log_idle_standing(anim_name, "HOLD_POSE")
+		return
+	if semantic == "idle_crouch":
+		## Kneel-aim loop (ADHPA/GDHPA) — no fidgets while crouched.
+		_cancel_standing_idle()
+		if _corner_phase == CornerPresPhase.IDLE:
+			_clear_corner_presentation(false)
+		_played_idle_peek_side = _idle_peek_side
+		_log_idle_standing(anim_name, "LOOP_CROUCH")
 		return
 	if semantic.begins_with("corner_idle_"):
 		_cancel_standing_idle()
@@ -944,11 +1008,18 @@ func _remap_idle_standing_for_camera() -> void:
 		return
 	if str(_anim.animation) == anim_name:
 		return
+	var was_playing := _anim.is_playing()
+	var saved_frame := _anim.frame
 	_anim.play(anim_name)
-	## Held standing pose — always frame A after camera remap.
+	## Held standing pose — frame A after camera remap. Crouch keeps its loop.
 	if semantic == "idle_standing":
 		_anim.pause()
 		_anim.frame = 0
+	elif semantic == "idle_crouch":
+		var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
+		_anim.frame = mini(saved_frame, max_frame)
+		if not was_playing:
+			_anim.play(anim_name)
 	_played_idle_peek_side = _idle_peek_side
 	_log_idle_standing(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
 
@@ -1787,7 +1858,42 @@ func _finish_fire(anim_name: String) -> void:
 		_start_corner_peek_exit()
 		return
 	_fire_peek_side = CoverSystem.PeekSide.NONE
+	## Open standing shots duck briefly into ADHPA/GDHPA kneel-aim, then return to fire pose.
+	if not _fire_return_prone:
+		_begin_post_shot_crouch()
 	_finish_fire_idle()
+
+
+func _begin_post_shot_crouch() -> void:
+	if _idle_peek_side != CoverSystem.PeekSide.NONE:
+		return
+	if _is_moving and _has_active_chase():
+		return
+	var hold := GameplayPolicies.idle_anim.post_shot_crouch_sec
+	if hold <= 0.0:
+		return
+	_post_shot_crouch_remaining = hold
+	_cancel_standing_idle()
+	set_process(true)
+
+
+func _tick_post_shot_crouch(delta: float) -> void:
+	if _post_shot_crouch_remaining <= 0.0:
+		return
+	if _is_dead or _blocks_action_override():
+		_post_shot_crouch_remaining = 0.0
+		return
+	_post_shot_crouch_remaining = maxf(0.0, _post_shot_crouch_remaining - delta)
+	if _post_shot_crouch_remaining > 0.0:
+		return
+	## Timer elapsed — re-evaluate idle (standing if fire-at-will and not stressed).
+	if _is_moving or _applied_position_state == PositionState.DOWN:
+		return
+	_locomotion_walking = true
+	var idle_dir := (
+		_fire_world_direction if not _fire_world_direction.is_empty() else _locomotion_direction
+	)
+	_play_locomotion(idle_dir if not idle_dir.is_empty() else "n", false)
 
 
 func _finish_fire_idle() -> void:

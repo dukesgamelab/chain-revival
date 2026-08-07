@@ -11,6 +11,7 @@ extends RefCounted
 ##   Fire corner L/R:   ALCFA·ARCFA / GLCFA·GRCFA (A–C) → corner_fire_left_* / corner_fire_right_*
 ##   Fire prone:        APRFA / GPRFA  (A–C)  → fire_prone_*
 ##   Idle standing:     ABRLA / GBRLA frame A (held) → idle_standing_*
+##   Idle crouch:       ADHPA / GDHPA A–B loop → idle_crouch_* (kneel aim)
 ##   Idle fidgets:      ABRLA / GBRLA explicit oneshots → idle_fidget_1..4_*
 ##   Idle corner L/R:   ALCIS·ARCIS / GLCIS·GRCIS (A) → corner_idle_left_* / corner_idle_right_*
 ##   Aim corner L/R:    ALCAS·ARCAS / GLCAS·GRCAS (A) → corner_aim_left_* / corner_aim_right_*

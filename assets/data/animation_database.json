@@ -317,7 +317,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -355,7 +355,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -393,7 +393,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -431,7 +431,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -469,7 +469,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -507,7 +507,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -1362,7 +1362,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -1916,7 +1916,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Held standing pose \u2014 frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
+						"notes": "Held standing pose — frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
 						"source_family": "GBRLA",
 						"stance": "standing",
 						"verification": "manually confirmed by user",
@@ -2509,7 +2509,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
+						"notes": "Source GLCIS frames A. Static tucked/aim hold — tune in editor.",
 						"sound_effect": "",
 						"source_family": "GLCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -2568,7 +2568,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
+						"notes": "Source GRCIS frames A. Static tucked/aim hold — tune in editor.",
 						"sound_effect": "",
 						"source_family": "GRCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -2643,10 +2643,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "GLCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -2718,10 +2718,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "GRCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -2777,7 +2777,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
+						"notes": "Source GLCAS frames A. Static tucked/aim hold — tune in editor.",
 						"sound_effect": "",
 						"source_family": "GLCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -2836,7 +2836,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
+						"notes": "Source GRCAS frames A. Static tucked/aim hold — tune in editor.",
 						"sound_effect": "",
 						"source_family": "GRCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -3137,10 +3137,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"sound_effect": "",
 						"source_family": "GLCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"verified": true,
 						"frame_order": "ABC"
 					}
@@ -3289,10 +3289,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"sound_effect": "",
 						"source_family": "GRCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"verified": true,
 						"frame_order": "ABC"
 					}
@@ -3696,6 +3696,73 @@
 						"verified": true,
 						"frame_letters": "OPQRQPO"
 					}
+				},
+				"idle_crouch": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GDHPA1A.png",
+								"res://assets/sprites/coc_soldiers/GDHPA1B.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GDHPA2A.png",
+								"res://assets/sprites/coc_soldiers/GDHPA2B.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GDHPA3A.png",
+								"res://assets/sprites/coc_soldiers/GDHPA3B.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GDHPA4A.png",
+								"res://assets/sprites/coc_soldiers/GDHPA4B.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GDHPA5A.png",
+								"res://assets/sprites/coc_soldiers/GDHPA5B.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GDHPA6A.png",
+								"res://assets/sprites/coc_soldiers/GDHPA6B.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GDHPA7A.png",
+								"res://assets/sprites/coc_soldiers/GDHPA7B.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/GDHPA8A.png",
+								"res://assets/sprites/coc_soldiers/GDHPA8B.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "Germany kneel aim (loop)",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/idle_crouch",
+						"faction": "Germany",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "GDHPA kneel aim A-B loop. Used when stressed, hold-fire, or briefly after shot.",
+						"source_family": "GDHPA",
+						"stance": "kneeling",
+						"verification": "mirrored/inferred from US family",
+						"verified": false
+					}
 				}
 			},
 			"category": "soldiers",
@@ -3974,7 +4041,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4012,7 +4079,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4050,7 +4117,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4088,7 +4155,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4126,7 +4193,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4164,7 +4231,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4623,7 +4690,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4661,7 +4728,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4699,7 +4766,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4737,7 +4804,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4775,7 +4842,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -4813,7 +4880,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -5778,7 +5845,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -6712,7 +6779,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Held standing pose \u2014 frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
+						"notes": "Held standing pose — frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
 						"source_family": "ABRLA",
 						"stance": "standing",
 						"verification": "manually confirmed by user",
@@ -7113,7 +7180,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
+						"notes": "Source ALCIS frames A. Static tucked/aim hold — tune in editor.",
 						"sound_effect": "",
 						"source_family": "ALCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -7172,7 +7239,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ARCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
+						"notes": "Source ARCIS frames A. Static tucked/aim hold — tune in editor.",
 						"sound_effect": "",
 						"source_family": "ARCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -7247,10 +7314,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "ALCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -7322,10 +7389,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "ARCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -7381,7 +7448,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
+						"notes": "Source ALCAS frames A. Static tucked/aim hold — tune in editor.",
 						"sound_effect": "",
 						"source_family": "ALCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -7440,7 +7507,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ARCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
+						"notes": "Source ARCAS frames A. Static tucked/aim hold — tune in editor.",
 						"sound_effect": "",
 						"source_family": "ARCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -7925,10 +7992,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"sound_effect": "",
 						"source_family": "ALCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"verified": true,
 						"frame_order": "ABC"
 					}
@@ -8077,10 +8144,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"sound_effect": "",
 						"source_family": "ARCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C\u2248tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
 						"verified": true,
 						"frame_order": "ABC"
 					}
@@ -8544,6 +8611,73 @@
 						"verified": true,
 						"frame_letters": "OPQRQPO"
 					}
+				},
+				"idle_crouch": {
+					"directions": {
+						"w": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ADHPA1A.png",
+								"res://assets/sprites/coc_soldiers/ADHPA1B.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ADHPA2A.png",
+								"res://assets/sprites/coc_soldiers/ADHPA2B.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ADHPA3A.png",
+								"res://assets/sprites/coc_soldiers/ADHPA3B.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ADHPA4A.png",
+								"res://assets/sprites/coc_soldiers/ADHPA4B.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ADHPA5A.png",
+								"res://assets/sprites/coc_soldiers/ADHPA5B.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ADHPA6A.png",
+								"res://assets/sprites/coc_soldiers/ADHPA6B.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ADHPA7A.png",
+								"res://assets/sprites/coc_soldiers/ADHPA7B.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/coc_soldiers/ADHPA8A.png",
+								"res://assets/sprites/coc_soldiers/ADHPA8B.png"
+							]
+						}
+					},
+					"fps": 8.0,
+					"label": "American kneel aim (loop)",
+					"loop": true,
+					"metadata": {
+						"category": "soldier/idle_crouch",
+						"faction": "American",
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "ADHPA kneel aim A-B loop. Used when stressed, hold-fire, or briefly after shot.",
+						"source_family": "ADHPA",
+						"stance": "kneeling",
+						"verification": "sprite browser + user confirm",
+						"verified": true
+					}
 				}
 			},
 			"category": "soldiers",
@@ -8824,7 +8958,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -8862,7 +8996,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -8900,7 +9034,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -8938,7 +9072,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -8976,7 +9110,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -9014,7 +9148,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Stub \u2014 use Auto Detect to fill frames.",
+						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},

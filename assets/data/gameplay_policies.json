@@ -41,6 +41,12 @@
 		"kill_chance": 0.25,
 		"stun_duration_sec": 8.0
 	},
+	"idle_anim": {
+		"comment": "TUNED presentation: ADHPA/GDHPA kneel-aim loop when stress>=threshold, HOLD_FIRE, or briefly after an open standing shot.",
+		"crouch_stress_threshold": 25.0,
+		"post_shot_crouch_sec": 0.85
+	},
+
 	"suppression": {
 		"comment": "SCALE (B): runtime stress 0–100; original 0–7 via SuppressionPolicy.STRESS_SCALE only. Generation/caps from weapon StressFactor/StressLimit. Accuracy from stress_accuracy_table.json (normalized). Decay: INITStressFallMultiplier retain fraction toward INITStressInitial. Legacy suppression_mg42/bar/smg match recovered LMG/SMG factors for fallbacks only.",
 		"stress_base": 0.8,

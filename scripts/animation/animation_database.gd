@@ -243,6 +243,7 @@ static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteF
 		"corner_peek_exit_left": "corner_peek_exit_left",
 		"corner_peek_exit_right": "corner_peek_exit_right",
 		"idle_standing": "idle_standing",
+		"idle_crouch": "idle_crouch",
 		"corner_idle_left": "corner_idle_left",
 		"corner_idle_right": "corner_idle_right",
 		"idle_prone": "idle_prone",

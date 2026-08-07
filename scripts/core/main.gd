@@ -1675,6 +1675,19 @@ func _refresh_all_views() -> void:
 	_refresh_command_bar()
 
 
+## Cheap stress/hold-fire crouch pose refresh for living soldiers.
+func _refresh_idle_pose_visuals() -> void:
+	for fireteam in _session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if soldier_state == null or not soldier_state.is_alive():
+				continue
+			var view: Soldier = _get_view(soldier_state.team_id, soldier_state.soldier_id)
+			if view == null:
+				continue
+			view.apply_idle_pose_inputs(soldier_state.stress, soldier_state.fire_control_state)
+
+
 ## Cheap fog-of-war update: only enemy modulate/selection, no full anim/facing resync.
 func _refresh_enemy_spotting_visuals() -> void:
 	_rebuild_fog_cache_if_needed()
@@ -2194,6 +2207,8 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		if vis_changed.has(viewer_pid):
 			_invalidate_fog_cache()
 			_refresh_enemy_spotting_visuals()
+		## Stress / hold-fire crouch poses without a full roster sync.
+		_refresh_idle_pose_visuals()
 		_refresh_command_bar_light()
 
 	for order in result.throw_orders:

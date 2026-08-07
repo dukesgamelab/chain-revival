@@ -83,6 +83,8 @@ func reload_from_config() -> void:
 		cover.apply_config(root.cover)
 	if root.has("los") and root.los is Dictionary:
 		los.apply_config(root.los)
+	if root.has("idle_anim") and root.idle_anim is Dictionary:
+		idle_anim.apply_config(root.idle_anim)
 	if root.has("simulation") and root.simulation is Dictionary:
 		SimulationClock.apply_config(root.simulation)
 	_sync_cross_policy_aliases()
