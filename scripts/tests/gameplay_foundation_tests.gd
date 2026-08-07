@@ -44,8 +44,12 @@ func _ready() -> void:
 	_test_rng_seed_reproducibility()
 	_test_firing_sequence_reproducibility()
 	_test_grenade_sequence_reproducibility()
+	_test_grenade_inverse_distance_model()
+	_test_grenade_blast_blocked_by_wall()
+	_test_grenade_stun_aborts_pending_throw()
 	_test_policy_defaults_unchanged()
 	_test_lethality_multiplier()
+	_test_lethality_time_to_casualty_band()
 	_test_min_hit_chance_not_after_modifiers()
 	_test_recovered_weapon_stats()
 	_test_fire_cadence_cycle()
@@ -1003,6 +1007,123 @@ func _test_grenade_sequence_reproducibility() -> void:
 	)
 
 
+func _test_grenade_inverse_distance_model() -> void:
+	_bootstrap()
+	GameplayPolicies.reset_all_to_defaults()
+	var g = GameplayPolicies.grenade
+	_assert(
+		"Direct-hit casualty capped at 60% (TUNED denom min 0.5)",
+		is_equal_approx(g.casualty_chance_at_distance(0.0), 0.60),
+		"got=%s" % g.casualty_chance_at_distance(0.0),
+	)
+	_assert(
+		"Distance 1 casualty is 30%",
+		is_equal_approx(g.casualty_chance_at_distance(1.0), 0.30),
+	)
+	_assert(
+		"Distance 2 casualty is 15%",
+		is_equal_approx(g.casualty_chance_at_distance(2.0), 0.15),
+	)
+	_assert(
+		"Stun at distance 0 is 6.0s",
+		is_equal_approx(g.stun_duration_at_distance(0.0), 6.0),
+	)
+	_assert(
+		"Stun at distance 1 is 5.0s",
+		is_equal_approx(g.stun_duration_at_distance(1.0), 5.0),
+	)
+	_assert(
+		"Stun at distance 2 is ~4.286s",
+		is_equal_approx(g.stun_duration_at_distance(2.0), 30.0 / 7.0),
+	)
+
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var thrower := game_state.get_soldier(Team.USA, 1)
+	var near := game_state.get_soldier(Team.GERMANY, 1)
+	var far := game_state.get_soldier(Team.GERMANY, 2)
+	thrower.grid_position = Vector2i(20, 30)
+	near.grid_position = Vector2i(21, 30)
+	far.grid_position = Vector2i(24, 30) ## Euclidean 4 > hit_distance 2
+	thrower.clear_path()
+	near.clear_path()
+	far.clear_path()
+	GameplayPolicies.hit.lethality_multiplier = 0.0
+	GameRandom.reseed(7)
+	var explosion := CombatSystemClass.resolve_grenade(game_state, thrower, Vector2i(20, 30))
+	var near_stunned := false
+	var far_hit := false
+	for entry in explosion.stunned:
+		if int(entry.get("soldier_id", -1)) == near.soldier_id:
+			near_stunned = true
+		if int(entry.get("soldier_id", -1)) == far.soldier_id:
+			far_hit = true
+	for entry in explosion.killed:
+		if int(entry.get("soldier_id", -1)) == far.soldier_id:
+			far_hit = true
+	_assert("Near soldier stunned when lethality 0", near_stunned and near.is_stunned())
+	_assert("Near soldier is DOWN after grenade stun", near.position_state == PositionStateClass.DOWN)
+	_assert(
+		"Near soldier movement mode forced to CRAWL",
+		near.movement_mode == MovementModeClass.CRAWL,
+	)
+	_assert("Far soldier outside hit_distance unaffected", not far_hit and not far.is_stunned())
+	_assert("Near needs cover recheck after stun", near.needs_cover_recheck)
+	GameplayPolicies.reset_all_to_defaults()
+
+
+func _test_grenade_blast_blocked_by_wall() -> void:
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	map_data.set_object(Vector2i(22, 30), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var game_state := _make_game_state(map_data)
+	var thrower := game_state.get_soldier(Team.USA, 1)
+	var behind := game_state.get_soldier(Team.GERMANY, 1)
+	thrower.grid_position = Vector2i(20, 30)
+	behind.grid_position = Vector2i(23, 30)
+	thrower.clear_path()
+	behind.clear_path()
+	GameRandom.reseed(99)
+	var explosion := CombatSystemClass.resolve_grenade(game_state, thrower, Vector2i(21, 30))
+	_assert(
+		"Wall blocks grenade blast to soldier behind it",
+		explosion.killed.is_empty() and explosion.stunned.is_empty(),
+		"killed=%d stunned=%d" % [explosion.killed.size(), explosion.stunned.size()],
+	)
+	_assert("Soldier behind wall remains unstunned", not behind.is_stunned())
+
+
+func _test_grenade_stun_aborts_pending_throw() -> void:
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var thrower := game_state.get_soldier(Team.USA, 1)
+	var victim := game_state.get_soldier(Team.GERMANY, 1)
+	## Victim is mid-throw when USA grenade lands on them.
+	victim.grid_position = Vector2i(21, 30)
+	thrower.grid_position = Vector2i(20, 30)
+	victim.grenade_count = 2
+	victim.pending_grenade_target = Vector2i(18, 30)
+	victim.grenade_explode_at_msec = SimulationClock.get_ticks_msec() + 5000
+	game_state.objects.register_grenade_from_soldier(victim)
+	_assert("Victim starts with pending grenade", victim.has_pending_grenade())
+	GameplayPolicies.hit.lethality_multiplier = 0.0
+	GameRandom.reseed(3)
+	CombatSystemClass.resolve_grenade(game_state, thrower, victim.grid_position)
+	_assert("Stun aborts pending grenade throw", not victim.has_pending_grenade())
+	_assert(
+		"Aborted grenade unregistered from objects",
+		game_state.objects.get_grenade(ObjectId.grenade(Team.GERMANY, victim.soldier_id)) == null,
+	)
+	GameplayPolicies.reset_all_to_defaults()
+
+
 func _test_policy_defaults_unchanged() -> void:
 	GameplayPolicies.reset_all_to_defaults()
 	_assert(
@@ -1014,8 +1135,14 @@ func _test_policy_defaults_unchanged() -> void:
 		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.40),
 	)
 	_assert("Grenade policy range is recovered 5", GameplayPolicies.grenade.throw_range == 5)
-	_assert("Grenade policy blast unchanged", GameplayPolicies.grenade.blast_radius == 3)
-	_assert("Grenade policy kill chance unchanged", is_equal_approx(GameplayPolicies.grenade.kill_chance, 0.25))
+	_assert(
+		"Grenade hit distance is recovered 2",
+		is_equal_approx(GameplayPolicies.grenade.hit_distance, 2.0),
+	)
+	_assert("Grenade VarA is recovered 30", is_equal_approx(GameplayPolicies.grenade.var_a, 30.0))
+	_assert("Grenade VarB is recovered 0", is_equal_approx(GameplayPolicies.grenade.var_b, 0.0))
+	_assert("Grenade VarC is recovered 30", is_equal_approx(GameplayPolicies.grenade.var_c, 30.0))
+	_assert("Grenade VarD is recovered 5", is_equal_approx(GameplayPolicies.grenade.var_d, 5.0))
 	_assert("Suppression pinned threshold unchanged", is_equal_approx(GameplayPolicies.suppression.pinned_threshold, 45.0))
 	_assert("Movement run speed unchanged", is_equal_approx(GameplayPolicies.movement.speed_run, 2.0))
 	_assert("Vision cone range bonus unchanged", GameplayPolicies.vision.cone_range_bonus == 8)
@@ -1148,6 +1275,36 @@ func _test_lethality_multiplier() -> void:
 		"a=%.4f b=%.4f" % [chance_a, chance_b],
 	)
 	GameplayPolicies.reload_from_config()
+
+
+func _test_lethality_time_to_casualty_band() -> void:
+	## Stage G2: expected time-to-kill at moderate range should land in 60–120s.
+	## Uses HitFinal × lethality × base_fire_cycle (analytic; confirms the TUNED constant).
+	_bootstrap()
+	GameplayPolicies.reset_all_to_defaults()
+	var rifle := GameplayPolicies.weapons.create_weapon("m1_garand")
+	var from_cell := Vector2i(20, 30)
+	var to_cell := Vector2i(30, 30) ## Euclidean 10 — moderate clear LOS
+	var hit_final := CombatSystemClass.hit_chance(from_cell, to_cell, rifle)
+	var lethality := GameplayPolicies.hit.lethality_multiplier
+	var cycle := GameplayPolicies.hit.base_fire_cycle_sec
+	var p_kill := hit_final * lethality
+	_assert("Moderate-range rifle HitFinal is positive", hit_final > 0.05, "hit=%.4f" % hit_final)
+	_assert("P(kill) per shot is positive", p_kill > 0.0, "p=%.4f" % p_kill)
+	var expected_ttk_sec := cycle / p_kill
+	_assert(
+		"Expected TTK in 60–120s band at moderate range",
+		expected_ttk_sec >= 60.0 and expected_ttk_sec <= 120.0,
+		"ttk=%.1fs hit=%.4f L=%.2f cycle=%.1f" % [expected_ttk_sec, hit_final, lethality, cycle],
+	)
+	## Grenade path shares the same lethality fold.
+	var casualty := GameplayPolicies.grenade.casualty_chance_at_distance(1.0)
+	var grenade_kill := casualty * lethality
+	_assert(
+		"Grenade kill chance at d=1 folds lethality",
+		is_equal_approx(grenade_kill, 0.30 * lethality),
+		"got=%.4f" % grenade_kill,
+	)
 
 
 func _test_min_hit_chance_not_after_modifiers() -> void:

@@ -22,9 +22,10 @@ const DEFAULT_RANGE_EPSILON := 0.25
 const DEFAULT_MAX_ENGAGEMENT_TILES := 40
 ## RECOVERED INITKilledProbability = 0.20 (separate kill roll after hit).
 const RECOVERED_LETHALITY_MULTIPLIER := 0.20
-## TUNED — compensates for missing wound state; drop to RECOVERED (0.20) when WIA lands.
-## Folded into the hit roll as P(death) = HitFinal × lethality_multiplier until wounds exist.
-## REVISIT after Stage 5 (hit polynomial) calibration — may return to 0.20 (RECOVERED).
+## TUNED — set from measured time-to-casualty vs original (~61s/rifleman).
+## At moderate range (~10 tiles, clear LOS) expected TTK ≈ 88s with HitFinal≈0.156.
+## Revert to 0.20 (RECOVERED) when the wound state lands.
+## Folded as P(death) = HitFinal × lethality_multiplier (bullets + grenade casualty).
 const DEFAULT_LETHALITY_MULTIPLIER := 0.40
 const DEFAULT_AUTO_TARGET_ENGAGED_BONUS := 10.0
 const DEFAULT_AUTO_FIRE_SCAN_INTERVAL := 0.5

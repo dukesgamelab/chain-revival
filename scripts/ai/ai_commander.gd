@@ -236,6 +236,8 @@ func tick(
 		current_target_key = ""
 	else:
 		_select_best_threat(game_state, visible)
+	## After grenade stun recovery — drop stale cover settlement before acting.
+	_consume_cover_recheck(game_state)
 	_sync_human_order_from_hierarchy(game_state)
 	_run_watchdog(game_state, visible, now_msec)
 
@@ -476,6 +478,20 @@ func _clear_cover_settlement() -> void:
 	_settled_in_cover = false
 	_cover_threat_cell = Vector2i(-999, -999)
 	_contact_bound_active = false
+
+
+## Grenade stun recovery marks needs_cover_recheck — re-evaluate before resuming.
+func _consume_cover_recheck(game_state) -> void:
+	var any := false
+	for soldier in _living_soldiers(game_state):
+		if soldier == null or not soldier.needs_cover_recheck:
+			continue
+		if soldier.is_stunned():
+			continue
+		soldier.needs_cover_recheck = false
+		any = true
+	if any:
+		_clear_cover_settlement()
 
 
 ## Take directional cover first, go prone, then face/fire.

@@ -1,7 +1,7 @@
 {
 	"comment": "Gameplay tuning overrides. Loaded by GameplayPolicies on startup. Omit a key to keep the script default. Do not rebalance casually — these values match shipped CombatSystem behavior.",
 	"hit": {
-		"comment": "Stage 5: hit_scale fits HUD anchors (rifle≈0.09 SMG≈0.03 at ~12 tiles). clear_* unused by polynomial.",
+		"comment": "Stage 5: hit_scale fits HUD anchors (rifle≈0.09 SMG≈0.03 at ~12 tiles). clear_* unused by polynomial. lethality TUNED 0.40 from ~88s expected TTK at moderate range (~10 tiles).",
 		"hit_scale": 0.07776,
 		"aim_time": 1.0,
 		"range_epsilon": 0.25,
@@ -39,14 +39,16 @@
 		"auto_score_smg_lmg_bonus": 20.0
 	},
 	"grenade": {
-		"comment": "RECOVERED: starting_count=ArmamentGranade=5, throw_range=INITMaxGranadeDistance=5. Reference VarA=30 VarB=0 VarC=30 VarD=5. TUNED: fuse/blast/kill/stun (originals unknown).",
+		"comment": "RECOVERED: starting_count=ArmamentGranade=5, throw_range=INITMaxGranadeDistance=5, hit_distance=GranadeHitDistance=2, VarA/B/C/D. TUNED: fuse_msec, distance_denom_min. Casualty = VarA/(d+VarB)% then × lethality; stun every survivor VarC/(d+VarD)s; LOS blocks blast.",
 		"starting_count": 5,
 		"throw_range": 5,
+		"hit_distance": 2.0,
 		"fuse_msec": 1800,
-		"blast_radius": 3,
-		"kill_radius": 1,
-		"kill_chance": 0.25,
-		"stun_duration_sec": 8.0
+		"var_a": 30.0,
+		"var_b": 0.0,
+		"var_c": 30.0,
+		"var_d": 5.0,
+		"distance_denom_min": 0.5
 	},
 	"idle_anim": {
 		"comment": "TUNED presentation: ADHPA/GDHPA kneel-aim loop when stress>=threshold, HOLD_FIRE, or briefly after an open standing shot.",

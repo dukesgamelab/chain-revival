@@ -12,6 +12,13 @@ const ID_THOMPSON := "thompson"
 const ID_KAR98K := "kar98k"
 const ID_MG42 := "mg42"
 const ID_MP40 := "mp40"
+## Grenade inventory item (not a fireable WeaponData). Blast params used by GrenadePolicy.
+const ID_GRENADE := "grenade"
+## RECOVERED grenade blast model (AuxDecimal = VarA/(d+VarB) casualty %, VarC/(d+VarD) stun sec).
+const GRENADE_VAR_A := 30.0
+const GRENADE_VAR_B := 0.0
+const GRENADE_VAR_C := 30.0
+const GRENADE_VAR_D := 5.0
 
 ## RECOVERED INIT_LimitPerSquad. -1 = unlimited (rifles).
 const SQUAD_LIMIT_BAR := 1

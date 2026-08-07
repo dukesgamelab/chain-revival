@@ -84,6 +84,8 @@ var pending_grenade_target: Vector2i = Vector2i(-999, -999)
 var grenade_explode_at_msec: int = 0
 ## When true, soldier stands automatically once grenade stun expires.
 var stand_on_stun_recovery: bool = false
+## Set by grenade stun — AI clears cover settlement and re-evaluates before resuming.
+var needs_cover_recheck: bool = false
 ## Stance at the moment of death (before mark_killed forces DOWN for corpse posture).
 ## Presentation uses this for hit_standing vs hit_prone selection.
 var stance_at_death: int = PositionStateClass.UP
@@ -224,6 +226,7 @@ func mark_killed() -> void:
 	clear_pending_position()
 	stunned_until_msec = 0
 	stand_on_stun_recovery = false
+	needs_cover_recheck = false
 	clear_path()
 	end_sustained_fire()
 	reset_fire_prep()
@@ -271,17 +274,23 @@ func apply_stun(duration_sec: float = 4.0) -> void:
 	reset_fire_prep()
 
 
-func apply_grenade_stun(duration_sec: float = GrenadePolicyClass.DEFAULT_STUN_DURATION_SEC) -> void:
-	stunned_until_msec = SimulationClock.get_ticks_msec() + int(duration_sec * 1000.0)
+func apply_grenade_stun(duration_sec: float = 6.0) -> void:
+	## Path State = Stop, UMoveMode = crawl, Blocking via occupancy, no fire/orders until expiry.
+	stunned_until_msec = SimulationClock.get_ticks_msec() + int(maxf(duration_sec, 0.0) * 1000.0)
 	position_state = PositionStateClass.DOWN
+	movement_mode = MovementModeClass.CRAWL
 	clear_pending_position()
 	stand_on_stun_recovery = true
+	needs_cover_recheck = true
 	clear_path()
 	end_sustained_fire()
 	reset_fire_prep()
+	## Caller (CombatSystem) also unregisters any in-flight throw; clear fields here too.
+	clear_pending_grenade()
 
 
 ## Stand back up after grenade stun ends. Returns true when posture changed.
+## needs_cover_recheck stays set so AI re-evaluates cover before resuming.
 func recover_from_stun_if_expired() -> bool:
 	if is_dead or is_stunned() or not stand_on_stun_recovery:
 		return false

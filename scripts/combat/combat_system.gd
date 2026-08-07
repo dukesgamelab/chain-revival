@@ -42,10 +42,9 @@ const STRESS_PANIC_THRESHOLD := SuppressionPolicyClass.DEFAULT_PANIC_THRESHOLD
 const AUTO_TARGET_ENGAGED_BONUS := HitChancePolicyClass.DEFAULT_AUTO_TARGET_ENGAGED_BONUS
 const GRENADE_THROW_RANGE := GrenadePolicyClass.DEFAULT_THROW_RANGE
 const GRENADE_FUSE_MSEC := GrenadePolicyClass.DEFAULT_FUSE_MSEC
-const GRENADE_BLAST_RADIUS := GrenadePolicyClass.DEFAULT_BLAST_RADIUS
-const GRENADE_KILL_RADIUS := GrenadePolicyClass.DEFAULT_KILL_RADIUS
-const GRENADE_KILL_CHANCE := GrenadePolicyClass.DEFAULT_KILL_CHANCE
-const GRENADE_STUN_DURATION_SEC := GrenadePolicyClass.DEFAULT_STUN_DURATION_SEC
+const GRENADE_HIT_DISTANCE := GrenadePolicyClass.DEFAULT_HIT_DISTANCE
+## Legacy aliases — hit_distance is the blast/effect radius (RECOVERED GranadeHitDistance).
+const GRENADE_BLAST_RADIUS := int(GrenadePolicyClass.DEFAULT_HIT_DISTANCE)
 const RECENTLY_SEEN_SEC := HitChancePolicyClass.DEFAULT_RECENTLY_SEEN_SEC
 const RECENTLY_FIRED_SPOT_SEC := HitChancePolicyClass.DEFAULT_RECENTLY_FIRED_SPOT_SEC
 const LAST_KNOWN_NEAR_TILES := HitChancePolicyClass.DEFAULT_LAST_KNOWN_NEAR_TILES
@@ -2142,7 +2141,8 @@ static func grenade_would_hit_friendly(
 ) -> bool:
 	if game_state == null or game_state.session == null:
 		return false
-	var radius := GameplayPolicies.grenade.blast_radius
+	var radius := GameplayPolicies.grenade.hit_distance
+	var map_data = game_state.map_data
 	for fireteam in game_state.session.all_fireteams():
 		if fireteam == null or fireteam.team_id != thrower_team_id:
 			continue
@@ -2150,13 +2150,17 @@ static func grenade_would_hit_friendly(
 			var soldier: SoldierStateClass = state
 			if soldier == null or soldier.is_dead:
 				continue
-			if _chebyshev_distance(soldier.grid_position, explosion_cell) <= radius:
-				return true
+			var distance := _euclidean_distance(soldier.grid_position, explosion_cell)
+			if distance > radius:
+				continue
+			if _grenade_blast_blocked(explosion_cell, soldier.grid_position, map_data):
+				continue
+			return true
 	return false
 
 
-## Grenade blast resolution — Chebyshev radius; cover ignored for V1.
-## Same-team soldiers are never killed or stunned (friendly fire off for nades).
+## Grenade blast — inverse-distance casualty × lethality, automatic stun for survivors.
+## Euclidean hit_distance; spotting LOS blocks blast through walls. Friendlies immune.
 static func resolve_grenade(
 	game_state: GameStateClass,
 	thrower: SoldierStateClass,
@@ -2166,10 +2170,12 @@ static func resolve_grenade(
 	if game_state == null or thrower == null:
 		return result
 
+	var policy = GameplayPolicies.grenade
+	var map_data = game_state.map_data
 	result.thrower_team_id = thrower.team_id
 	result.thrower_id = thrower.soldier_id
 	result.explosion_cell = explosion_cell
-	result.blast_radius = GameplayPolicies.grenade.blast_radius
+	result.blast_radius = policy.hit_distance
 
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
@@ -2180,43 +2186,45 @@ static func resolve_grenade(
 			if soldier.team_id == thrower.team_id:
 				continue
 
-			var distance := _chebyshev_distance(soldier.grid_position, explosion_cell)
-			if distance > GameplayPolicies.grenade.blast_radius:
+			var distance := _euclidean_distance(soldier.grid_position, explosion_cell)
+			if distance > policy.hit_distance:
+				continue
+			if _grenade_blast_blocked(explosion_cell, soldier.grid_position, map_data):
 				continue
 
-			if distance <= GameplayPolicies.grenade.kill_radius:
-				if GameRandom.chance(GameplayPolicies.grenade.kill_chance):
-					soldier.mark_killed()
-					notify_soldier_perception_dirty(game_state, soldier)
-					ScenarioRulesClass.on_soldier_killed(game_state, thrower.team_id, soldier)
-					result.killed.append({
-						"team_id": soldier.team_id,
-						"soldier_id": soldier.soldier_id,
-					})
-					result.messages.append(
-						"%s Soldier %d killed by grenade blast."
-						% [Team.display_name(soldier.team_id), soldier.soldier_id],
-					)
-				else:
-					_apply_grenade_stun(soldier)
-					result.stunned.append({
-						"team_id": soldier.team_id,
-						"soldier_id": soldier.soldier_id,
-					})
-					result.messages.append(
-						"%s Soldier %d stunned by grenade blast."
-						% [Team.display_name(soldier.team_id), soldier.soldier_id],
-					)
-			else:
-				_apply_grenade_stun(soldier)
-				result.stunned.append({
+			## Shared casualty block with bullets: P(death) = casualty × lethality_multiplier.
+			var casualty_chance := policy.casualty_chance_at_distance(distance)
+			var kill_chance := clampf(
+				casualty_chance * GameplayPolicies.hit.lethality_multiplier,
+				0.0,
+				1.0,
+			)
+			if GameRandom.chance(kill_chance):
+				soldier.mark_killed()
+				notify_soldier_perception_dirty(game_state, soldier)
+				ScenarioRulesClass.on_soldier_killed(game_state, thrower.team_id, soldier)
+				result.killed.append({
 					"team_id": soldier.team_id,
 					"soldier_id": soldier.soldier_id,
 				})
 				result.messages.append(
-					"%s Soldier %d stunned by grenade blast."
+					"%s Soldier %d killed by grenade blast."
 					% [Team.display_name(soldier.team_id), soldier.soldier_id],
 				)
+				continue
+
+			## Every survivor in radius — no saving throw.
+			var stun_sec := policy.stun_duration_at_distance(distance)
+			_apply_grenade_stun(game_state, soldier, stun_sec)
+			result.stunned.append({
+				"team_id": soldier.team_id,
+				"soldier_id": soldier.soldier_id,
+				"duration_sec": stun_sec,
+			})
+			result.messages.append(
+				"%s Soldier %d stunned by grenade blast (%.1fs)."
+				% [Team.display_name(soldier.team_id), soldier.soldier_id, stun_sec],
+			)
 
 	return result
 
@@ -2225,8 +2233,58 @@ static func grenade_throw_distance(from_cell: Vector2i, to_cell: Vector2i) -> in
 	return _chebyshev_distance(from_cell, to_cell)
 
 
-static func _apply_grenade_stun(soldier: SoldierStateClass) -> void:
-	soldier.apply_grenade_stun(GameplayPolicies.grenade.stun_duration_sec)
+## Abort in-flight throws, force prone/crawl, duration from inverse-distance model.
+static func _apply_grenade_stun(
+	game_state: GameStateClass,
+	soldier: SoldierStateClass,
+	duration_sec: float,
+) -> void:
+	_abort_pending_grenade_throw(game_state, soldier)
+	soldier.apply_grenade_stun(duration_sec)
+
+
+## Walls / opaque tiles between blast and victim block fragments.
+## Stricter than shot LOS: no "target hugging wall" cover exception, no corner peeks.
+static func _grenade_blast_blocked(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	map_data,
+) -> bool:
+	if map_data == null:
+		return false
+	if from_cell == to_cell:
+		return false
+	var line: Array[Vector2i] = CoverSystemClass.line_cells_between(from_cell, to_cell)
+	for cell in line:
+		if cell == from_cell or cell == to_cell:
+			continue
+		var object_def = map_data.get_object_def(cell)
+		if object_def == null and not map_data.has_object(cell):
+			continue
+		if CoverSystemClass.is_complete_cover_wall(object_def):
+			return true
+		if CoverSystemClass.tile_blocks_vision(map_data, cell, object_def, false, false):
+			return true
+	return false
+
+
+static func _abort_pending_grenade_throw(
+	game_state: GameStateClass,
+	soldier: SoldierStateClass,
+) -> void:
+	if soldier == null or not soldier.has_pending_grenade():
+		return
+	if game_state != null and game_state.objects != null:
+		game_state.objects.unregister_grenade(
+			ObjectId.grenade(soldier.team_id, soldier.soldier_id)
+		)
+	soldier.clear_pending_grenade()
+
+
+static func _euclidean_distance(from_cell: Vector2i, to_cell: Vector2i) -> float:
+	var dx := float(from_cell.x - to_cell.x)
+	var dy := float(from_cell.y - to_cell.y)
+	return sqrt(dx * dx + dy * dy)
 
 
 static func _chebyshev_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:

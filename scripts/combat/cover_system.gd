@@ -856,12 +856,16 @@ static func _apply_moderate_cover(
 	result.source_cell = cell
 
 
-static func _is_complete_cover_wall(object_def: MapObjectDef) -> bool:
+static func is_complete_cover_wall(object_def: MapObjectDef) -> bool:
 	return (
 		object_def != null
 		and object_def.provides_cover
 		and object_def.cover_type == CoverType.COMPLETE
 	)
+
+
+static func _is_complete_cover_wall(object_def: MapObjectDef) -> bool:
+	return is_complete_cover_wall(object_def)
 
 
 static func _is_adjacent(from_cell: Vector2i, to_cell: Vector2i) -> bool:
