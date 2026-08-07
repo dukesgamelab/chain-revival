@@ -4,13 +4,16 @@ extends RefCounted
 
 const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
 
+## Legacy falloff labels kept for config compat; hit chance uses range_const_* fields.
 const FALLOFF_CUBIC := "cubic"
 const FALLOFF_PENTIC := "pentic"
 
 var weapon_id: String = ""
 var weapon_name: String = ""
 var weapon_type: int = WeaponTypeClass.RIFLE
-var range_tiles: int = 18
+## Generous engagement / cone envelope only — does not shape hit chance.
+var range_tiles: int = 40
+## Deprecated TUNED patches (retired by Stage 5 polynomial). Kept for config compat.
 var hit_modifier: float = 0.0
 var close_range_bonus: float = 0.0
 var close_range_tiles: int = 0
@@ -20,11 +23,9 @@ var rounds_per_attack: int = 1
 var ammo_capacity: int = 200
 ## Burst visual count; defaults to rounds_per_attack in _init.
 var tracer_count: int = 1
-## First-shot target acquisition time; target changes restart aiming via begin_fire_prep().
-## Absolute seconds are TUNED; ratio tracks recovered aim_factor_sqr.
+## Unused for cadence (OG Aiming *is* the fire cycle). Kept for experiments only.
 var aim_delay_sec: float = 0.0
-## Repeat shot/burst cadence after the first aimed shot (last_shot_msec + this value).
-## Absolute seconds are TUNED, not recovered.
+## Per-weapon fire-cycle override. 0 = use HitChancePolicy.base_fire_cycle_sec (~5.5s).
 var fire_interval_sec: float = 0.0
 ## RECOVERED BulletSpeed$weapon.
 var bullet_speed: int = 6
@@ -36,15 +37,26 @@ var stress_limit_tiles: float = 25.0
 var stress_limit: float = 25.0
 ## RECOVERED stress_aim_factor$weapon — scales how hard the shooter's stress degrades their aim.
 var stress_aim_factor: float = 0.5
-## RECOVERED range_const_cub / range_const_pent selector: "cubic" | "pentic".
+## Legacy label; prefer range_const_cub / range_const_pent.
 var range_falloff: String = FALLOFF_CUBIC
+
+## --- Hit polynomial (RECOVERED) ---
+## HitFinal ∝ (aim_factor_sqr·AimTime² + aim_factor·AimTime + aim_plus)
+##            / (cub·D³ + sqr·D² + pent·D⁵)
+## aim_factor / aim_plus / range_const_sqr are 0 for every recovered weapon.
+var aim_factor_sqr: float = 2000.0
+var aim_factor: float = 0.0
+var aim_plus: float = 0.0
+var range_const_cub: float = 1.0
+var range_const_sqr: float = 0.0
+var range_const_pent: float = 0.0
 
 
 func _init(
 	p_weapon_id: String = "",
 	p_weapon_name: String = "",
 	p_weapon_type: int = WeaponTypeClass.RIFLE,
-	p_range_tiles: int = 18,
+	p_range_tiles: int = 40,
 	p_hit_modifier: float = 0.0,
 	p_rounds_per_attack: int = 1,
 	p_ammo_capacity: int = 200,
@@ -79,6 +91,13 @@ func _init(
 	stress_limit_tiles = p_stress_limit if p_stress_limit_tiles < 0.0 else p_stress_limit_tiles
 	stress_aim_factor = p_stress_aim_factor
 	range_falloff = p_range_falloff
+	## Infer polynomial defaults from legacy falloff label when fields are not set later.
+	if range_falloff == FALLOFF_PENTIC:
+		range_const_cub = 0.0
+		range_const_pent = 0.02
+	else:
+		range_const_cub = 1.0
+		range_const_pent = 0.0
 
 
 func is_burst() -> bool:
@@ -90,24 +109,18 @@ func ammo_cost(available: int) -> int:
 	return mini(rounds_per_attack, available)
 
 
-## Hit modifier including optional SMG close-range bonus (TUNED, not recovered).
-func effective_hit_modifier(distance_tiles: int) -> float:
-	var modifier := hit_modifier
-	if close_range_bonus > 0.0 and distance_tiles <= close_range_tiles:
-		modifier += close_range_bonus
-	return modifier
+## Quotient denominator for combat range D (already MarksMan-adjusted).
+func hit_denominator(d: float) -> float:
+	var d2 := d * d
+	var d3 := d2 * d
+	var d5 := d3 * d2
+	return range_const_cub * d3 + range_const_sqr * d2 + range_const_pent * d5
 
 
-## Extra hit-chance penalty from recovered range_const_cub / range_const_pent.
-## Cubic (rifles/LMGs): gentle long-range loss. Pentic 0.02 (SMGs): steep drop-off.
-func range_falloff_penalty(distance_tiles: int) -> float:
-	var d := float(maxi(distance_tiles, 0))
-	match range_falloff:
-		FALLOFF_PENTIC:
-			## RECOVERED range_const_pent$weapon = 0.02
-			return 0.02 * pow(d / 6.0, 5.0)
-		FALLOFF_CUBIC:
-			## RECOVERED range_const_cub$weapon = 1 — accurate at distance vs pentic
-			return pow(d / 28.0, 3.0)
-		_:
-			return 0.0
+## Quotient numerator for a fixed AimTime (Exp-Str tables wire later).
+func hit_numerator(aim_time: float) -> float:
+	return (
+		aim_factor_sqr * aim_time * aim_time
+		+ aim_factor * aim_time
+		+ aim_plus
+	)

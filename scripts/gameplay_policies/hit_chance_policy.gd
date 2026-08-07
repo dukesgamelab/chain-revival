@@ -1,22 +1,40 @@
 class_name HitChancePolicy
 extends RefCounted
 ## Configurable hit-chance, spotting windows, and target-score weights.
-## Defaults match current CombatSystem behavior.
+## Hit chance uses the recovered quotient polynomial (Stage 5); absolute scale via hit_scale.
 
+## Deprecated subtractive-curve leftovers (unused by hit_chance; kept for config compat).
 const DEFAULT_CLEAR_BASE_HIT_CHANCE := 0.78
 const DEFAULT_CLEAR_DISTANCE_PENALTY := 0.025
-const DEFAULT_MIN_HIT_CHANCE := 0.10
+## Optional floor on base polynomial result. 0 — HUD anchors include SMG ≈ 0.03.
+const DEFAULT_MIN_HIT_CHANCE := 0.0
 const DEFAULT_SHOOTER_PRONE_ACCURACY_MULT := 1.15
 const DEFAULT_TARGET_PRONE_HIT_MULT := 0.55
 const DEFAULT_MODERATE_COVER_HIT_MULT := 0.5
+## TUNED — fitted so rifle ≈ 0.09 and SMG ≈ 0.03 at Euclidean range ~12, AimTime=1, Stress 0.
+## Relative weapon shape is RECOVERED; only this absolute scale is free.
+const DEFAULT_HIT_SCALE := 0.07776
+## Fixed AimTime until Exp-Str × Range tables are wired.
+const DEFAULT_AIM_TIME := 1.0
+## Floor on D = Range − MarksMan so the denominator never hits zero.
+const DEFAULT_RANGE_EPSILON := 0.25
+## Generous engagement envelope (cone / out-of-range). Hit falloff is via the polynomial.
+const DEFAULT_MAX_ENGAGEMENT_TILES := 40
 ## RECOVERED INITKilledProbability = 0.20 (separate kill roll after hit).
 const RECOVERED_LETHALITY_MULTIPLIER := 0.20
 ## TUNED — compensates for missing wound state; drop to RECOVERED (0.20) when WIA lands.
 ## Folded into the hit roll as P(death) = HitFinal × lethality_multiplier until wounds exist.
+## REVISIT after Stage 5 (hit polynomial) calibration — may return to 0.20 (RECOVERED).
 const DEFAULT_LETHALITY_MULTIPLIER := 0.40
 const DEFAULT_AUTO_TARGET_ENGAGED_BONUS := 10.0
 const DEFAULT_AUTO_FIRE_SCAN_INTERVAL := 0.5
-const DEFAULT_FIRE_PREP_DELAY_SEC := 1.0
+## RECOVERED from gameplay capture — 5.05s and 6.09s observed; midpoint used as default.
+## Aim cycle and fire interval are the same thing in the original (continuous Aiming).
+const DEFAULT_BASE_FIRE_CYCLE_SEC := 5.5
+## TUNED visual/audio spacing within a burst (6 rounds ≈ 0.2s). Does not affect hit rolls.
+const DEFAULT_BURST_ROUND_INTERVAL_SEC := 0.04
+## Legacy alias of base_fire_cycle_sec (kept for older callers / tests).
+const DEFAULT_FIRE_PREP_DELAY_SEC := DEFAULT_BASE_FIRE_CYCLE_SEC
 const DEFAULT_RECENTLY_SEEN_SEC := 2.0
 const DEFAULT_RECENTLY_FIRED_SPOT_SEC := 2.0
 const DEFAULT_LAST_KNOWN_NEAR_TILES := 2
@@ -44,6 +62,11 @@ const DEFAULT_AUTO_SCORE_SMG_LMG_BONUS := 20.0
 var clear_base_hit_chance: float = DEFAULT_CLEAR_BASE_HIT_CHANCE
 var clear_distance_penalty: float = DEFAULT_CLEAR_DISTANCE_PENALTY
 var min_hit_chance: float = DEFAULT_MIN_HIT_CHANCE
+## Absolute scale on the recovered hit quotient. See DEFAULT_HIT_SCALE.
+var hit_scale: float = DEFAULT_HIT_SCALE
+var aim_time: float = DEFAULT_AIM_TIME
+var range_epsilon: float = DEFAULT_RANGE_EPSILON
+var max_engagement_tiles: int = DEFAULT_MAX_ENGAGEMENT_TILES
 var shooter_prone_accuracy_mult: float = DEFAULT_SHOOTER_PRONE_ACCURACY_MULT
 var target_prone_hit_mult: float = DEFAULT_TARGET_PRONE_HIT_MULT
 ## Kept in sync with CoverPolicy.moderate_hit_mult for backward-compatible callers.
@@ -52,6 +75,10 @@ var moderate_cover_hit_mult: float = DEFAULT_MODERATE_COVER_HIT_MULT
 var lethality_multiplier: float = DEFAULT_LETHALITY_MULTIPLIER
 var auto_target_engaged_bonus: float = DEFAULT_AUTO_TARGET_ENGAGED_BONUS
 var auto_fire_scan_interval: float = DEFAULT_AUTO_FIRE_SCAN_INTERVAL
+## Global aim/fire cycle (seconds). Per-weapon fire_interval_sec overrides when > 0.
+var base_fire_cycle_sec: float = DEFAULT_BASE_FIRE_CYCLE_SEC
+var burst_round_interval_sec: float = DEFAULT_BURST_ROUND_INTERVAL_SEC
+## Legacy alias — always kept equal to base_fire_cycle_sec.
 var fire_prep_delay_sec: float = DEFAULT_FIRE_PREP_DELAY_SEC
 var recently_seen_sec: float = DEFAULT_RECENTLY_SEEN_SEC
 var recently_fired_spot_sec: float = DEFAULT_RECENTLY_FIRED_SPOT_SEC
@@ -80,13 +107,19 @@ func reset_to_defaults() -> void:
 	clear_base_hit_chance = DEFAULT_CLEAR_BASE_HIT_CHANCE
 	clear_distance_penalty = DEFAULT_CLEAR_DISTANCE_PENALTY
 	min_hit_chance = DEFAULT_MIN_HIT_CHANCE
+	hit_scale = DEFAULT_HIT_SCALE
+	aim_time = DEFAULT_AIM_TIME
+	range_epsilon = DEFAULT_RANGE_EPSILON
+	max_engagement_tiles = DEFAULT_MAX_ENGAGEMENT_TILES
 	shooter_prone_accuracy_mult = DEFAULT_SHOOTER_PRONE_ACCURACY_MULT
 	target_prone_hit_mult = DEFAULT_TARGET_PRONE_HIT_MULT
 	moderate_cover_hit_mult = DEFAULT_MODERATE_COVER_HIT_MULT
 	lethality_multiplier = DEFAULT_LETHALITY_MULTIPLIER
 	auto_target_engaged_bonus = DEFAULT_AUTO_TARGET_ENGAGED_BONUS
 	auto_fire_scan_interval = DEFAULT_AUTO_FIRE_SCAN_INTERVAL
-	fire_prep_delay_sec = DEFAULT_FIRE_PREP_DELAY_SEC
+	base_fire_cycle_sec = DEFAULT_BASE_FIRE_CYCLE_SEC
+	burst_round_interval_sec = DEFAULT_BURST_ROUND_INTERVAL_SEC
+	fire_prep_delay_sec = base_fire_cycle_sec
 	recently_seen_sec = DEFAULT_RECENTLY_SEEN_SEC
 	recently_fired_spot_sec = DEFAULT_RECENTLY_FIRED_SPOT_SEC
 	last_known_near_tiles = DEFAULT_LAST_KNOWN_NEAR_TILES
@@ -112,13 +145,23 @@ func apply_config(section: Dictionary) -> void:
 	_set_float(section, "clear_base_hit_chance", "clear_base_hit_chance")
 	_set_float(section, "clear_distance_penalty", "clear_distance_penalty")
 	_set_float(section, "min_hit_chance", "min_hit_chance")
+	_set_float(section, "hit_scale", "hit_scale")
+	_set_float(section, "aim_time", "aim_time")
+	_set_float(section, "range_epsilon", "range_epsilon")
+	if section.has("max_engagement_tiles"):
+		max_engagement_tiles = int(section.max_engagement_tiles)
 	_set_float(section, "shooter_prone_accuracy_mult", "shooter_prone_accuracy_mult")
 	_set_float(section, "target_prone_hit_mult", "target_prone_hit_mult")
 	_set_float(section, "moderate_cover_hit_mult", "moderate_cover_hit_mult")
 	_set_float(section, "lethality_multiplier", "lethality_multiplier")
 	_set_float(section, "auto_target_engaged_bonus", "auto_target_engaged_bonus")
 	_set_float(section, "auto_fire_scan_interval", "auto_fire_scan_interval")
-	_set_float(section, "fire_prep_delay_sec", "fire_prep_delay_sec")
+	_set_float(section, "base_fire_cycle_sec", "base_fire_cycle_sec")
+	_set_float(section, "burst_round_interval_sec", "burst_round_interval_sec")
+	# Legacy key: prefer base_fire_cycle_sec when both are present.
+	if section.has("fire_prep_delay_sec") and not section.has("base_fire_cycle_sec"):
+		_set_float(section, "fire_prep_delay_sec", "base_fire_cycle_sec")
+	fire_prep_delay_sec = base_fire_cycle_sec
 	_set_float(section, "recently_seen_sec", "recently_seen_sec")
 	_set_float(section, "recently_fired_spot_sec", "recently_fired_spot_sec")
 	if section.has("last_known_near_tiles"):

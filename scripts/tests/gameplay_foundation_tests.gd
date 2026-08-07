@@ -48,6 +48,8 @@ func _ready() -> void:
 	_test_lethality_multiplier()
 	_test_min_hit_chance_not_after_modifiers()
 	_test_recovered_weapon_stats()
+	_test_fire_cadence_cycle()
+	_test_hit_polynomial_anchors()
 	_test_smg_vs_rifle_range_falloff()
 	_test_grenade_range_cap()
 	_test_stress_model()
@@ -999,7 +1001,10 @@ func _test_grenade_sequence_reproducibility() -> void:
 
 func _test_policy_defaults_unchanged() -> void:
 	GameplayPolicies.reset_all_to_defaults()
-	_assert("Hit chance policy base unchanged", is_equal_approx(GameplayPolicies.hit.clear_base_hit_chance, 0.78))
+	_assert(
+		"Hit scale calibrated for HUD anchors",
+		is_equal_approx(GameplayPolicies.hit.hit_scale, 0.07776),
+	)
 	_assert(
 		"Hit lethality multiplier is tuned 0.40",
 		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.40),
@@ -1012,21 +1017,30 @@ func _test_policy_defaults_unchanged() -> void:
 	_assert("Vision cone range bonus unchanged", GameplayPolicies.vision.cone_range_bonus == 8)
 	_assert("Cover moderate hit mult unchanged", is_equal_approx(GameplayPolicies.cover.moderate_hit_mult, 0.5))
 	_assert("LOS peek adjacency unchanged", GameplayPolicies.los.peek_adjacency_chebyshev == 1)
+	_assert(
+		"Base fire cycle is recovered ~5.5s",
+		is_equal_approx(GameplayPolicies.hit.base_fire_cycle_sec, 5.5),
+		"cycle=%s" % GameplayPolicies.hit.base_fire_cycle_sec,
+	)
+	_assert(
+		"Burst round interval default 0.04s",
+		is_equal_approx(GameplayPolicies.hit.burst_round_interval_sec, 0.04),
+	)
 	var garand := GameplayPolicies.weapons.create_weapon("m1_garand")
 	_assert(
-		"Weapon policy M1 Garand cooldown unchanged",
-		garand != null and is_equal_approx(garand.fire_interval_sec, 1.2),
+		"Weapon policy M1 Garand uses global fire cycle (override 0)",
+		garand != null and is_equal_approx(garand.fire_interval_sec, 0.0),
 		"interval=%s" % [garand.fire_interval_sec if garand else "null"],
 	)
 	_assert(
-		"Weapon policy M1 Garand range unchanged",
-		garand != null and garand.range_tiles == 18,
+		"Weapon policy M1 Garand engagement envelope is generous",
+		garand != null and garand.range_tiles == 40,
 		"range=%s" % [garand.range_tiles if garand else "null"],
 	)
 	GameplayPolicies.reload_from_config()
 	_assert(
-		"Config reload preserves M1 Garand interval",
-		is_equal_approx(GameplayPolicies.weapons.fire_interval_sec("m1_garand"), 1.2),
+		"Config reload preserves effective M1 Garand cycle",
+		is_equal_approx(GameplayPolicies.weapons.fire_interval_sec("m1_garand"), 5.5),
 	)
 	_assert("Simulation tick hz default 20", SimulationClock.tick_hz == 20)
 	_assert("Simulation tick msec is 50", SimulationClock.tick_msec() == 50)
@@ -1129,7 +1143,7 @@ func _test_lethality_multiplier() -> void:
 
 
 func _test_min_hit_chance_not_after_modifiers() -> void:
-	## Stage 2: min_hit_chance floors base hit_chance only; cover/prone may go lower.
+	## Stage 2: situational multipliers apply after base; no re-floor to the old 10%.
 	_bootstrap()
 	GameplayPolicies.reset_all_to_defaults()
 	var map_data := MapDataClass.create_default()
@@ -1137,7 +1151,7 @@ func _test_min_hit_chance_not_after_modifiers() -> void:
 		map_data.clear_object(cell)
 
 	var shooter_cell := Vector2i(10, 20)
-	var target_cell := Vector2i(28, 20) ## Manhattan 18 — long range
+	var target_cell := Vector2i(28, 20) ## Euclidean 18 — long range
 	var cover_cell := Vector2i(27, 20) ## moderate cover on shooter-facing side
 	map_data.set_object(cover_cell, MapObjectRegistryClass.TYPE_HAYBAIL)
 
@@ -1156,9 +1170,9 @@ func _test_min_hit_chance_not_after_modifiers() -> void:
 	var weapon := shooter.get_weapon_data()
 	var base := CombatSystemClass.hit_chance(shooter_cell, target_cell, weapon)
 	_assert(
-		"Base hit_chance still floors at min_hit_chance",
-		base >= GameplayPolicies.hit.min_hit_chance - 0.0001,
-		"base=%.4f min=%.4f" % [base, GameplayPolicies.hit.min_hit_chance],
+		"Base hit_chance is positive but low at long range",
+		base > 0.0 and base < 0.05,
+		"base=%.4f" % base,
 	)
 
 	var los := LOSSystemClass.evaluate(shooter_cell, target_cell, map_data, game_state)
@@ -1176,10 +1190,9 @@ func _test_min_hit_chance_not_after_modifiers() -> void:
 		* GameplayPolicies.hit.target_prone_hit_mult
 	)
 	_assert(
-		"Cover+prone final chance may fall below min_hit_chance",
-		final_chance < GameplayPolicies.hit.min_hit_chance,
-		"final=%.4f min=%.4f base=%.4f expected~%.4f"
-		% [final_chance, GameplayPolicies.hit.min_hit_chance, base, expected_ceiling],
+		"Cover+prone final chance is below clear base",
+		final_chance < base,
+		"final=%.4f base=%.4f expected~%.4f" % [final_chance, base, expected_ceiling],
 	)
 	_assert(
 		"Final chance stays in [0, 1]",
@@ -1197,12 +1210,12 @@ func _test_recovered_weapon_stats() -> void:
 	GameplayPolicies.reset_all_to_defaults()
 	var WeaponPolicyClass := preload("res://scripts/gameplay_policies/weapon_policy.gd")
 	var expected := {
-		"m1_garand": {"rpa": 1, "ammo": 70, "speed": 6, "supp": 0.25, "slt": 25.0, "saf": 0.5, "fo": "cubic", "aim": 1.1},
-		"kar98k": {"rpa": 1, "ammo": 70, "speed": 6, "supp": 0.25, "slt": 25.0, "saf": 0.5, "fo": "cubic", "aim": 1.1},
-		"thompson": {"rpa": 4, "ammo": 200, "speed": 6, "supp": 2.0, "slt": 13.0, "saf": 1.5, "fo": "pentic", "aim": 1.1},
-		"mp40": {"rpa": 5, "ammo": 200, "speed": 6, "supp": 2.0, "slt": 13.0, "saf": 1.5, "fo": "pentic", "aim": 1.1},
-		"bar": {"rpa": 7, "ammo": 900, "speed": 6, "supp": 0.6, "slt": 25.0, "saf": 2.0, "fo": "cubic", "aim": 1.7},
-		"mg42": {"rpa": 6, "ammo": 900, "speed": 7, "supp": 0.6, "slt": 25.0, "saf": 2.0, "fo": "cubic", "aim": 1.7},
+		"m1_garand": {"rpa": 1, "ammo": 70, "speed": 6, "supp": 0.25, "slt": 25.0, "saf": 0.5, "afs": 2000.0, "cub": 1.0, "pent": 0.0},
+		"kar98k": {"rpa": 1, "ammo": 70, "speed": 6, "supp": 0.25, "slt": 25.0, "saf": 0.5, "afs": 2000.0, "cub": 1.0, "pent": 0.0},
+		"thompson": {"rpa": 4, "ammo": 200, "speed": 6, "supp": 2.0, "slt": 13.0, "saf": 1.5, "afs": 2000.0, "cub": 0.0, "pent": 0.02},
+		"mp40": {"rpa": 5, "ammo": 200, "speed": 6, "supp": 2.0, "slt": 13.0, "saf": 1.5, "afs": 2000.0, "cub": 0.0, "pent": 0.02},
+		"bar": {"rpa": 7, "ammo": 900, "speed": 6, "supp": 0.6, "slt": 25.0, "saf": 2.0, "afs": 8000.0, "cub": 1.0, "pent": 0.0},
+		"mg42": {"rpa": 6, "ammo": 900, "speed": 7, "supp": 0.6, "slt": 25.0, "saf": 2.0, "afs": 8000.0, "cub": 1.0, "pent": 0.0},
 	}
 	for weapon_id in expected.keys():
 		var w := GameplayPolicies.weapons.create_weapon(weapon_id)
@@ -1216,25 +1229,84 @@ func _test_recovered_weapon_stats() -> void:
 			and is_equal_approx(w.suppression_generated, float(e.supp))
 			and is_equal_approx(w.stress_limit_tiles, float(e.slt))
 			and is_equal_approx(w.stress_aim_factor, float(e.saf))
-			and w.range_falloff == str(e.fo)
-			and is_equal_approx(w.aim_delay_sec, float(e.aim)),
+			and is_equal_approx(w.aim_factor_sqr, float(e.afs))
+			and is_equal_approx(w.range_const_cub, float(e.cub))
+			and is_equal_approx(w.range_const_pent, float(e.pent))
+			and is_equal_approx(w.fire_interval_sec, 0.0)
+			and is_equal_approx(w.aim_delay_sec, 0.0),
 			"weapon=%s" % [w.weapon_id if w else "null"],
 		)
 	var bar := GameplayPolicies.weapons.create_weapon("bar")
 	var mg42 := GameplayPolicies.weapons.create_weapon("mg42")
 	var garand := GameplayPolicies.weapons.create_weapon("m1_garand")
 	var thompson := GameplayPolicies.weapons.create_weapon("thompson")
+	var cycle := GameplayPolicies.hit.base_fire_cycle_sec
 	_assert(
-		"aim_delay ordering: LMGs > rifles/SMGs",
-		bar.aim_delay_sec > garand.aim_delay_sec
-		and is_equal_approx(bar.aim_delay_sec, mg42.aim_delay_sec)
-		and is_equal_approx(garand.aim_delay_sec, thompson.aim_delay_sec),
+		"All weapon types share the global fire cycle",
+		is_equal_approx(CombatSystemClass.effective_fire_cycle_sec(garand), cycle)
+		and is_equal_approx(CombatSystemClass.effective_fire_cycle_sec(thompson), cycle)
+		and is_equal_approx(CombatSystemClass.effective_fire_cycle_sec(bar), cycle)
+		and is_equal_approx(CombatSystemClass.effective_fire_cycle_sec(mg42), cycle),
+		"cycle=%.2f" % cycle,
+	)
+	_assert(
+		"LMG aim_factor_sqr is 4× rifle (hit numerator)",
+		is_equal_approx(bar.aim_factor_sqr, garand.aim_factor_sqr * 4.0)
+		and is_equal_approx(mg42.aim_factor_sqr, bar.aim_factor_sqr),
 	)
 	_assert("squad limit BAR is 1", WeaponPolicyClass.squad_limit("bar") == 1)
 	_assert("squad limit Thompson is 2", WeaponPolicyClass.squad_limit("thompson") == 2)
 	_assert("squad limit MG42 is 1", WeaponPolicyClass.squad_limit("mg42") == 1)
 	_assert("squad limit MP40 is 2", WeaponPolicyClass.squad_limit("mp40") == 2)
 	_assert("squad limit rifle unlimited", WeaponPolicyClass.squad_limit("m1_garand") == -1)
+
+
+func _test_fire_cadence_cycle() -> void:
+	## Stage 4: single ~5.5s aim/fire cycle; not stacked aim + short interval.
+	_bootstrap()
+	GameplayPolicies.reset_all_to_defaults()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var shooter := game_state.get_soldier(Team.USA, 1)
+	var target := game_state.get_soldier(Team.GERMANY, 1)
+	shooter.grid_position = Vector2i(20, 30)
+	target.grid_position = Vector2i(22, 30)
+	shooter.clear_path()
+	target.clear_path()
+	shooter.stress = 0.0
+	target.stress = 0.0
+	game_state.session.get_fireteam(Team.USA).face_toward_tile(1, target.grid_position)
+
+	var cycle_msec := int(GameplayPolicies.hit.base_fire_cycle_sec * 1000.0)
+	CombatSystemClass.begin_fire_prep(shooter)
+	_assert(
+		"Aiming blocks fire until cycle elapses",
+		not CombatSystemClass._is_fire_prep_complete(shooter),
+	)
+	SimulationClock.advance_msec(cycle_msec - 100)
+	_assert(
+		"Still aiming just before cycle end",
+		not CombatSystemClass._is_fire_prep_complete(shooter),
+	)
+	SimulationClock.advance_msec(200)
+	_assert("Fire prep complete after ~5.5s", CombatSystemClass._is_fire_prep_complete(shooter))
+
+	GameRandom.reseed(7)
+	var first := CombatSystemClass.resolve_shot(game_state, shooter, target, false)
+	_assert("First shot after cycle fires", first.fired)
+	_assert(
+		"Shot restarts aim/fire cycle",
+		not CombatSystemClass._is_fire_prep_complete(shooter),
+	)
+	var early := CombatSystemClass.resolve_shot(game_state, shooter, target, false)
+	_assert("Immediate second shot is on cooldown", early.on_cooldown and not early.fired)
+
+	SimulationClock.advance_msec(cycle_msec + 50)
+	GameRandom.reseed(8)
+	var second := CombatSystemClass.resolve_shot(game_state, shooter, target, false)
+	_assert("Second shot fires after full cycle", second.fired)
 
 
 func _test_smg_vs_rifle_range_falloff() -> void:
@@ -1250,6 +1322,62 @@ func _test_smg_vs_rifle_range_falloff() -> void:
 		smg_chance < rifle_chance,
 		"smg=%.3f rifle=%.3f" % [smg_chance, rifle_chance],
 	)
+
+
+func _test_hit_polynomial_anchors() -> void:
+	## Stage 5: HUD Hit% anchors at moderate range, Stress 0, MarksMan 0.
+	GameplayPolicies.reset_all_to_defaults()
+	var from_cell := Vector2i(0, 0)
+	var to_cell := Vector2i(12, 0)
+	var rifle := GameplayPolicies.weapons.create_weapon("m1_garand")
+	var smg := GameplayPolicies.weapons.create_weapon("thompson")
+	var mg := GameplayPolicies.weapons.create_weapon("mg42")
+	var rifle_p := CombatSystemClass.hit_chance(from_cell, to_cell, rifle)
+	var smg_p := CombatSystemClass.hit_chance(from_cell, to_cell, smg)
+	var mg_p := CombatSystemClass.hit_chance(from_cell, to_cell, mg)
+	_assert(
+		"Rifle HitFinal near 0.09 at range 12",
+		absf(rifle_p - 0.09) < 0.005,
+		"rifle=%.4f" % rifle_p,
+	)
+	_assert(
+		"SMG HitFinal near 0.03 at range 12",
+		absf(smg_p - 0.03) < 0.005,
+		"smg=%.4f" % smg_p,
+	)
+	_assert(
+		"Heavy MG / rifle ratio is 4.0 at identical range",
+		is_equal_approx(mg_p / rifle_p, 4.0),
+		"mg=%.4f rifle=%.4f ratio=%.3f" % [mg_p, rifle_p, mg_p / maxf(rifle_p, 0.0001)],
+	)
+	_assert(
+		"Rifle / SMG ratio near 3.0 at range 12",
+		absf(rifle_p / smg_p - 3.0) < 0.15,
+		"ratio=%.3f" % (rifle_p / maxf(smg_p, 0.0001)),
+	)
+	## Relative shape vs Garand@10 (pre-scale ratios from the recovered formula).
+	var g10 := CombatSystemClass.hit_chance(from_cell, Vector2i(10, 0), rifle)
+	var g20 := CombatSystemClass.hit_chance(from_cell, Vector2i(20, 0), rifle)
+	var t20 := CombatSystemClass.hit_chance(from_cell, Vector2i(20, 0), smg)
+	var b10 := CombatSystemClass.hit_chance(from_cell, Vector2i(10, 0), mg)
+	_assert(
+		"Garand@20 is ~0.125× Garand@10",
+		absf(g20 / g10 - 0.125) < 0.02,
+		"g10=%.4f g20=%.4f" % [g10, g20],
+	)
+	_assert(
+		"Thompson@20 falls off a cliff vs rifle",
+		t20 < g20 * 0.35,
+		"t20=%.4f g20=%.4f" % [t20, g20],
+	)
+	_assert(
+		"MG42 dominates at range 10 (4× rifle)",
+		is_equal_approx(b10 / g10, 4.0),
+		"b10=%.4f g10=%.4f" % [b10, g10],
+	)
+	## No hard SMG range gate: still returns a (tiny) chance at long range.
+	var smg_far := CombatSystemClass.hit_chance(from_cell, Vector2i(25, 0), smg)
+	_assert("SMG at range 25 still has a positive tiny chance", smg_far > 0.0 and smg_far < 0.01)
 
 
 func _test_grenade_range_cap() -> void:

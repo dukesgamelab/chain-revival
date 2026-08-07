@@ -158,7 +158,7 @@ static func evaluate_fire_at_preview(
 			game_state,
 		)
 		var in_range := (
-			_manhattan_distance(shooter.grid_position, target.grid_position) <= max_range
+			_combat_range(shooter.grid_position, target.grid_position) <= float(max_range)
 		)
 		var target_in_aim_cone := ConeOfFireClass.is_world_point_in_aim_cone(
 			from_world,
@@ -207,7 +207,7 @@ static func evaluate_engaged_target_preview(
 		game_state.map_data,
 		game_state,
 	)
-	var in_range := _manhattan_distance(shooter.grid_position, target.grid_position) <= max_range
+	var in_range := _combat_range(shooter.grid_position, target.grid_position) <= float(max_range)
 	result.targetable = (
 		in_range
 		and result.los.status != LOSSystemClass.Status.BLOCKED
@@ -260,8 +260,8 @@ static func resolve_shot(
 			result.messages.append("%s %s out of ammo" % [Team.display_name(shooter.team_id), weapon.weapon_name])
 		return result
 
-	var distance := _manhattan_distance(shooter.grid_position, target.grid_position)
-	var max_range := _effective_weapon_range(weapon)
+	var distance := _combat_range(shooter.grid_position, target.grid_position)
+	var max_range := float(_effective_weapon_range(weapon))
 	if distance > max_range:
 		result.out_of_range = true
 		if not auto_engagement:
@@ -308,7 +308,11 @@ static func resolve_shot(
 		if not auto_engagement:
 			result.messages.append(
 				"%s %s — wait %.1fs between shots"
-				% [Team.display_name(shooter.team_id), weapon.weapon_name, weapon.fire_interval_sec],
+				% [
+					Team.display_name(shooter.team_id),
+					weapon.weapon_name,
+					effective_fire_cycle_sec(weapon),
+				],
 			)
 		return result
 
@@ -344,6 +348,8 @@ static func resolve_shot(
 	var now_msec := SimulationClock.get_ticks_msec()
 	shooter.last_shot_msec = now_msec
 	shooter.last_fired_msec = now_msec
+	## Restart the single aim/fire cycle (OG Aiming state between shots).
+	begin_fire_prep(shooter)
 	result.fired = true
 	result.tracer_count = weapon.tracer_count
 
@@ -374,6 +380,7 @@ static func resolve_shot(
 			shooter.grid_position,
 			target.grid_position,
 			weapon,
+			shooter.marksman,
 		)
 		result.messages.append(
 			"Hit chance reduced from %d%% to %d%%"
@@ -1161,7 +1168,7 @@ static func find_best_auto_target(
 		var vis: EnemyVisibilityResult = team_cache.get(enemy_key)
 		if vis == null or not vis.visible:
 			continue
-		if _manhattan_distance(shooter.grid_position, enemy.grid_position) > max_range:
+		if _combat_range(shooter.grid_position, enemy.grid_position) > float(max_range):
 			continue
 		## score_auto_target does the single shot-LOS pass (no prior can_spot_enemy).
 		var score := score_auto_target(shooter, enemy, game_state)
@@ -1205,9 +1212,9 @@ static func score_auto_target(
 	if bool(shot.get("target_using_wall_cover", false)):
 		return -1.0
 
-	var dist := _manhattan_distance(shooter.grid_position, target.grid_position)
+	var dist := _combat_range(shooter.grid_position, target.grid_position)
 	var hit_p := GameplayPolicies.hit
-	var score := hit_p.auto_score_base - float(dist) * hit_p.auto_score_dist_penalty
+	var score := hit_p.auto_score_base - dist * hit_p.auto_score_dist_penalty
 	var cover_type: int = int(shot.get("cover_type", CoverSystemClass.CoverType.NONE))
 
 	if cover_type == CoverSystemClass.CoverType.NONE:
@@ -1265,7 +1272,7 @@ static func find_best_cone_target(
 			continue
 		if not _is_target_in_cone(shooter, enemy.grid_position, max_range):
 			continue
-		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
+		var dist := _combat_range(shooter.grid_position, enemy.grid_position)
 		if LOSSystemClass.is_shot_blocked(
 			shooter.grid_position,
 			enemy.grid_position,
@@ -1344,7 +1351,7 @@ static func find_best_spotted_aim_cone_target(
 			continue
 		if not can_assign_manual_priority_target(shooter, enemy, game_state, click_cell):
 			continue
-		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
+		var dist := _combat_range(shooter.grid_position, enemy.grid_position)
 		if dist < best_dist:
 			best_dist = dist
 			best = enemy
@@ -1429,7 +1436,7 @@ static func find_best_aim_cone_target(
 			game_state,
 		):
 			continue
-		var dist := _manhattan_distance(shooter.grid_position, enemy.grid_position)
+		var dist := _combat_range(shooter.grid_position, enemy.grid_position)
 		if dist < best_dist:
 			best_dist = dist
 			best = enemy
@@ -1477,7 +1484,7 @@ static func apply_suppression_from_shot(
 		return
 
 	var policy := GameplayPolicies.suppression
-	var range_tiles := _manhattan_distance(shooter.grid_position, target.grid_position)
+	var range_tiles := int(round(_combat_range(shooter.grid_position, target.grid_position)))
 	var gain := _suppression_stress_gain(weapon, range_tiles)
 	if gain <= 0.0:
 		return
@@ -1570,19 +1577,21 @@ static func _final_hit_chance(
 	weapon: WeaponDataClass,
 	los: LOSSystemClass.LossResult,
 ) -> float:
+	var marksman := shooter.marksman if shooter != null else 0.0
 	var base_chance := hit_chance(
 		shooter.grid_position,
 		target.grid_position,
 		weapon,
+		marksman,
 	)
 	var chance := base_chance
 	if los.cover_type == CoverSystemClass.CoverType.MODERATE:
 		chance = CoverSystemClass.apply_moderate_cover(base_chance)
-	var dist := _manhattan_distance(shooter.grid_position, target.grid_position)
+	var dist := _combat_range(shooter.grid_position, target.grid_position)
 	var aim_factor := weapon.stress_aim_factor if weapon != null else 1.0
 	chance *= GameplayPolicies.suppression.accuracy_modifier_for(
 		shooter.stress,
-		dist,
+		int(round(dist)),
 		aim_factor,
 	)
 	if shooter.position_state == PositionStateClass.DOWN:
@@ -1655,7 +1664,7 @@ static func try_engaged_fire(
 		return empty
 
 	var max_range := _effective_weapon_range(weapon)
-	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
+	if _combat_range(shooter.grid_position, target.grid_position) > float(max_range):
 		return empty
 
 	## resolve_shot evaluates LOS once — do not pre-check with is_shot_blocked (was 2× rays).
@@ -1735,7 +1744,7 @@ static func try_auto_engagement(
 	shooter: SoldierStateClass,
 	ignore_fire_control: bool = false,
 ) -> CombatShotResult:
-	## Fire At Will: acquire → aim delay → fire → repeat cooldown on same target.
+	## Fire At Will: acquire → aim/fire cycle → fire → restart cycle on same target.
 	var empty := CombatShotResult.new()
 	if shooter == null or shooter.is_dead:
 		return empty
@@ -1772,33 +1781,40 @@ static func try_auto_engagement(
 	return resolve_shot(game_state, shooter, target, true)
 
 
+## Aim/fire cycle seconds: per-weapon fire_interval_sec override, else global base.
+static func effective_fire_cycle_sec(weapon: WeaponDataClass) -> float:
+	if weapon != null and weapon.fire_interval_sec > 0.0:
+		return weapon.fire_interval_sec
+	return GameplayPolicies.hit.base_fire_cycle_sec
+
+
 static func begin_fire_prep(shooter: SoldierStateClass) -> void:
-	## aim_delay_sec = first-shot acquisition; multiplied by stress fire-delay modifier.
+	## Single aim/fire cycle (not stacked aim + interval). Stress scales the cycle.
 	var weapon := shooter.get_weapon_data()
-	var delay_sec := GameplayPolicies.hit.fire_prep_delay_sec
-	if weapon != null and weapon.aim_delay_sec > 0.0:
-		delay_sec = weapon.aim_delay_sec
+	var delay_sec := effective_fire_cycle_sec(weapon)
 	delay_sec *= get_stress_fire_delay_modifier(shooter.stress)
 	shooter.fire_ready_after_msec = SimulationClock.get_ticks_msec() + int(delay_sec * 1000.0)
 
 
 static func get_aim_delay_sec(shooter: SoldierStateClass) -> float:
+	## Alias of the fire cycle (UI "firing in Xs"); not a separate acquisition delay.
 	var weapon := shooter.get_weapon_data()
-	var delay_sec := GameplayPolicies.hit.fire_prep_delay_sec
-	if weapon != null and weapon.aim_delay_sec > 0.0:
-		delay_sec = weapon.aim_delay_sec
-	return delay_sec * get_stress_fire_delay_modifier(shooter.stress)
+	return effective_fire_cycle_sec(weapon) * get_stress_fire_delay_modifier(shooter.stress)
 
 
 static func get_fire_cooldown_remaining(
 	shooter: SoldierStateClass,
 	weapon: WeaponDataClass,
 ) -> float:
-	if weapon == null or weapon.fire_interval_sec <= 0.0:
+	if shooter == null:
 		return 0.0
-	if shooter == null or shooter.last_shot_msec <= 0:
+	if shooter.fire_ready_after_msec > 0:
+		var remaining_prep := (shooter.fire_ready_after_msec - SimulationClock.get_ticks_msec()) / 1000.0
+		if remaining_prep > 0.0:
+			return remaining_prep
+	if weapon == null or shooter.last_shot_msec <= 0:
 		return 0.0
-	var interval_sec := weapon.fire_interval_sec * get_stress_fire_delay_modifier(shooter.stress)
+	var interval_sec := effective_fire_cycle_sec(weapon) * get_stress_fire_delay_modifier(shooter.stress)
 	var elapsed_sec := (SimulationClock.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
 	return maxf(0.0, interval_sec - elapsed_sec)
 
@@ -1821,22 +1837,24 @@ static func _get_engaged_target(
 	return target
 
 
-## Base hit chance before cover / prone / suppression (distance + weapon falloff).
-## min_hit_chance floors here only — situational multipliers may go lower.
+## Base hit chance before cover / prone / suppression.
+## RECOVERED quotient: hit_scale × (aim_factor_sqr·AimTime² + …) / (cub·D³ + pent·D⁵)
+## D = max(ε, EuclideanRange − MarksMan). min_hit_chance floors here only.
 static func hit_chance(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
 	weapon: WeaponDataClass,
+	marksman: float = 0.0,
 ) -> float:
-	var dist := _manhattan_distance(from_cell, to_cell)
 	var hit_policy := GameplayPolicies.hit
-	var chance := maxf(
-		hit_policy.min_hit_chance,
-		hit_policy.clear_base_hit_chance - float(dist) * hit_policy.clear_distance_penalty,
-	)
-	if weapon != null:
-		chance -= weapon.range_falloff_penalty(dist)
-		chance += weapon.effective_hit_modifier(dist)
+	if weapon == null:
+		return hit_policy.min_hit_chance
+	var range_tiles := _combat_range(from_cell, to_cell)
+	var d := maxf(hit_policy.range_epsilon, range_tiles - marksman)
+	var denom := weapon.hit_denominator(d)
+	if denom <= 0.0:
+		return hit_policy.min_hit_chance
+	var chance := hit_policy.hit_scale * weapon.hit_numerator(hit_policy.aim_time) / denom
 	return clampf(chance, hit_policy.min_hit_chance, 1.0)
 
 
@@ -1844,26 +1862,35 @@ static func _can_fire_yet(
 	shooter: SoldierStateClass,
 	weapon: WeaponDataClass,
 ) -> bool:
-	## Repeat cooldown: fire_interval_sec scaled by stress fire-delay modifier.
+	## Cycle gate is normally fire_ready_after_msec (begin_fire_prep after each shot).
+	## last_shot fallback covers callers that skip prep (manual resolve_shot in tests).
 	if weapon == null:
 		return false
-	if weapon.fire_interval_sec <= 0.0:
-		return true
 	if shooter.last_shot_msec <= 0:
 		return true
-	var interval_sec := weapon.fire_interval_sec * get_stress_fire_delay_modifier(shooter.stress)
+	var interval_sec := effective_fire_cycle_sec(weapon) * get_stress_fire_delay_modifier(shooter.stress)
 	var elapsed_sec := (SimulationClock.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
 	return elapsed_sec >= interval_sec
 
 
 static func _manhattan_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:
+	## Pathfinding / click-near helpers. Combat range uses _combat_range (Euclidean).
 	return absi(from_cell.x - to_cell.x) + absi(from_cell.y - to_cell.y)
 
 
+## Euclidean tile distance for combat (hit chance, suppression range, engagement).
+static func _combat_range(from_cell: Vector2i, to_cell: Vector2i) -> float:
+	var dx := float(to_cell.x - from_cell.x)
+	var dy := float(to_cell.y - from_cell.y)
+	return sqrt(dx * dx + dy * dy)
+
+
 static func _effective_weapon_range(weapon: WeaponDataClass) -> int:
-	if weapon == null:
-		return GameplayPolicies.vision.cone_range_bonus
-	return ConeOfFireClass.effective_range(weapon.range_tiles)
+	## Engagement envelope only — hit falloff is the polynomial, not a hard weapon cap.
+	var envelope := GameplayPolicies.hit.max_engagement_tiles
+	if weapon != null:
+		envelope = maxi(envelope, weapon.range_tiles)
+	return ConeOfFireClass.effective_range(envelope)
 
 
 static func _effective_spotting_range(weapon: WeaponDataClass) -> int:
@@ -1906,7 +1933,7 @@ static func _is_priority_target_in_effect(
 	if weapon == null:
 		return false
 	var max_range := _effective_weapon_range(weapon)
-	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
+	if _combat_range(shooter.grid_position, target.grid_position) > float(max_range):
 		return false
 	return _is_target_in_cone(shooter, target.grid_position, max_range)
 
@@ -1923,7 +1950,7 @@ static func _is_auto_target_valid(
 	if weapon == null:
 		return false
 	var max_range := _effective_weapon_range(weapon)
-	if _manhattan_distance(shooter.grid_position, target.grid_position) > max_range:
+	if _combat_range(shooter.grid_position, target.grid_position) > float(max_range):
 		return false
 	return _is_target_shootable(game_state, shooter, target)
 

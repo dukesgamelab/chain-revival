@@ -51,6 +51,10 @@ var path_assigned_msec: int = 0
 var last_successful_move_msec: int = 0
 var ammo_current: int = 0
 var ammo_max: int = 0
+## RECOVERED MarksMan — subtracted from combat range in the hit denominator (default 0).
+var marksman: float = 0.0
+## TUNED placeholder for Stage 7 (angle / movement). No authentic distribution recovered.
+var shooting_speed: float = 1.0
 var is_dead: bool = false
 var position_state: int = PositionStateClass.UP
 ## Target stance while a stand↔prone transition anim plays (−1 = none).
@@ -61,11 +65,11 @@ var fire_control_state: int = FireControlStateClass.FIRE_AT_WILL
 var stress: float = 0.0
 ## Set when suppressed this combat tick; skips stress recovery until next tick.
 var received_suppression_this_tick: bool = false
-## Timestamp of last fired burst; repeat cadence = last_shot_msec + weapon.fire_interval_sec.
+## Timestamp of last fired burst (presentation / spotting / cooldown helpers).
 var last_shot_msec: int = 0
 ## Set when a shot/burst actually fires; used by spotting (easier to detect for ~2s).
 var last_fired_msec: int = 0
-## Aiming deadline (weapon.aim_delay_sec); while in the future, activity_status_label() shows "Aiming".
+## Aim/fire cycle deadline (base_fire_cycle_sec); while in the future, status shows "Aiming".
 var fire_ready_after_msec: int = 0
 var engaged_target_team_id: int = -1
 var engaged_target_soldier_id: int = -1
@@ -308,7 +312,7 @@ func activity_status_label() -> String:
 
 
 func set_engaged_target(target_team_id: int, target_soldier_id: int) -> bool:
-	## Returns true when the target changed. Target changes restart aiming; repeat shots use fire_interval_sec.
+	## Returns true when the target changed. Target changes restart the aim/fire cycle.
 	var unchanged := (
 		engaged_target_team_id == target_team_id
 		and engaged_target_soldier_id == target_soldier_id

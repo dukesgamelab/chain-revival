@@ -18,6 +18,9 @@ const STRESS_SCALE := 100.0 / ORIGINAL_MAX_STRESS
 
 ## --- Recovered globals ---
 const INIT_STRESS_BASE := 0.80 ## RECOVERED
+## REVISIT after fire cadence (~5.5s cycle): decay runs on wall-clock time while shots
+## arrive ~5× less often. If suppression stops mattering, slow decay — do not inflate
+## per-shot StressFactor (recovered). Measure Stage 3 verification before changing.
 const INIT_STRESS_FALL_MULTIPLIER := 0.3 ## RECOVERED — retained fraction per recovery tick
 const INIT_STRESS_INITIAL := 0.0 ## RECOVERED
 const STRESS_MULTIPLIER_GLOBAL := 1.0 ## RECOVERED StressMultiplier$global

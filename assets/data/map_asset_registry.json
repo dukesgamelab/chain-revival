@@ -2055,20 +2055,20 @@
 					"source_family": "WH11S3A"
 				},
 				"180": {
-					"depth_offset": 0.0,
-					"facet": "WH11S3A_e",
+					"depth_offset": 0,
+					"facet": "WH11S5A_e",
 					"fallback": false,
 					"hotspot": [
-						-50.0,
-						-73.0
+						-50,
+						-73
 					],
 					"letter": "e",
-					"path": "sprites/coc_tiles/WH11S3A_e.png",
+					"path": "sprites/coc_tiles/WH11S5A_e.png",
 					"render_offset": [
-						0.0,
-						0.0
+						0,
+						0
 					],
-					"source_family": "WH11S3A"
+					"source_family": "WH11S5A"
 				},
 				"270": {
 					"depth_offset": 0.0,

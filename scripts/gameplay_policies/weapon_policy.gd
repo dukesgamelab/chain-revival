@@ -1,7 +1,7 @@
 class_name WeaponPolicy
 extends RefCounted
 ## Weapon catalog. Recovered fields come from Initial-*.oin (identical across scenarios).
-## Absolute aim/fire seconds and range_tiles / hit_modifier are TUNED, not recovered.
+## Hit chance uses aim_factor_sqr / range_const_* (Stage 5). range_tiles is engagement only.
 
 const WeaponDataClass := preload("res://scripts/combat/weapon_data.gd")
 const WeaponTypeClass := preload("res://scripts/enums/weapon_type.gd")
@@ -20,6 +20,9 @@ const SQUAD_LIMIT_MG42 := 1
 const SQUAD_LIMIT_MP40 := 2
 const SQUAD_LIMIT_UNLIMITED := -1
 
+## Generous cone / out-of-range envelope. Hit falloff is the polynomial, not this.
+const ENGAGEMENT_RANGE_TILES := 40
+
 ## Per-weapon definition dictionaries (clone into WeaponData on request).
 var definitions: Dictionary = {}
 
@@ -33,18 +36,15 @@ func reset_to_defaults() -> void:
 
 
 static func default_definitions() -> Dictionary:
-	## Cadence note: ratio from recovered aim_factor_sqr (2000 rifles/SMGs, 7000 LMGs ~3.5x);
-	## absolute seconds are TUNED, not recovered. Anchored to ~1.1s rifle aim @ 20 Hz clock.
 	return {
 		ID_M1_GARAND: {
 			"weapon_name": "M1 Garand",
 			"weapon_type": WeaponTypeClass.RIFLE,
-			## TUNED engagement envelope
-			"range_tiles": 18,
-			"hit_modifier": 0.10,
-			"close_range_bonus": 0.0,
-			"close_range_tiles": 0,
-			## RECOVERED
+			"range_tiles": ENGAGEMENT_RANGE_TILES,
+			## RECOVERED hit polynomial
+			"aim_factor_sqr": 2000.0,
+			"range_const_cub": 1.0,
+			"range_const_pent": 0.0,
 			"rounds_per_attack": 1,
 			"ammo_pool": 70, ## total rounds carried; no reload in the original
 			"bullet_speed": 6,
@@ -52,18 +52,17 @@ static func default_definitions() -> Dictionary:
 			"stress_limit_tiles": 25.0, ## RECOVERED StressLimit — range cutoff
 			"stress_limit": 25.0, ## TUNED cap mapping input (separate from tiles cutoff)
 			"stress_aim_factor": 0.5,
-			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
-			## TUNED cadence (aim_factor_sqr 2000)
-			"aim_delay_sec": 1.1,
-			"fire_interval_sec": 1.2,
+			## Cadence: 0 = HitChancePolicy.base_fire_cycle_sec (global ~5.5s).
+			"aim_delay_sec": 0.0,
+			"fire_interval_sec": 0.0,
 		},
 		ID_KAR98K: {
 			"weapon_name": "Kar98k",
 			"weapon_type": WeaponTypeClass.RIFLE,
-			"range_tiles": 20,
-			"hit_modifier": 0.14,
-			"close_range_bonus": 0.0,
-			"close_range_tiles": 0,
+			"range_tiles": ENGAGEMENT_RANGE_TILES,
+			"aim_factor_sqr": 2000.0,
+			"range_const_cub": 1.0,
+			"range_const_pent": 0.0,
 			"rounds_per_attack": 1,
 			"ammo_pool": 70,
 			"bullet_speed": 6,
@@ -71,17 +70,16 @@ static func default_definitions() -> Dictionary:
 			"stress_limit_tiles": 25.0, ## RECOVERED
 			"stress_limit": 25.0, ## TUNED cap mapping
 			"stress_aim_factor": 0.5,
-			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
-			"aim_delay_sec": 1.1,
-			"fire_interval_sec": 1.5, ## bolt — TUNED
+			"aim_delay_sec": 0.0,
+			"fire_interval_sec": 0.0,
 		},
 		ID_THOMPSON: {
 			"weapon_name": "Thompson",
 			"weapon_type": WeaponTypeClass.SMG,
-			"range_tiles": 8,
-			"hit_modifier": 0.0,
-			"close_range_bonus": 0.15, ## TUNED close-in feel
-			"close_range_tiles": 4,
+			"range_tiles": ENGAGEMENT_RANGE_TILES,
+			"aim_factor_sqr": 2000.0,
+			"range_const_cub": 0.0,
+			"range_const_pent": 0.02, ## RECOVERED — SMG cliff via D⁵
 			"rounds_per_attack": 4,
 			"ammo_pool": 200,
 			"bullet_speed": 6,
@@ -89,17 +87,16 @@ static func default_definitions() -> Dictionary:
 			"stress_limit_tiles": 13.0, ## RECOVERED
 			"stress_limit": 13.0, ## TUNED cap mapping
 			"stress_aim_factor": 1.5,
-			"range_falloff": WeaponDataClass.FALLOFF_PENTIC, ## RECOVERED range_const_pent 0.02
-			"aim_delay_sec": 1.1,
-			"fire_interval_sec": 0.8,
+			"aim_delay_sec": 0.0,
+			"fire_interval_sec": 0.0,
 		},
 		ID_MP40: {
 			"weapon_name": "MP40",
 			"weapon_type": WeaponTypeClass.SMG,
-			"range_tiles": 8,
-			"hit_modifier": 0.0,
-			"close_range_bonus": 0.12,
-			"close_range_tiles": 4,
+			"range_tiles": ENGAGEMENT_RANGE_TILES,
+			"aim_factor_sqr": 2000.0,
+			"range_const_cub": 0.0,
+			"range_const_pent": 0.02,
 			"rounds_per_attack": 5,
 			"ammo_pool": 200,
 			"bullet_speed": 6,
@@ -107,17 +104,17 @@ static func default_definitions() -> Dictionary:
 			"stress_limit_tiles": 13.0, ## RECOVERED
 			"stress_limit": 13.0, ## TUNED cap mapping
 			"stress_aim_factor": 1.5,
-			"range_falloff": WeaponDataClass.FALLOFF_PENTIC,
-			"aim_delay_sec": 1.1,
-			"fire_interval_sec": 0.9,
+			"aim_delay_sec": 0.0,
+			"fire_interval_sec": 0.0,
 		},
 		ID_BAR: {
 			"weapon_name": "BAR",
 			"weapon_type": WeaponTypeClass.LMG,
-			"range_tiles": 20,
-			"hit_modifier": 0.05,
-			"close_range_bonus": 0.0,
-			"close_range_tiles": 0,
+			"range_tiles": ENGAGEMENT_RANGE_TILES,
+			## RECOVERED aim_factor_sqr 8000 — 4× rifle accuracy (numerator), not slower aim.
+			"aim_factor_sqr": 8000.0,
+			"range_const_cub": 1.0,
+			"range_const_pent": 0.0,
 			"rounds_per_attack": 7,
 			"ammo_pool": 900,
 			"bullet_speed": 6,
@@ -125,17 +122,16 @@ static func default_definitions() -> Dictionary:
 			"stress_limit_tiles": 25.0, ## RECOVERED
 			"stress_limit": 25.0, ## TUNED cap mapping
 			"stress_aim_factor": 2.0,
-			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
-			"aim_delay_sec": 1.7, ## LMG ~ longer aim cycle; TUNED absolute
-			"fire_interval_sec": 1.1,
+			"aim_delay_sec": 0.0,
+			"fire_interval_sec": 0.0,
 		},
 		ID_MG42: {
 			"weapon_name": "MG42",
 			"weapon_type": WeaponTypeClass.LMG,
-			"range_tiles": 22,
-			"hit_modifier": 0.04,
-			"close_range_bonus": 0.0,
-			"close_range_tiles": 0,
+			"range_tiles": ENGAGEMENT_RANGE_TILES,
+			"aim_factor_sqr": 8000.0,
+			"range_const_cub": 1.0,
+			"range_const_pent": 0.0,
 			"rounds_per_attack": 6,
 			"ammo_pool": 900,
 			"bullet_speed": 7,
@@ -143,9 +139,8 @@ static func default_definitions() -> Dictionary:
 			"stress_limit_tiles": 25.0, ## RECOVERED
 			"stress_limit": 25.0, ## TUNED cap mapping
 			"stress_aim_factor": 2.0,
-			"range_falloff": WeaponDataClass.FALLOFF_CUBIC,
-			"aim_delay_sec": 1.7,
-			"fire_interval_sec": 0.6,
+			"aim_delay_sec": 0.0,
+			"fire_interval_sec": 0.0,
 		},
 	}
 
@@ -179,16 +174,16 @@ func create_weapon(weapon_id: String) -> WeaponDataClass:
 	var ammo := int(d.get("ammo_pool", d.get("ammo_capacity", 200)))
 	var stress_limit := float(d.get("stress_limit", 25.0))
 	var stress_limit_tiles := float(d.get("stress_limit_tiles", stress_limit))
-	return WeaponDataClass.new(
+	var weapon := WeaponDataClass.new(
 		weapon_id,
 		str(d.get("weapon_name", weapon_id)),
 		int(d.get("weapon_type", WeaponTypeClass.RIFLE)),
-		int(d.get("range_tiles", 18)),
-		float(d.get("hit_modifier", 0.0)),
+		int(d.get("range_tiles", ENGAGEMENT_RANGE_TILES)),
+		0.0, ## hit_modifier retired
 		int(d.get("rounds_per_attack", 1)),
 		ammo,
-		float(d.get("close_range_bonus", 0.0)),
-		int(d.get("close_range_tiles", 0)),
+		0.0, ## close_range_bonus retired
+		0, ## close_range_tiles retired
 		float(d.get("fire_interval_sec", 0.0)),
 		float(d.get("aim_delay_sec", 0.0)),
 		int(d.get("bullet_speed", 6)),
@@ -198,11 +193,23 @@ func create_weapon(weapon_id: String) -> WeaponDataClass:
 		str(d.get("range_falloff", WeaponDataClass.FALLOFF_CUBIC)),
 		stress_limit_tiles,
 	)
+	weapon.aim_factor_sqr = float(d.get("aim_factor_sqr", weapon.aim_factor_sqr))
+	weapon.aim_factor = float(d.get("aim_factor", 0.0))
+	weapon.aim_plus = float(d.get("aim_plus", 0.0))
+	weapon.range_const_cub = float(d.get("range_const_cub", weapon.range_const_cub))
+	weapon.range_const_sqr = float(d.get("range_const_sqr", 0.0))
+	weapon.range_const_pent = float(d.get("range_const_pent", weapon.range_const_pent))
+	return weapon
 
 
 func fire_interval_sec(weapon_id: String) -> float:
+	## Effective cycle: per-weapon override, else global base_fire_cycle_sec.
 	var weapon := create_weapon(weapon_id)
-	return weapon.fire_interval_sec if weapon != null else 0.0
+	if weapon == null:
+		return 0.0
+	if weapon.fire_interval_sec > 0.0:
+		return weapon.fire_interval_sec
+	return GameplayPolicies.hit.base_fire_cycle_sec
 
 
 func range_tiles(weapon_id: String) -> int:
@@ -211,8 +218,8 @@ func range_tiles(weapon_id: String) -> int:
 
 
 func hit_modifier(weapon_id: String) -> float:
-	var weapon := create_weapon(weapon_id)
-	return weapon.hit_modifier if weapon != null else 0.0
+	## Deprecated — polynomial replaced additive hit_modifier.
+	return 0.0
 
 
 func apply_config(section: Dictionary) -> void:

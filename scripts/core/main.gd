@@ -2693,11 +2693,25 @@ func _finalize_shot_result(
 
 
 func _spawn_shot_tracers(shooter: SoldierState, target: SoldierState, count: int) -> void:
+	## Visual/audio only: stagger rounds within a burst (~0.04s). Hit resolution is one roll.
 	var from_world := _get_soldier_tracer_point(shooter)
 	var to_world := _get_soldier_tracer_point(target)
+	var interval := GameplayPolicies.hit.burst_round_interval_sec
 	for i in range(count):
 		var jitter := Vector2(randf_range(-2.0, 2.0), randf_range(-2.0, 2.0))
-		ShotTracer.spawn(_tracers_root, from_world + jitter, to_world + jitter)
+		var from_pt := from_world + jitter
+		var to_pt := to_world + jitter
+		if i == 0 or interval <= 0.0:
+			ShotTracer.spawn(_tracers_root, from_pt, to_pt)
+		else:
+			var delay := interval * float(i)
+			var tree := get_tree()
+			if tree != null:
+				tree.create_timer(delay).timeout.connect(
+					func() -> void: ShotTracer.spawn(_tracers_root, from_pt, to_pt)
+				)
+			else:
+				ShotTracer.spawn(_tracers_root, from_pt, to_pt)
 
 
 func _get_soldier_tracer_point(soldier_state: SoldierState) -> Vector2:
