@@ -17,16 +17,18 @@ func _ready() -> void:
 	GameplayPolicies.fire_anim.reset_to_defaults()
 	var failures: Array[String] = []
 
-	failures.append_array(_validate_db("us_rifle", "fire_standing", "ASFIA", "USA standing", {8: 2}))
-	failures.append_array(_validate_db("us_rifle", "fire_prone", "APRFA", "USA prone", {}))
+	failures.append_array(_validate_fire_db("us_rifle", "fire_standing", "ASFIA", "USA standing", {8: 3}))
+	failures.append_array(_validate_fire_db("us_rifle", "fire_prone", "APRFA", "USA prone", {}))
 	failures.append_array(
 		_validate_corner_fire_db("us_rifle", "corner_fire_left", "ALCFA", "USA corner L")
 	)
 	failures.append_array(
 		_validate_corner_fire_db("us_rifle", "corner_fire_right", "ARCFA", "USA corner R")
 	)
-	failures.append_array(_validate_db("german_rifle", "fire_standing", "GSFIA", "Germany standing", {}))
-	failures.append_array(_validate_db("german_rifle", "fire_prone", "GPRFA", "Germany prone", {}))
+	failures.append_array(
+		_validate_fire_db("german_rifle", "fire_standing", "GSFIA", "Germany standing", {})
+	)
+	failures.append_array(_validate_fire_db("german_rifle", "fire_prone", "GPRFA", "Germany prone", {}))
 	failures.append_array(
 		_validate_corner_fire_db("german_rifle", "corner_fire_left", "GLCFA", "Germany corner L")
 	)
@@ -50,7 +52,7 @@ func _ready() -> void:
 
 	print("=== rifle_fire_frame_check ===")
 	if failures.is_empty():
-		print("PASS: standing/prone/corner CFA+peek/aim flow OK (muzzle A=0)")
+		print("PASS: standing/prone B-C-C-A + corner CFA+peek/aim flow OK")
 		get_tree().quit(0)
 	else:
 		print("FAIL count=%d" % failures.size())
@@ -59,13 +61,14 @@ func _ready() -> void:
 		get_tree().quit(1)
 
 
-func _validate_db(
+func _validate_fire_db(
 	family_id: String,
 	anim_id: String,
 	expected_source: String,
 	label: String,
 	digit_frame_overrides: Dictionary,
 ) -> Array[String]:
+	## Standing/prone fire order: B → C → C → A (aim, still, muzzle). NW ASFIA: B → B → A.
 	var fails: Array[String] = []
 	var anim := AnimationDatabase.get_animation(family_id, anim_id)
 	if anim.is_empty():
@@ -81,12 +84,14 @@ func _validate_db(
 	var fps := float(anim.get("fps", 0.0))
 	if not is_equal_approx(fps, EXPECTED_FPS):
 		fails.append("%s: fps=%.1f expected %.1f" % [label, fps, EXPECTED_FPS])
-	if int(meta.get("visual_shot_frame", -1)) != 1:
-		fails.append("%s: visual_shot_frame should be 1 (B)" % label)
+	if int(meta.get("visual_shot_frame", -1)) != 3:
+		fails.append("%s: visual_shot_frame should be 3 (muzzle A)" % label)
+	if int(meta.get("muzzle_flash_frame", -1)) != 3:
+		fails.append("%s: muzzle_flash_frame should be 3 (muzzle A)" % label)
 
 	for direction in DIRS:
 		var digit := _digit_for_direction(direction)
-		var expected_count := 3
+		var expected_count := 4
 		if digit_frame_overrides.has(digit):
 			expected_count = int(digit_frame_overrides[digit])
 		var frames := AnimationDatabase.get_direction_frames(family_id, anim_id, direction)
@@ -94,6 +99,10 @@ func _validate_db(
 			fails.append(
 				"%s %s: frame count %d expected %d" % [label, direction, frames.size(), expected_count]
 			)
+			continue
+		var expected_letters: Array[String] = ["B", "C", "C", "A"]
+		if expected_count == 3:
+			expected_letters = ["B", "B", "A"]
 		for i in frames.size():
 			var path := str(frames[i])
 			if path.is_empty():
@@ -101,8 +110,7 @@ func _validate_db(
 				continue
 			if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
 				fails.append("%s missing: %s" % [label, path])
-			var expected_letter := String.chr(ord("A") + i)
-			var expected_name := "%s%d%s.png" % [expected_source, digit, expected_letter]
+			var expected_name := "%s%d%s.png" % [expected_source, digit, expected_letters[i]]
 			if path.get_file() != expected_name:
 				fails.append(
 					"%s %s[%d]: got %s expected %s"
@@ -182,7 +190,8 @@ func _validate_runtime(sf: SpriteFrames, label: String) -> Array[String]:
 			var count := sf.get_frame_count(anim_name)
 			var fps := sf.get_animation_speed(anim_name)
 			var loop := sf.get_animation_loop(anim_name)
-			var expected := 2 if (label == "USA" and semantic == "fire_standing" and direction == "nw") else 3
+			## B–C–C–A (4). ASFIA NW is B–B–A (3).
+			var expected := 3 if (label == "USA" and semantic == "fire_standing" and direction == "nw") else 4
 			if count != expected:
 				fails.append("%s %s frames=%d expected %d" % [label, anim_name, count, expected])
 			if not is_equal_approx(fps, EXPECTED_FPS):
@@ -244,6 +253,10 @@ func _validate_policy() -> Array[String]:
 		fails.append("semantic corner R")
 	if policy.semantic_for(PositionState.DOWN, CoverSystem.PeekSide.LEFT) != "fire_prone":
 		fails.append("semantic prone+peek")
+	if policy.visual_shot_frame_for_family("ASFIA") != 3:
+		fails.append("ASFIA visual_shot_frame expected 3 (muzzle A)")
+	if policy.visual_shot_frame_for_family("GSFIA") != 3:
+		fails.append("GSFIA visual_shot_frame expected 3 (muzzle A)")
 	return fails
 
 
@@ -253,11 +266,16 @@ func _validate_asfia8_exception() -> Array[String]:
 	if ResourceLoader.exists(bogus) or FileAccess.file_exists(bogus):
 		fails.append("ASFIA8C.png must not exist / must not be fabricated")
 	var nw := AnimationDatabase.get_direction_frames("us_rifle", "fire_standing", "nw")
-	if nw.size() != 2:
-		fails.append("ASFIA nw must be exactly 2 frames (A-B), got %d" % nw.size())
-	elif nw.size() == 2:
-		if not str(nw[0]).ends_with("ASFIA8A.png") or not str(nw[1]).ends_with("ASFIA8B.png"):
-			fails.append("ASFIA nw paths must be ASFIA8A then ASFIA8B")
+	## No 8C — authored as B, B, A (aim still, muzzle).
+	if nw.size() != 3:
+		fails.append("ASFIA nw must be exactly 3 frames (B-B-A), got %d" % nw.size())
+	elif nw.size() == 3:
+		if (
+			not str(nw[0]).ends_with("ASFIA8B.png")
+			or not str(nw[1]).ends_with("ASFIA8B.png")
+			or not str(nw[2]).ends_with("ASFIA8A.png")
+		):
+			fails.append("ASFIA nw paths must be ASFIA8B, ASFIA8B, ASFIA8A")
 	return fails
 
 

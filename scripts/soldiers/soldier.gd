@@ -74,6 +74,8 @@ var _fire_peek_side: int = CoverSystem.PeekSide.NONE
 var _idle_peek_side: int = CoverSystem.PeekSide.NONE
 var _played_idle_peek_side: int = CoverSystem.PeekSide.NONE
 var _fire_visual_shot_logged: bool = false
+## Open standing/prone: hold aim pose (B–C still) while status is Aiming.
+var _fire_aim_hold_active: bool = false
 ## At most one queued restart if a new shot arrives mid-sequence.
 var _fire_restart_pending: bool = false
 ## Presentation-only corner cover phases (not authoritative combat state).
@@ -264,6 +266,7 @@ func sync_from_state(
 	_apply_fog_visual(fog_visual, is_selected)
 	set_selected(is_selected)
 	_refresh_id_marker(state)
+	_sync_fire_aim_hold(state)
 	## Do not force walk=true here — sync_movement_chase_from_state already chose
 	## walk vs idle based on remaining distance (avoids run-in-place on full sync).
 
@@ -697,6 +700,9 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 	if not walking and _locomotion_direction == direction and not _locomotion_walking:
 		## Keep an in-flight standing fidget until it finishes or is cancelled.
 		if _idle_fidget_active:
+			return
+		## Aiming hold owns the pose until the shot oneshot or disengage.
+		if _fire_aim_hold_active:
 			return
 		## Already stationary in this world facing — keep current idle pose
 		## unless peek side changed or we still need to start the correct idle.
@@ -1449,12 +1455,87 @@ func _clear_corner_presentation(_resume_idle: bool) -> void:
 	_corner_fire_pending = false
 
 
+func _sync_fire_aim_hold(state: SoldierState) -> void:
+	## While Fire At Will / Fire At is aiming (prep clock running), show aim still
+	## from the fire clip (penultimate frame: C in B–C–C–A). Shot oneshot plays A.
+	if state == null or _fire_active or _is_moving or _is_dead:
+		if _fire_aim_hold_active and (_fire_active or _is_moving or _is_dead):
+			_fire_aim_hold_active = false
+		return
+	if _idle_peek_side != CoverSystem.PeekSide.NONE:
+		_fire_aim_hold_active = false
+		return
+	if _corner_phase != CornerPresPhase.NONE and _corner_phase != CornerPresPhase.IDLE:
+		_fire_aim_hold_active = false
+		return
+	var aiming := (
+		state.is_engaged()
+		and state.fire_ready_after_msec > SimulationClock.get_ticks_msec()
+	)
+	if not aiming:
+		if _fire_aim_hold_active:
+			_fire_aim_hold_active = false
+			if not _is_moving and not _blocks_action_override():
+				_play_locomotion(
+					UsSoldierSpriteFrames.direction_from_step(_last_applied_facing),
+					false,
+				)
+		return
+	_begin_fire_aim_hold(state.position_state)
+
+
+func _begin_fire_aim_hold(position_state: int) -> void:
+	_cancel_standing_idle()
+	var semantic := GameplayPolicies.fire_anim.semantic_for(
+		position_state, CoverSystem.PeekSide.NONE
+	)
+	var world_dir := UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	if world_dir.is_empty():
+		world_dir = "n"
+	_fire_world_direction = world_dir
+	_fire_semantic = semantic
+	var display_dir := _fire_display_direction()
+	var anim_name := "%s_%s" % [semantic, display_dir]
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+		return
+	var count := _anim.sprite_frames.get_frame_count(anim_name)
+	if count <= 0:
+		return
+	## Still aim = penultimate frame (C in B–C–C–A; B in B–B–A).
+	var aim_frame := maxi(count - 2, 0)
+	if (
+		_fire_aim_hold_active
+		and str(_anim.animation) == anim_name
+		and not _anim.is_playing()
+		and _anim.frame == aim_frame
+	):
+		return
+	var already_on_clip := str(_anim.animation) == anim_name
+	_fire_aim_hold_active = true
+	_apply_hit_reaction_scale(position_state)
+	if not already_on_clip:
+		## Fresh engage: play aim frames B→C, then pause on still (frame callback).
+		_anim.play(anim_name)
+		_anim.frame = 0
+		_log_fire_anim(anim_name, "AIM_HOLD_PLAY")
+		return
+	if _anim.frame < aim_frame:
+		if not _anim.is_playing():
+			_anim.play(anim_name)
+		_log_fire_anim(anim_name, "AIM_HOLD_CONTINUE")
+		return
+	_anim.pause()
+	_anim.frame = aim_frame
+	_log_fire_anim(anim_name, "AIM_HOLD")
+
+
 func _begin_fire_sequence(
 	position_state: int,
 	facing_direction: Vector2i,
 	peek_side: int = CoverSystem.PeekSide.NONE,
 ) -> void:
 	_cancel_standing_idle()
+	_fire_aim_hold_active = false
 	_fire_active = true
 	_fire_restart_pending = false
 	_fire_visual_shot_logged = false
@@ -1723,8 +1804,22 @@ func dump_fire_validation() -> Dictionary:
 
 
 func _on_anim_frame_changed() -> void:
+	if _fire_aim_hold_active and not _fire_active:
+		var hold_name := str(_anim.animation)
+		if _anim.sprite_frames != null and _anim.sprite_frames.has_animation(hold_name):
+			var hold_count := _anim.sprite_frames.get_frame_count(hold_name)
+			var aim_frame := maxi(hold_count - 2, 0)
+			if _anim.frame >= aim_frame:
+				_anim.pause()
+				_anim.frame = aim_frame
 	if _fire_active and not _fire_visual_shot_logged:
-		var shot_frame := GameplayPolicies.fire_anim.visual_shot_frame_for_family(_fire_source_family())
+		var shot_frame := GameplayPolicies.fire_anim.visual_shot_frame_for_family(
+			_fire_source_family()
+		)
+		## ASFIA NW is shorter (muzzle at 2); clamp to last frame.
+		if _anim.sprite_frames != null and _anim.sprite_frames.has_animation(str(_anim.animation)):
+			var max_frame := maxi(_anim.sprite_frames.get_frame_count(str(_anim.animation)) - 1, 0)
+			shot_frame = mini(shot_frame, max_frame)
 		if _anim.frame >= shot_frame:
 			_fire_visual_shot_logged = true
 			_log_fire_anim(str(_anim.animation), "VISUAL_SHOT_FRAME frame=%d" % _anim.frame)
