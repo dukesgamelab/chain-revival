@@ -678,9 +678,9 @@ func set_cell_terrain(
 	if not is_in_bounds(cell) or not has_object(cell):
 		return
 	var meta: Dictionary = _object_meta.get(cell, {}).duplicate(true)
-	var overrides: Dictionary = {}
-	if meta.get("gameplay_overrides", {}) is Dictionary:
-		overrides = (meta["gameplay_overrides"] as Dictionary).duplicate(true)
+	## Prefer get_gameplay_overrides — never write `dict.get(k, {}) is Dictionary`
+	## (GDScript parses that as get(k, true), then keyed access crashes when missing).
+	var overrides: Dictionary = get_gameplay_overrides(cell)
 	var family := get_object_family(cell)
 	var gp := (
 		MapAssetRegistryClass.gameplay_for(family)
