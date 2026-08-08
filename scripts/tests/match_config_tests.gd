@@ -52,6 +52,12 @@ func _test_default_offline_1v1() -> void:
 	_assert("default 1v1 valid", bool(v.get("ok", false)), str(v.get("errors", [])))
 	_assert("default 1v1 two slots", cfg.slots.size() == 2)
 	_assert("default 1v1 two fireteams", cfg.fireteam_count() == 2)
+	_assert("offline 1v1 has no AI slots", cfg.ai_slots().is_empty())
+	var human_slots := 0
+	for slot in cfg.slots:
+		if int(slot.get("controller", -1)) == MatchConfigClass.ControllerType.HUMAN:
+			human_slots += 1
+	_assert("offline 1v1 both slots human", human_slots == 2, "humans=%d" % human_slots)
 
 	var session := GameSessionClass.from_match_config(
 		cfg,
@@ -67,8 +73,9 @@ func _test_default_offline_1v1() -> void:
 		"1v1 local controls soldier 1",
 		session.can_local_control_soldier(Team.USA, 1),
 	)
+	## Hotseat: only the active local player_id is controllable until 1/2 switch.
 	_assert(
-		"1v1 local cannot control GER soldier",
+		"1v1 local cannot control GER until side switch",
 		not session.can_local_control_soldier(Team.GERMANY, 1),
 	)
 
@@ -115,7 +122,7 @@ func _test_sp_2v2_slots_and_ownership() -> void:
 
 
 func _test_switch_sides() -> void:
-	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	cfg.switch_human_side()
 	_assert("switch sides local on GER", cfg.local_player_id == 2)
 	var humans := 0

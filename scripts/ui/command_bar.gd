@@ -585,21 +585,15 @@ func _update_status() -> void:
 		return
 	var team_name := Team.display_name(_active_team_id)
 	if _fire_at_soldier_id == SQUAD_ID:
-		if _fire_at_engaged:
-			show_status("%s Fireteam: Fire At — auto-engaging in-range enemies. Right-click cancels." % team_name)
-		else:
-			show_status("%s Fireteam: Fire At — click an enemy to open fire. Right-click cancels." % team_name)
+		show_status(
+			"%s Fireteam: Fire At — click a tile or enemy to aim. Right-click cancels."
+			% team_name
+		)
 	elif _fire_at_soldier_id > 0:
-		if _fire_at_engaged:
-			show_status(
-				"%s Soldier %d: Fire At — auto-engaging in-range enemies. Right-click cancels."
-				% [team_name, _fire_at_soldier_id],
-			)
-		else:
-			show_status(
-				"%s Soldier %d: Fire At — click an enemy to open fire. Right-click cancels."
-				% [team_name, _fire_at_soldier_id],
-			)
+		show_status(
+			"%s Soldier %d: Fire At — click a tile or enemy to aim. Right-click cancels."
+			% [team_name, _fire_at_soldier_id],
+		)
 	elif _face_soldier_id == SQUAD_ID:
 		show_status("%s Fireteam: Face... — click a tile or enemy. Right-click cancels." % team_name)
 	elif _face_soldier_id > 0:

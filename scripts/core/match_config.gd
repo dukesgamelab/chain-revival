@@ -35,8 +35,22 @@ func _init(
 
 
 static func default_offline_1v1() -> RefCounted:
-	## Dev / offline bypass: Single Player 1v1 USA Human vs Germany AI.
+	## Dev Offline Quick Start: both sides human (hotseat). No AI.
+	## Uses MULTIPLAYER slot rules (multiple humans allowed); GameModeManager stays OFFLINE_DEV.
+	## Press 1/2 in-game to take full control of a side. AI is Single Player only.
 	## Returns MatchConfig (typed as RefCounted to avoid self class_name parse issues).
+	var cfg = new(GameModeKind.MULTIPLAYER, MatchType.ONE_V_ONE)
+	cfg.local_player_id = 1
+	for i in cfg.slots.size():
+		var slot: Dictionary = cfg.slots[i]
+		slot["controller"] = ControllerType.HUMAN
+		slot["selected_ai_plan"] = ""
+		cfg.slots[i] = slot
+	return cfg
+
+
+static func default_single_player_1v1() -> RefCounted:
+	## Single Player Match Setup default: USA Human vs Germany AI.
 	var cfg = new(GameModeKind.SINGLE_PLAYER, MatchType.ONE_V_ONE)
 	cfg.local_player_id = 1
 	return cfg

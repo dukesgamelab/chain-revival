@@ -242,8 +242,10 @@ func _start_ai_framework() -> void:
 		for pid in _game_state.command_hierarchy.all_player_ids():
 			if _game_state.command_hierarchy.is_ai_player(int(pid)):
 				declared_ai_slots += 1
-	## Explicit `--hotseat` only: both sides human, AI off. SP / Offline Quick Start keep AI.
-	if GameConfig.hotseat_enabled():
+	## Hotseat / all-human matches (Offline Quick Start): no AI commanders.
+	## Single Player Match Setup still declares AI slots and keeps them enabled.
+	var all_human := declared_ai_slots == 0
+	if GameConfig.hotseat_enabled() or all_human:
 		_ai_framework.set_enabled(false)
 		for commander in _ai_framework.all_commanders():
 			_ai_framework.disable_commander(commander.player_id)
@@ -287,8 +289,8 @@ func _log_ai_framework_startup(declared_ai_slots: int) -> void:
 		)
 		push_warning(warn)
 		GameLog.log_system(warn)
-	elif GameConfig.hotseat_enabled():
-		GameLog.log_system("[AI] Hotseat enabled — all AI commanders disabled.")
+	elif declared_ai_slots == 0 or GameConfig.hotseat_enabled():
+		GameLog.log_system("[AI] All-human / hotseat — AI commanders disabled.")
 
 
 func _log_network_mode() -> void:
@@ -858,10 +860,21 @@ func _exit_fire_at_mode(message: String = "") -> void:
 	_squad_fire_at_mode = false
 	_fire_at_engaged = false
 	_los_visualizer.hide_preview()
+	_last_fire_at_preview_cell = Vector2i(-999999, -999999)
 	_command_bar.set_fire_at_engaged(false)
 	_command_bar.clear_fire_at_mode()
 	if not message.is_empty():
 		_command_bar.show_status(message)
+
+
+## End Fire At mouse-aim without cancelling sustained fire / locked targets.
+func _leave_fire_at_targeting() -> void:
+	_fire_at_mode = false
+	_squad_fire_at_mode = false
+	_los_visualizer.hide_preview()
+	_last_fire_at_preview_cell = Vector2i(-999999, -999999)
+	_command_bar.clear_fire_at_mode()
+	_sync_fire_at_ui_from_engagements()
 
 
 func _update_los_preview() -> void:
@@ -924,7 +937,7 @@ func _update_los_preview() -> void:
 	var face_cell := preview.click_cell
 	if preview.target != null:
 		face_cell = preview.target.grid_position
-	## Always keep bodies aimed at the preview cell (including while engaged / holding).
+	## Mouse-aim only while targeting — once a tile/enemy is clicked, facing stays locked.
 	ActionResolverClass.preview_fire_at_facing(
 		_game_state,
 		_session.active_team_id,
@@ -1521,14 +1534,11 @@ func _switch_active_team(team_id: int) -> void:
 	_refresh_all_views()
 	var status := "Controlling %s team." % Team.display_name(team_id)
 	if GameModeManager.is_offline_dev():
-		if GameConfig.hotseat_enabled():
-			status += " Hotseat — press 1/2 to switch sides."
-		else:
-			status += " Press 1/2 to take a side (other AI keeps thinking)."
+		status += " Hotseat — press 1/2 to switch sides."
 	_command_bar.show_status(status)
 
 
-## Offline/SP: claim target side as human. Non-hotseat returns the previous side to AI.
+## Offline Quick Start: claim target side as human. Both sides stay human (no AI).
 func _offline_dev_take_team_control(team_id: int) -> bool:
 	if _session == null or _game_state == null:
 		return false
@@ -1550,16 +1560,11 @@ func _offline_dev_take_team_control(team_id: int) -> bool:
 	if hierarchy != null and hierarchy.has_player(target_pid) and hierarchy.is_ai_player(target_pid):
 		PlayerSlotOwnershipClass.claim_slot_as_human(_game_state, _ai_framework, target_pid)
 	elif _ai_framework != null:
-		## Already human (hotseat) — ensure no commander is thinking for this slot.
 		_ai_framework.disable_commander(target_pid)
-	if GameConfig.hotseat_enabled():
-		## Both sides stay human; never re-enable AI for the side we left.
-		if _ai_framework != null:
-			_ai_framework.disable_commander(current_pid)
-			_ai_framework.disable_commander(target_pid)
-	elif current_pid > 0 and current_pid != target_pid:
-		## Hand me this side; previous side returns to AI so it keeps thinking.
-		PlayerSlotOwnershipClass.release_slot_to_ai(_game_state, _ai_framework, current_pid)
+	## Offline 1v1 is human-only — never hand the previous side back to AI.
+	if _ai_framework != null:
+		_ai_framework.disable_commander(current_pid)
+		_ai_framework.disable_commander(target_pid)
 	_session.local_player_id = target_pid
 	if _session.match_config != null:
 		_session.match_config.local_player_id = target_pid
@@ -2641,6 +2646,13 @@ func _apply_fire_at_aim(aim_world: Vector2, clicked_soldier: SoldierState = null
 		_make_fire_context(shooters),
 	)
 	_present_action_result(result)
+	## Click commits the aim point — stop mouse-follow until Fire At is pressed again.
+	## Do not clear sustained fire here (unlike right-click cancel).
+	if result.success:
+		var aim_status := result.status_message
+		_leave_fire_at_targeting()
+		if not aim_status.is_empty():
+			_command_bar.show_status(aim_status)
 
 
 func _finalize_shot_result(

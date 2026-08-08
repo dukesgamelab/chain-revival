@@ -11,7 +11,7 @@ const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd
 
 const _HINT_DEFAULT := (
 	"Single Player and Multiplayer open Match Setup (1v1 / 2v2).\n"
-	+ "Dev: Offline Quick Start launches Farm Fight 1v1 immediately."
+	+ "Dev: Offline Quick Start = human hotseat 1v1 (press 1/2 to switch). AI is Single Player only."
 )
 const _HINT_CONNECTING := "Connecting to ws://localhost:3000..."
 const _HINT_CONNECT_FAILED := (
@@ -67,7 +67,7 @@ func _open_match_setup(game_mode_kind: int) -> void:
 
 
 func _on_offline_quick_pressed() -> void:
-	## Preserve existing developer workflow: Farm Fight SP 1v1 immediately.
+	## Dev hotseat: Farm Fight 1v1, both sides human, no AI.
 	PlayerSides.clear()
 	GameModeManager.set_mode(GameMode.OFFLINE_DEV)
 	MatchConfigStoreClass.set_pending(MatchConfigClass.default_offline_1v1())

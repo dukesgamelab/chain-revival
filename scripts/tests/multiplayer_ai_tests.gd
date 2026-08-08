@@ -206,7 +206,7 @@ func _test_human_leave_restores_ai() -> void:
 
 func _test_identical_gameplay_commands() -> void:
 	## AI and humans both go through ActionResolver Move/Fire — same classes.
-	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	var gs := _make_game_state(cfg)
 	var fw := _make_framework(gs)
 	var submitted: Array = []
@@ -264,7 +264,7 @@ func _test_hierarchy_and_los_survive_switch() -> void:
 
 
 func _test_host_authority_gate() -> void:
-	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	var gs := _make_game_state(cfg)
 	var fw := _make_framework(gs)
 	fw.set_authority(false)
@@ -282,29 +282,34 @@ func _test_host_authority_gate() -> void:
 
 
 func _test_offline_still_works() -> void:
-	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	## Single Player keeps AI; Offline Quick Start is all-human (tested separately).
+	var cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	var gs := _make_game_state(cfg)
 	var fw := _make_framework(gs)
-	_assert("offline has Germany AI", gs.command_hierarchy.is_ai_player(2))
-	_assert("offline framework has commander", fw.get_commander(2) != null)
+	_assert("SP has Germany AI", gs.command_hierarchy.is_ai_player(2))
+	_assert("SP framework has commander", fw.get_commander(2) != null)
 	fw._tick_counter = AiCommanderFrameworkClass.THINK_EVERY_N_TICKS - 1
 	fw.tick(gs)
-	_assert("offline AI tick runs", fw.has_authority())
+	_assert("SP AI tick runs", fw.has_authority())
 
 
 func _test_hotseat_flag_defaults_off() -> void:
-	## Without `--hotseat`, SP/offline must keep AI commanders (Stage 0 root cause).
+	## `--hotseat` flag defaults off; Single Player still has AI. Offline Quick Start is all-human.
 	_assert("hotseat defaults false", GameConfig.hotseat_enabled() == false)
-	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
-	var gs := _make_game_state(cfg)
+	var sp: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
+	var gs := _make_game_state(sp)
 	var fw := _make_framework(gs)
 	_assert("SP 1v1 keeps Germany AI without hotseat", gs.command_hierarchy.is_ai_player(2))
 	_assert("SP 1v1 has Germany commander without hotseat", fw.get_commander(2) != null)
+	var offline: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var gs_off := _make_game_state(offline)
+	_assert("offline 1v1 USA is human", not gs_off.command_hierarchy.is_ai_player(1))
+	_assert("offline 1v1 Germany is human", not gs_off.command_hierarchy.is_ai_player(2))
 
 
 func _test_side_switch_keeps_other_ai() -> void:
-	## Non-hotseat 1/2 behaviour: claim target as human, release previous to AI.
-	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	## Single Player 1/2 behaviour: claim target as human, release previous to AI.
+	var cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	var gs := _make_game_state(cfg)
 	var fw := _make_framework(gs)
 	_assert("start USA human", not gs.command_hierarchy.is_ai_player(1))

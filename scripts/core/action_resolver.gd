@@ -757,6 +757,7 @@ static func _face_result_after_reorient(
 
 
 ## Orient Fire At soldiers toward the current aim cell (preview only; no target assignment).
+## Only used while Fire At targeting mode is open — after a click, facing stays locked.
 static func preview_fire_at_facing(
 	game_state: GameStateClass,
 	team_id: int,
@@ -767,7 +768,6 @@ static func preview_fire_at_facing(
 	var changed := false
 	for soldier_id in shooter_ids:
 		var shooter: SoldierState = fireteam.get_soldier(soldier_id)
-		## Keep facing on the aim cell even while sustained / holding fire.
 		if shooter == null or shooter.is_dead:
 			continue
 		if fireteam.face_toward_tile(soldier_id, face_cell):

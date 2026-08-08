@@ -102,7 +102,7 @@ func _test_default_selected_for_slot_by_side() -> void:
 
 
 func _test_match_config_1v1_ai_selector_shape() -> void:
-	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	var ai := cfg.ai_slots()
 	_assert("SP 1v1 has exactly one AI slot", ai.size() == 1, "count=%d" % ai.size())
 	if ai.is_empty():
@@ -163,13 +163,15 @@ func _test_human_open_have_no_ai_plan() -> void:
 				str(slot.get("selected_ai_plan", "")).is_empty(),
 				"pid=%s plan=%s" % [slot.get("player_id"), slot.get("selected_ai_plan")],
 			)
-	var sp: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var sp: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	for slot in sp.slots:
 		if int(slot.get("controller", -1)) == MatchConfigClass.ControllerType.HUMAN:
 			_assert(
 				"Human slot has empty AI plan",
 				str(slot.get("selected_ai_plan", "")).is_empty(),
 			)
+	var offline: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	_assert("offline 1v1 has no AI slots", offline.ai_slots().is_empty())
 
 
 func _test_ai_slots_receive_valid_selected_plans() -> void:
@@ -188,7 +190,7 @@ func _test_ai_slots_receive_valid_selected_plans() -> void:
 
 func _test_random_resolves_once_to_concrete() -> void:
 	GameRandom.begin_match(GameRandom.DEFAULT_SEED)
-	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	## Explicit Random — defaults are side-based now (Germany → Defend).
 	_assert("set Germany AI to Random", cfg.set_slot_ai_plan(2, AiPlanClass.ID_RANDOM))
 	var game_state := _make_game_state(cfg)
@@ -212,7 +214,7 @@ func _test_random_resolves_once_to_concrete() -> void:
 
 func _test_random_deterministic_with_seed() -> void:
 	GameRandom.begin_match(42)
-	var cfg_a: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var cfg_a: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	cfg_a.set_slot_ai_plan(2, AiPlanClass.ID_RANDOM)
 	var gs_a := _make_game_state(cfg_a)
 	var active_a := ""
@@ -222,7 +224,7 @@ func _test_random_deterministic_with_seed() -> void:
 			break
 
 	GameRandom.begin_match(42)
-	var cfg_b: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var cfg_b: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	cfg_b.set_slot_ai_plan(2, AiPlanClass.ID_RANDOM)
 	var gs_b := _make_game_state(cfg_b)
 	var active_b := ""
@@ -300,7 +302,7 @@ func _test_set_ai_plan_command_validation() -> void:
 
 func _test_plans_lock_after_running() -> void:
 	GameRandom.begin_match(GameRandom.DEFAULT_SEED)
-	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	var game_state := _make_game_state(cfg)
 	game_state.begin_running_phase()
 	var enemy_id := -1
@@ -348,7 +350,7 @@ func _test_runtime_active_plans_for_hud() -> void:
 
 
 func _test_explicit_user_selection_wins_over_default() -> void:
-	var cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	var cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	_assert(
 		"default Germany Defend before override",
 		cfg.get_slot_ai_plan(2) == AiPlanClass.ID_DEFEND,

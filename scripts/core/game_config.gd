@@ -21,8 +21,8 @@ static func startup_game_mode() -> int:
 	return DEFAULT_GAME_MODE
 
 
-## Explicit hotseat: both sides human, AI off. Not inferred from OFFLINE_DEV.
-## Enable with `--hotseat` on the command line, or project setting `game/hotseat`.
+## Explicit `--hotseat` / project setting. Offline Quick Start is already all-human
+## via MatchConfig.default_offline_1v1(); this flag forces the same for other configs.
 static func hotseat_enabled() -> bool:
 	return _cmdline_or_setting_flag("--hotseat", PROJECT_SETTING_HOTSEAT)
 
