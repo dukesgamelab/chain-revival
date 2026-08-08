@@ -2377,9 +2377,13 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return "GLCAS" if team_id == Team.GERMANY else "ALCAS"
 		"corner_aim_right":
 			return "GRCAS" if team_id == Team.GERMANY else "ARCAS"
-		"corner_peek_left", "corner_peek_enter_left", "corner_peek_exit_left":
+		"corner_peek_left":
+			return "GLPKA" if team_id == Team.GERMANY else "ALPKA"
+		"corner_peek_right":
+			return "GRPKA" if team_id == Team.GERMANY else "ARPKA"
+		"corner_peek_enter_left", "corner_peek_exit_left":
 			return "GLCPA" if team_id == Team.GERMANY else "ALCPA"
-		"corner_peek_right", "corner_peek_enter_right", "corner_peek_exit_right":
+		"corner_peek_enter_right", "corner_peek_exit_right":
 			return "GRCPA" if team_id == Team.GERMANY else "ARCPA"
 		"idle_prone":
 			return _prone_idle_source_family()
