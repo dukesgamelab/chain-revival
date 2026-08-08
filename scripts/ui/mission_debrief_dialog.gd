@@ -24,6 +24,12 @@ func _ready() -> void:
 	exclusive = true
 	unresizable = true
 	CocUiTheme.apply_to(self)
+	## Theme blank-button chrome is toolbar-narrow; widen so "Close" is not clipped to "Clos".
+	var ok := get_ok_button()
+	if ok != null:
+		ok.text = "Close"
+		ok.clip_text = false
+		ok.custom_minimum_size = Vector2(72, CocUiTheme.BUTTON_HEIGHT)
 	confirmed.connect(_notify_finished)
 	close_requested.connect(_on_close_requested)
 	visibility_changed.connect(_on_visibility_changed)

@@ -2172,6 +2172,31 @@ func _test_timed_deployment_zone_lock() -> void:
 	_assert("Offline 1v1 skips timed deployment", not offline_cfg.timed_deployment)
 	var sp_cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
 	_assert("Single Player uses timed deployment", sp_cfg.timed_deployment)
+	var ger_ai_name := ""
+	for slot in sp_cfg.slots:
+		if int(slot.get("team_id", -1)) == Team.GERMANY:
+			ger_ai_name = str(slot.get("display_name", ""))
+			break
+	_assert("SP Germany AI is GE Player 1", ger_ai_name == "GE Player 1", ger_ai_name)
+	var two_v_two: MatchConfigClass = MatchConfigClass.new(
+		MatchConfigClass.GameModeKind.SINGLE_PLAYER,
+		MatchConfigClass.MatchType.TWO_V_TWO,
+	) as MatchConfigClass
+	var usa_ai := ""
+	var ge_p2 := ""
+	for slot in two_v_two.slots:
+		if (
+			int(slot.get("team_id", -1)) == Team.USA
+			and int(slot.get("controller", -1)) == MatchConfigClass.ControllerType.AI
+		):
+			usa_ai = str(slot.get("display_name", ""))
+		if (
+			int(slot.get("team_id", -1)) == Team.GERMANY
+			and int(slot.get("slot_index", -1)) == 1
+		):
+			ge_p2 = str(slot.get("display_name", ""))
+	_assert("2v2 USA AI is USA AI Player 2", usa_ai == "USA AI Player 2", usa_ai)
+	_assert("2v2 GER slot 2 is GE Player 2", ge_p2 == "GE Player 2", ge_p2)
 
 
 func _test_scenario_clock_and_scoring() -> void:

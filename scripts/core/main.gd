@@ -1773,10 +1773,14 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 	var fog_visual: int = Soldier.FogVisual.REVEALED
 	if soldier_state.team_id != _session.active_team_id and soldier_state.is_alive():
 		fog_visual = _fog_visual_for_enemy(soldier_state)
-	var show_id := (
-		soldier_state.is_alive()
-		and _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id)
+	var local_control := _session.can_local_control_soldier(
+		soldier_state.team_id, soldier_state.soldier_id
 	)
+	## Local human fireteam keeps DOT markers; everyone else gets a name label.
+	var show_id := soldier_state.is_alive() and local_control
+	var id_label := ""
+	if soldier_state.is_alive() and not local_control:
+		id_label = _overhead_name_for_soldier(soldier_state)
 	var idle_peek := CoverSystem.PeekSide.NONE
 	var idle_corner_cell := Vector2i(-999, -999)
 	if (
@@ -1794,8 +1798,36 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		idle_peek = corner.peek_side
 		idle_corner_cell = corner.corner_cell
 	view.sync_from_state(
-		soldier_state, is_selected, fog_visual, show_id, idle_peek, idle_corner_cell
+		soldier_state,
+		is_selected,
+		fog_visual,
+		show_id,
+		idle_peek,
+		idle_corner_cell,
+		id_label,
 	)
+
+
+## Owner player display name for overhead labels (AI: "GE Player 1", etc.).
+func _overhead_name_for_soldier(soldier_state: SoldierState) -> String:
+	if soldier_state == null or _session == null:
+		return ""
+	for ft in _session.owned_fireteams:
+		if ft == null or ft.team_id != soldier_state.team_id:
+			continue
+		if not ft.owns_soldier(soldier_state.soldier_id):
+			continue
+		var pid := int(ft.owner_player_id)
+		if _game_state != null and _game_state.command_hierarchy != null:
+			var hierarchy_name := _game_state.command_hierarchy.get_display_name(pid)
+			if not hierarchy_name.is_empty() and hierarchy_name != "YOU":
+				return hierarchy_name
+		if _session.match_config != null:
+			for slot in _session.match_config.slots:
+				if int(slot.get("player_id", -1)) == pid:
+					return str(slot.get("display_name", ""))
+		return "Player %d" % pid
+	return ""
 
 
 ## 1v1: always show the other side as ghosts when out of LOS. 2v2: hide until spotted.

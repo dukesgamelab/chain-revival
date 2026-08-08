@@ -135,11 +135,14 @@ const ID_MARKER_SCALE := Vector2(2.0, 2.0)
 @onready var _anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var _selection_marker: Polygon2D = $SelectionMarker
 @onready var _id_marker: Sprite2D = $IdMarker
+@onready var _name_label: Label = $NameLabel
 @onready var _facing_arrow: Line2D = $FacingArrow
 @onready var _dead_marker: Line2D = $DeadMarker
 @onready var _prone_marker: Line2D = $ProneMarker
 
 var _show_id_marker: bool = false
+## Non-empty → show text overhead (AI / other players); local human uses DOT sprites instead.
+var _id_label_text: String = ""
 var _dot_textures: Array[Texture2D] = []
 var _dtt_textures: Array[Texture2D] = []
 
@@ -157,6 +160,7 @@ func _ready() -> void:
 	_configure_team_visual()
 	_load_id_marker_textures()
 	_configure_id_marker_node()
+	_configure_name_label_node()
 	_anim.animation_finished.connect(_on_anim_animation_finished)
 	_anim.frame_changed.connect(_on_anim_frame_changed)
 
@@ -179,6 +183,13 @@ func _configure_id_marker_node() -> void:
 	_id_marker.scale = ID_MARKER_SCALE
 	_id_marker.modulate = Color.WHITE
 	_id_marker.visible = false
+
+
+func _configure_name_label_node() -> void:
+	if _name_label == null:
+		return
+	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_name_label.visible = false
 
 
 ## Map soldier_id (1–4) or roster index (0–3) → texture slot 0–3 (1–4 marks).
@@ -218,11 +229,13 @@ func sync_from_state(
 	show_id_marker: bool = false,
 	idle_peek_side: int = CoverSystem.PeekSide.NONE,
 	idle_corner_cell: Vector2i = Vector2i(-999, -999),
+	id_label_text: String = "",
 ) -> void:
 	var previous_team := team_id
 	soldier_id = state.soldier_id
 	team_id = state.team_id
 	_show_id_marker = show_id_marker
+	_id_label_text = id_label_text
 	_idle_peek_side = idle_peek_side
 	_cover_corner_cell = idle_corner_cell
 	_presentation_stress = state.stress
@@ -349,31 +362,37 @@ func _refresh_corner_lean_offset() -> void:
 
 
 func _refresh_id_marker(state: SoldierState) -> void:
-	if _id_marker == null:
-		return
-	if (
-		not _show_id_marker
-		or state == null
-		or state.is_dead
-		or _fog_visual == FogVisual.GHOST
-		or _fog_visual == FogVisual.HIDDEN
-	):
+	if _id_marker != null:
 		_id_marker.visible = false
+	if _name_label != null:
+		_name_label.visible = false
+	if state == null or state.is_dead or _fog_visual == FogVisual.HIDDEN:
+		return
+	var crouched := state.position_state == PositionState.DOWN
+	var label_y := TileSizeConfig.id_marker_y(crouched)
+	## Other players (AI / remote): text name. Local human: DOT sprites (revealed only).
+	if not _id_label_text.is_empty():
+		if _name_label == null:
+			return
+		_name_label.text = _id_label_text
+		_name_label.position = Vector2(-64.0, label_y - 8.0)
+		_name_label.size = Vector2(128.0, 16.0)
+		_name_label.visible = true
+		return
+	if not _show_id_marker or _fog_visual == FogVisual.GHOST or _id_marker == null:
 		return
 	if _dot_textures.is_empty() or _dtt_textures.is_empty():
 		_load_id_marker_textures()
 	var idx := roster_marker_index(state.soldier_id)
-	var crouched := state.position_state == PositionState.DOWN
 	## Always use DOT* roster icons. DTT* are horizontally flattened OG variants that
 	## read as "dashes" once prone art is shown at full scale.
 	if idx < 0 or idx >= _dot_textures.size() or _dot_textures[idx] == null:
-		_id_marker.visible = false
 		return
 	_id_marker.texture = _dot_textures[idx]
 	_id_marker.scale = ID_MARKER_SCALE
 	_id_marker.offset = Vector2.ZERO
 	_id_marker.modulate = Color.WHITE
-	_id_marker.position = Vector2(0.0, TileSizeConfig.id_marker_y(crouched))
+	_id_marker.position = Vector2(0.0, label_y)
 	_id_marker.visible = true
 
 
@@ -394,17 +413,26 @@ func _apply_fog_visual(mode: int, is_selected: bool = false) -> void:
 	match mode:
 		FogVisual.HIDDEN:
 			visible = false
+			if _id_marker != null:
+				_id_marker.visible = false
+			if _name_label != null:
+				_name_label.visible = false
 			return
 		FogVisual.GHOST:
 			visible = true
 			_anim.modulate = GHOST_MODULATE
-			## Ghosts are intel silhouettes — no facing chrome.
+			## Ghosts are intel silhouettes — no facing chrome; name labels still show.
 			if _facing_arrow != null:
 				_facing_arrow.visible = false
 			if _prone_marker != null:
 				_prone_marker.visible = false
 			if _id_marker != null:
 				_id_marker.visible = false
+			if _name_label != null and not _id_label_text.is_empty():
+				_name_label.text = _id_label_text
+				_name_label.visible = true
+			elif _name_label != null:
+				_name_label.visible = false
 		_:
 			visible = true
 			if is_selected:
@@ -416,6 +444,18 @@ func _apply_fog_visual(mode: int, is_selected: bool = false) -> void:
 ## Fog-of-war only — used by Main on combat scans to avoid full sync_from_state.
 func apply_spotting_only(is_selected: bool, fog_visual: int) -> void:
 	_apply_fog_visual(fog_visual, is_selected)
+	## Keep name labels in sync when fog flips without a full state sync.
+	if _name_label == null:
+		return
+	if (
+		_is_dead
+		or fog_visual == FogVisual.HIDDEN
+		or _id_label_text.is_empty()
+	):
+		_name_label.visible = false
+		return
+	_name_label.text = _id_label_text
+	_name_label.visible = true
 
 
 ## Cheap stress / hold-fire idle pose update without full sync_from_state.
@@ -457,6 +497,8 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 	_selection_marker.visible = false
 	if _id_marker != null:
 		_id_marker.visible = false
+	if _name_label != null:
+		_name_label.visible = false
 	_anim.scale = _prone_sprite_scale()
 	_anim.position = Vector2.ZERO
 	_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()

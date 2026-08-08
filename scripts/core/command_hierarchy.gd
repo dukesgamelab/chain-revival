@@ -159,7 +159,10 @@ func bootstrap_from_session(session) -> void:
 		if not is_ai and player_id == local_id:
 			display_name = "YOU"
 		elif is_ai and display_name.is_empty():
-			display_name = "AI Fireteam"
+			if team_id == Team.USA:
+				display_name = "USA AI Player %d" % (slot_index + 1)
+			else:
+				display_name = "GE Player %d" % (slot_index + 1)
 		var soldier_ids: Array[int] = []
 		for state in ft.soldiers:
 			soldier_ids.append(int(state.soldier_id))

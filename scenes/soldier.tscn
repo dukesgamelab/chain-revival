@@ -34,6 +34,21 @@ z_index = 8
 
 
 
+[node name="NameLabel" type="Label" parent="."]
+visible = false
+offset_left = -64.0
+offset_top = -52.0
+offset_right = 64.0
+offset_bottom = -36.0
+theme_override_colors/font_color = Color(1, 0.95, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 10
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+z_index = 8
+
 [node name="FacingArrow" type="Line2D" parent="."]
 
 position = Vector2(0, -30)

@@ -49,6 +49,7 @@ static func default_offline_1v1() -> RefCounted:
 		slot["controller"] = ControllerType.HUMAN
 		slot["selected_ai_plan"] = ""
 		cfg.slots[i] = slot
+	cfg._refresh_slot_display_names()
 	return cfg
 
 
@@ -64,13 +65,13 @@ func rebuild_default_slots() -> void:
 	slots.clear()
 	match match_type:
 		MatchType.TWO_V_TWO:
-			_add_slot(1, Team.USA, _default_controller(Team.USA, 0), 0, "USA-1")
-			_add_slot(2, Team.USA, _default_controller(Team.USA, 1), 1, "USA-2")
-			_add_slot(3, Team.GERMANY, _default_controller(Team.GERMANY, 0), 0, "GER-1")
-			_add_slot(4, Team.GERMANY, _default_controller(Team.GERMANY, 1), 1, "GER-2")
+			_add_slot(1, Team.USA, _default_controller(Team.USA, 0), 0)
+			_add_slot(2, Team.USA, _default_controller(Team.USA, 1), 1)
+			_add_slot(3, Team.GERMANY, _default_controller(Team.GERMANY, 0), 0)
+			_add_slot(4, Team.GERMANY, _default_controller(Team.GERMANY, 1), 1)
 		_:
-			_add_slot(1, Team.USA, _default_controller(Team.USA, 0), 0, "USA")
-			_add_slot(2, Team.GERMANY, _default_controller(Team.GERMANY, 0), 0, "Germany")
+			_add_slot(1, Team.USA, _default_controller(Team.USA, 0), 0)
+			_add_slot(2, Team.GERMANY, _default_controller(Team.GERMANY, 0), 0)
 	_ensure_local_human()
 	_apply_default_ai_plans()
 
@@ -84,19 +85,50 @@ func _default_controller(team_id: int, slot_on_team: int) -> int:
 	return ControllerType.AI
 
 
+## Human seats keep short side labels; AI seats use USA AI Player N / GE Player N.
+static func default_display_name(team_id: int, slot_index: int, controller: int, match_type: int) -> String:
+	var n := slot_index + 1
+	if controller == ControllerType.AI:
+		if team_id == Team.USA:
+			return "USA AI Player %d" % n
+		return "GE Player %d" % n
+	if match_type == MatchType.TWO_V_TWO:
+		if team_id == Team.USA:
+			return "USA-%d" % n
+		return "GER-%d" % n
+	if team_id == Team.USA:
+		return "USA"
+	return "Germany"
+
+
+func _refresh_slot_display_names() -> void:
+	for i in slots.size():
+		var slot: Dictionary = slots[i]
+		slot["display_name"] = default_display_name(
+			int(slot.get("team_id", Team.USA)),
+			int(slot.get("slot_index", 0)),
+			int(slot.get("controller", ControllerType.OPEN)),
+			match_type,
+		)
+		slots[i] = slot
+
+
 func _add_slot(
 	player_id: int,
 	team_id: int,
 	controller: int,
 	slot_index: int,
-	display_name: String,
+	display_name: String = "",
 ) -> void:
+	var label := display_name
+	if label.is_empty():
+		label = default_display_name(team_id, slot_index, controller, match_type)
 	slots.append({
 		"player_id": player_id,
 		"team_id": team_id,
 		"controller": controller,
 		"slot_index": slot_index,
-		"display_name": display_name,
+		"display_name": label,
 		"selected_ai_plan": "",
 	})
 
@@ -191,6 +223,7 @@ func switch_human_side() -> void:
 		else:
 			slot["controller"] = ControllerType.AI
 		slots[i] = slot
+	_refresh_slot_display_names()
 	_apply_default_ai_plans()
 
 
@@ -214,6 +247,7 @@ func set_slot_controller(player_id: int, controller: int) -> void:
 				if int(other.get("controller", -1)) == ControllerType.HUMAN:
 					other["controller"] = ControllerType.AI
 					slots[j] = other
+	_refresh_slot_display_names()
 	## Preserve existing AI plan choices when still AI; fill defaults for new AI slots.
 	_normalize_ai_plans_after_controller_change()
 
@@ -229,6 +263,7 @@ func fill_open_slots_with_ai() -> void:
 		slots[i] = slot
 		changed = true
 	if changed:
+		_refresh_slot_display_names()
 		_normalize_ai_plans_after_controller_change()
 
 
