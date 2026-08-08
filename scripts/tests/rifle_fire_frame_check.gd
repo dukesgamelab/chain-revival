@@ -275,10 +275,33 @@ func _validate_corner_idle_aim() -> Array[String]:
 
 func _validate_corner_peek_enter_exit() -> Array[String]:
 	var fails: Array[String] = []
+	## Dedicated 16-frame peek (ALPKA/ARPKA) — no state-machine caller yet.
+	for fam in ["us_rifle", "german_rifle"]:
+		for anim_id in ["corner_peek_left", "corner_peek_right"]:
+			var peek := AnimationDatabase.get_animation(fam, anim_id)
+			if peek.is_empty():
+				fails.append("%s/%s missing" % [fam, anim_id])
+				continue
+			var peek_meta_v: Variant = peek.get("metadata", {})
+			var peek_meta: Dictionary = peek_meta_v if peek_meta_v is Dictionary else {}
+			var expected_src := (
+				"ALPKA" if fam == "us_rifle" and anim_id.ends_with("left")
+				else "ARPKA" if fam == "us_rifle"
+				else "GLPKA" if anim_id.ends_with("left")
+				else "GRPKA"
+			)
+			if str(peek_meta.get("source_family", "")) != expected_src:
+				fails.append("%s/%s source_family=%s" % [fam, anim_id, peek_meta.get("source_family")])
+			if bool(peek.get("loop", true)):
+				fails.append("%s/%s must not loop" % [fam, anim_id])
+			for direction in DIRS:
+				var frames := AnimationDatabase.get_direction_frames(fam, anim_id, direction)
+				if frames.size() != 16:
+					fails.append("%s/%s %s frames=%d expected 16" % [fam, anim_id, direction, frames.size()])
+
+	## Enter C-A-B (idle→aim), exit B-A-C (aim→idle) — ALCPA/ARCPA.
 	for fam in ["us_rifle", "german_rifle"]:
 		for anim_id in [
-			"corner_peek_left",
-			"corner_peek_right",
 			"corner_peek_enter_left",
 			"corner_peek_enter_right",
 			"corner_peek_exit_left",
@@ -288,10 +311,20 @@ func _validate_corner_peek_enter_exit() -> Array[String]:
 			if anim.is_empty():
 				fails.append("%s/%s missing" % [fam, anim_id])
 				continue
+			var is_enter: bool = anim_id.contains("enter")
+			var expect_letters: String = "CAB" if is_enter else "BAC"
 			for direction in DIRS:
 				var frames := AnimationDatabase.get_direction_frames(fam, anim_id, direction)
 				if frames.size() != 3:
 					fails.append("%s/%s %s frames=%d" % [fam, anim_id, direction, frames.size()])
+					continue
+				var got := ""
+				for path in frames:
+					got += str(path).get_file().get_basename().right(1)
+				if got != expect_letters:
+					fails.append(
+						"%s/%s %s order=%s expected %s" % [fam, anim_id, direction, got, expect_letters]
+					)
 	return fails
 
 

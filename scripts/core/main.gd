@@ -143,7 +143,7 @@ func _ready() -> void:
 	_command_bar.set_active_team(_session.active_team_id)
 	## Side default camera (FF: USA 90° / GE 270°) + center on that fireteam.
 	_apply_team_default_camera(_session.active_team_id)
-	_command_bar.set_deployment_phase(_game_state != null and _game_state.is_deployment_phase())
+	_sync_deployment_hud()
 	_refresh_ai_plan_hud()
 	_refresh_all_views()
 	_show_startup_status()
@@ -486,9 +486,16 @@ func _step_simulation_tick(skip_ai: bool = false) -> void:
 		_present_movement_tick_result(move_result)
 	_perf_move_usec += Time.get_ticks_usec() - move_t0
 
+	var tick_sec := float(stepped) / 1000.0
+	## Timed SP/MP deployment countdown (Offline Quick Start has no lock/timer).
+	if _game_state != null and _game_state.locks_deployment_zone():
+		var deploy_ended := ScenarioRulesClass.process_deployment_tick(_game_state, tick_sec)
+		_sync_deployment_hud()
+		if deploy_ended:
+			_on_timed_deployment_finished()
 	## Scenario clock, VP ownership poll, extermination / TIME_GONE.
-	if _game_state != null and not _game_state.is_deployment_phase():
-		var just_ended := ScenarioRulesClass.process_tick(_game_state, float(stepped) / 1000.0)
+	elif _game_state != null and not _game_state.is_deployment_phase():
+		var just_ended := ScenarioRulesClass.process_tick(_game_state, tick_sec)
 		if _game_state.vp_holders_dirty:
 			_game_state.vp_holders_dirty = false
 			if _world != null and _world.victory_point_layer != null:
@@ -1141,6 +1148,9 @@ func _init_session_from_spawns() -> void:
 	_game_state = _session.create_game_state(_map_data)
 	VictoryPointSystem.ensure_holders_initialized(_map_data)
 	ActionResolverClass.apply_match_start_setup(_game_state)
+	## SP/MP: 15s deploy countdown + zone lock. Offline Quick Start skips (dialog → start).
+	if match_cfg != null and bool(match_cfg.timed_deployment):
+		_game_state.begin_timed_deployment(ScenarioRulesClass.DEPLOYMENT_TIME_SEC)
 
 
 func _connect_command_bar() -> void:
@@ -1223,16 +1233,40 @@ func _on_assign_weapons_briefing_requested() -> void:
 
 
 func _on_command_dialog_closed() -> void:
+	## Offline / untimed: closing Command starts the scenario immediately.
+	## SP/MP timed deployment: stay in deploy until the 15s countdown ends.
 	if _game_state != null and _game_state.is_deployment_phase():
+		if _game_state.locks_deployment_zone():
+			_sync_deployment_hud()
+			var secs := int(ceil(_game_state.deployment_time_remaining_sec))
+			_command_bar.show_status(
+				"Deploy in your zone. Scenario starts in %d second%s."
+				% [secs, "" if secs == 1 else "s"]
+			)
+			_refresh_ai_plan_hud()
+			return
 		_game_state.begin_running_phase()
+	_on_timed_deployment_finished()
+
+
+func _on_timed_deployment_finished() -> void:
 	if _command_bar != null:
 		_command_bar.set_deployment_phase(false)
 		_command_bar.append_chat_system("ATTENTION: Scenario Running")
 		_refresh_scenario_hud()
-	_command_bar.show_status("Deployment complete. Chain of command ready.")
+		_command_bar.show_status("Deployment complete. Chain of command ready.")
 	_invalidate_fog_cache()
 	_refresh_enemy_spotting_visuals()
 	_refresh_ai_plan_hud()
+
+
+func _sync_deployment_hud() -> void:
+	if _command_bar == null or _game_state == null:
+		return
+	if _game_state.locks_deployment_zone():
+		_command_bar.set_deployment_phase(true, _game_state.deployment_time_remaining_sec)
+	else:
+		_command_bar.set_deployment_phase(_game_state.is_deployment_phase())
 
 
 func _refresh_scenario_hud() -> void:

@@ -27,6 +27,10 @@ var weapon_cache: WeaponCacheClass
 var match_phase: int = MatchPhase.DEPLOYMENT
 ## Local/offline controlling player for UI + shared visibility (human USA by default).
 var local_player_id: int = 1
+## When true, deployment has a countdown and soldiers cannot leave spawn zones.
+var timed_deployment: bool = false
+## Countdown seconds while timed_deployment is active (sim-tick driven).
+var deployment_time_remaining_sec: float = 0.0
 ## O(1) cell → SoldierState for LOS. Updated on moves; rebuilt when positions change.
 var _cell_occupancy: Dictionary = {}
 var _occupancy_generation: int = -1
@@ -242,11 +246,24 @@ func load_hierarchy_from_dict(data: Dictionary) -> void:
 
 func begin_running_phase() -> void:
 	match_phase = MatchPhase.RUNNING
+	deployment_time_remaining_sec = 0.0
 	ScenarioRulesClass.begin_scenario(self)
+
+
+## SP/MP: arm the deploy countdown. Offline Quick Start leaves timed_deployment false.
+func begin_timed_deployment(duration_sec: float = ScenarioRulesClass.DEPLOYMENT_TIME_SEC) -> void:
+	timed_deployment = true
+	match_phase = MatchPhase.DEPLOYMENT
+	deployment_time_remaining_sec = maxf(0.0, duration_sec)
 
 
 func is_deployment_phase() -> bool:
 	return match_phase == MatchPhase.DEPLOYMENT
+
+
+## Zone lock + countdown active (not the brief Offline dialog-only deployment).
+func locks_deployment_zone() -> bool:
+	return is_deployment_phase() and timed_deployment
 
 
 func is_ended_phase() -> bool:

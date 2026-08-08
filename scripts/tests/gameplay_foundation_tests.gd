@@ -67,6 +67,7 @@ func _ready() -> void:
 	_test_team_soldier_key_consistent()
 	_test_perception_cache_incremental()
 	_test_scenario_clock_and_scoring()
+	_test_timed_deployment_zone_lock()
 
 	print("")
 	print("Gameplay foundation tests: %d passed, %d failed" % [_passed, _failed])
@@ -2086,6 +2087,91 @@ func _test_perception_cache_incremental() -> void:
 			PerceptionCacheClass.spot_cache_hits,
 		]
 	)
+
+
+func _test_timed_deployment_zone_lock() -> void:
+	_bootstrap()
+	const ScenarioRulesClass := preload("res://scripts/core/scenario_rules.gd")
+	const MatchConfigClass := preload("res://scripts/core/match_config.gd")
+	var game_state := _make_game_state()
+	game_state.begin_timed_deployment(ScenarioRulesClass.DEPLOYMENT_TIME_SEC)
+	_assert("Timed deploy locks zone", game_state.locks_deployment_zone())
+	_assert(
+		"Timed deploy countdown is 15s",
+		is_equal_approx(game_state.deployment_time_remaining_sec, 15.0),
+		"remaining=%s" % game_state.deployment_time_remaining_sec,
+	)
+
+	var soldier := game_state.get_soldier(Team.USA, 1)
+	var start := soldier.grid_position
+	_assert(
+		"Soldier starts in USA deploy zone",
+		game_state.map_data.is_deployment_cell(Team.USA, start),
+		"cell=%s" % start,
+	)
+
+	## Find a walkable cell outside the USA spawn zone.
+	var outside := Vector2i(-999, -999)
+	for y in range(game_state.map_data.height):
+		for x in range(game_state.map_data.width):
+			var cell := Vector2i(x, y)
+			if (
+				game_state.map_data.is_walkable(cell)
+				and not game_state.map_data.is_deployment_cell(Team.USA, cell)
+			):
+				outside = cell
+				break
+		if outside.x > -900:
+			break
+	_assert("Found walkable cell outside deploy zone", outside.x > -900, "cell=%s" % outside)
+
+	var leave_cmd := MoveCommandClass.new()
+	leave_cmd.team_id = Team.USA
+	leave_cmd.soldier_id = 1
+	leave_cmd.target_cell = outside
+	leave_cmd.movement_mode = MovementModeClass.RUN
+	leave_cmd.scope = MoveCommandClass.Scope.SINGLE
+	var leave_result := ActionResolverClass.execute_move(
+		game_state, leave_cmd, _path_context(game_state.map_data)
+	)
+	_assert(
+		"Cannot leave deploy zone during countdown",
+		not leave_result.success,
+		leave_result.status_message,
+	)
+
+	## In-zone reposition still allowed.
+	var in_zone := start
+	for cell in game_state.map_data.team_1_spawn_points:
+		if cell != start and game_state.map_data.is_walkable(cell):
+			in_zone = cell
+			break
+	if in_zone != start:
+		var stay_cmd := MoveCommandClass.new()
+		stay_cmd.team_id = Team.USA
+		stay_cmd.soldier_id = 1
+		stay_cmd.target_cell = in_zone
+		stay_cmd.movement_mode = MovementModeClass.RUN
+		stay_cmd.scope = MoveCommandClass.Scope.SINGLE
+		var stay_result := ActionResolverClass.execute_move(
+			game_state, stay_cmd, _path_context(game_state.map_data)
+		)
+		_assert(
+			"Can move inside deploy zone during countdown",
+			stay_result.success,
+			stay_result.status_message,
+		)
+
+	## Countdown ending starts Scenario Running.
+	var ended := ScenarioRulesClass.process_deployment_tick(game_state, 15.0)
+	_assert("Deploy countdown ends scenario start", ended)
+	_assert("Match is running after deploy", not game_state.is_deployment_phase())
+	_assert("Zone lock clears after deploy", not game_state.locks_deployment_zone())
+
+	var offline_cfg: MatchConfigClass = MatchConfigClass.default_offline_1v1() as MatchConfigClass
+	_assert("Offline 1v1 skips timed deployment", not offline_cfg.timed_deployment)
+	var sp_cfg: MatchConfigClass = MatchConfigClass.default_single_player_1v1() as MatchConfigClass
+	_assert("Single Player uses timed deployment", sp_cfg.timed_deployment)
 
 
 func _test_scenario_clock_and_scoring() -> void:

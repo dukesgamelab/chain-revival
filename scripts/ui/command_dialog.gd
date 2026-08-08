@@ -222,6 +222,5 @@ func _show_result(result) -> void:
 
 
 func _on_closed() -> void:
-	if _game_state != null and _game_state.is_deployment_phase():
-		_game_state.begin_running_phase()
+	## Main decides whether to leave deployment (Offline) or keep the timed countdown (SP/MP).
 	dialog_closed.emit()

@@ -11,6 +11,8 @@ const _MATCH_PHASE_ENDED := 2
 
 ## RECOVERED TimeBased = 15 minutes.
 const SCENARIO_TIME_SEC := 15 * 60
+## TUNED: SP/MP deploy countdown before Scenario Running (Offline Quick Start skips).
+const DEPLOYMENT_TIME_SEC := 15.0
 ## RECOVERED INITPPconstOnKill / GPP_const_OnKill.
 const KILL_POINTS := 4
 ## RECOVERED INITPPLostOnKilledSoldier.
@@ -49,6 +51,22 @@ static func begin_scenario(game_state) -> void:
 	for entry in game_state.map_data.victory_points:
 		if entry is Dictionary:
 			entry["capture_elapsed_sec"] = 0.0
+
+
+## Tick timed deployment countdown. Returns true when deployment just ended → running.
+static func process_deployment_tick(game_state, tick_sec: float) -> bool:
+	if game_state == null or not game_state.locks_deployment_zone():
+		return false
+	if tick_sec <= 0.0:
+		return false
+	game_state.deployment_time_remaining_sec = maxf(
+		0.0,
+		game_state.deployment_time_remaining_sec - tick_sec,
+	)
+	if game_state.deployment_time_remaining_sec > 0.0:
+		return false
+	game_state.begin_running_phase()
+	return true
 
 
 ## Advance clock + VP poll from one SimulationClock tick. Returns true if scenario just ended.

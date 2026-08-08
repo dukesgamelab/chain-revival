@@ -19,6 +19,8 @@ var match_type: int = MatchType.ONE_V_ONE
 var map_id: String = MAP_FARM_FIGHT
 ## Local controlling player (human). Slot player_id.
 var local_player_id: int = 1
+## SP/MP: 15s deploy countdown + zone lock. Offline Quick Start sets false.
+var timed_deployment: bool = true
 ## [{ player_id, team_id, controller, slot_index, display_name, selected_ai_plan }, ...]
 ## selected_ai_plan: AiPlan stable id for AI slots; empty for Human/Open.
 var slots: Array[Dictionary] = []
@@ -41,6 +43,7 @@ static func default_offline_1v1() -> RefCounted:
 	## Returns MatchConfig (typed as RefCounted to avoid self class_name parse issues).
 	var cfg = new(GameModeKind.MULTIPLAYER, MatchType.ONE_V_ONE)
 	cfg.local_player_id = 1
+	cfg.timed_deployment = false
 	for i in cfg.slots.size():
 		var slot: Dictionary = cfg.slots[i]
 		slot["controller"] = ControllerType.HUMAN
@@ -53,6 +56,7 @@ static func default_single_player_1v1() -> RefCounted:
 	## Single Player Match Setup default: USA Human vs Germany AI.
 	var cfg = new(GameModeKind.SINGLE_PLAYER, MatchType.ONE_V_ONE)
 	cfg.local_player_id = 1
+	cfg.timed_deployment = true
 	return cfg
 
 
@@ -393,6 +397,7 @@ func to_dict() -> Dictionary:
 		"match_type": match_type,
 		"map_id": map_id,
 		"local_player_id": local_player_id,
+		"timed_deployment": timed_deployment,
 		"slots": slot_dicts,
 	}
 
@@ -404,6 +409,7 @@ static func from_dict(data: Dictionary) -> RefCounted:
 	cfg.match_type = int(data.get("match_type", MatchType.ONE_V_ONE))
 	cfg.map_id = str(data.get("map_id", MAP_FARM_FIGHT))
 	cfg.local_player_id = int(data.get("local_player_id", 1))
+	cfg.timed_deployment = bool(data.get("timed_deployment", true))
 	cfg.slots.clear()
 	var raw_slots: Variant = data.get("slots", [])
 	if raw_slots is Array and not (raw_slots as Array).is_empty():

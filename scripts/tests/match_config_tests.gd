@@ -53,6 +53,7 @@ func _test_default_offline_1v1() -> void:
 	_assert("default 1v1 two slots", cfg.slots.size() == 2)
 	_assert("default 1v1 two fireteams", cfg.fireteam_count() == 2)
 	_assert("offline 1v1 has no AI slots", cfg.ai_slots().is_empty())
+	_assert("offline 1v1 skips timed deployment", not cfg.timed_deployment)
 	var human_slots := 0
 	for slot in cfg.slots:
 		if int(slot.get("controller", -1)) == MatchConfigClass.ControllerType.HUMAN:

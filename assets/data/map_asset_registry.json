@@ -728,11 +728,11 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"concealment": 0.0,
-				"cover_type": 2.0,
+				"cover_type": 2,
 				"provides_cover": true,
 				"suppression_modifier": 0.0,
-				"terrain": "_HG_EVEN",
-				"terrain_height": 0.0
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0
 			},
 			"material": "wood",
 			"usage_ff_farm": 4.0
@@ -2088,18 +2088,18 @@
 					"source_family": "WH11S1A"
 				},
 				"90": {
-					"depth_offset": 0,
+					"depth_offset": 0.0,
 					"facet": "WH09S5A_e",
 					"fallback": false,
 					"hotspot": [
-						-50,
-						-73
+						-50.0,
+						-73.0
 					],
 					"letter": "e",
 					"path": "sprites/coc_tiles/WH09S5A_e.png",
 					"render_offset": [
-						0,
-						0
+						0.0,
+						0.0
 					],
 					"source_family": "WH09S5A"
 				}

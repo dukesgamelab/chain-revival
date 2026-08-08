@@ -426,6 +426,14 @@ static func execute_move(
 			return ActionResult.fail("That tile is blocked.")
 		return ActionResult.fail("That tile is outside the map.")
 
+	if (
+		game_state.locks_deployment_zone()
+		and not game_state.map_data.is_deployment_cell(cmd.team_id, cmd.target_cell)
+	):
+		return ActionResult.fail(
+			"Stay in the deployment zone until the countdown ends."
+		)
+
 	var fireteam := _order_fireteam(game_state, cmd.team_id, context)
 	var result := ActionResult.new()
 
@@ -479,6 +487,12 @@ static func execute_move(
 			if _acting_is_ai(game_state, context):
 				var peers := _living_fireteam_positions(fireteam, squad_soldier.soldier_id)
 				member_target = _clamp_cell_to_fireteam_cohesion(member_target, peers)
+			if (
+				game_state.locks_deployment_zone()
+				and not game_state.map_data.is_deployment_cell(cmd.team_id, member_target)
+			):
+				## Keep squad members inside the zone during timed deployment.
+				continue
 			var assigned := false
 			if not lead_path.is_empty() and lead_start.x > -900:
 				assigned = _assign_translated_squad_path(

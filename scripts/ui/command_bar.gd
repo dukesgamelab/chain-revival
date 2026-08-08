@@ -287,8 +287,8 @@ func append_chat_system(text: String) -> void:
 	_append_chat_system(text)
 
 
-func set_deployment_phase(is_deployment: bool, elapsed_sec: float = 0.0) -> void:
-	_refresh_deployment_stage_label(is_deployment, elapsed_sec)
+func set_deployment_phase(is_deployment: bool, remaining_sec: float = 0.0) -> void:
+	_refresh_deployment_stage_label(is_deployment, remaining_sec)
 	var retreat := %RetreatButton as Button
 	if retreat != null:
 		retreat.disabled = is_deployment
@@ -344,14 +344,16 @@ func _append_chat_system(text: String) -> void:
 	chat_log.append_text("[color=#CC0000]%s[/color]\n" % text)
 
 
-func _refresh_deployment_stage_label(is_deployment: bool, elapsed_sec: float = 0.0) -> void:
+func _refresh_deployment_stage_label(is_deployment: bool, remaining_sec: float = 0.0) -> void:
 	var stage := %DeploymentStageLabel as Label
 	var timer := %DeploymentTimerLabel as Label
 	if stage != null:
 		stage.text = "Deployment Stage" if is_deployment else "Scenario Running"
 	if timer != null and is_deployment:
-		var total := int(maxi(0, int(elapsed_sec)))
+		## remaining_sec is the deploy countdown (ceil so 0.1 still shows 00:01).
+		var total := int(maxi(0, int(ceil(remaining_sec))))
 		timer.text = "%02d:%02d" % [total / 60, total % 60]
+		timer.add_theme_color_override("font_color", CocUiTheme.TEXT_STATUS_RED)
 	_refresh_team_score_label()
 
 

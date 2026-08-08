@@ -966,6 +966,14 @@
 			"y": 33
 		},
 		{
+			"x": 33,
+			"y": 27
+		},
+		{
+			"x": 35,
+			"y": 24
+		},
+		{
 			"x": 35,
 			"y": 52
 		},
@@ -1008,6 +1016,26 @@
 		{
 			"x": 24,
 			"y": 37
+		},
+		{
+			"x": 37,
+			"y": 27
+		},
+		{
+			"x": 36,
+			"y": 27
+		},
+		{
+			"x": 34,
+			"y": 24
+		},
+		{
+			"x": 33,
+			"y": 24
+		},
+		{
+			"x": 32,
+			"y": 24
 		},
 		{
 			"x": 45,
@@ -8374,6 +8402,12 @@
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
+			"gameplay_overrides": {
+				"blocks_los": false,
+				"blocks_movement": true,
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0
+			},
 			"grid_position": {
 				"x": 33,
 				"y": 27
@@ -8396,6 +8430,12 @@
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
+			"gameplay_overrides": {
+				"blocks_los": false,
+				"blocks_movement": true,
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0
+			},
 			"grid_position": {
 				"x": 35,
 				"y": 24
@@ -8412,94 +8452,6 @@
 			"type": "coc_wall",
 			"x": 35,
 			"y": 24
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 29,
-				"y": 52
-			},
-			"object_id": "coc_wall@29,52",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWWLS1C",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 29,
-			"y": 52
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 32,
-				"y": 52
-			},
-			"object_id": "coc_wall@32,52",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWWLS1C",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 32,
-			"y": 52
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 31,
-				"y": 52
-			},
-			"object_id": "coc_wall@31,52",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWWLS1C",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 31,
-			"y": 52
-		},
-		{
-			"blocks_los": false,
-			"blocks_movement": true,
-			"cover_type": 2,
-			"cover_type_name": "COMPLETE",
-			"grid_position": {
-				"x": 30,
-				"y": 52
-			},
-			"object_id": "coc_wall@30,52",
-			"object_type": "coc_wall",
-			"provides_cover": true,
-			"source": {
-				"direction": 0.0,
-				"image": "IWWLS1C",
-				"z": 0.0
-			},
-			"sprite_path": "",
-			"type": "coc_wall",
-			"x": 30,
-			"y": 52
 		},
 		{
 			"blocks_los": true,
@@ -8598,7 +8550,7 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"grid_position": {
 				"x": 31,
@@ -8626,7 +8578,7 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"grid_position": {
 				"x": 30,
@@ -8654,7 +8606,7 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"grid_position": {
 				"x": 29,
@@ -8682,7 +8634,7 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"grid_position": {
 				"x": 28,
@@ -8710,7 +8662,7 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"grid_position": {
 				"x": 27,
@@ -8738,7 +8690,7 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"grid_position": {
 				"x": 26,
@@ -8766,7 +8718,7 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"grid_position": {
 				"x": 25,
@@ -8794,7 +8746,7 @@
 				"blocks_los": false,
 				"blocks_movement": true,
 				"terrain": "_HG_NoPass",
-				"terrain_height": 0
+				"terrain_height": 0.0
 			},
 			"grid_position": {
 				"x": 24,
@@ -8818,6 +8770,12 @@
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
+			"gameplay_overrides": {
+				"blocks_los": false,
+				"blocks_movement": true,
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0
+			},
 			"grid_position": {
 				"x": 37,
 				"y": 27
@@ -8840,6 +8798,12 @@
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
+			"gameplay_overrides": {
+				"blocks_los": false,
+				"blocks_movement": true,
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0
+			},
 			"grid_position": {
 				"x": 36,
 				"y": 27
@@ -8862,6 +8826,12 @@
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
+			"gameplay_overrides": {
+				"blocks_los": false,
+				"blocks_movement": true,
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0
+			},
 			"grid_position": {
 				"x": 34,
 				"y": 24
@@ -8884,6 +8854,12 @@
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
+			"gameplay_overrides": {
+				"blocks_los": false,
+				"blocks_movement": true,
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0
+			},
 			"grid_position": {
 				"x": 33,
 				"y": 24
@@ -8906,6 +8882,12 @@
 			"blocks_movement": true,
 			"cover_type": 2,
 			"cover_type_name": "COMPLETE",
+			"gameplay_overrides": {
+				"blocks_los": false,
+				"blocks_movement": true,
+				"terrain": "_HG_NoPass",
+				"terrain_height": 0
+			},
 			"grid_position": {
 				"x": 32,
 				"y": 24
@@ -14458,9 +14440,9 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWCL",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14480,9 +14462,9 @@
 			"object_type": "coc_wall",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "IWWL",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall",
@@ -14502,14 +14484,102 @@
 			"object_type": "coc_wall_corner",
 			"provides_cover": true,
 			"source": {
-				"direction": 0,
+				"direction": 0.0,
 				"image": "WCOR",
-				"z": 200
+				"z": 200.0
 			},
 			"sprite_path": "",
 			"type": "coc_wall_corner",
 			"x": 34,
 			"y": 40
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 32,
+				"y": 52
+			},
+			"object_id": "coc_wall@32,52",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0,
+				"image": "IWWLS1C",
+				"z": 200
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 32,
+			"y": 52
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 31,
+				"y": 52
+			},
+			"object_id": "coc_wall@31,52",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0,
+				"image": "IWWLS1C",
+				"z": 200
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 31,
+			"y": 52
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 30,
+				"y": 52
+			},
+			"object_id": "coc_wall@30,52",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0,
+				"image": "IWWLS1C",
+				"z": 200
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 30,
+			"y": 52
+		},
+		{
+			"blocks_los": false,
+			"blocks_movement": true,
+			"cover_type": 2,
+			"cover_type_name": "COMPLETE",
+			"grid_position": {
+				"x": 29,
+				"y": 52
+			},
+			"object_id": "coc_wall@29,52",
+			"object_type": "coc_wall",
+			"provides_cover": true,
+			"source": {
+				"direction": 0,
+				"image": "IWWLS1C",
+				"z": 200
+			},
+			"sprite_path": "",
+			"type": "coc_wall",
+			"x": 29,
+			"y": 52
 		}
 	],
 	"source_format": "Chain of Command OIX (decoded)",

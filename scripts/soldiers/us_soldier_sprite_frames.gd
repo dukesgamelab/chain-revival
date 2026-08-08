@@ -15,7 +15,8 @@ extends RefCounted
 ##   Idle fidgets:      ABRLA / GBRLA explicit oneshots → idle_fidget_1..4_*
 ##   Idle corner L/R:   ALCIS·ARCIS / GLCIS·GRCIS (A) → corner_idle_left_* / corner_idle_right_*
 ##   Aim corner L/R:    ALCAS·ARCAS / GLCAS·GRCAS (A) → corner_aim_left_* / corner_aim_right_*
-##   Peek corner L/R:   ALCPA·ARCPA / GLCPA·GRCPA (A–C) → corner_peek_left_* / corner_peek_right_*
+##   Peek corner L/R:   ALPKA·ARPKA / GLPKA·GRPKA (A–P, one-shot) → corner_peek_left_* / corner_peek_right_*
+##   Peek enter/exit:   ALCPA·ARCPA / GLCPA·GRCPA (enter C-A-B, exit B-A-C) → corner_peek_enter_* / corner_peek_exit_*
 ##   Idle prone:        APIDS / GPIDS  (A)    → idle_prone_*
 ##   Stand↔prone:       APRNA / GPRNA  (E-A-B-C-D up; D-C-B-A-E down) → transition_*
 ##   Crawl:             APMOA / GPMOA  (A–V)  → crawl_*

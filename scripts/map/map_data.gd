@@ -44,6 +44,14 @@ var width: int = DEFAULT_WIDTH
 var height: int = DEFAULT_HEIGHT
 var team_1_spawn_points: Array[Vector2i] = []
 var team_2_spawn_points: Array[Vector2i] = []
+
+
+## True when `cell` is inside that team's authored deployment / spawn zone.
+func is_deployment_cell(team_id: int, cell: Vector2i) -> bool:
+	var zone: Array[Vector2i] = (
+		team_1_spawn_points if team_id == Team.USA else team_2_spawn_points
+	)
+	return zone.has(cell)
 var sprite_directory: String = ""
 var source_format: String = ""
 var uses_original_projection: bool = false

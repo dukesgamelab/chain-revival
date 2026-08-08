@@ -1723,57 +1723,57 @@
 						"e": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GLCPA5C.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA5B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA5A.png"
+								"res://assets/sprites/german_soldier/corner/GLCPA5A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA5B.png"
 							]
 						},
 						"n": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GLCPA7C.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA7B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA7A.png"
+								"res://assets/sprites/german_soldier/corner/GLCPA7A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA7B.png"
 							]
 						},
 						"ne": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GLCPA6C.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA6B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA6A.png"
+								"res://assets/sprites/german_soldier/corner/GLCPA6A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA6B.png"
 							]
 						},
 						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GLCPA8C.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA8B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA8A.png"
+								"res://assets/sprites/german_soldier/corner/GLCPA8A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA8B.png"
 							]
 						},
 						"s": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GLCPA3C.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA3B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA3A.png"
+								"res://assets/sprites/german_soldier/corner/GLCPA3A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA3B.png"
 							]
 						},
 						"se": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GLCPA4C.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA4B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA4A.png"
+								"res://assets/sprites/german_soldier/corner/GLCPA4A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA4B.png"
 							]
 						},
 						"sw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GLCPA2C.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA2B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA2A.png"
+								"res://assets/sprites/german_soldier/corner/GLCPA2A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA2B.png"
 							]
 						},
 						"w": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GLCPA1C.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA1B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA1A.png"
+								"res://assets/sprites/german_soldier/corner/GLCPA1A.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA1B.png"
 							]
 						}
 					},
@@ -1784,13 +1784,13 @@
 						"category": "soldier/corner",
 						"faction": "German",
 						"footstep_frame": -1.0,
-						"frame_order": "CBA",
+						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "GLCPA",
-						"verification": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -1799,57 +1799,57 @@
 						"e": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GRCPA5C.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA5B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA5A.png"
+								"res://assets/sprites/german_soldier/corner/GRCPA5A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA5B.png"
 							]
 						},
 						"n": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GRCPA7C.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA7B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA7A.png"
+								"res://assets/sprites/german_soldier/corner/GRCPA7A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA7B.png"
 							]
 						},
 						"ne": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GRCPA6C.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA6B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA6A.png"
+								"res://assets/sprites/german_soldier/corner/GRCPA6A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA6B.png"
 							]
 						},
 						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GRCPA8C.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA8B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA8A.png"
+								"res://assets/sprites/german_soldier/corner/GRCPA8A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA8B.png"
 							]
 						},
 						"s": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GRCPA3C.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA3B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA3A.png"
+								"res://assets/sprites/german_soldier/corner/GRCPA3A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA3B.png"
 							]
 						},
 						"se": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GRCPA4C.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA4B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA4A.png"
+								"res://assets/sprites/german_soldier/corner/GRCPA4A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA4B.png"
 							]
 						},
 						"sw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GRCPA2C.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA2B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA2A.png"
+								"res://assets/sprites/german_soldier/corner/GRCPA2A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA2B.png"
 							]
 						},
 						"w": {
 							"frames": [
 								"res://assets/sprites/german_soldier/corner/GRCPA1C.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA1B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA1A.png"
+								"res://assets/sprites/german_soldier/corner/GRCPA1A.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA1B.png"
 							]
 						}
 					},
@@ -1860,13 +1860,13 @@
 						"category": "soldier/corner",
 						"faction": "German",
 						"footstep_frame": -1.0,
-						"frame_order": "CBA",
+						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "GRCPA",
-						"verification": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -1874,57 +1874,57 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA5A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA5B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA5A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA5C.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA7A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA7B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA7A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA7C.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA6A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA6B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA6A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA6C.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA8A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA8B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA8A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA8C.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA3A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA3B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA3A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA3C.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA4A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA4B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA4A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA4C.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA2A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA2B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA2A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA2C.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA1A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA1B.png",
+								"res://assets/sprites/german_soldier/corner/GLCPA1A.png",
 								"res://assets/sprites/german_soldier/corner/GLCPA1C.png"
 							]
 						}
@@ -1936,13 +1936,13 @@
 						"category": "soldier/corner",
 						"faction": "German",
 						"footstep_frame": -1.0,
-						"frame_order": "ABC",
+						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "GLCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -1950,57 +1950,57 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA5A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA5B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA5A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA5C.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA7A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA7B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA7A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA7C.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA6A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA6B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA6A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA6C.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA8A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA8B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA8A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA8C.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA3A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA3B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA3A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA3C.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA4A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA4B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA4A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA4C.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA2A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA2B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA2A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA2C.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA1A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA1B.png",
+								"res://assets/sprites/german_soldier/corner/GRCPA1A.png",
 								"res://assets/sprites/german_soldier/corner/GRCPA1C.png"
 							]
 						}
@@ -2012,13 +2012,13 @@
 						"category": "soldier/corner",
 						"faction": "German",
 						"footstep_frame": -1.0,
-						"frame_order": "ABC",
+						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "GRCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -2026,58 +2026,162 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA5A.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA5B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA5C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA5P.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA7A.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA7B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA7C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA7P.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA6A.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA6B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA6C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA6P.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA8A.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA8B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA8C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA8O.png",
+								"res://assets/sprites/german_soldier/corner/GLCIS8A.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA3A.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA3B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA3C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA3P.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA4A.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA4B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA4C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA4P.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA2A.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA2B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA2C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA2P.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GLCPA1A.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA1B.png",
-								"res://assets/sprites/german_soldier/corner/GLCPA1C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GLPKA1P.png"
 							]
 						}
 					},
@@ -2090,10 +2194,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLCPA frames ABC. Lean motion (no fire).",
+						"notes": "Source GLPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered. GLPKA8P missing from import — NW last frame uses GLCIS8A (P≈CIS).",
 						"sound_effect": "",
-						"source_family": "GLCPA",
-						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
+						"source_family": "GLPKA",
+						"verification": "Replaced duplicate CPA peek with dedicated GLPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
 						"verified": true
 					}
 				},
@@ -2101,58 +2205,162 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA5A.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA5B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA5C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA5P.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA7A.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA7B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA7C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA7P.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA6A.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA6B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA6C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA6P.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA8A.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA8B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA8C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA8P.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA3A.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA3B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA3C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA3P.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA4A.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA4B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA4C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA4P.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA2A.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA2B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA2C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA2P.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/german_soldier/corner/GRCPA1A.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA1B.png",
-								"res://assets/sprites/german_soldier/corner/GRCPA1C.png"
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1A.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1B.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1C.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1D.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1E.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1F.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1G.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1H.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1I.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1J.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1K.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1L.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1M.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1N.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1O.png",
+								"res://assets/sprites/german_soldier/corner_peek/GRPKA1P.png"
 							]
 						}
 					},
@@ -2165,10 +2373,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRCPA frames ABC. Lean motion (no fire).",
+						"notes": "Source GRPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered.",
 						"sound_effect": "",
-						"source_family": "GRCPA",
-						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
+						"source_family": "GRPKA",
+						"verification": "Replaced duplicate CPA peek with dedicated GRPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
 						"verified": true
 					}
 				},
@@ -7309,57 +7517,57 @@
 						"e": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ALCPA5C.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA5B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA5A.png"
+								"res://assets/sprites/us_soldier/corner/ALCPA5A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA5B.png"
 							]
 						},
 						"n": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ALCPA7C.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA7B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA7A.png"
+								"res://assets/sprites/us_soldier/corner/ALCPA7A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA7B.png"
 							]
 						},
 						"ne": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ALCPA6C.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA6B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA6A.png"
+								"res://assets/sprites/us_soldier/corner/ALCPA6A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA6B.png"
 							]
 						},
 						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ALCPA8C.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA8B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA8A.png"
+								"res://assets/sprites/us_soldier/corner/ALCPA8A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA8B.png"
 							]
 						},
 						"s": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ALCPA3C.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA3B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA3A.png"
+								"res://assets/sprites/us_soldier/corner/ALCPA3A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA3B.png"
 							]
 						},
 						"se": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ALCPA4C.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA4B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA4A.png"
+								"res://assets/sprites/us_soldier/corner/ALCPA4A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA4B.png"
 							]
 						},
 						"sw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ALCPA2C.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA2B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA2A.png"
+								"res://assets/sprites/us_soldier/corner/ALCPA2A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA2B.png"
 							]
 						},
 						"w": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ALCPA1C.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA1B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA1A.png"
+								"res://assets/sprites/us_soldier/corner/ALCPA1A.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA1B.png"
 							]
 						}
 					},
@@ -7370,13 +7578,13 @@
 						"category": "soldier/corner",
 						"faction": "American",
 						"footstep_frame": -1.0,
-						"frame_order": "CBA",
+						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "ALCPA",
-						"verification": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -7385,57 +7593,57 @@
 						"e": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ARCPA5C.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA5B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA5A.png"
+								"res://assets/sprites/us_soldier/corner/ARCPA5A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA5B.png"
 							]
 						},
 						"n": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ARCPA7C.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA7B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA7A.png"
+								"res://assets/sprites/us_soldier/corner/ARCPA7A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA7B.png"
 							]
 						},
 						"ne": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ARCPA6C.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA6B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA6A.png"
+								"res://assets/sprites/us_soldier/corner/ARCPA6A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA6B.png"
 							]
 						},
 						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ARCPA8C.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA8B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA8A.png"
+								"res://assets/sprites/us_soldier/corner/ARCPA8A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA8B.png"
 							]
 						},
 						"s": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ARCPA3C.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA3B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA3A.png"
+								"res://assets/sprites/us_soldier/corner/ARCPA3A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA3B.png"
 							]
 						},
 						"se": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ARCPA4C.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA4B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA4A.png"
+								"res://assets/sprites/us_soldier/corner/ARCPA4A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA4B.png"
 							]
 						},
 						"sw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ARCPA2C.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA2B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA2A.png"
+								"res://assets/sprites/us_soldier/corner/ARCPA2A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA2B.png"
 							]
 						},
 						"w": {
 							"frames": [
 								"res://assets/sprites/us_soldier/corner/ARCPA1C.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA1B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA1A.png"
+								"res://assets/sprites/us_soldier/corner/ARCPA1A.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA1B.png"
 							]
 						}
 					},
@@ -7446,13 +7654,13 @@
 						"category": "soldier/corner",
 						"faction": "American",
 						"footstep_frame": -1.0,
-						"frame_order": "CBA",
+						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "ARCPA",
-						"verification": "Verified against corner-idle/corner-firing videos + sprite endpoint compare: CPA C matches CIS (tucked), mid lean B, A leans out. Enter order C-B-A; exit is the explicit reverse A-B-C. Same PNG sources as corner_peek_*.",
+						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -7460,57 +7668,57 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA5A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA5B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA5A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA5C.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA7A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA7B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA7A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA7C.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA6A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA6B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA6A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA6C.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA8A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA8B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA8A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA8C.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA3A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA3B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA3A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA3C.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA4A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA4B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA4A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA4C.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA2A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA2B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA2A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA2C.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA1A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA1B.png",
+								"res://assets/sprites/us_soldier/corner/ALCPA1A.png",
 								"res://assets/sprites/us_soldier/corner/ALCPA1C.png"
 							]
 						}
@@ -7522,13 +7730,13 @@
 						"category": "soldier/corner",
 						"faction": "American",
 						"footstep_frame": -1.0,
-						"frame_order": "ABC",
+						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "ALCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -7536,57 +7744,57 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA5A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA5B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA5A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA5C.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA7A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA7B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA7A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA7C.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA6A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA6B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA6A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA6C.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA8A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA8B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA8A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA8C.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA3A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA3B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA3A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA3C.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA4A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA4B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA4A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA4C.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA2A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA2B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA2A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA2C.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA1A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA1B.png",
+								"res://assets/sprites/us_soldier/corner/ARCPA1A.png",
 								"res://assets/sprites/us_soldier/corner/ARCPA1C.png"
 							]
 						}
@@ -7598,13 +7806,13 @@
 						"category": "soldier/corner",
 						"faction": "American",
 						"footstep_frame": -1.0,
-						"frame_order": "ABC",
+						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "ARCPA",
-						"verification": "Verified peek exit: A-B-C returns from lean-out toward CIS (C≈tucked). Explicit reverse of corner_peek_enter_*; do not reverse at runtime.",
+						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -7612,58 +7820,162 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA5A.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA5B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA5C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA5P.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA7A.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA7B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA7C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA7P.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA6A.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA6B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA6C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA6P.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA8A.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA8B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA8C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA8P.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA3A.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA3B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA3C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA3P.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA4A.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA4B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA4C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA4P.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA2A.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA2B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA2C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA2P.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ALCPA1A.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA1B.png",
-								"res://assets/sprites/us_soldier/corner/ALCPA1C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ALPKA1P.png"
 							]
 						}
 					},
@@ -7676,10 +7988,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALCPA frames ABC. Lean motion (no fire).",
+						"notes": "Source ALPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered.",
 						"sound_effect": "",
-						"source_family": "ALCPA",
-						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
+						"source_family": "ALPKA",
+						"verification": "Replaced duplicate CPA peek with dedicated ALPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
 						"verified": true
 					}
 				},
@@ -7687,58 +7999,162 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA5A.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA5B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA5C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA5P.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA7A.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA7B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA7C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA7P.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA6A.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA6B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA6C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA6P.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA8A.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA8B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA8C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA8P.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA3A.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA3B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA3C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA3P.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA4A.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA4B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA4C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA4P.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA2A.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA2B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA2C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA2P.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/us_soldier/corner/ARCPA1A.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA1B.png",
-								"res://assets/sprites/us_soldier/corner/ARCPA1C.png"
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1A.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1B.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1C.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1D.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1E.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1F.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1G.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1H.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1I.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1J.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1K.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1L.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1M.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1N.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1O.png",
+								"res://assets/sprites/us_soldier/corner_peek/ARPKA1P.png"
 							]
 						}
 					},
@@ -7748,13 +8164,13 @@
 					"metadata": {
 						"category": "soldier/corner",
 						"faction": "American",
-						"footstep_frame": -1,
+						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
-						"notes": "Source ARCPA frames ABC. Lean motion (no fire).",
+						"muzzle_flash_frame": -1.0,
+						"notes": "Source ARPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered.",
 						"sound_effect": "",
-						"source_family": "ARCPA",
-						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
+						"source_family": "ARPKA",
+						"verification": "Replaced duplicate CPA peek with dedicated ARPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
 						"verified": true
 					}
 				},
