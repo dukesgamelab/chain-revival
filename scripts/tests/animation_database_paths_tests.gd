@@ -15,6 +15,8 @@ func _ready() -> void:
 	AnimationDatabase.reload()
 	_test_no_coc_soldiers_in_db()
 	_test_every_frame_path_exists()
+	_test_no_empty_anims_except_fire()
+	_test_eight_dirs_equal_frame_counts()
 	print("")
 	print("Animation database path tests: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -102,3 +104,106 @@ func _test_every_frame_path_exists() -> void:
 		print("  ... and %d more" % (missing.size() - 20))
 	else:
 		print("[INFO] checked %d frame paths" % checked)
+
+
+func _test_no_empty_anims_except_fire() -> void:
+	## Phase 2: every animation must have frames, except the empty `fire` slot (Phase 3d).
+	var empty: Array[String] = []
+	var file := FileAccess.open(DB_PATH, FileAccess.READ)
+	if file == null:
+		_assert("open DB for empty-anim check", false, "read failed")
+		return
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if parsed == null or not parsed is Dictionary:
+		_assert("parse DB for empty-anim check", false, "invalid JSON")
+		return
+	var fams: Dictionary = (parsed as Dictionary).get("families", {})
+	for fam_id in fams.keys():
+		var fam: Variant = fams[fam_id]
+		if not fam is Dictionary:
+			continue
+		var anims: Variant = (fam as Dictionary).get("animations", {})
+		if not anims is Dictionary:
+			continue
+		for anim_id in (anims as Dictionary).keys():
+			if str(anim_id) == "fire":
+				continue
+			var anim: Variant = (anims as Dictionary)[anim_id]
+			if not anim is Dictionary:
+				continue
+			var dirs: Variant = (anim as Dictionary).get("directions", {})
+			if not dirs is Dictionary:
+				continue
+			var total := 0
+			for dir_id in (dirs as Dictionary).keys():
+				var entry: Variant = (dirs as Dictionary)[dir_id]
+				if entry is Dictionary:
+					var frames: Variant = (entry as Dictionary).get("frames", [])
+					if frames is Array:
+						total += (frames as Array).size()
+			if total == 0:
+				empty.append("%s/%s" % [fam_id, anim_id])
+	_assert(
+		"no family has zero-frame anims except fire",
+		empty.is_empty(),
+		"empty=%s" % str(empty),
+	)
+
+
+func _test_eight_dirs_equal_frame_counts() -> void:
+	## Phase 2: every animation has all 8 directions; equal frame counts within an anim.
+	## Skip us_rifle/fire_standing — intentional 3-vs-4 clip (muzzle-last standing fire).
+	var expected_dirs: Array[String] = ["n", "ne", "e", "se", "s", "sw", "w", "nw"]
+	var bad: Array[String] = []
+	var file := FileAccess.open(DB_PATH, FileAccess.READ)
+	if file == null:
+		_assert("open DB for dir-count check", false, "read failed")
+		return
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if parsed == null or not parsed is Dictionary:
+		_assert("parse DB for dir-count check", false, "invalid JSON")
+		return
+	var fams: Dictionary = (parsed as Dictionary).get("families", {})
+	for fam_id in fams.keys():
+		var fam: Variant = fams[fam_id]
+		if not fam is Dictionary:
+			continue
+		var anims: Variant = (fam as Dictionary).get("animations", {})
+		if not anims is Dictionary:
+			continue
+		for anim_id in (anims as Dictionary).keys():
+			var anim: Variant = (anims as Dictionary)[anim_id]
+			if not anim is Dictionary:
+				continue
+			var dirs: Variant = (anim as Dictionary).get("directions", {})
+			if not dirs is Dictionary:
+				continue
+			var dir_dict: Dictionary = dirs
+			var counts: Array[int] = []
+			for d in expected_dirs:
+				if not dir_dict.has(d):
+					bad.append("%s/%s missing dir %s" % [fam_id, anim_id, d])
+					continue
+				var entry: Variant = dir_dict[d]
+				var n := 0
+				if entry is Dictionary:
+					var frames: Variant = (entry as Dictionary).get("frames", [])
+					if frames is Array:
+						n = (frames as Array).size()
+				counts.append(n)
+			if str(fam_id) == "us_rifle" and str(anim_id) == "fire_standing":
+				continue
+			if counts.size() == expected_dirs.size():
+				var first := counts[0]
+				for c in counts:
+					if c != first:
+						bad.append("%s/%s unequal counts %s" % [fam_id, anim_id, str(counts)])
+						break
+	_assert(
+		"every animation has 8 dirs with equal frame counts",
+		bad.is_empty(),
+		"issues=%d first=%s" % [bad.size(), str(bad[0]) if not bad.is_empty() else ""],
+	)
+	if not bad.is_empty() and bad.size() <= 15:
+		for line in bad:
+			print("  BAD ", line)
