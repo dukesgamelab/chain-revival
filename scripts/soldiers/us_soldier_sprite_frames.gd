@@ -7,9 +7,9 @@ extends RefCounted
 ##   Hit prone (US):    AHTLA          (A–W)  → hit_prone_*
 ##   Hit (German):      GHTLA          (A–W)  → hit_*
 ##   Throw grenade:     ASTGA / GSPRA  (A–X)  → throw_grenade_*
-##   Fire standing:     ASFIA / GSFIA  (play B–C–C–A; ASFIA NW B–B–A) → fire_standing_*
+##   Fire standing:     ASFIA / GSFIA  (play A–B–C; ASFIA NW A–B) → fire_standing_*
 ##   Fire corner L/R:   ALCFA·ARCFA / GLCFA·GRCFA (A–C) → corner_fire_left_* / corner_fire_right_*
-##   Fire prone:        APRFA / GPRFA  (play B–C–C–A) → fire_prone_*
+##   Fire prone:        APRFA / GPRFA  (play A–B–C) → fire_prone_*
 ##   Idle standing:     ABRLA / GBRLA frame A (held) → idle_standing_*
 ##   Idle crouch:       ADHPA / GDHPA A–B loop → idle_crouch_* (kneel aim)
 ##   Idle fidgets:      ABRLA / GBRLA explicit oneshots → idle_fidget_1..4_*

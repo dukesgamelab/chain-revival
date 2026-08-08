@@ -3,9 +3,9 @@ extends RefCounted
 ## Presentation-only rifle firing animation config.
 ## Does not affect hit chance, cadence, ammo, LOS, or damage.
 
-## Standing/prone fire clip order is B → C → C → A (aim, still, muzzle).
-## visual_shot_frame points at muzzle A (last index). ASFIA NW is B → B → A (muzzle=2).
-const DEFAULT_VISUAL_SHOT_FRAME := 3
+## Standing/prone fire clip order is A → B → C (flash, settle, aim).
+## visual_shot_frame points at muzzle A (index 0). ASFIA NW is A → B (no C).
+const DEFAULT_VISUAL_SHOT_FRAME := 0
 const DEFAULT_FIRE_ANIM_FPS := 8.0
 ## CFA muzzle flash is source letter A (index 0) — verified vs corner-firing video.
 const DEFAULT_CORNER_FIRE_SHOT_FRAME := 0

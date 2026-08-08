@@ -202,7 +202,7 @@ func _test_sync_from_state_passes_idle_peek() -> void:
 
 func _test_eight_dirs_equal_frame_counts() -> void:
 	## Phase 2: every animation has all 8 directions; equal frame counts within an anim.
-	## Skip us_rifle/fire_standing — intentional 3-vs-4 clip (muzzle-last standing fire).
+	## Skip us_rifle/fire_standing — ASFIA nw is A–B (2) while other dirs are A–B–C (3).
 	var expected_dirs: Array[String] = ["n", "ne", "e", "se", "s", "sw", "w", "nw"]
 	var bad: Array[String] = []
 	var file := FileAccess.open(DB_PATH, FileAccess.READ)

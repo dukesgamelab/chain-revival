@@ -2666,6 +2666,7 @@ func _finalize_shot_result(
 					shooter.position_state,
 					shooter.facing_direction,
 					fire_peek,
+					fire_aim,
 				)
 		if target != null:
 			_spawn_shot_tracers(shooter, target, maxi(result.tracer_count, 1))

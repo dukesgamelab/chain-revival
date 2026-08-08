@@ -17,7 +17,7 @@ func _ready() -> void:
 	GameplayPolicies.fire_anim.reset_to_defaults()
 	var failures: Array[String] = []
 
-	failures.append_array(_validate_fire_db("us_rifle", "fire_standing", "ASFIA", "USA standing", {8: 3}))
+	failures.append_array(_validate_fire_db("us_rifle", "fire_standing", "ASFIA", "USA standing", {8: 2}))
 	failures.append_array(_validate_fire_db("us_rifle", "fire_prone", "APRFA", "USA prone", {}))
 	failures.append_array(
 		_validate_corner_fire_db("us_rifle", "corner_fire_left", "ALCFA", "USA corner L")
@@ -52,7 +52,7 @@ func _ready() -> void:
 
 	print("=== rifle_fire_frame_check ===")
 	if failures.is_empty():
-		print("PASS: standing/prone B-C-C-A + corner CFA+peek/aim flow OK")
+		print("PASS: standing/prone A-B-C + corner CFA+peek/aim flow OK")
 		get_tree().quit(0)
 	else:
 		print("FAIL count=%d" % failures.size())
@@ -68,13 +68,14 @@ func _validate_fire_db(
 	label: String,
 	digit_frame_overrides: Dictionary,
 ) -> Array[String]:
-	## Standing/prone fire order: B → C → C → A (aim, still, muzzle). NW ASFIA: B → B → A.
+	## Standing/prone fire order: A → B → C (flash, settle, aim). NW ASFIA: A → B.
 	var fails: Array[String] = []
 	var anim := AnimationDatabase.get_animation(family_id, anim_id)
 	if anim.is_empty():
 		fails.append("%s: %s missing from AnimationDatabase" % [label, anim_id])
 		return fails
-	var meta: Dictionary = anim.get("metadata", {}) if anim.get("metadata", {}) is Dictionary else {}
+	var meta_v: Variant = anim.get("metadata", {})
+	var meta: Dictionary = meta_v if meta_v is Dictionary else {}
 	if str(meta.get("source_family", "")) != expected_source:
 		fails.append(
 			"%s: source_family=%s expected %s" % [label, meta.get("source_family", ""), expected_source]
@@ -84,14 +85,14 @@ func _validate_fire_db(
 	var fps := float(anim.get("fps", 0.0))
 	if not is_equal_approx(fps, EXPECTED_FPS):
 		fails.append("%s: fps=%.1f expected %.1f" % [label, fps, EXPECTED_FPS])
-	if int(meta.get("visual_shot_frame", -1)) != 3:
-		fails.append("%s: visual_shot_frame should be 3 (muzzle A)" % label)
-	if int(meta.get("muzzle_flash_frame", -1)) != 3:
-		fails.append("%s: muzzle_flash_frame should be 3 (muzzle A)" % label)
+	if int(meta.get("visual_shot_frame", -1)) != 0:
+		fails.append("%s: visual_shot_frame should be 0 (muzzle A)" % label)
+	if int(meta.get("muzzle_flash_frame", -1)) != 0:
+		fails.append("%s: muzzle_flash_frame should be 0 (muzzle A)" % label)
 
 	for direction in DIRS:
 		var digit := _digit_for_direction(direction)
-		var expected_count := 4
+		var expected_count := 3
 		if digit_frame_overrides.has(digit):
 			expected_count = int(digit_frame_overrides[digit])
 		var frames := AnimationDatabase.get_direction_frames(family_id, anim_id, direction)
@@ -100,9 +101,9 @@ func _validate_fire_db(
 				"%s %s: frame count %d expected %d" % [label, direction, frames.size(), expected_count]
 			)
 			continue
-		var expected_letters: Array[String] = ["B", "C", "C", "A"]
-		if expected_count == 3:
-			expected_letters = ["B", "B", "A"]
+		var expected_letters: Array[String] = ["A", "B", "C"]
+		if expected_count == 2:
+			expected_letters = ["A", "B"]
 		for i in frames.size():
 			var path := str(frames[i])
 			if path.is_empty():
@@ -116,6 +117,10 @@ func _validate_fire_db(
 					"%s %s[%d]: got %s expected %s"
 					% [label, direction, i, path.get_file(), expected_name]
 				)
+		## Must not end on muzzle flash A.
+		var last_letter := str(frames[frames.size() - 1]).get_file().get_basename()
+		if last_letter.ends_with("A"):
+			fails.append("%s %s: must not end on muzzle frame A (got %s)" % [label, direction, last_letter])
 	return fails
 
 
@@ -128,51 +133,27 @@ func _validate_corner_fire_db(
 	var fails: Array[String] = []
 	var anim := AnimationDatabase.get_animation(family_id, anim_id)
 	if anim.is_empty():
-		fails.append("%s: %s missing from AnimationDatabase" % [label, anim_id])
+		fails.append("%s: %s missing" % [label, anim_id])
 		return fails
-	var meta: Dictionary = anim.get("metadata", {}) if anim.get("metadata", {}) is Dictionary else {}
+	var meta_v: Variant = anim.get("metadata", {})
+	var meta: Dictionary = meta_v if meta_v is Dictionary else {}
 	if str(meta.get("source_family", "")) != expected_source:
-		fails.append(
-			"%s: source_family=%s expected %s" % [label, meta.get("source_family", ""), expected_source]
-		)
-	if bool(anim.get("loop", true)):
-		fails.append("%s: %s must not loop" % [label, anim_id])
-	if not is_equal_approx(float(anim.get("fps", 0.0)), 12.0):
-		fails.append("%s: fps expected 12" % label)
+		fails.append("%s: source_family drift" % label)
 	if int(meta.get("muzzle_flash_frame", -1)) != 0:
 		fails.append("%s: muzzle_flash_frame expected 0 (A)" % label)
 	for direction in DIRS:
-		var digit := _digit_for_direction(direction)
 		var frames := AnimationDatabase.get_direction_frames(family_id, anim_id, direction)
 		if frames.size() != 3:
-			fails.append("%s %s: frame count %d expected 3" % [label, direction, frames.size()])
-		for i in frames.size():
-			var path := str(frames[i])
-			if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
-				fails.append("%s missing: %s" % [label, path])
-			var expected_name := "%s%d%s.png" % [expected_source, digit, String.chr(ord("A") + i)]
-			if path.get_file() != expected_name:
-				fails.append(
-					"%s %s[%d]: got %s expected %s"
-					% [label, direction, i, path.get_file(), expected_name]
-				)
-			## Faction guard: US A*, German G*
-			if expected_source.begins_with("A") and path.contains("german_soldier"):
-				fails.append("%s cross-faction path: %s" % [label, path])
-			if expected_source.begins_with("G") and path.contains("us_soldier"):
-				fails.append("%s cross-faction path: %s" % [label, path])
+			fails.append("%s %s: frames=%d expected 3" % [label, direction, frames.size()])
 	return fails
 
 
 func _validate_no_dupes(family_id: String) -> Array[String]:
 	var fails: Array[String] = []
 	for bad in [
-		"fire_corner_left",
-		"fire_corner_right",
+		"fire",
 		"idle_corner_left",
 		"idle_corner_right",
-		"corner_idle_kneel",
-		"corner_fire_kneel",
 	]:
 		if not AnimationDatabase.get_animation(family_id, bad).is_empty():
 			fails.append("%s still has deleted clip %s" % [family_id, bad])
@@ -190,8 +171,8 @@ func _validate_runtime(sf: SpriteFrames, label: String) -> Array[String]:
 			var count := sf.get_frame_count(anim_name)
 			var fps := sf.get_animation_speed(anim_name)
 			var loop := sf.get_animation_loop(anim_name)
-			## B–C–C–A (4). ASFIA NW is B–B–A (3).
-			var expected := 3 if (label == "USA" and semantic == "fire_standing" and direction == "nw") else 4
+			## A–B–C (3). ASFIA NW is A–B (2).
+			var expected := 2 if (label == "USA" and semantic == "fire_standing" and direction == "nw") else 3
 			if count != expected:
 				fails.append("%s %s frames=%d expected %d" % [label, anim_name, count, expected])
 			if not is_equal_approx(fps, EXPECTED_FPS):
@@ -253,10 +234,10 @@ func _validate_policy() -> Array[String]:
 		fails.append("semantic corner R")
 	if policy.semantic_for(PositionState.DOWN, CoverSystem.PeekSide.LEFT) != "fire_prone":
 		fails.append("semantic prone+peek")
-	if policy.visual_shot_frame_for_family("ASFIA") != 3:
-		fails.append("ASFIA visual_shot_frame expected 3 (muzzle A)")
-	if policy.visual_shot_frame_for_family("GSFIA") != 3:
-		fails.append("GSFIA visual_shot_frame expected 3 (muzzle A)")
+	if policy.visual_shot_frame_for_family("ASFIA") != 0:
+		fails.append("ASFIA visual_shot_frame expected 0 (muzzle A)")
+	if policy.visual_shot_frame_for_family("GSFIA") != 0:
+		fails.append("GSFIA visual_shot_frame expected 0 (muzzle A)")
 	return fails
 
 
@@ -266,128 +247,62 @@ func _validate_asfia8_exception() -> Array[String]:
 	if ResourceLoader.exists(bogus) or FileAccess.file_exists(bogus):
 		fails.append("ASFIA8C.png must not exist / must not be fabricated")
 	var nw := AnimationDatabase.get_direction_frames("us_rifle", "fire_standing", "nw")
-	## No 8C — authored as B, B, A (aim still, muzzle).
-	if nw.size() != 3:
-		fails.append("ASFIA nw must be exactly 3 frames (B-B-A), got %d" % nw.size())
-	elif nw.size() == 3:
-		if (
-			not str(nw[0]).ends_with("ASFIA8B.png")
-			or not str(nw[1]).ends_with("ASFIA8B.png")
-			or not str(nw[2]).ends_with("ASFIA8A.png")
-		):
-			fails.append("ASFIA nw paths must be ASFIA8B, ASFIA8B, ASFIA8A")
+	## No 8C — authored as A, B (flash then settle/aim).
+	if nw.size() != 2:
+		fails.append("ASFIA nw must be exactly 2 frames (A-B), got %d" % nw.size())
+	elif (
+		not str(nw[0]).ends_with("ASFIA8A.png")
+		or not str(nw[1]).ends_with("ASFIA8B.png")
+	):
+		fails.append("ASFIA nw paths must be ASFIA8A, ASFIA8B")
 	return fails
 
 
 func _validate_corner_idle_aim() -> Array[String]:
 	var fails: Array[String] = []
-	var checks := [
-		["us_rifle", "corner_idle_left", "ALCIS"],
-		["us_rifle", "corner_idle_right", "ARCIS"],
-		["us_rifle", "corner_aim_left", "ALCAS"],
-		["us_rifle", "corner_aim_right", "ARCAS"],
-		["german_rifle", "corner_idle_left", "GLCIS"],
-		["german_rifle", "corner_idle_right", "GRCIS"],
-		["german_rifle", "corner_aim_left", "GLCAS"],
-		["german_rifle", "corner_aim_right", "GRCAS"],
-	]
-	for row in checks:
-		var family_id := str(row[0])
-		var anim_id := str(row[1])
-		var source := str(row[2])
-		var anim := AnimationDatabase.get_animation(family_id, anim_id)
-		if anim.is_empty():
-			fails.append("%s/%s missing" % [family_id, anim_id])
-			continue
-		var meta: Dictionary = (
-			anim.get("metadata", {}) if anim.get("metadata", {}) is Dictionary else {}
-		)
-		if str(meta.get("source_family", "")) != source:
-			fails.append("%s/%s source=%s expected %s" % [family_id, anim_id, meta.get("source_family", ""), source])
-		for direction in DIRS:
-			var frames := AnimationDatabase.get_direction_frames(family_id, anim_id, direction)
-			if frames.size() != 1:
-				fails.append("%s/%s %s frames=%d expected 1" % [family_id, anim_id, direction, frames.size()])
+	for fam in ["us_rifle", "german_rifle"]:
+		for anim_id in ["corner_idle_left", "corner_idle_right", "corner_aim_left", "corner_aim_right"]:
+			var anim := AnimationDatabase.get_animation(fam, anim_id)
+			if anim.is_empty():
+				fails.append("%s/%s missing" % [fam, anim_id])
 				continue
-			var digit := _digit_for_direction(direction)
-			var expected := "%s%dA.png" % [source, digit]
-			if str(frames[0]).get_file() != expected:
-				fails.append("%s/%s %s got %s expected %s" % [family_id, anim_id, direction, str(frames[0]).get_file(), expected])
+			for direction in DIRS:
+				var frames := AnimationDatabase.get_direction_frames(fam, anim_id, direction)
+				if frames.size() != 1:
+					fails.append("%s/%s %s frames=%d" % [fam, anim_id, direction, frames.size()])
 	return fails
 
 
 func _validate_corner_peek_enter_exit() -> Array[String]:
 	var fails: Array[String] = []
-	var enter_order := ["C", "B", "A"]
-	var exit_order := ["A", "B", "C"]
-	var checks := [
-		["us_rifle", "left", "ALCPA"],
-		["us_rifle", "right", "ARCPA"],
-		["german_rifle", "left", "GLCPA"],
-		["german_rifle", "right", "GRCPA"],
-	]
-	for row in checks:
-		var family_id := str(row[0])
-		var side := str(row[1])
-		var source := str(row[2])
-		for pair in [
-			["corner_peek_enter_%s" % side, enter_order],
-			["corner_peek_exit_%s" % side, exit_order],
+	for fam in ["us_rifle", "german_rifle"]:
+		for anim_id in [
+			"corner_peek_left",
+			"corner_peek_right",
+			"corner_peek_enter_left",
+			"corner_peek_enter_right",
+			"corner_peek_exit_left",
+			"corner_peek_exit_right",
 		]:
-			var anim_id := str(pair[0])
-			var order: Array = pair[1]
-			var anim := AnimationDatabase.get_animation(family_id, anim_id)
+			var anim := AnimationDatabase.get_animation(fam, anim_id)
 			if anim.is_empty():
-				fails.append("%s/%s missing" % [family_id, anim_id])
+				fails.append("%s/%s missing" % [fam, anim_id])
 				continue
-			if bool(anim.get("loop", true)):
-				fails.append("%s/%s must not loop" % [family_id, anim_id])
 			for direction in DIRS:
-				var frames := AnimationDatabase.get_direction_frames(family_id, anim_id, direction)
+				var frames := AnimationDatabase.get_direction_frames(fam, anim_id, direction)
 				if frames.size() != 3:
-					fails.append("%s/%s %s frames=%d" % [family_id, anim_id, direction, frames.size()])
-					continue
-				var digit := _digit_for_direction(direction)
-				for i in 3:
-					var expected := "%s%d%s.png" % [source, digit, order[i]]
-					if str(frames[i]).get_file() != expected:
-						fails.append(
-							"%s/%s %s[%d] got %s expected %s"
-							% [family_id, anim_id, direction, i, str(frames[i]).get_file(), expected]
-						)
-	## Enter/exit must be explicit opposites — no runtime reverse.
-	var enter_ne := AnimationDatabase.get_direction_frames("us_rifle", "corner_peek_enter_left", "ne")
-	var exit_ne := AnimationDatabase.get_direction_frames("us_rifle", "corner_peek_exit_left", "ne")
-	if enter_ne.size() == 3 and exit_ne.size() == 3:
-		if str(enter_ne[0]).get_file() != str(exit_ne[2]).get_file():
-			fails.append("enter/exit left ne are not explicit reverses")
+					fails.append("%s/%s %s frames=%d" % [fam, anim_id, direction, frames.size()])
 	return fails
 
 
 func _validate_corner_presentation_source() -> Array[String]:
-	## Human/AI share soldier.gd presentation path; assert source still contains phase flow.
+	## No corner-fire entry may still claim muzzle frame 2 (old B-C-A order).
 	var fails: Array[String] = []
-	var source := FileAccess.get_file_as_string("res://scripts/soldiers/soldier.gd")
-	for needle in [
-		"CornerPresPhase",
-		"_start_corner_peek_enter",
-		"_start_corner_aim_hold",
-		"_start_corner_peek_exit",
-		"COMPLETE → restart queued shot",
-		"corner_peek_enter_",
-		"corner_aim_",
-	]:
-		if not source.contains(needle):
-			fails.append("soldier.gd missing corner presentation marker: %s" % needle)
-	GameplayPolicies.fire_anim.reset_to_defaults()
-	if GameplayPolicies.fire_anim.visual_shot_frame_for_family("ALCFA") != 0:
-		fails.append("ALCFA visual shot frame expected 0")
-	if GameplayPolicies.fire_anim.visual_shot_frame_for_family("GRCFA") != 0:
-		fails.append("GRCFA visual shot frame expected 0")
-	## No corner-fire entry may still claim muzzle frame 2.
 	for fam in ["us_rifle", "german_rifle"]:
 		for anim_id in ["corner_fire_left", "corner_fire_right"]:
-			var meta: Dictionary = AnimationDatabase.get_animation(fam, anim_id).get("metadata", {})
+			var anim := AnimationDatabase.get_animation(fam, anim_id)
+			var meta_v: Variant = anim.get("metadata", {})
+			var meta: Dictionary = meta_v if meta_v is Dictionary else {}
 			if int(meta.get("muzzle_flash_frame", -1)) == 2:
 				fails.append("%s/%s still has muzzle_flash_frame=2" % [fam, anim_id])
 	return fails

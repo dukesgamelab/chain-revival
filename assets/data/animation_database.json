@@ -2800,66 +2800,58 @@
 					"directions": {
 						"e": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA5A.png",
 								"res://assets/sprites/german_soldier/fire_prone/GPRFA5B.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA5C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA5C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA5A.png"
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA5C.png"
 							]
 						},
 						"n": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA7A.png",
 								"res://assets/sprites/german_soldier/fire_prone/GPRFA7B.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA7C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA7C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA7A.png"
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA7C.png"
 							]
 						},
 						"ne": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA6A.png",
 								"res://assets/sprites/german_soldier/fire_prone/GPRFA6B.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA6C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA6C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA6A.png"
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA6C.png"
 							]
 						},
 						"nw": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA8A.png",
 								"res://assets/sprites/german_soldier/fire_prone/GPRFA8B.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA8C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA8C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA8A.png"
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA8C.png"
 							]
 						},
 						"s": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA3A.png",
 								"res://assets/sprites/german_soldier/fire_prone/GPRFA3B.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA3C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA3C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA3A.png"
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA3C.png"
 							]
 						},
 						"se": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA4A.png",
 								"res://assets/sprites/german_soldier/fire_prone/GPRFA4B.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA4C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA4C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA4A.png"
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA4C.png"
 							]
 						},
 						"sw": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA2A.png",
 								"res://assets/sprites/german_soldier/fire_prone/GPRFA2B.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA2C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA2C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA2A.png"
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA2C.png"
 							]
 						},
 						"w": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA1A.png",
 								"res://assets/sprites/german_soldier/fire_prone/GPRFA1B.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA1C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA1C.png",
-								"res://assets/sprites/german_soldier/fire_prone/GPRFA1A.png"
+								"res://assets/sprites/german_soldier/fire_prone/GPRFA1C.png"
 							]
 						}
 					},
@@ -2871,13 +2863,13 @@
 						"faction": "German",
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 3,
-						"notes": "Per-shot: aim B-C, hold aim (C), muzzle A. visual_shot_frame=A (last).",
+						"muzzle_flash_frame": 0,
+						"notes": "Per-shot A(flash)->B(settle)->C(aim). Hold ends on C (= aim-idle). ASFIA nw is A-B (no C).",
 						"sound_effect": "",
 						"source_family": "GPRFA",
 						"verification": "manually confirmed by user",
 						"verified": true,
-						"visual_shot_frame": 3.0,
+						"visual_shot_frame": 0,
 						"visual_shot_frame_letter": "A"
 					}
 				},
@@ -2885,66 +2877,58 @@
 					"directions": {
 						"e": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA5A.png",
 								"res://assets/sprites/german_soldier/fire_standing/GSFIA5B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA5C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA5C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA5A.png"
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA5C.png"
 							]
 						},
 						"n": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA7A.png",
 								"res://assets/sprites/german_soldier/fire_standing/GSFIA7B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA7C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA7C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA7A.png"
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA7C.png"
 							]
 						},
 						"ne": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA6A.png",
 								"res://assets/sprites/german_soldier/fire_standing/GSFIA6B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA6C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA6C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA6A.png"
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA6C.png"
 							]
 						},
 						"nw": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA8A.png",
 								"res://assets/sprites/german_soldier/fire_standing/GSFIA8B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA8C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA8C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA8A.png"
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA8C.png"
 							]
 						},
 						"s": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA3A.png",
 								"res://assets/sprites/german_soldier/fire_standing/GSFIA3B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA3C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA3C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA3A.png"
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA3C.png"
 							]
 						},
 						"se": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA4A.png",
 								"res://assets/sprites/german_soldier/fire_standing/GSFIA4B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA4C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA4C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA4A.png"
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA4C.png"
 							]
 						},
 						"sw": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA2A.png",
 								"res://assets/sprites/german_soldier/fire_standing/GSFIA2B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA2C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA2C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA2A.png"
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA2C.png"
 							]
 						},
 						"w": {
 							"frames": [
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA1A.png",
 								"res://assets/sprites/german_soldier/fire_standing/GSFIA1B.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA1C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA1C.png",
-								"res://assets/sprites/german_soldier/fire_standing/GSFIA1A.png"
+								"res://assets/sprites/german_soldier/fire_standing/GSFIA1C.png"
 							]
 						}
 					},
@@ -2956,13 +2940,13 @@
 						"faction": "German",
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 3,
-						"notes": "Per-shot: aim B-C, hold aim (C), muzzle A. visual_shot_frame=A (last).",
+						"muzzle_flash_frame": 0,
+						"notes": "Per-shot A(flash)->B(settle)->C(aim). Hold ends on C (= aim-idle). ASFIA nw is A-B (no C).",
 						"sound_effect": "",
 						"source_family": "GSFIA",
 						"verification": "wired from sprite browser LC/RC fire families",
 						"verified": true,
-						"visual_shot_frame": 3.0,
+						"visual_shot_frame": 0,
 						"visual_shot_frame_letter": "A"
 					}
 				},
@@ -8537,66 +8521,58 @@
 					"directions": {
 						"e": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA5A.png",
 								"res://assets/sprites/us_soldier/fire_prone/APRFA5B.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA5C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA5C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA5A.png"
+								"res://assets/sprites/us_soldier/fire_prone/APRFA5C.png"
 							]
 						},
 						"n": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA7A.png",
 								"res://assets/sprites/us_soldier/fire_prone/APRFA7B.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA7C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA7C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA7A.png"
+								"res://assets/sprites/us_soldier/fire_prone/APRFA7C.png"
 							]
 						},
 						"ne": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA6A.png",
 								"res://assets/sprites/us_soldier/fire_prone/APRFA6B.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA6C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA6C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA6A.png"
+								"res://assets/sprites/us_soldier/fire_prone/APRFA6C.png"
 							]
 						},
 						"nw": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA8A.png",
 								"res://assets/sprites/us_soldier/fire_prone/APRFA8B.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA8C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA8C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA8A.png"
+								"res://assets/sprites/us_soldier/fire_prone/APRFA8C.png"
 							]
 						},
 						"s": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA3A.png",
 								"res://assets/sprites/us_soldier/fire_prone/APRFA3B.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA3C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA3C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA3A.png"
+								"res://assets/sprites/us_soldier/fire_prone/APRFA3C.png"
 							]
 						},
 						"se": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA4A.png",
 								"res://assets/sprites/us_soldier/fire_prone/APRFA4B.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA4C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA4C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA4A.png"
+								"res://assets/sprites/us_soldier/fire_prone/APRFA4C.png"
 							]
 						},
 						"sw": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA2A.png",
 								"res://assets/sprites/us_soldier/fire_prone/APRFA2B.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA2C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA2C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA2A.png"
+								"res://assets/sprites/us_soldier/fire_prone/APRFA2C.png"
 							]
 						},
 						"w": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_prone/APRFA1A.png",
 								"res://assets/sprites/us_soldier/fire_prone/APRFA1B.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA1C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA1C.png",
-								"res://assets/sprites/us_soldier/fire_prone/APRFA1A.png"
+								"res://assets/sprites/us_soldier/fire_prone/APRFA1C.png"
 							]
 						}
 					},
@@ -8608,13 +8584,13 @@
 						"faction": "American",
 						"footstep_frame": -1,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 3,
-						"notes": "Per-shot: aim B-C, hold aim (C), muzzle A. visual_shot_frame=A (last).",
+						"muzzle_flash_frame": 0,
+						"notes": "Per-shot A(flash)->B(settle)->C(aim). Hold ends on C (= aim-idle). ASFIA nw is A-B (no C).",
 						"sound_effect": "",
 						"source_family": "APRFA",
 						"verification": "manually confirmed by user",
 						"verified": true,
-						"visual_shot_frame": 3.0,
+						"visual_shot_frame": 0,
 						"visual_shot_frame_letter": "A"
 					}
 				},
@@ -8622,65 +8598,57 @@
 					"directions": {
 						"e": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA5A.png",
 								"res://assets/sprites/us_soldier/fire_standing/ASFIA5B.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA5C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA5C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA5A.png"
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA5C.png"
 							]
 						},
 						"n": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA7A.png",
 								"res://assets/sprites/us_soldier/fire_standing/ASFIA7B.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA7C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA7C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA7A.png"
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA7C.png"
 							]
 						},
 						"ne": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA6A.png",
 								"res://assets/sprites/us_soldier/fire_standing/ASFIA6B.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA6C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA6C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA6A.png"
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA6C.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA8B.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA8B.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA8A.png"
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA8A.png",
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA8B.png"
 							]
 						},
 						"s": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA3A.png",
 								"res://assets/sprites/us_soldier/fire_standing/ASFIA3B.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA3C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA3C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA3A.png"
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA3C.png"
 							]
 						},
 						"se": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA4A.png",
 								"res://assets/sprites/us_soldier/fire_standing/ASFIA4B.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA4C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA4C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA4A.png"
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA4C.png"
 							]
 						},
 						"sw": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA2A.png",
 								"res://assets/sprites/us_soldier/fire_standing/ASFIA2B.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA2C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA2C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA2A.png"
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA2C.png"
 							]
 						},
 						"w": {
 							"frames": [
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA1A.png",
 								"res://assets/sprites/us_soldier/fire_standing/ASFIA1B.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA1C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA1C.png",
-								"res://assets/sprites/us_soldier/fire_standing/ASFIA1A.png"
+								"res://assets/sprites/us_soldier/fire_standing/ASFIA1C.png"
 							]
 						}
 					},
@@ -8692,13 +8660,13 @@
 						"faction": "American",
 						"footstep_frame": -1,
 						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": 3,
-						"notes": "Per-shot: aim B-C, hold aim (C), muzzle A. visual_shot_frame=A (last).",
+						"muzzle_flash_frame": 0,
+						"notes": "Per-shot A(flash)->B(settle)->C(aim). Hold ends on C (= aim-idle). ASFIA nw is A-B (no C).",
 						"sound_effect": "",
 						"source_family": "ASFIA",
 						"verification": "manually confirmed by user",
 						"verified": true,
-						"visual_shot_frame": 3.0,
+						"visual_shot_frame": 0,
 						"visual_shot_frame_letter": "A"
 					}
 				},
