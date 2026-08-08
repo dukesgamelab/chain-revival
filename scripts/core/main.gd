@@ -2934,13 +2934,8 @@ func _sync_views_after_load() -> void:
 				soldier_state.team_id == _session.active_team_id
 				and soldier_state.soldier_id == _control_fireteam().selected_soldier_id
 			)
-			var show_id := (
-				soldier_state.is_alive()
-				and _session.can_local_control_soldier(
-					soldier_state.team_id, soldier_state.soldier_id
-				)
-			)
-			view.sync_from_state(soldier_state, is_selected, Soldier.FogVisual.REVEALED, show_id)
+			## One path with idle_peek_side — do not call sync_from_state with PeekSide.NONE default.
+			_sync_soldier_view(soldier_state.team_id, soldier_state.soldier_id, is_selected)
 
 	_iso_map.clear_path()
 	_command_bar.clear_move_targeting()

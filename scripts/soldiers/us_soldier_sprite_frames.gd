@@ -2,7 +2,7 @@ class_name UsSoldierSpriteFrames
 extends RefCounted
 ## Proven OG soldier sprite families (US + German mirrors).
 ##
-##   Walk:              ASMOA / GSMOA  (A–H)
+##   Walk:              ASMOA / GSMOA  (A–G; H exists on disk but is outside the loop)
 ##   Hit standing (US): AHTFA          (A–S)  → hit_standing_*
 ##   Hit prone (US):    AHTLA          (A–W)  → hit_prone_*
 ##   Hit (German):      GHTLA          (A–W)  → hit_*
@@ -16,7 +16,7 @@ extends RefCounted
 ##   Idle corner L/R:   ALCIS·ARCIS / GLCIS·GRCIS (A) → corner_idle_left_* / corner_idle_right_*
 ##   Aim corner L/R:    ALCAS·ARCAS / GLCAS·GRCAS (A) → corner_aim_left_* / corner_aim_right_*
 ##   Peek corner L/R:   ALCPA·ARCPA / GLCPA·GRCPA (A–C) → corner_peek_left_* / corner_peek_right_*
-##   Idle prone:        APRIS / GPRIS  (A)    → idle_prone_*
+##   Idle prone:        APIDS / GPIDS  (A)    → idle_prone_*
 ##   Stand↔prone:       APRNA / GPRNA  (E-A-B-C-D up; D-C-B-A-E down) → transition_*
 ##   Crawl:             APMOA / GPMOA  (A–V)  → crawl_*
 ##   (ASUPA/GSUPA were previously mis-mapped as stand→prone; packs retained, unused here.)
@@ -48,8 +48,10 @@ const HIT_PREFIX_GER := "GHTLA"
 const FALL_PREFIX_GER := "GFALA"
 const DEAD_PREFIX_GER := "GDFUS"
 
+## Emergency fallbacks only — walk letter range is derived from AnimationDatabase.
+## Must match the empirical 7-frame loop (A–G); do not set LAST to H.
 const WALK_FRAME_FIRST := "A"
-const WALK_FRAME_LAST := "H"
+const WALK_FRAME_LAST := "G"
 const HIT_FRAME_FIRST := "A"
 const HIT_FRAME_LAST := "W"
 const FALL_FRAME_FIRST := "A"
@@ -92,6 +94,8 @@ static func reload_cached_frames() -> void:
 
 
 static func _load_faction_frames(is_usa: bool) -> SpriteFrames:
+	## Single source of truth: AnimationDatabase. Legacy pack builder is emergency-only
+	## and derives walk A–G from the DB so constants cannot silently disagree.
 	if USE_ANIMATION_DATABASE:
 		var family_id := DB_FAMILY_USA if is_usa else DB_FAMILY_GERMANY
 		AnimationDatabase.ensure_loaded()
@@ -110,6 +114,7 @@ static func _load_faction_frames(is_usa: bool) -> SpriteFrames:
 			DEAD_SPRITES_DIR_USA,
 			DEAD_PREFIX_USA,
 			"USA",
+			true,
 		)
 	return _build_sprite_frames(
 		WALK_SPRITES_DIR_GER,
@@ -121,7 +126,26 @@ static func _load_faction_frames(is_usa: bool) -> SpriteFrames:
 		DEAD_SPRITES_DIR_GER,
 		DEAD_PREFIX_GER,
 		"Germany",
+		false,
 	)
+
+
+## Walk letter range from DB walk frames (direction e). Falls back to WALK_FRAME_* constants.
+static func _walk_letter_range_from_db(is_usa: bool) -> PackedStringArray:
+	var family_id := DB_FAMILY_USA if is_usa else DB_FAMILY_GERMANY
+	AnimationDatabase.ensure_loaded()
+	var frames := AnimationDatabase.get_direction_frames(family_id, "walk", "e")
+	if frames.size() >= 1:
+		var first_path := str(frames[0])
+		var last_path := str(frames[frames.size() - 1])
+		var first_base := first_path.get_file().get_basename()
+		var last_base := last_path.get_file().get_basename()
+		if first_base.length() >= 1 and last_base.length() >= 1:
+			return PackedStringArray([
+				first_base.substr(first_base.length() - 1, 1),
+				last_base.substr(last_base.length() - 1, 1),
+			])
+	return PackedStringArray([WALK_FRAME_FIRST, WALK_FRAME_LAST])
 
 
 ## Map a grid step or 8-way facing vector to an OG direction suffix (w, sw, …).
@@ -182,9 +206,13 @@ static func _build_sprite_frames(
 	dead_dir: String,
 	dead_prefix: String,
 	faction_label: String,
+	is_usa: bool = true,
 ) -> SpriteFrames:
 	var sprite_frames := SpriteFrames.new()
 	var missing_total := 0
+	var walk_letters := _walk_letter_range_from_db(is_usa)
+	var walk_first := str(walk_letters[0])
+	var walk_last := str(walk_letters[1])
 
 	for i in _DIRECTION_SUFFIXES.size():
 		var suffix: String = _DIRECTION_SUFFIXES[i]
@@ -195,8 +223,8 @@ static func _build_sprite_frames(
 			"walk_%s" % suffix,
 			walk_dir,
 			"%s%d" % [walk_prefix, digit],
-			WALK_FRAME_FIRST,
-			WALK_FRAME_LAST,
+			walk_first,
+			walk_last,
 			WALK_FPS,
 		)
 		missing_total += _add_oneshot_animation(

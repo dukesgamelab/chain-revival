@@ -15,8 +15,10 @@ func _ready() -> void:
 	AnimationDatabase.reload()
 	_test_no_coc_soldiers_in_db()
 	_test_every_frame_path_exists()
-	_test_no_empty_anims_except_fire()
+	_test_no_empty_anims()
 	_test_eight_dirs_equal_frame_counts()
+	_test_walk_seven_frames()
+	_test_sync_from_state_passes_idle_peek()
 	print("")
 	print("Animation database path tests: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -106,8 +108,8 @@ func _test_every_frame_path_exists() -> void:
 		print("[INFO] checked %d frame paths" % checked)
 
 
-func _test_no_empty_anims_except_fire() -> void:
-	## Phase 2: every animation must have frames, except the empty `fire` slot (Phase 3d).
+func _test_no_empty_anims() -> void:
+	## Phase 3d: every animation must have frames (empty `fire` slot removed).
 	var empty: Array[String] = []
 	var file := FileAccess.open(DB_PATH, FileAccess.READ)
 	if file == null:
@@ -126,8 +128,6 @@ func _test_no_empty_anims_except_fire() -> void:
 		if not anims is Dictionary:
 			continue
 		for anim_id in (anims as Dictionary).keys():
-			if str(anim_id) == "fire":
-				continue
 			var anim: Variant = (anims as Dictionary)[anim_id]
 			if not anim is Dictionary:
 				continue
@@ -144,9 +144,59 @@ func _test_no_empty_anims_except_fire() -> void:
 			if total == 0:
 				empty.append("%s/%s" % [fam_id, anim_id])
 	_assert(
-		"no family has zero-frame anims except fire",
+		"no family has zero-frame anims",
 		empty.is_empty(),
 		"empty=%s" % str(empty),
+	)
+
+
+func _test_walk_seven_frames() -> void:
+	## Empirical loop boundary: A–G (7). Frame H is on disk but outside the walk loop.
+	for fam_id in [
+		"us_rifle", "us_smg", "us_bar", "german_rifle", "german_smg", "german_mg42"
+	]:
+		var ok := true
+		var detail := ""
+		for direction in ["n", "ne", "e", "se", "s", "sw", "w", "nw"]:
+			var frames := AnimationDatabase.get_direction_frames(fam_id, "walk", direction)
+			if frames.size() != 7:
+				ok = false
+				detail = "%s/%s size=%d" % [fam_id, direction, frames.size()]
+				break
+			var last := str(frames[frames.size() - 1]).get_file().get_basename()
+			if not last.ends_with("G"):
+				ok = false
+				detail = "%s/%s last=%s expected …G" % [fam_id, direction, last]
+				break
+		_assert("%s walk has 7 frames (A–G) in all 8 directions" % fam_id, ok, detail)
+
+
+func _test_sync_from_state_passes_idle_peek() -> void:
+	## Phase 3c: every sync_from_state call site must pass idle_peek_side (5th arg).
+	var path := "res://scripts/core/main.gd"
+	if not FileAccess.file_exists(path):
+		_assert("main.gd exists for sync_from_state check", false, "missing")
+		return
+	var text := FileAccess.get_file_as_string(path)
+	var bad: Array[String] = []
+	var search_from := 0
+	while true:
+		var idx := text.find("sync_from_state(", search_from)
+		if idx < 0:
+			break
+		var close := text.find(")", idx)
+		if close < 0:
+			break
+		var call := text.substr(idx, close - idx + 1)
+		## Count commas outside nested parens roughly — require 4 commas (5 args).
+		var commas := call.count(",")
+		if commas < 4:
+			bad.append(call.replace("\n", " ").strip_edges())
+		search_from = close + 1
+	_assert(
+		"no sync_from_state call site omits idle_peek_side",
+		bad.is_empty(),
+		"bad=%s" % str(bad),
 	)
 
 

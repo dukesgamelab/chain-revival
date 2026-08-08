@@ -301,13 +301,13 @@ func _validate_german_idles() -> Array[String]:
 	var prone := AnimationDatabase.get_animation("german_rifle", "idle_prone")
 	if str(standing.get("metadata", {}).get("source_family", "")) != "GBRLA":
 		fails.append("german idle_standing source drift")
-	if str(prone.get("metadata", {}).get("source_family", "")) != "GPRIS":
+	if str(prone.get("metadata", {}).get("source_family", "")) != "GPIDS":
 		fails.append("german idle_prone source drift")
 	var usa_prone := AnimationDatabase.get_animation("us_rifle", "idle_prone")
 	if usa_prone.is_empty():
-		fails.append("us_rifle idle_prone (APRIS) missing")
-	elif str(usa_prone.get("metadata", {}).get("source_family", "")) != "APRIS":
-		fails.append("us_rifle idle_prone source_family expected APRIS")
+		fails.append("us_rifle idle_prone (APIDS) missing")
+	elif str(usa_prone.get("metadata", {}).get("source_family", "")) != "APIDS":
+		fails.append("us_rifle idle_prone source_family expected APIDS")
 	else:
 		for direction in DIRS:
 			var frames := AnimationDatabase.get_direction_frames("us_rifle", "idle_prone", direction)
@@ -315,7 +315,7 @@ func _validate_german_idles() -> Array[String]:
 				fails.append("us_rifle idle_prone %s frames=%d" % [direction, frames.size()])
 				continue
 			var digit := _digit_for_direction(direction)
-			if str(frames[0]).get_file() != "APRIS%dA.png" % digit:
+			if str(frames[0]).get_file() != "APIDS%dA.png" % digit:
 				fails.append(
 					"us_rifle idle_prone %s got %s" % [direction, str(frames[0]).get_file()]
 				)

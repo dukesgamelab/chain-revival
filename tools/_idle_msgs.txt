@@ -1,0 +1,684 @@
+LINE 653
+<timestamp>Monday, Jul 20, 2026, 11:57 PM (UTC-4)</timestamp>
+<user_query>
+Implement the two manually verified US hit-reaction animation families using the existing Chain Revival animation system.
+
+Confirmed mappings:
+
+1. US standing hit reaction
+- Semantic name: hit_standing
+- Source family: AHTFA
+- Faction: American
+- Category: us_soldier/hit_reaction
+- Loop: false
+- Verification: manually confirmed by the user
+
+2. US laying/prone hit reaction
+- Semantic name: hit_prone
+- Source family: AHTLA
+- Faction: American
+- Category: us_soldier/hit_reaction
+- Loop: false
+- Verification: manually confirmed by the user
+
+Original CoC direction mapping:
+
+1 = W
+2 = SW
+3 = S
+4 = SE
+5 = E
+6 = NE
+7 = N
+8 = NW
+
+Important:
+
+The project already has working world-facing, camera rotation, direction resolution, and sprite-frame handling.
+
+Reuse the existing direction pipeline.
+
+Do not:
+
+- create new direction math
+- manually rotate textures
+- manually flip textures
+- change working movement direction behavior
+- create a parallel animation system
+- substitute idle or walking animations when a hit frame is missing
+
+Use every available direction and all ordered frames belonging to:
+
+- AHTFA for hit_standing
+- AHTLA for hit_prone
+
+Resolve those families through the project’s existing AnimationDatabase and sprite-frame loader.
+
+Runtime behavior:
+
+- If a living US soldier is hit while standing or kneeling:
+  - play hit_standing once
+  - block idle and locomotion from replacing it before completion
+  - return to the correct current stance idle afterward if the soldier survives
+
+- If a living US soldier is hit while prone/down:
+  - play hit_prone once
+  - block idle and crawl animations until completion
+  - return to prone idle afterward if the soldier survives
+
+- If the hit is fatal:
+  - choose hit_standing or hit_prone based on the soldier’s stance at impact
+  - play the hit reaction
+  - continue into the existing fall/death/dead-state flow
+  - never return to idle
+
+Animation selection should 
+
+====
+
+LINE 1365
+<timestamp>Friday, Jul 24, 2026, 3:47 AM (UTC-4)</timestamp>
+<user_query>
+Cursor Task — Phase 1: Match Setup (1v1 / 2v2)
+
+Implement the first phase of the new match flow using the existing project architecture. Reuse existing systems wherever possible. Do not create duplicate game-state, player, or scene-management systems.
+
+Goal
+
+Before gameplay begins, the player should be able to choose:
+
+Single Player
+Multiplayer
+
+Then choose:
+
+1v1
+2v2
+
+Then start Farm Fight with the proper players assigned.
+
+This phase is only responsible for creating the correct match configuration.
+
+No AI behavior, commander hierarchy, networking, deployment logic, or victory conditions yet.
+
+Existing architecture
+
+Please inspect and reuse the current systems before writing new code.
+
+Notably:
+
+GameState
+CommandRouter
+ActionResolver
+player/team ownership
+fireteam spawning
+existing AI folder (scripts/ai/)
+map loading
+deployment/start flow
+
+Extend existing code instead of replacing it.
+
+Match Configuration
+
+Create a lightweight MatchConfig object containing:
+
+game mode
+Single Player
+Multiplayer
+match type
+1v1
+2v2
+selected map
+Farm Fight (only for now)
+player slots
+
+Each slot should contain:
+
+player id
+team
+controller type
+
+Controller types:
+
+Human
+AI
+Open (reserved for multiplayer)
+Supported configurations
+Single Player
+1v1
+
+USA
+
+Human
+
+Germany
+
+AI
+2v2
+
+USA
+
+Human
+AI
+
+Germany
+
+AI
+AI
+
+Allow the player to switch sides before starting.
+
+Multiplayer
+1v1
+
+USA
+
+Human/Open
+
+Germany
+
+Human/Open
+2v2
+
+USA
+
+Human/Open
+Human/Open
+
+Germany
+
+Human/Open
+Human/Open
+
+Networking is NOT implemented yet.
+
+Simply create the slot configuration.
+
+Main Menu
+
+Update the existing main menu to include:
+
+Single Player
+Multiplayer
+Quit
+
+Selecting Single Player or Multiplayer opens the new Match Setup screen.
+
+Keep the current UI style.
+
+Match Setup Screen
+
+Display:
+
+Match Type
+
+1v1
+2v2
+
+Map
+
+Farm Fight
+
+Player Assignment
+
+Example:
+
+USA
+
+Player 1 — Human
+
+Player 2 — AI
+
+Germany
+
+Player 1 — AI
+
+Player 2 — AI
+
+Hide the second
+
+====
+
+LINE 1376
+<timestamp>Friday, Jul 24, 2026, 3:47 AM (UTC-4)</timestamp>
+<user_query>
+Cursor Task — Phase 1: Match Setup (1v1 / 2v2)
+
+Implement the first phase of the new match flow using the existing project architecture. Reuse existing systems wherever possible. Do not create duplicate game-state, player, or scene-management systems.
+
+Goal
+
+Before gameplay begins, the player should be able to choose:
+
+Single Player
+Multiplayer
+
+Then choose:
+
+1v1
+2v2
+
+Then start Farm Fight with the proper players assigned.
+
+This phase is only responsible for creating the correct match configuration.
+
+No AI behavior, commander hierarchy, networking, deployment logic, or victory conditions yet.
+
+Existing architecture
+
+Please inspect and reuse the current systems before writing new code.
+
+Notably:
+
+GameState
+CommandRouter
+ActionResolver
+player/team ownership
+fireteam spawning
+existing AI folder (scripts/ai/)
+map loading
+deployment/start flow
+
+Extend existing code instead of replacing it.
+
+Match Configuration
+
+Create a lightweight MatchConfig object containing:
+
+game mode
+Single Player
+Multiplayer
+match type
+1v1
+2v2
+selected map
+Farm Fight (only for now)
+player slots
+
+Each slot should contain:
+
+player id
+team
+controller type
+
+Controller types:
+
+Human
+AI
+Open (reserved for multiplayer)
+Supported configurations
+Single Player
+1v1
+
+USA
+
+Human
+
+Germany
+
+AI
+2v2
+
+USA
+
+Human
+AI
+
+Germany
+
+AI
+AI
+
+Allow the player to switch sides before starting.
+
+Multiplayer
+1v1
+
+USA
+
+Human/Open
+
+Germany
+
+Human/Open
+2v2
+
+USA
+
+Human/Open
+Human/Open
+
+Germany
+
+Human/Open
+Human/Open
+
+Networking is NOT implemented yet.
+
+Simply create the slot configuration.
+
+Main Menu
+
+Update the existing main menu to include:
+
+Single Player
+Multiplayer
+Quit
+
+Selecting Single Player or Multiplayer opens the new Match Setup screen.
+
+Keep the current UI style.
+
+Match Setup Screen
+
+Display:
+
+Match Type
+
+1v1
+2v2
+
+Map
+
+Farm Fight
+
+Player Assignment
+
+Example:
+
+USA
+
+Player 1 — Human
+
+Player 2 — AI
+
+Germany
+
+Player 1 — AI
+
+Player 2 — AI
+
+Hide the second
+
+====
+
+LINE 2203
+<timestamp>Saturday, Jul 25, 2026, 4:12 PM (UTC-4)</timestamp>
+<user_query>
+# Cursor Task — Add corner idle + corner fire animations (US & German rifle)
+
+Add the missing corner-peek animations to `us_rifle` and `german_rifle` in
+`assets/data/animation_database.json`, sourced from the recovered assets. These families currently
+have no corner/peek animation — that's the gap.
+
+## Inputs provided
+- `recovered_assets.zip` — extracted sprites in `recovered_assets/all/`, named
+  `magall_<idx>_<FAMILY><dir><frame>.png` (e.g. `magall_01218_ALPKA1A.png`).
+- Target file: `assets/data/animation_database.json` (single source of truth, edited by the Animation
+  editor `asset_animation_editor_app.gd`).
+
+## Recovered families → what they are (CONFIRMED from the MDL binding table)
+| Family | Faction | Meaning | Frames/dir |
+|---|---|---|---|
+| `ALPK` | US | Left peek (lean around left edge) | 16 |
+| `ARPK` | US | Right peek (lean around right edge) | 16 |
+| `APKN` | US | Kneeling peek | 8 |
+| `GLPK` | German | Left peek | 16 |
+| `GRPK` | German | Right peek | 16 |
+| `GPKN` | German | Kneeling peek | 8 |
+
+Filename encodes `{FAMILY}{DIR}{FRAME}`: DIR digit 1..8, FRAME letter A,B,C… in order.
+Use the existing `soldier_digit_to_direction` map in animation_database.json to convert the DIR digit
+to the direction key (e/n/ne/nw/s/se/sw/w). Frames are ordered by the trailing letter (A=first).
+
+## Idle vs fire split (ONE 16-frame arc → two clips)
+Each 16-frame peek is a single lean-out→fire→return arc. Split it into two animations the game can
+use, matching the existing `idle_*` / `fire_*` convention:
+- **corner_idle_left / corner_idle_right** = the EARLY hold frames (tucked behind corner, weapon not
+  yet extended). Use roughly frames A–D. `loop: true`, low fps.
+- **corner_fire_left / corner_fire_right** = the lean-out through firing frames (weapon extended past
+  the edge, muzzle clear). Use roughly frames E–P. `loop: false`, fps ~12, set
+  `metadata.muzzle_flash_frame` to the frame where 
+
+====
+
+LINE 2209
+<timestamp>Saturday, Jul 25, 2026, 4:12 PM (UTC-4)</timestamp>
+<user_query>
+# Cursor Task — Add corner idle + corner fire animations (US & German rifle)
+
+Add the missing corner-peek animations to `us_rifle` and `german_rifle` in
+`assets/data/animation_database.json`, sourced from the recovered assets. These families currently
+have no corner/peek animation — that's the gap.
+
+## Inputs provided
+- `recovered_assets.zip` — extracted sprites in `recovered_assets/all/`, named
+  `magall_<idx>_<FAMILY><dir><frame>.png` (e.g. `magall_01218_ALPKA1A.png`).
+- Target file: `assets/data/animation_database.json` (single source of truth, edited by the Animation
+  editor `asset_animation_editor_app.gd`).
+
+## Recovered families → what they are (CONFIRMED from the MDL binding table)
+| Family | Faction | Meaning | Frames/dir |
+|---|---|---|---|
+| `ALPK` | US | Left peek (lean around left edge) | 16 |
+| `ARPK` | US | Right peek (lean around right edge) | 16 |
+| `APKN` | US | Kneeling peek | 8 |
+| `GLPK` | German | Left peek | 16 |
+| `GRPK` | German | Right peek | 16 |
+| `GPKN` | German | Kneeling peek | 8 |
+
+Filename encodes `{FAMILY}{DIR}{FRAME}`: DIR digit 1..8, FRAME letter A,B,C… in order.
+Use the existing `soldier_digit_to_direction` map in animation_database.json to convert the DIR digit
+to the direction key (e/n/ne/nw/s/se/sw/w). Frames are ordered by the trailing letter (A=first).
+
+## Idle vs fire split (ONE 16-frame arc → two clips)
+Each 16-frame peek is a single lean-out→fire→return arc. Split it into two animations the game can
+use, matching the existing `idle_*` / `fire_*` convention:
+- **corner_idle_left / corner_idle_right** = the EARLY hold frames (tucked behind corner, weapon not
+  yet extended). Use roughly frames A–D. `loop: true`, low fps.
+- **corner_fire_left / corner_fire_right** = the lean-out through firing frames (weapon extended past
+  the edge, muzzle clear). Use roughly frames E–P. `loop: false`, fps ~12, set
+  `metadata.muzzle_flash_frame` to the frame where 
+
+====
+
+LINE 2287
+<timestamp>Saturday, Jul 25, 2026, 11:58 PM (UTC-4)</timestamp>
+<user_query>
+# Cursor Task — FIX corner animations: use the correct C** families, dedupe
+
+The previous pass used the wrong source families and left duplicates. This corrects both, for
+`us_rifle` AND `german_rifle` in `assets/data/animation_database.json`. Source = `recovered_assets.zip`
+(`recovered_assets/all/magall_<idx>_<NAME>.png`).
+
+## The CORRECT source families (confirmed by frame structure)
+Prefix = `{A|G}{L|R}C{POSE}` → faction · Left/Right · Corner · pose.
+| Family | Frames | Meaning | Maps to game anim |
+|---|---|---|---|
+| `**CIS` | 8 (1/dir) | Corner **Idle** Static (tucked behind corner) | corner_idle_* |
+| `**CAS` | 8 (1/dir) | Corner **Aim** Static (aim hold) | (optional) corner_aim_* |
+| `**CFA` | 24 (3/dir) | Corner **Fire** Action (lean out + MUZZLE FLASH) | corner_fire_* |
+| `**CPA` | 24 (3/dir) | Corner **Peek** Action (lean-out motion, no fire) | (optional) corner_peek_* |
+Where `**` = `AL`(US left), `AR`(US right), `GL`(GE left), `GR`(GE right).
+
+8-frame families = one sprite per direction (static). 24-frame = 8 dirs × 3 frames (animated: the
+trailing letter A/B/C is the frame). Use the existing `soldier_digit_to_direction` map for the DIR
+digit; order animated frames by trailing letter.
+
+**Do NOT use ALPK/ARPK/APKN** — those are a different set and were the wrong choice before.
+
+## Step 1 — Remove the incorrect/duplicate entries
+In BOTH `us_rifle` and `german_rifle`, delete these if present (leftovers from the bad pass):
+`fire_corner_left`, `fire_corner_right`, `idle_corner_left`, `idle_corner_right`,
+`corner_idle_kneel`, `corner_fire_kneel` (no kneeling corner family exists in the C** set — drop it).
+Keep exactly the four below after repopulating them.
+
+## Step 2 — Populate the correct four (per faction)
+Rebuild these with frames from the C** families, all 8 directions:
+- `corner_idle_left`  ← `{AL|GL}CIS` (8 static, loop:true, fps ~4)
+- `corner_idle_right` ← `{AR|GR}CIS`
+- `corn
+
+====
+
+LINE 2556
+<timestamp>Sunday, Jul 26, 2026, 5:12 AM (UTC-4)</timestamp>
+<user_query>
+Inspect the existing animation system before changing anything.
+
+This is NOT an animation-system rewrite.
+
+The goal is to match the original Chain of Command standing idle behavior.
+
+============================================================
+OBSERVED ORIGINAL BEHAVIOR
+============================================================
+
+The original game does NOT continuously play a standing idle animation.
+
+Instead:
+
+- Soldiers remain on a static standing pose almost all of the time.
+- Occasionally a single soldier performs a very small fidget.
+- The animation finishes.
+- The soldier returns to exactly the same standing pose.
+- Different soldiers idle independently.
+- Entire fireteams do not idle together.
+- There is never a continuously looping idle animation.
+
+Implement this behavior.
+
+============================================================
+STATIC STANDING
+============================================================
+
+The default standing pose should be the verified standing frame:
+
+USA
+
+ABRLA frame A
+
+Germany
+
+GBRLA frame A
+
+This is the permanent standing pose whenever no temporary presentation
+animation is active.
+
+Do NOT replay this animation continuously.
+
+Treat it as a held pose.
+
+============================================================
+IDLE FIDGETS
+============================================================
+
+Create presentation-only standing fidgets using explicit frame lists.
+
+Do NOT simply play ABRLA A-U.
+
+Do NOT use alphabetical playback.
+
+Use these explicit sequences.
+
+Fidget 1
+
+USA
+
+B C B
+
+Germany
+
+B C B
+
+--------------------------------
+
+Fidget 2
+
+USA
+
+G H I J I H G
+
+Germany
+
+G H I J I H G
+
+--------------------------------
+
+Fidget 3
+
+USA
+
+K L M N M L K
+
+Germany
+
+K L M N M L K
+
+--------------------------------
+
+Fidget 4
+
+USA
+
+O P Q R Q P O
+
+Germany
+
+O P Q R Q P O
+
+============================================================
+DO NOT USE
+==========================================
+
+====
+
+LINE 3482
+<timestamp>Saturday, Aug 8, 2026, 3:23 AM (UTC-4)</timestamp>
+<user_query>
+# Cursor Prompt — Animation corrections (revert walk, fix duplicate source of truth, diagnose idle)
+
+A previous phase changed the walk cycle from 7 frames to 8. **That change was wrong and must be
+reverted.** This prompt reverts it, removes the duplicate definition that let the two disagree,
+and asks you to diagnose a regression I cannot diagnose from data alone.
+
+---
+
+## Evidence for the revert (do not re-litigate this)
+
+The original game's data files do **not** contain a recoverable per-animation playback list — the
+`iFrame` objects in the model database are bulk frame storage that runs across direction
+boundaries, not animation definitions. The loop boundary was therefore determined empirically
+from the original sprite art, by measuring changed-pixel counts between consecutive frames:
+
+| transition | US (median over 8 dirs) | German |
+|---|---|---|
+| typical mid-cycle step | ~420 | ~430 |
+| `G → H` | ~530 | ~550 |
+| `H → A` (wrap if 8 frames) | ~540 | ~550 |
+| `G → A` (wrap if 7 frames) | **~330** | **~320** |
+
+A clean walk cycle wraps on a step no larger than a typical mid-cycle step. With 7 frames the
+wrap is the *smallest* transition in the sequence. With 8 it is one of the largest, producing a
+visible hitch twice per cycle. **This held for all 8 directions in both nations — 16 of 16.**
+
+Frame `H` is not a settle-to-idle pose either (it is further from every idle asset than frame `A`
+is). It is simply outside the loop.
+
+---
+
+## Task 1 — Revert walk to 7 frames
+
+`walk` must use frames **A through G** (7 frames), dropping `H`, for:
+
+- `us_rifle`, `us_smg`, `us_bar` (stem `ASMOA`)
+- `german_rifle`, `german_smg`, `german_mg42` (stem `GSMOA`)
+
+in all 8 directions. Keep `fps` and `loop` as they are.
+
+Do **not** delete the `ASMOA*H` / `GSMOA*H` sprite files. They are legitimate assets from the
+original; they simply are not part of the walk loop.
+
+---
+
+## Task 2 — Remove the duplicate source of

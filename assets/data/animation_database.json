@@ -513,44 +513,6 @@
 						"sound_effect": ""
 					}
 				},
-				"fire": {
-					"directions": {
-						"e": {
-							"frames": []
-						},
-						"n": {
-							"frames": []
-						},
-						"ne": {
-							"frames": []
-						},
-						"nw": {
-							"frames": []
-						},
-						"s": {
-							"frames": []
-						},
-						"se": {
-							"frames": []
-						},
-						"sw": {
-							"frames": []
-						},
-						"w": {
-							"frames": []
-						}
-					},
-					"fps": 12.0,
-					"label": "Fire",
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
-						"sound_effect": ""
-					}
-				},
 				"hit": {
 					"directions": {
 						"e": {
@@ -1269,8 +1231,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA5D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA5E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA5F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA5G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA5H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA5G.png"
 							]
 						},
 						"n": {
@@ -1281,8 +1242,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA7D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA7E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA7F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA7G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA7H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA7G.png"
 							]
 						},
 						"ne": {
@@ -1293,8 +1253,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA6D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA6E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA6F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA6G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA6H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA6G.png"
 							]
 						},
 						"nw": {
@@ -1305,8 +1264,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA8D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA8E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA8F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA8G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA8H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA8G.png"
 							]
 						},
 						"s": {
@@ -1317,8 +1275,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA3D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA3E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA3F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA3G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA3H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA3G.png"
 							]
 						},
 						"se": {
@@ -1329,8 +1286,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA4D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA4E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA4F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA4G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA4H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA4G.png"
 							]
 						},
 						"sw": {
@@ -1341,8 +1297,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA2D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA2E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA2F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA2G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA2H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA2G.png"
 							]
 						},
 						"w": {
@@ -1353,8 +1308,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA1D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA1E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA1F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA1G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA1H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA1G.png"
 							]
 						}
 					},
@@ -2842,44 +2796,6 @@
 						"sound_effect": ""
 					}
 				},
-				"fire": {
-					"directions": {
-						"e": {
-							"frames": []
-						},
-						"n": {
-							"frames": []
-						},
-						"ne": {
-							"frames": []
-						},
-						"nw": {
-							"frames": []
-						},
-						"s": {
-							"frames": []
-						},
-						"se": {
-							"frames": []
-						},
-						"sw": {
-							"frames": []
-						},
-						"w": {
-							"frames": []
-						}
-					},
-					"fps": 12.0,
-					"label": "Fire",
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
-						"sound_effect": ""
-					}
-				},
 				"fire_prone": {
 					"directions": {
 						"e": {
@@ -3805,42 +3721,42 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS5A.png"
+								"res://assets/sprites/german_soldier/idle_prone/GPIDS5A.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS7A.png"
+								"res://assets/sprites/german_soldier/idle_prone/GPIDS7A.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS6A.png"
+								"res://assets/sprites/german_soldier/idle_prone/GPIDS6A.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS8A.png"
+								"res://assets/sprites/german_soldier/idle_prone/GPIDS8A.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS3A.png"
+								"res://assets/sprites/german_soldier/idle_prone/GPIDS3A.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS4A.png"
+								"res://assets/sprites/german_soldier/idle_prone/GPIDS4A.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS2A.png"
+								"res://assets/sprites/german_soldier/idle_prone/GPIDS2A.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_prone/GPRIS1A.png"
+								"res://assets/sprites/german_soldier/idle_prone/GPIDS1A.png"
 							]
 						}
 					},
@@ -3855,7 +3771,7 @@
 						"muzzle_flash_frame": -1.0,
 						"notes": "GPRIS wired as idle_prone",
 						"sound_effect": "",
-						"source_family": "GPRIS",
+						"source_family": "GPIDS",
 						"stance": "prone",
 						"verification": "specified by user for German stance system",
 						"verified": true
@@ -4354,8 +4270,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA5D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA5E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA5F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA5G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA5H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA5G.png"
 							]
 						},
 						"n": {
@@ -4366,8 +4281,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA7D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA7E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA7F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA7G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA7H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA7G.png"
 							]
 						},
 						"ne": {
@@ -4378,8 +4292,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA6D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA6E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA6F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA6G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA6H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA6G.png"
 							]
 						},
 						"nw": {
@@ -4390,8 +4303,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA8D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA8E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA8F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA8G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA8H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA8G.png"
 							]
 						},
 						"s": {
@@ -4402,8 +4314,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA3D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA3E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA3F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA3G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA3H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA3G.png"
 							]
 						},
 						"se": {
@@ -4414,8 +4325,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA4D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA4E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA4F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA4G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA4H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA4G.png"
 							]
 						},
 						"sw": {
@@ -4426,8 +4336,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA2D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA2E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA2F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA2G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA2H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA2G.png"
 							]
 						},
 						"w": {
@@ -4438,8 +4347,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA1D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA1E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA1F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA1G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA1H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA1G.png"
 							]
 						}
 					},
@@ -4924,44 +4832,6 @@
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
 						"notes": "",
-						"sound_effect": ""
-					}
-				},
-				"fire": {
-					"directions": {
-						"e": {
-							"frames": []
-						},
-						"n": {
-							"frames": []
-						},
-						"ne": {
-							"frames": []
-						},
-						"nw": {
-							"frames": []
-						},
-						"s": {
-							"frames": []
-						},
-						"se": {
-							"frames": []
-						},
-						"sw": {
-							"frames": []
-						},
-						"w": {
-							"frames": []
-						}
-					},
-					"fps": 12.0,
-					"label": "Fire",
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -5683,8 +5553,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA5D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA5E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA5F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA5G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA5H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA5G.png"
 							]
 						},
 						"n": {
@@ -5695,8 +5564,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA7D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA7E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA7F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA7G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA7H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA7G.png"
 							]
 						},
 						"ne": {
@@ -5707,8 +5575,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA6D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA6E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA6F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA6G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA6H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA6G.png"
 							]
 						},
 						"nw": {
@@ -5719,8 +5586,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA8D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA8E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA8F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA8G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA8H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA8G.png"
 							]
 						},
 						"s": {
@@ -5731,8 +5597,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA3D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA3E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA3F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA3G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA3H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA3G.png"
 							]
 						},
 						"se": {
@@ -5743,8 +5608,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA4D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA4E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA4F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA4G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA4H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA4G.png"
 							]
 						},
 						"sw": {
@@ -5755,8 +5619,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA2D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA2E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA2F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA2G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA2H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA2G.png"
 							]
 						},
 						"w": {
@@ -5767,8 +5630,7 @@
 								"res://assets/sprites/german_soldier/walk/GSMOA1D.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA1E.png",
 								"res://assets/sprites/german_soldier/walk/GSMOA1F.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA1G.png",
-								"res://assets/sprites/german_soldier/walk/GSMOA1H.png"
+								"res://assets/sprites/german_soldier/walk/GSMOA1G.png"
 							]
 						}
 					},
@@ -6247,44 +6109,6 @@
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1,
 						"notes": "",
-						"sound_effect": ""
-					}
-				},
-				"fire": {
-					"directions": {
-						"e": {
-							"frames": []
-						},
-						"n": {
-							"frames": []
-						},
-						"ne": {
-							"frames": []
-						},
-						"nw": {
-							"frames": []
-						},
-						"s": {
-							"frames": []
-						},
-						"se": {
-							"frames": []
-						},
-						"sw": {
-							"frames": []
-						},
-						"w": {
-							"frames": []
-						}
-					},
-					"fps": 12.0,
-					"label": "Fire",
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
@@ -8709,44 +8533,6 @@
 						"sound_effect": ""
 					}
 				},
-				"fire": {
-					"directions": {
-						"e": {
-							"frames": []
-						},
-						"n": {
-							"frames": []
-						},
-						"ne": {
-							"frames": []
-						},
-						"nw": {
-							"frames": []
-						},
-						"s": {
-							"frames": []
-						},
-						"se": {
-							"frames": []
-						},
-						"sw": {
-							"frames": []
-						},
-						"w": {
-							"frames": []
-						}
-					},
-					"fps": 12.0,
-					"label": "Fire",
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1,
-						"notes": "Stub — use Auto Detect to fill frames.",
-						"sound_effect": ""
-					}
-				},
 				"fire_prone": {
 					"directions": {
 						"e": {
@@ -10114,42 +9900,42 @@
 					"directions": {
 						"e": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_prone/APRIS5A.png"
+								"res://assets/sprites/us_soldier/idle_prone/APIDS5A.png"
 							]
 						},
 						"n": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_prone/APRIS7A.png"
+								"res://assets/sprites/us_soldier/idle_prone/APIDS7A.png"
 							]
 						},
 						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_prone/APRIS6A.png"
+								"res://assets/sprites/us_soldier/idle_prone/APIDS6A.png"
 							]
 						},
 						"nw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_prone/APRIS8A.png"
+								"res://assets/sprites/us_soldier/idle_prone/APIDS8A.png"
 							]
 						},
 						"s": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_prone/APRIS3A.png"
+								"res://assets/sprites/us_soldier/idle_prone/APIDS3A.png"
 							]
 						},
 						"se": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_prone/APRIS4A.png"
+								"res://assets/sprites/us_soldier/idle_prone/APIDS4A.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_prone/APRIS2A.png"
+								"res://assets/sprites/us_soldier/idle_prone/APIDS2A.png"
 							]
 						},
 						"w": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_prone/APRIS1A.png"
+								"res://assets/sprites/us_soldier/idle_prone/APIDS1A.png"
 							]
 						}
 					},
@@ -10164,7 +9950,7 @@
 						"muzzle_flash_frame": -1,
 						"notes": "APRIS wired as idle_prone (USA prone idle, 1 frame/dir).",
 						"sound_effect": "",
-						"source_family": "APRIS",
+						"source_family": "APIDS",
 						"stance": "prone",
 						"verification": "User-specified APRIS for USA laying-down idle.",
 						"verified": true
@@ -11227,44 +11013,6 @@
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1,
 						"notes": "",
-						"sound_effect": ""
-					}
-				},
-				"fire": {
-					"directions": {
-						"e": {
-							"frames": []
-						},
-						"n": {
-							"frames": []
-						},
-						"ne": {
-							"frames": []
-						},
-						"nw": {
-							"frames": []
-						},
-						"s": {
-							"frames": []
-						},
-						"se": {
-							"frames": []
-						},
-						"sw": {
-							"frames": []
-						},
-						"w": {
-							"frames": []
-						}
-					},
-					"fps": 12.0,
-					"label": "Fire",
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "Stub — use Auto Detect to fill frames.",
 						"sound_effect": ""
 					}
 				},
