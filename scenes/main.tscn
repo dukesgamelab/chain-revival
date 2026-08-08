@@ -29,9 +29,9 @@ script = ExtResource("4_camera")
 [node name="NetworkStatusHud" type="PanelContainer" parent="UI"]
 anchors_preset = 0
 offset_left = 8.0
-offset_top = 8.0
+offset_top = 66.0
 offset_right = 280.0
-offset_bottom = 64.0
+offset_bottom = 122.0
 script = ExtResource("10_network")
 
 [node name="Margin" type="MarginContainer" parent="UI/NetworkStatusHud"]

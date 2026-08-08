@@ -54,13 +54,15 @@ var _ger_score_total: int = 0
 
 
 func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	CocUiTheme.apply_to(self)
 	_apply_inset_wells()
 	_setup_chat_panel()
+	_setup_dev_tools()
 	var ui := get_parent()
 	if ui != null:
 		_status_hud = ui.get_node_or_null("StatusHud") as StatusHud
-	## Bottom-flush OG toolbar: height follows content (no dead strip under buttons).
+	## Bottom toolbar height follows content (no dead strip under buttons).
 	call_deferred("_snap_flush_to_bottom")
 	_squad_row.move_mode_toggled.connect(_on_squad_move_mode_toggled)
 	_squad_row.fire_at_toggled.connect(_on_squad_fire_at_toggled)
@@ -105,22 +107,79 @@ func _ready() -> void:
 	_refresh_deployment_stage_label(true)
 
 
-## Pin bar to the window bottom and shrink height to the real control content.
-func _snap_flush_to_bottom() -> void:
-	var panel := get_node_or_null("Panel") as Control
-	if panel == null:
+func _setup_dev_tools() -> void:
+	## Test-only strip (Save / Map Edit / …) — top-left, not part of the OG toolbar.
+	var score := %ScoreHud as Control
+	if score != null:
+		score.mouse_filter = Control.MOUSE_FILTER_STOP
+	var dev := %DevTools as Control
+	if dev == null:
 		return
-	var min_size := panel.get_combined_minimum_size()
-	var h := maxi(ceili(min_size.y), 1)
-	set_anchor(SIDE_LEFT, 0.0)
-	set_anchor(SIDE_TOP, 1.0)
-	set_anchor(SIDE_RIGHT, 1.0)
-	set_anchor(SIDE_BOTTOM, 1.0)
-	offset_left = 0.0
-	offset_right = 0.0
-	offset_bottom = 0.0
-	offset_top = -float(h)
-	grow_vertical = Control.GROW_DIRECTION_BEGIN
+	dev.mouse_filter = Control.MOUSE_FILTER_STOP
+	%SaveButton.tooltip_text = "DEV: save game state"
+	%LoadButton.tooltip_text = "DEV: load game state"
+	%MapSaveButton.tooltip_text = "DEV: save map objects"
+	%MapLoadButton.tooltip_text = "DEV: load map objects"
+	%MapEditButton.tooltip_text = "DEV: place/erase map objects"
+	_fit_dev_tools()
+
+
+func _fit_dev_tools() -> void:
+	## Defer so MapEditPanel show/hide has laid out before we measure.
+	call_deferred("_fit_dev_tools_now")
+
+
+func _fit_dev_tools_now() -> void:
+	const PAD := 8.0
+	const GAP := 4.0
+	var y := PAD
+	var score := %ScoreHud as Control
+	if score != null and is_instance_valid(score):
+		var score_min := score.get_combined_minimum_size()
+		score.offset_left = PAD
+		score.offset_top = y
+		score.offset_right = PAD + maxf(score_min.x, 1.0)
+		score.offset_bottom = y + maxf(score_min.y, 1.0)
+		y = score.offset_bottom + GAP
+	var dev := %DevTools as Control
+	if dev == null or not is_instance_valid(dev):
+		return
+	var min_size := dev.get_combined_minimum_size()
+	dev.offset_left = PAD
+	dev.offset_top = y
+	dev.offset_right = PAD + maxf(min_size.x, 1.0)
+	dev.offset_bottom = y + maxf(min_size.y, 1.0)
+
+
+## Pin bottom bar flush; left + chat share one height so their tops align.
+func _snap_flush_to_bottom() -> void:
+	var host := %BottomHost as Control
+	var left := %LeftPanel as Control
+	var chat := %ChatSide as Control
+	var chat_log := %ChatLog as Control
+	if host == null or left == null or chat == null:
+		return
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	## Keep chat log short enough that ChatSide can match LeftPanel height.
+	if chat_log != null:
+		chat_log.custom_minimum_size = Vector2(280, 56)
+		chat_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	chat.custom_minimum_size.y = 0.0
+	left.size_flags_vertical = Control.SIZE_FILL
+	chat.size_flags_vertical = Control.SIZE_FILL
+	var h := maxi(ceili(left.get_combined_minimum_size().y), 1)
+	host.set_anchor(SIDE_LEFT, 0.0)
+	host.set_anchor(SIDE_TOP, 1.0)
+	host.set_anchor(SIDE_RIGHT, 1.0)
+	host.set_anchor(SIDE_BOTTOM, 1.0)
+	host.offset_left = 0.0
+	host.offset_right = 0.0
+	host.offset_bottom = 0.0
+	host.offset_top = -float(h)
+	host.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fit_dev_tools()
 
 
 func set_active_team(team_id: int) -> void:
@@ -251,6 +310,7 @@ func clear_map_edit_mode() -> void:
 	_map_edit_active = false
 	%MapEditButton.set_pressed_no_signal(false)
 	%MapEditPanel.visible = false
+	_fit_dev_tools()
 	map_edit_mode_changed.emit(false)
 	_update_status()
 
@@ -259,10 +319,12 @@ func set_map_edit_active(is_active: bool) -> void:
 	if _map_edit_active == is_active:
 		%MapEditButton.set_pressed_no_signal(is_active)
 		%MapEditPanel.visible = is_active
+		_fit_dev_tools()
 		return
 	_map_edit_active = is_active
 	%MapEditButton.set_pressed_no_signal(is_active)
 	%MapEditPanel.visible = is_active
+	_fit_dev_tools()
 	if is_active:
 		clear_move_targeting()
 		clear_fire_at_mode()
