@@ -745,7 +745,7 @@ func _test_corner_peek_around_wall_end() -> void:
 
 
 func _test_corner_idle_at_wall_end() -> void:
-	## Corner idle needs a real aim cell and facing into that peeked corner.
+	## Cover-relative corner idle: standing at a wall tip/corner is enough (no aim required).
 	_bootstrap()
 	var map_data := MapDataClass.create_default()
 	for cell in map_data.get_object_cells():
@@ -757,41 +757,61 @@ func _test_corner_idle_at_wall_end() -> void:
 	var target_around := Vector2i(12, 11)
 	var face_toward := FacingDirection.toward_cell(soldier, target_around)
 
-	## No aim cell — never lean (avoids stacked teammates wrong-way poses).
+	## No aim cell — still lean when cover-relative geometry says BehindCorner.
 	var no_aim := CoverSystemClass.corner_idle_at_cell(soldier, face_toward, map_data)
 	_assert(
-		"Corner idle without aim stays standing",
-		not no_aim.is_corner,
-		"corner=%s side=%s" % [no_aim.is_corner, no_aim.peek_side],
+		"Corner idle without aim uses cover-relative corner",
+		no_aim.is_corner and no_aim.peek_side != CoverSystemClass.PeekSide.NONE,
+		"corner=%s side=%s cell=%s" % [no_aim.is_corner, no_aim.peek_side, no_aim.corner_cell],
 	)
 
 	var aim_peek := CoverSystemClass.corner_idle_at_cell(
 		soldier, face_toward, map_data, target_around
 	)
 	_assert(
-		"Corner idle with aim uses real shot peek",
+		"Corner idle with aim still resolves a corner",
 		aim_peek.is_corner and aim_peek.peek_side != CoverSystemClass.PeekSide.NONE,
 		"corner=%s side=%s face=%s" % [aim_peek.is_corner, aim_peek.peek_side, face_toward],
 	)
 
-	## Facing away from aim — no lean even if a wall is nearby.
-	var aim_away := CoverSystemClass.corner_idle_at_cell(
-		soldier, Vector2i(-1, 0), map_data, target_around
+	## Along-wall face (no wall on the shot line) — cover-relative still triggers.
+	var along_wall_target := Vector2i(10, 12)
+	var face_along := FacingDirection.toward_cell(soldier, along_wall_target)
+	var along_peek := CoverSystemClass.corner_idle_at_cell(
+		soldier, face_along, map_data, along_wall_target
 	)
 	_assert(
-		"Corner idle ignores when facing does not match aim",
-		not aim_away.is_corner,
-		"corner=%s side=%s" % [aim_away.is_corner, aim_away.peek_side],
+		"Corner idle along wall face still uses cover-relative corner",
+		along_peek.is_corner,
+		"corner=%s side=%s" % [along_peek.is_corner, along_peek.peek_side],
 	)
 
-	## Teammate further back: not adjacent to the peeked corner tip.
+	## Mid-run wall face (not tip/corner) should not trigger cover-relative lean.
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	map_data.set_object(Vector2i(11, 9), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	map_data.set_object(Vector2i(11, 10), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	map_data.set_object(Vector2i(11, 11), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var mid_face := CoverSystemClass.cover_relative_corner_at_cell(
+		Vector2i(10, 10), Vector2i(0, 1), map_data
+	)
+	_assert(
+		"Cover-relative ignores mid-run wall face",
+		not mid_face.is_corner,
+		"corner=%s side=%s" % [mid_face.is_corner, mid_face.peek_side],
+	)
+
+	## Teammate further back: not adjacent to the wall tip.
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	map_data.set_object(wall_end, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
 	var behind := Vector2i(9, 10)
 	var behind_face := FacingDirection.toward_cell(behind, target_around)
 	var behind_idle := CoverSystemClass.corner_idle_at_cell(
 		behind, behind_face, map_data, target_around
 	)
 	_assert(
-		"Corner idle ignores shooter not adjacent to the peeked corner",
+		"Corner idle ignores shooter not adjacent to the corner",
 		not behind_idle.is_corner,
 		"corner=%s side=%s" % [behind_idle.is_corner, behind_idle.peek_side],
 	)

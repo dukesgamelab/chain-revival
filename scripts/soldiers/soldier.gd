@@ -75,6 +75,10 @@ var _fire_peek_side: int = CoverSystem.PeekSide.NONE
 var _fire_target_cell: Vector2i = Vector2i(-999, -999)
 var _idle_peek_side: int = CoverSystem.PeekSide.NONE
 var _played_idle_peek_side: int = CoverSystem.PeekSide.NONE
+## Cover-relative corner cell for lean offset (OG BehindCorner geometry).
+var _cover_corner_cell: Vector2i = Vector2i(-999, -999)
+## Mirrored movement mode for corner lean run-factor (0.7 while Running).
+var _presentation_movement_mode: int = MovementMode.RUN
 var _fire_visual_shot_logged: bool = false
 ## Open standing/prone: hold aim pose (last fire-clip frame = C) while status is Aiming.
 var _fire_aim_hold_active: bool = false
@@ -213,14 +217,17 @@ func sync_from_state(
 	fog_visual: int = FogVisual.REVEALED,
 	show_id_marker: bool = false,
 	idle_peek_side: int = CoverSystem.PeekSide.NONE,
+	idle_corner_cell: Vector2i = Vector2i(-999, -999),
 ) -> void:
 	var previous_team := team_id
 	soldier_id = state.soldier_id
 	team_id = state.team_id
 	_show_id_marker = show_id_marker
 	_idle_peek_side = idle_peek_side
+	_cover_corner_cell = idle_corner_cell
 	_presentation_stress = state.stress
 	_presentation_fire_control = state.fire_control_state
+	_presentation_movement_mode = state.movement_mode
 	if previous_team != team_id or _anim.sprite_frames == null:
 		_configure_team_visual()
 	_is_dead = state.is_dead
@@ -241,7 +248,7 @@ func sync_from_state(
 	if _blocks_action_override():
 		soldier_id = state.soldier_id
 		team_id = state.team_id
-		position = IsometricGrid.grid_to_world(state.grid_position)
+		_set_world_position_from_cell(state.grid_position)
 		_apply_fog_visual(fog_visual, is_selected)
 		_refresh_id_marker(state)
 		return
@@ -249,7 +256,8 @@ func sync_from_state(
 	if state.is_dead:
 		stop_movement()
 		visible = true
-		position = IsometricGrid.grid_to_world(state.grid_position)
+		_cover_corner_cell = Vector2i(-999, -999)
+		_set_world_position_from_cell(state.grid_position)
 		_facing_from_cell = state.grid_position
 		_apply_facing(state.facing_direction, _facing_from_cell)
 		_corpse_world_direction = UsSoldierSpriteFrames.direction_from_step(state.facing_direction)
@@ -261,7 +269,7 @@ func sync_from_state(
 	if state.is_moving or _is_moving:
 		sync_movement_chase_from_state(state)
 	elif not _is_moving:
-		position = IsometricGrid.grid_to_world(state.grid_position)
+		_set_world_position_from_cell(state.grid_position)
 	_facing_from_cell = state.grid_position
 	_apply_facing(state.facing_direction, _facing_from_cell)
 	_apply_position_visual(state)
@@ -271,6 +279,73 @@ func sync_from_state(
 	_sync_fire_aim_hold(state)
 	## Do not force walk=true here — sync_movement_chase_from_state already chose
 	## walk vs idle based on remaining distance (avoids run-in-place on full sync).
+
+
+func _set_world_position_from_cell(cell: Vector2i) -> void:
+	_facing_from_cell = cell
+	position = IsometricGrid.grid_to_world(cell) + _corner_lean_world_offset()
+
+
+func _corner_lean_world_offset() -> Vector2:
+	## Presentation-only lean toward the corner cell while corner phase is active.
+	if _cover_corner_cell.x <= -999:
+		return Vector2.ZERO
+	var side := (
+		_corner_peek_side
+		if _corner_peek_side != CoverSystem.PeekSide.NONE
+		else _idle_peek_side
+	)
+	if side == CoverSystem.PeekSide.NONE and _corner_phase == CornerPresPhase.NONE:
+		return Vector2.ZERO
+	if (
+		_corner_phase == CornerPresPhase.NONE
+		and side == CoverSystem.PeekSide.NONE
+	):
+		return Vector2.ZERO
+	## Active lean: any corner phase, or CIS idle via idle_peek.
+	var blend := _corner_lean_blend()
+	if blend <= 0.001:
+		return Vector2.ZERO
+	var tiles := GameplayPolicies.fire_anim.corner_offset_tiles_for_side(side)
+	if tiles <= 0.0:
+		return Vector2.ZERO
+	if _presentation_movement_mode == MovementMode.RUN and (_is_moving or _locomotion_walking):
+		tiles *= GameplayPolicies.fire_anim.corner_offset_run_factor
+	var step := UsSoldierSpriteFrames.snap_step_to_eight_way(_cover_corner_cell - _facing_from_cell)
+	if step == Vector2i.ZERO:
+		return Vector2.ZERO
+	var one_tile := IsometricGrid.grid_facing_to_screen(step, _facing_from_cell)
+	return one_tile * tiles * blend
+
+
+func _corner_lean_blend() -> float:
+	## Ease with peek enter/exit; full lean while idle/aim/fire.
+	match _corner_phase:
+		CornerPresPhase.NONE:
+			## Standing CIS idle without an active phase still leans.
+			return 1.0 if _idle_peek_side != CoverSystem.PeekSide.NONE else 0.0
+		CornerPresPhase.IDLE, CornerPresPhase.AIMING, CornerPresPhase.FIRING:
+			return 1.0
+		CornerPresPhase.PEEKING_OUT, CornerPresPhase.PEEKING_IN:
+			if _anim == null or _anim.sprite_frames == null:
+				return 0.5
+			var anim_name := str(_anim.animation)
+			if not _anim.sprite_frames.has_animation(anim_name):
+				return 0.5
+			var count := maxi(_anim.sprite_frames.get_frame_count(anim_name), 1)
+			var t := clampf(float(_anim.frame + 1) / float(count), 0.0, 1.0)
+			if _corner_phase == CornerPresPhase.PEEKING_IN:
+				return 1.0 - t
+			return t
+		_:
+			return 0.0
+
+
+func _refresh_corner_lean_offset() -> void:
+	## Keep lean applied after phase/frame changes without snapping the grid cell.
+	if _is_moving and _has_active_chase():
+		return
+	position = IsometricGrid.grid_to_world(_facing_from_cell) + _corner_lean_world_offset()
 
 
 func _refresh_id_marker(state: SoldierState) -> void:
@@ -849,6 +924,7 @@ func _play_idle_standing(world_direction: String) -> void:
 			if frame_count <= 1 and _anim.is_playing():
 				_anim.pause()
 				_anim.frame = 0
+			_refresh_corner_lean_offset()
 			return
 	_anim.play(anim_name)
 	if semantic == "idle_standing":
@@ -878,6 +954,7 @@ func _play_idle_standing(world_direction: String) -> void:
 		if frame_count <= 1:
 			_anim.pause()
 			_anim.frame = 0
+		_refresh_corner_lean_offset()
 	elif _corner_phase == CornerPresPhase.IDLE:
 		_clear_corner_presentation(false)
 	_played_idle_peek_side = _idle_peek_side
@@ -1208,6 +1285,7 @@ func play_fire(
 	facing_direction: Vector2i = Vector2i.ZERO,
 	peek_side: int = CoverSystem.PeekSide.NONE,
 	target_cell: Vector2i = Vector2i(-999, -999),
+	corner_cell: Vector2i = Vector2i(-999, -999),
 ) -> void:
 	if not _uses_og_frames() or _is_dead or _death_sequence_active or _corpse_direction_locked:
 		return
@@ -1216,6 +1294,8 @@ func play_fire(
 	_cancel_standing_idle()
 	if target_cell.x > -900:
 		_fire_target_cell = target_cell
+	if corner_cell.x > -900:
+		_cover_corner_cell = corner_cell
 	var fire_facing := _resolve_fire_facing_step(facing_direction, target_cell)
 	## Mid-sequence shot: queue at most one restart. Do not stop_movement / restart now.
 	if _fire_active or _corner_phase == CornerPresPhase.FIRING:
@@ -1391,6 +1471,7 @@ func _start_corner_peek_enter() -> void:
 		_start_corner_aim_hold()
 		return
 	_anim.play(anim_name)
+	_refresh_corner_lean_offset()
 	_log_fire_anim(anim_name, "CORNER_ENTER")
 
 
@@ -1414,6 +1495,7 @@ func _start_corner_aim_hold() -> void:
 			_anim.pause()
 			_anim.frame = 0
 		_log_fire_anim(anim_name, "CORNER_AIM_HOLD")
+	_refresh_corner_lean_offset()
 
 	if _corner_fire_pending:
 		_corner_fire_pending = false
@@ -1439,6 +1521,7 @@ func _start_corner_peek_exit() -> void:
 		_finish_corner_peek_exit()
 		return
 	_anim.play(anim_name)
+	_refresh_corner_lean_offset()
 	_log_fire_anim(anim_name, "CORNER_EXIT")
 
 
@@ -1454,7 +1537,10 @@ func _finish_corner_peek_exit() -> void:
 		_corner_peek_side = peek
 	else:
 		_corner_peek_side = CoverSystem.PeekSide.NONE
+		if _idle_peek_side == CoverSystem.PeekSide.NONE:
+			_cover_corner_cell = Vector2i(-999, -999)
 	_finish_fire_idle()
+	_refresh_corner_lean_offset()
 
 
 func _clear_corner_presentation(_resume_idle: bool) -> void:
@@ -1462,6 +1548,10 @@ func _clear_corner_presentation(_resume_idle: bool) -> void:
 	_corner_peek_side = CoverSystem.PeekSide.NONE
 	_corner_semantic = ""
 	_corner_fire_pending = false
+	## Drop lean when leaving corner presentation (idle peek may re-apply on sync).
+	if _idle_peek_side == CoverSystem.PeekSide.NONE:
+		_cover_corner_cell = Vector2i(-999, -999)
+	_refresh_corner_lean_offset()
 
 
 func _sync_fire_aim_hold(state: SoldierState) -> void:
@@ -1621,6 +1711,8 @@ func _begin_fire_sequence(
 
 	GameplayPolicies.fire_anim.note_visual_firing_trigger()
 	_anim.play(anim_name)
+	if peek_side != CoverSystem.PeekSide.NONE:
+		_refresh_corner_lean_offset()
 	_log_fire_anim(anim_name, "PLAY")
 
 
@@ -1852,6 +1944,12 @@ func dump_fire_validation() -> Dictionary:
 
 
 func _on_anim_frame_changed() -> void:
+	## Ease corner lean with peek enter/exit frames.
+	if (
+		_corner_phase == CornerPresPhase.PEEKING_OUT
+		or _corner_phase == CornerPresPhase.PEEKING_IN
+	):
+		_refresh_corner_lean_offset()
 	if _fire_aim_hold_active and not _fire_active:
 		var hold_name := str(_anim.animation)
 		var aim_frame := _fire_aim_hold_frame(hold_name)

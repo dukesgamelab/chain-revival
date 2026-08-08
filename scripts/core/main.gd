@@ -1739,19 +1739,24 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		and _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id)
 	)
 	var idle_peek := CoverSystem.PeekSide.NONE
+	var idle_corner_cell := Vector2i(-999, -999)
 	if (
 		soldier_state.is_alive()
 		and soldier_state.position_state != PositionState.DOWN
 		and _map_data != null
 		and fog_visual == Soldier.FogVisual.REVEALED
 	):
-		idle_peek = CoverSystem.corner_idle_at_cell(
+		var corner := CoverSystem.corner_idle_at_cell(
 			soldier_state.grid_position,
 			soldier_state.facing_direction,
 			_map_data,
 			_corner_aim_cell_for_soldier(soldier_state),
-		).peek_side
-	view.sync_from_state(soldier_state, is_selected, fog_visual, show_id, idle_peek)
+		)
+		idle_peek = corner.peek_side
+		idle_corner_cell = corner.corner_cell
+	view.sync_from_state(
+		soldier_state, is_selected, fog_visual, show_id, idle_peek, idle_corner_cell
+	)
 
 
 ## 1v1: always show the other side as ghosts when out of LOS. 2v2: hide until spotted.
@@ -2653,7 +2658,7 @@ func _finalize_shot_result(
 					if target != null
 					else Vector2i(-999, -999)
 				)
-				var fire_peek := CoverSystem.presentation_peek_side(
+				var fire_corner := CoverSystem.presentation_corner_result(
 					shooter.grid_position,
 					shooter.facing_direction,
 					result.corner_peek,
@@ -2665,8 +2670,9 @@ func _finalize_shot_result(
 				shooter_view.play_fire(
 					shooter.position_state,
 					shooter.facing_direction,
-					fire_peek,
+					fire_corner.peek_side,
 					fire_aim,
+					fire_corner.corner_cell,
 				)
 		if target != null:
 			_spawn_shot_tracers(shooter, target, maxi(result.tracer_count, 1))

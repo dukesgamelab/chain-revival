@@ -533,15 +533,52 @@ static func is_facing_toward_corner(
 	return to_wall.x * aim.x + to_wall.y * aim.y > 0
 
 
-## Presentation helper: corner lean only when aiming past a corner you face into.
-## Requires a real `aim_cell` (Fire At / Face / engaged target). No synthetic 1-cell lean —
-## that was putting stacked teammates into wrong-way corner poses.
+## Cover-relative corner pose (OG BehindCorner / CoverCorner).
+## True when orthogonally adjacent to a wall tip or building corner — no target / aim / LOS.
+## Orthogonal-only: diagonal wall tips on a mid-run face must not count as BehindCorner.
+static func cover_relative_corner_at_cell(
+	from_cell: Vector2i,
+	facing: Vector2i,
+	map_data: MapData,
+) -> CornerPeekResult:
+	var result := CornerPeekResult.new()
+	var aim := FacingDirection.normalize(facing)
+	if map_data == null or aim == Vector2i.ZERO:
+		return result
+	var ortho: Array[Vector2i] = [
+		Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
+	]
+	## Prefer walls we face into; then any ortho structure corner / wall tip.
+	for prefer_facing in range(2):
+		for offset in ortho:
+			var wall_cell := from_cell + offset
+			if not _is_corner_peek_blocker(map_data, wall_cell):
+				continue
+			if not _is_structure_corner_or_wall_tip(map_data, wall_cell):
+				continue
+			if prefer_facing == 0 and not is_facing_toward_corner(aim, from_cell, wall_cell):
+				continue
+			var side := peek_side_from_cross(wall_cell - from_cell, aim)
+			if side == PeekSide.NONE:
+				continue
+			result.is_corner = true
+			result.peek_side = side
+			result.corner_cell = wall_cell
+			return result
+	return result
+
+
+## Presentation helper: cover-relative corner OR shot-line peek (OR together).
+## Cover-relative does not need an aim cell — standing at a corner is enough.
 static func corner_idle_at_cell(
 	from_cell: Vector2i,
 	facing: Vector2i,
 	map_data: MapData,
 	aim_cell: Vector2i = Vector2i(-999, -999),
 ) -> CornerPeekResult:
+	var cover := cover_relative_corner_at_cell(from_cell, facing, map_data)
+	if cover.is_corner:
+		return cover
 	var result := CornerPeekResult.new()
 	if map_data == null:
 		return result
@@ -550,7 +587,7 @@ static func corner_idle_at_cell(
 		return result
 	if aim_cell.x <= -999 or aim_cell == from_cell:
 		return result
-	## Must actually be oriented toward the aim cell (not stale facing + nearby wall).
+	## Shot-line path: must be oriented toward the aim cell.
 	if FacingDirection.toward_cell(from_cell, aim_cell) != aim:
 		return result
 	var line := line_cells_between(from_cell, aim_cell)
@@ -568,6 +605,7 @@ static func corner_idle_at_cell(
 
 
 ## Presentation gate for corner fire anims (gameplay LOS peek may still apply).
+## Cover-relative OR shot-line; when both apply, prefer cover-relative side.
 static func presentation_peek_side(
 	from_cell: Vector2i,
 	facing: Vector2i,
@@ -577,24 +615,78 @@ static func presentation_peek_side(
 	aim_cell: Vector2i = Vector2i(-999, -999),
 	map_data: MapData = null,
 ) -> int:
+	return presentation_corner_result(
+		from_cell, facing, corner_peek, peek_side, corner_cell, aim_cell, map_data
+	).peek_side
+
+
+## Full presentation corner result (side + cell) for idle lean / fire.
+static func presentation_corner_result(
+	from_cell: Vector2i,
+	facing: Vector2i,
+	corner_peek: bool,
+	peek_side: int,
+	corner_cell: Vector2i,
+	aim_cell: Vector2i = Vector2i(-999, -999),
+	map_data: MapData = null,
+) -> CornerPeekResult:
+	var cover := cover_relative_corner_at_cell(from_cell, facing, map_data)
+	if cover.is_corner:
+		## Prefer cover-relative (OG CoverCorner) when both paths apply.
+		return cover
+	var result := CornerPeekResult.new()
 	if not corner_peek or peek_side == PeekSide.NONE:
-		return PeekSide.NONE
+		return result
 	var aim := FacingDirection.normalize(facing)
-	if aim_cell.x > -999 and aim_cell != from_cell:
-		if FacingDirection.toward_cell(from_cell, aim_cell) != aim:
-			return PeekSide.NONE
-		var line: Array[Vector2i] = (
-			line_cells_between(from_cell, aim_cell) if map_data != null else ([] as Array[Vector2i])
-		)
-		if map_data != null and not _presentation_corner_allowed(
-			from_cell, aim, aim_cell, map_data, corner_cell, line
-		):
-			return PeekSide.NONE
-	elif not is_facing_toward_corner(facing, from_cell, corner_cell):
+	var allowed := false
+	if aim_cell.x > -999 and aim_cell != from_cell and map_data != null:
+		if FacingDirection.toward_cell(from_cell, aim_cell) == aim:
+			var line: Array[Vector2i] = line_cells_between(from_cell, aim_cell)
+			allowed = _presentation_corner_allowed(
+				from_cell, aim, aim_cell, map_data, corner_cell, line
+			)
+	elif is_facing_toward_corner(facing, from_cell, corner_cell) and _is_adjacent(
+		from_cell, corner_cell
+	):
+		allowed = true
+	if not allowed:
+		return result
+	result.is_corner = true
+	result.peek_side = peek_side
+	result.corner_cell = corner_cell
+	return result
+
+
+## Shared LEFT/RIGHT from 2-D cross product (to_ref × along).
+## Positive → LEFT, negative → RIGHT; zero ties LEFT.
+static func peek_side_from_cross(to_ref: Vector2i, along: Vector2i) -> int:
+	var cross := to_ref.x * along.y - to_ref.y * along.x
+	if cross > 0:
+		return PeekSide.LEFT
+	if cross < 0:
+		return PeekSide.RIGHT
+	if to_ref == Vector2i.ZERO or along == Vector2i.ZERO:
 		return PeekSide.NONE
-	elif not _is_adjacent(from_cell, corner_cell):
-		return PeekSide.NONE
-	return peek_side
+	return PeekSide.LEFT
+
+
+## Wall tip (1 closed ortho) or building corner (2 adjacent closed). Not a mid-run face.
+static func _is_structure_corner_or_wall_tip(map_data: MapData, wall_cell: Vector2i) -> bool:
+	var ortho: Array[Vector2i] = [
+		Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
+	]
+	var closed: Array[Vector2i] = []
+	for d in ortho:
+		if _is_corner_peek_blocker(map_data, wall_cell + d):
+			closed.append(d)
+	if closed.is_empty():
+		return true ## isolated pillar
+	if closed.size() == 1:
+		return true ## wall tip
+	if closed.size() >= 3:
+		return false ## embedded / T
+	## Two closed: building corner if L-shaped; mid-run if opposite.
+	return closed[0] + closed[1] != Vector2i.ZERO
 
 
 ## Corner pose only at the wall you are actually peeking on the aim line (not a
@@ -674,13 +766,7 @@ static func _wall_end_peek_side(
 	if right_open and not left_open:
 		return PeekSide.RIGHT
 	## Both open (pillar / single-tile end) — pick side from target relative to wall.
-	var to_wall := wall_cell - from_cell
-	var cross := to_wall.x * shot.y - to_wall.y * shot.x
-	if cross > 0:
-		return PeekSide.LEFT
-	if cross < 0:
-		return PeekSide.RIGHT
-	return PeekSide.LEFT
+	return peek_side_from_cross(wall_cell - from_cell, shot)
 
 
 static func _perp_neighbor_open(map_data: MapData, cell: Vector2i) -> bool:
