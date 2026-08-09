@@ -1,8 +1,8 @@
 {
 	"comment": "Gameplay tuning overrides. Loaded by GameplayPolicies on startup. Omit a key to keep the script default. Do not rebalance casually — these values match shipped CombatSystem behavior.",
 	"hit": {
-		"comment": "Stage 5: hit_scale fits HUD anchors (rifle≈0.09 SMG≈0.03 at ~12 tiles). clear_* unused by polynomial. lethality TUNED 0.40 from ~88s expected TTK at moderate range (~10 tiles).",
-		"hit_scale": 0.07776,
+		"comment": "hit_scale TUNED for rifle≈9% at 11 tiles (OG HUD). lethality TUNED 0.90 so hits ≈ remove soldiers until wound state lands (revert to 0.20 then).",
+		"hit_scale": 0.060,
 		"aim_time": 1.0,
 		"range_epsilon": 0.25,
 		"max_engagement_tiles": 40,
@@ -12,7 +12,7 @@
 		"shooter_prone_accuracy_mult": 1.15,
 		"target_prone_hit_mult": 0.55,
 		"moderate_cover_hit_mult": 0.5,
-		"lethality_multiplier": 0.4,
+		"lethality_multiplier": 0.9,
 		"auto_target_engaged_bonus": 10.0,
 		"auto_fire_scan_interval": 0.5,
 		"base_fire_cycle_sec": 5.5,
@@ -57,9 +57,10 @@
 	},
 
 	"suppression": {
-		"comment": "SCALE (B): runtime stress 0–100; original 0–7 via SuppressionPolicy.STRESS_SCALE only. Generation/caps from weapon StressFactor/StressLimit. Accuracy from stress_accuracy_table.json (normalized). Decay: INITStressFallMultiplier retain fraction toward INITStressInitial. REVISIT decay after ~5.5s fire cadence — measure before changing. Legacy suppression_mg42/bar/smg match recovered LMG/SMG factors for fallbacks only.",
+		"comment": "SCALE (B): runtime 0–100 = original 0–7 via STRESS_SCALE. Gain=(StressLimit−range)×StressFactor (range cutoff only; accumulate to max_stress). Decay: retain stress_fall_multiplier over decay_reference_sec (time-normalized to scan interval). Legacy suppression_* = fallback StressFactors.",
 		"stress_base": 0.8,
 		"stress_fall_multiplier": 0.3,
+		"decay_reference_sec": 5.5,
 		"stress_initial": 0,
 		"stress_multiplier_global": 1.0,
 		"moderate_cover_suppression_mult": 0.65,
@@ -100,7 +101,8 @@
 		"stack_mode": "first"
 	},
 	"vision": {
-		"cone_width_at_max_range": 30,
+		"cone_half_angle_deg": 26.0,
+		"cone_min_half_width_tiles": 1.0,
 		"cone_range_bonus": 8,
 		"world_aim_forward_slack": 8.0,
 		"world_aim_lateral_slack": 4.0,

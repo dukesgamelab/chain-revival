@@ -2,8 +2,12 @@ class_name AiBattlefieldSnapshot
 extends RefCounted
 ## One shared read of the battlefield for all AI commanders thinking this frame.
 ## Built once in AiCommanderFramework — never per-commander soldier/LOS scans.
+##
+## visible_enemies — fog/LOS limited (use for firing).
+## known_enemies — omniscient living enemies (use for contact, cover, facing).
 
 var visible_enemies: Dictionary = {} ## player_id -> Array[SoldierState]
+var known_enemies: Dictionary = {} ## player_id -> Array[SoldierState]
 var living_soldiers: Dictionary = {} ## player_id -> Array[SoldierState]
 var fireteam_moving: Dictionary = {} ## player_id -> bool
 
@@ -43,11 +47,33 @@ static func build(game_state, ai_player_ids: Array, skip_visibility: bool = fals
 				if enemy != null and not enemy.is_dead:
 					visible.append(enemy)
 		snap.visible_enemies[pid] = visible
+		snap.known_enemies[pid] = _collect_known_enemies(game_state, team_id)
 	return snap
+
+
+## Omniscient: every living enemy on the opposing side (AI "sees everything").
+static func _collect_known_enemies(game_state, own_team_id: int) -> Array:
+	var out: Array = []
+	if game_state == null or game_state.session == null:
+		return out
+	var enemy_team := Team.GERMANY if own_team_id == Team.USA else Team.USA
+	var ft = game_state.session.get_fireteam(enemy_team)
+	if ft == null:
+		return out
+	for state in ft.soldiers:
+		var enemy: SoldierState = state
+		if enemy == null or enemy.is_dead:
+			continue
+		out.append(enemy)
+	return out
 
 
 func visible_for(player_id: int) -> Array:
 	return visible_enemies.get(player_id, [])
+
+
+func known_for(player_id: int) -> Array:
+	return known_enemies.get(player_id, [])
 
 
 func living_for(player_id: int) -> Array:

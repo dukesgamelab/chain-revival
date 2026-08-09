@@ -2,6 +2,9 @@ class_name ConeOfFire
 extends RefCounted
 ## Forward cone used for target acquisition and aim preview (wider and longer than a single grid line).
 ## Numeric tuning lives in GameplayPolicies.vision.
+##
+## Geometry is a constant half-angle (not a fixed width-at-max that shrinks too hard near the
+## shooter). Half-angle must exceed 22.5° so every cell in an 8-way facing sector is covered.
 
 const VisionPolicyClass := preload("res://scripts/gameplay_policies/vision_policy.gd")
 
@@ -24,8 +27,7 @@ static func is_cell_in_cone(
 	if forward <= 0.0 or forward > float(max_range) + 0.001:
 		return false
 	var lateral := _lateral_tiles(from_cell, facing, target_cell)
-	var width := float(GameplayPolicies.vision.cone_width_at_max_range)
-	var half_width := (forward / float(max_range)) * (width * 0.5)
+	var half_width := GameplayPolicies.vision.cone_half_width_at_forward(forward, max_range)
 	return lateral <= half_width + 0.001
 
 
@@ -55,10 +57,12 @@ static func is_facing_toward_target(
 static func cone_outline_world(from_cell: Vector2i, facing: Vector2i, max_range: int) -> PackedVector2Array:
 	var normalized := FacingDirection.normalize(facing)
 	var lateral := Vector2i(-normalized.y, normalized.x)
-	var half_width := GameplayPolicies.vision.cone_width_at_max_range >> 1
+	var half_tiles := maxi(ceili(GameplayPolicies.vision.cone_half_width_at_forward(
+		float(maxi(max_range, 1)), max_range
+	)), 1)
 	var far_center := from_cell + normalized * max_range
-	var far_left := far_center + lateral * half_width
-	var far_right := far_center - lateral * half_width
+	var far_left := far_center + lateral * half_tiles
+	var far_right := far_center - lateral * half_tiles
 	var origin := IsometricGrid.grid_to_world(from_cell)
 	return PackedVector2Array([
 		origin,
@@ -87,7 +91,9 @@ static func cone_outline_world_toward(
 	var lateral_dir := Vector2(-aim_dir.y, aim_dir.x)
 	var half_width_at_max := _world_half_width(from_cell, aim_world, max_range_tiles)
 	var width_scale := reach_dist / max_reach if max_reach > 0.001 else 1.0
-	var half_width := half_width_at_max * width_scale
+	## Match grid cone: never narrower than the min half-width floor (in world units).
+	var min_world := _world_min_half_width(from_cell, aim_world, max_range_tiles)
+	var half_width := maxf(min_world, half_width_at_max * width_scale)
 
 	return PackedVector2Array([
 		from_world,
@@ -113,7 +119,8 @@ static func is_world_point_in_aim_cone(
 		return false
 	var lateral := absf(to_point.dot(Vector2(-aim_dir.y, aim_dir.x)))
 	var half_width_at_max := _world_half_width(from_cell, aim_world, max_range_tiles)
-	var width_at_forward := half_width_at_max * (forward / max_reach)
+	var min_world := _world_min_half_width(from_cell, aim_world, max_range_tiles)
+	var width_at_forward := maxf(min_world, half_width_at_max * (forward / max_reach))
 	return lateral <= width_at_forward + GameplayPolicies.vision.world_aim_lateral_slack
 
 
@@ -145,12 +152,26 @@ static func _world_half_width(from_cell: Vector2i, aim_world: Vector2, max_range
 	var aim_cell := IsometricGrid.world_to_cell_at_point(aim_world)
 	var facing := FacingDirection.toward_cell(from_cell, aim_cell)
 	var lateral := Vector2i(-facing.y, facing.x)
-	var half_tiles := GameplayPolicies.vision.cone_width_at_max_range >> 1
+	var half_tiles := maxi(ceili(GameplayPolicies.vision.cone_half_width_at_forward(
+		float(maxi(max_range_tiles, 1)), max_range_tiles
+	)), 1)
 	var far_center := IsometricGrid.grid_to_world(from_cell + facing * max_range_tiles)
 	var far_left := IsometricGrid.grid_to_world(
 		from_cell + facing * max_range_tiles + lateral * half_tiles,
 	)
 	return far_center.distance_to(far_left)
+
+
+static func _world_min_half_width(from_cell: Vector2i, aim_world: Vector2, max_range_tiles: int) -> float:
+	## Convert the tile min half-width into world units at max range (same scale as half_width).
+	var half_at_max := _world_half_width(from_cell, aim_world, max_range_tiles)
+	var tile_half_at_max := GameplayPolicies.vision.cone_half_width_at_forward(
+		float(maxi(max_range_tiles, 1)), max_range_tiles
+	)
+	if tile_half_at_max <= 0.001:
+		return 0.0
+	var min_tiles := GameplayPolicies.vision.cone_min_half_width_tiles
+	return half_at_max * (min_tiles / tile_half_at_max)
 
 
 static func _forward_tiles(from_cell: Vector2i, facing: Vector2i, target_cell: Vector2i) -> float:

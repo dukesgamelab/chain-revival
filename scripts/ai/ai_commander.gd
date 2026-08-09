@@ -45,22 +45,30 @@ const CONTACT_BOUND_MAX_DIST := 6
 const ADVANCE_BOUND_MIN_DIST := 6
 const ADVANCE_BOUND_MAX_DIST := 10
 ## TUNED — defensive posts stay within this Chebyshev of the primary hold.
-## Wide enough for a 4-man line along a wall with spacing.
-const DEFENSIVE_POST_CLUSTER := 18
+## Tight with fireteam cohesion so dig-in stays a compact group.
+const DEFENSIVE_POST_CLUSTER := 10
 ## TUNED — min Chebyshev gap between dig-in posts (spread along cover, not stacked).
-const DEFENSIVE_POST_MIN_SEP := 3
+const DEFENSIVE_POST_MIN_SEP := 2
 ## Must match ActionResolver.FIRETEAM_COHESION_RADIUS — AI posts never exceed this span.
-const FIRETEAM_COHESION_RADIUS := 25
+const FIRETEAM_COHESION_RADIUS := 10
+## TUNED — idle soldier this far (Chebyshev) from FT center is a straggler — rally first.
+const STRAGGLER_CHEBYSHEV := 4
+## TUNED — react to omniscient enemies within this Manhattan (not just LOS).
+const CONTACT_REACT_DIST := 32
 ## TUNED — never bound closer than this Manhattan to a visible threat.
 const CONTACT_THREAT_STANDOFF := 3
 ## TUNED — re-bound if threat cell moves at least this Chebyshev from last bound axis.
 const COVER_THREAT_SHIFT_CHEBYSHEV := 3
-## TUNED — avg fireteam stress at/above this → favor cover + prone over pushing.
+## TUNED — avg fireteam stress at/above this → favor cover over pushing.
 const STRESS_COVER_PRIORITY := 35.0
 ## TUNED — crawl to cover only at/above this; below it, RUN into cover.
 const STRESS_HEAVY_FIRE := 55.0
+## TUNED — rare open-ground prone under heavy fire when cover unreachable (0–1).
+const OPEN_PRONE_CHANCE := 0.12
+## Cooldown between open-ground prone attempts (msec).
+const OPEN_PRONE_COOLDOWN_MSEC := 8000
 ## Dedup keys expire so a failed/starved order can be retried.
-const DEDUP_EXPIRE_MSEC := 3000
+const DEDUP_EXPIRE_MSEC := 2000
 ## No successful command + idle + no contact → clear dedup and replan.
 const WATCHDOG_IDLE_MSEC := 5000
 
@@ -103,6 +111,7 @@ var _last_success_msec: int = 0
 var _watchdog_logged: bool = false
 ## Per-soldier defensive posts for hold/cover objectives (soldier_id -> cell).
 var _defensive_posts: Dictionary = {}
+var _last_open_prone_msec: int = -999999
 
 
 func _init(p_player_id: int = -1) -> void:
@@ -231,38 +240,42 @@ func tick(
 	var living_n := _living_soldiers(game_state).size()
 	_command_budget = clampi(living_n, 1, MAX_COMMANDS_PER_TICK)
 
+	## visible = LOS (firing); known = omniscient (contact / cover / facing).
 	var visible: Array = _snapshot.visible_for(player_id)
-	if visible.is_empty():
+	var known: Array = _snapshot.known_for(player_id)
+	var reaction: Array = _threats_for_reaction(game_state, visible, known)
+	if reaction.is_empty():
 		current_target_key = ""
 	else:
-		_select_best_threat(game_state, visible)
+		_select_best_threat(game_state, reaction)
 	## After grenade stun recovery — drop stale cover settlement before acting.
 	_consume_cover_recheck(game_state)
 	_sync_human_order_from_hierarchy(game_state)
-	_run_watchdog(game_state, visible, now_msec)
+	_run_watchdog(game_state, reaction, now_msec)
 
 	var replan_usec := 0
 	if needs_replan or (now_msec - last_replan_msec) >= DEFAULT_REPLAN_INTERVAL_MSEC:
 		var r0 := Time.get_ticks_usec()
-		_replan(game_state, claimed_objectives, visible)
+		_replan(game_state, claimed_objectives, reaction)
 		replan_usec = Time.get_ticks_usec() - r0
 		last_replan_msec = now_msec
 		needs_replan = false
 
 	var state_t0 := Time.get_ticks_usec()
-	_run_state(game_state, find_path, submit_command, visible)
+	_run_state(game_state, find_path, submit_command, visible, known, reaction)
 	var state_usec := Time.get_ticks_usec() - state_t0
 	## Surface brain hot spots when a single think exceeds 50ms (pathfind is timed separately).
 	var brain_msec := float(replan_usec + state_usec) / 1000.0
 	if brain_msec >= 50.0:
 		GameLog.log_system(
-			"[BRAIN-SPIKE] pid=%d state=%s replan_ms=%.2f run_ms=%.2f visible=%d cover_checks=%d"
+			"[BRAIN-SPIKE] pid=%d state=%s replan_ms=%.2f run_ms=%.2f visible=%d known=%d cover_checks=%d"
 			% [
 				player_id,
 				state_id,
 				float(replan_usec) / 1000.0,
 				float(state_usec) / 1000.0,
 				visible.size(),
+				known.size(),
 				AiSectorObjectivesClass.cover_checks_this_think,
 			]
 		)
@@ -361,7 +374,14 @@ func _is_hold_objective() -> bool:
 	return kind == "hold" or kind == "cover"
 
 
-func _run_state(game_state, find_path: Callable, submit_command: Callable, visible: Array) -> void:
+func _run_state(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+	visible: Array,
+	known: Array,
+	reaction: Array,
+) -> void:
 	if AiOrderClass.normalize_id(human_order_id) == AiOrderClass.ID_FACE_DIRECTION:
 		_order_face(game_state, submit_command)
 		if not visible.is_empty():
@@ -372,13 +392,16 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 		AiCommanderStateClass.PLAN:
 			state_id = AiCommanderStateClass.MOVE
 		AiCommanderStateClass.MOVE, AiCommanderStateClass.ADVANCE:
-			if not visible.is_empty():
+			## Rally stragglers before the next bound so the FT moves as a group.
+			if _has_stragglers(game_state) and _rally_stragglers(game_state, find_path, submit_command):
+				return
+			if not reaction.is_empty():
 				state_id = AiCommanderStateClass.CONTACT
 				_clear_cover_settlement()
-				_engage_contact(game_state, find_path, submit_command, visible)
+				_engage_contact(game_state, find_path, submit_command, reaction, visible)
 			elif _under_suppression(game_state):
-				## Under fire but no LOS yet — dash/crawl behind cover facing the approach.
-				var approach := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
+				## Under fire — RUN to cover facing the nearest known enemy (not spawn anchor).
+				var approach := _threat_cell_or_approach(game_state, known)
 				var center := _formation_center(game_state)
 				var cover := AiSectorObjectivesClass.nearest_cover_within(
 					game_state, center, approach, COVER_SEEK_MAX_DIST, [], false, true
@@ -398,12 +421,12 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 			elif not _fireteam_is_moving(game_state):
 				if _is_hold_objective() and _defensive_posts_reached(game_state):
 					## Arrived at defensive posts — face the approach and watch.
-					_hold_defensive_post(game_state, submit_command, visible)
+					_hold_defensive_post(game_state, submit_command, reaction)
 					state_id = AiCommanderStateClass.FIGHT
 				elif _is_hold_objective():
 					_move_to_defensive_posts(game_state, find_path, submit_command)
 					if _defensive_posts_reached(game_state):
-						_hold_defensive_post(game_state, submit_command, visible)
+						_hold_defensive_post(game_state, submit_command, reaction)
 						state_id = AiCommanderStateClass.FIGHT
 				else:
 					_move_toward_objective(game_state, find_path, submit_command)
@@ -411,10 +434,10 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 						state_id = AiCommanderStateClass.OBJECTIVE_COMPLETE
 						request_replan("objective_complete")
 		AiCommanderStateClass.CONTACT:
-			_engage_contact(game_state, find_path, submit_command, visible)
+			_engage_contact(game_state, find_path, submit_command, reaction, visible)
 			state_id = AiCommanderStateClass.FIGHT
 		AiCommanderStateClass.FIGHT:
-			if visible.is_empty():
+			if reaction.is_empty():
 				_clear_cover_settlement()
 				if (
 					_is_hold_objective()
@@ -424,17 +447,14 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 					if not _defensive_posts_reached(game_state):
 						_move_to_defensive_posts(game_state, find_path, submit_command)
 					else:
-						_hold_defensive_post(game_state, submit_command, visible)
+						_hold_defensive_post(game_state, submit_command, reaction)
 					state_id = AiCommanderStateClass.FIGHT
 				else:
 					state_id = AiCommanderStateClass.ADVANCE
 					request_replan("contact_lost")
 			else:
-				## Fight from cover — do not push the objective while enemies are visible.
-				## Under fire, do NOT bounce back to defensive posts: post moves are not
-				## contact-bound, so _engage_contact would Halt them every tick (stutter-step).
-				## Return to posts only after contact is lost (branch above).
-				_engage_contact(game_state, find_path, submit_command, visible)
+				## Fight from cover — do not push the objective while threats are in react range.
+				_engage_contact(game_state, find_path, submit_command, reaction, visible)
 		AiCommanderStateClass.OBJECTIVE_COMPLETE:
 			if _is_hold_objective():
 				state_id = AiCommanderStateClass.FIGHT
@@ -444,10 +464,10 @@ func _run_state(game_state, find_path: Callable, submit_command: Callable, visib
 			state_id = AiCommanderStateClass.PLAN
 
 
-## Face the enemy approach (or visible threat) and hunker when holding a defensive post.
-func _hold_defensive_post(game_state, submit_command: Callable, visible: Array) -> void:
-	if not visible.is_empty():
-		var threat = _select_best_threat(game_state, visible)
+## Face the enemy approach (or known threat) and hunker when holding a defensive post.
+func _hold_defensive_post(game_state, submit_command: Callable, threats: Array) -> void:
+	if not threats.is_empty():
+		var threat = _select_best_threat(game_state, threats)
 		if threat == null:
 			return
 		_face_threat(game_state, submit_command, [threat])
@@ -494,19 +514,22 @@ func _consume_cover_recheck(game_state) -> void:
 		_clear_cover_settlement()
 
 
-## Take directional cover first, go prone, then face/fire.
+## Take directional cover first, go prone (only in cover), then face/fire.
 ## Contact always cancels an objective RUN before seeking cover.
+## threats = reaction set (known-near / visible); los_targets = fog-visible for firing.
 func _engage_contact(
 	game_state,
 	find_path: Callable,
 	submit_command: Callable,
-	visible: Array,
+	threats: Array,
+	los_targets: Array = [],
 ) -> void:
-	if visible.is_empty():
+	if threats.is_empty():
 		return
-	var threat = _select_best_threat(game_state, visible)
+	var threat = _select_best_threat(game_state, threats)
 	if threat == null:
 		return
+	var fire_pool: Array = los_targets if not los_targets.is_empty() else []
 	var center := _formation_center(game_state)
 	var threat_cell: Vector2i = threat.grid_position
 	var threat_dist := absi(center.x - threat_cell.x) + absi(center.y - threat_cell.y)
@@ -528,7 +551,7 @@ func _engage_contact(
 		_contact_bound_active = false
 		_debug_last_action = "cover-reeval"
 
-	## 2) Bound into directional cover — RUN unless under heavy fire.
+	## 2) Bound into directional cover — RUN unless under heavy fire. Prefer cover over prone.
 	if not _settled_in_cover:
 		if _formation_in_directional_cover(game_state, threat_cell):
 			_mark_cover_settled(threat_cell)
@@ -548,30 +571,32 @@ func _engage_contact(
 				game_state,
 				find_path,
 				submit_command,
-				visible,
+				threats,
 				seek_max,
 				_cover_approach_mode(game_state),
 				false,
 				nearby_cover,
 			):
 				return
-			## Cover missing, unreachable, or order failed — fight from here (never keep old RUN).
-			_settled_in_cover = true
+			## No cover this tick — keep seeking next think; do NOT mark settled (avoids open prone).
 			_contact_bound_active = false
+			_face_threat(game_state, submit_command, threats)
+			_try_fire(game_state, submit_command, fire_pool)
+			return
 
 	## Still on a cover bound — suppress only if budget remains; no objective push.
 	if _fireteam_is_moving(game_state) and _contact_bound_active:
-		_try_fire(game_state, submit_command, visible)
+		_try_fire(game_state, submit_command, fire_pool)
 		return
 
-	## 3) Hunker once settled behind cover.
+	## 3) Hunker only when actually behind cover vs the threat (never open-ground default).
 	if _settled_in_cover and _formation_in_directional_cover(game_state, threat_cell):
-		_try_go_prone(game_state, submit_command)
+		_try_go_prone_on_posts(game_state, submit_command, threat_cell)
 
-	## 4) Face + suppress. Grenade last — respects per-think command budget.
-	_face_threat(game_state, submit_command, visible)
-	_try_fire(game_state, submit_command, visible)
-	_try_grenade(game_state, submit_command, visible)
+	## 4) Face (known) + suppress (LOS only). Grenade last.
+	_face_threat(game_state, submit_command, threats)
+	_try_fire(game_state, submit_command, fire_pool)
+	_try_grenade(game_state, submit_command, fire_pool if not fire_pool.is_empty() else threats)
 
 	## 5) Optional short cover-to-cover crawl if objective remains and threat is not point-blank.
 	if (
@@ -689,6 +714,103 @@ func _formation_center(game_state) -> Vector2i:
 	return Vector2i(sx / soldiers.size(), sy / soldiers.size())
 
 
+## LOS enemies always react; omniscient known enemies react when within CONTACT_REACT_DIST.
+func _threats_for_reaction(game_state, visible: Array, known: Array) -> Array:
+	var out: Array = []
+	var seen: Dictionary = {}
+	for enemy in visible:
+		if enemy == null or enemy.is_dead:
+			continue
+		var key := "%d:%d" % [enemy.team_id, enemy.soldier_id]
+		seen[key] = true
+		out.append(enemy)
+	var center := _formation_center(game_state)
+	for enemy in known:
+		if enemy == null or enemy.is_dead:
+			continue
+		var key := "%d:%d" % [enemy.team_id, enemy.soldier_id]
+		if seen.has(key):
+			continue
+		var dist := absi(center.x - enemy.grid_position.x) + absi(center.y - enemy.grid_position.y)
+		if dist > CONTACT_REACT_DIST:
+			continue
+		out.append(enemy)
+	return out
+
+
+## Prefer nearest known enemy cell; fall back to deployment approach anchor.
+func _threat_cell_or_approach(game_state, known: Array) -> Vector2i:
+	var threat = _select_best_threat(game_state, known)
+	if threat != null:
+		return threat.grid_position
+	return AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
+
+
+func _has_stragglers(game_state) -> bool:
+	var center := _formation_center(game_state)
+	for soldier in _living_soldiers(game_state):
+		if soldier.is_moving:
+			continue
+		var d := maxi(
+			absi(soldier.grid_position.x - center.x),
+			absi(soldier.grid_position.y - center.y),
+		)
+		if d > STRAGGLER_CHEBYSHEV:
+			return true
+	return false
+
+
+## Pull idle soldiers that drifted from the FT center back into the pack.
+func _rally_stragglers(game_state, find_path: Callable, submit_command: Callable) -> bool:
+	if not _has_command_budget():
+		return false
+	var center := _formation_center(game_state)
+	var any := false
+	var map_data = game_state.map_data
+	for soldier in _living_soldiers(game_state):
+		if not _has_command_budget():
+			break
+		if soldier.is_moving:
+			continue
+		var d := maxi(
+			absi(soldier.grid_position.x - center.x),
+			absi(soldier.grid_position.y - center.y),
+		)
+		if d <= STRAGGLER_CHEBYSHEV:
+			continue
+		var target := center
+		if map_data != null and not map_data.is_walkable(target):
+			## Step toward the pack if the exact center is blocked.
+			var step: Vector2i = soldier.grid_position + Vector2i(
+				signi(center.x - soldier.grid_position.x),
+				signi(center.y - soldier.grid_position.y),
+			)
+			if map_data.is_walkable(step):
+				target = step
+			else:
+				continue
+		if target == soldier.grid_position:
+			continue
+		if _move_dedup_blocks(target, soldier.grid_position):
+			continue
+		var cmd := MoveCommandClass.new()
+		cmd.team_id = soldier.team_id
+		cmd.soldier_id = soldier.soldier_id
+		cmd.target_cell = target
+		cmd.scope = MoveCommandClass.Scope.SINGLE
+		cmd.movement_mode = MovementModeClass.RUN
+		if _submit_ai(
+			game_state,
+			submit_command,
+			cmd,
+			_make_context(find_path),
+			"rally %d→%s" % [soldier.soldier_id, target],
+		):
+			_note_move_dedup(target)
+			any = true
+	return any
+
+
 func _formation_objective_distance(game_state) -> int:
 	if current_objective == null or not current_objective.is_valid():
 		return 0
@@ -756,6 +878,10 @@ func _move_toward_objective(game_state, find_path: Callable, submit_command: Cal
 		return
 	if not _has_command_budget():
 		return
+	## Keep the fireteam together — rally stragglers before the next squad bound.
+	if _has_stragglers(game_state):
+		_rally_stragglers(game_state, find_path, submit_command)
+		return
 	if _fireteam_is_moving(game_state):
 		return
 	## Already on a defensive hold — stay; do not drift.
@@ -771,8 +897,10 @@ func _move_toward_objective(game_state, find_path: Callable, submit_command: Cal
 	if not game_state.map_data.is_walkable(objective_cell):
 		return
 	var center := _formation_center(game_state)
-	var visible: Array = _snapshot.visible_for(player_id) if _snapshot != null else []
-	var enemy_anchor := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
+	var enemy_anchor := _threat_cell_or_approach(
+		game_state,
+		_snapshot.known_for(player_id) if _snapshot != null else [],
+	)
 	## Cover-to-cover bound: next stand that shortens distance to the objective.
 	var target := _next_advance_cover_stand(game_state, center, objective_cell, enemy_anchor)
 	var used_cover_bound := target.x > -900
@@ -933,12 +1061,8 @@ func _cover_is_short_of_threat(
 	return true
 
 
-## Issue DOWN for standing soldiers once behind cover. Respects command budget.
-func _try_go_prone(game_state, submit_command: Callable) -> void:
-	_try_go_prone_on_posts(game_state, submit_command, Vector2i(-999, -999))
-
-
-## Go prone when the soldier's stand (or post) has directional cover vs the approach.
+## Go prone when the soldier's stand has directional cover vs the approach.
+## Open ground: almost never — rare under heavy fire only (prefer RUN to cover).
 func _try_go_prone_on_posts(
 	game_state,
 	submit_command: Callable,
@@ -946,7 +1070,17 @@ func _try_go_prone_on_posts(
 ) -> void:
 	if not _has_command_budget():
 		return
+	if threat_or_approach.x <= -900:
+		return
 	var map_data = game_state.map_data if game_state != null else null
+	if map_data == null:
+		return
+	var now := SimulationClock.get_ticks_msec()
+	var allow_open_prone := (
+		_under_heavy_fire(game_state)
+		and now - _last_open_prone_msec >= OPEN_PRONE_COOLDOWN_MSEC
+		and randf() < OPEN_PRONE_CHANCE
+	)
 	for soldier in _living_soldiers(game_state):
 		if not _has_command_budget():
 			return
@@ -956,22 +1090,25 @@ func _try_go_prone_on_posts(
 			continue
 		if soldier.is_moving:
 			continue
-		if threat_or_approach.x > -900 and map_data != null:
-			if not AiSectorObjectivesClass.stand_covered_vs_threat(
-				soldier.grid_position, threat_or_approach, map_data
-			):
-				continue
+		var covered := AiSectorObjectivesClass.stand_covered_vs_threat(
+			soldier.grid_position, threat_or_approach, map_data
+		)
+		if not covered and not allow_open_prone:
+			continue
 		var cmd := PositionCommandClass.new()
 		cmd.team_id = soldier.team_id
 		cmd.soldier_id = soldier.soldier_id
 		cmd.position_state = PositionStateClass.DOWN
-		_submit_ai(
+		if _submit_ai(
 			game_state,
 			submit_command,
 			cmd,
 			_make_context(Callable()),
 			"prone %d" % soldier.soldier_id,
-		)
+		):
+			if not covered:
+				_last_open_prone_msec = now
+				allow_open_prone = false ## at most one open prone per window
 
 
 func _fireteam_avg_stress(game_state) -> float:

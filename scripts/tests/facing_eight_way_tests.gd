@@ -27,6 +27,7 @@ func _ready() -> void:
 	_test_movement_final_facing()
 	_test_save_load_eight_ways()
 	_test_cone_cardinal_and_diagonal()
+	_test_cone_covers_full_facing_sector()
 	_test_animation_direction_mapping()
 	print("")
 	print("Facing eight-way tests: %d passed, %d failed" % [_passed, _failed])
@@ -235,6 +236,58 @@ func _test_cone_cardinal_and_diagonal() -> void:
 	_assert(
 		"Cone EAST rejects wide lateral",
 		not ConeOfFireClass.is_cell_in_cone(origin, FacingDirection.EAST, origin + Vector2i(6, 20), max_range),
+	)
+	## Point-blank one tile off-axis must engage (min half-width floor).
+	_assert(
+		"Cone EAST includes near off-axis (2,1)",
+		ConeOfFireClass.is_cell_in_cone(origin, FacingDirection.EAST, origin + Vector2i(2, 1), max_range),
+	)
+
+
+## Every cell whose bearing sits inside an 8-way facing sector (±22.5°) must be in-cone
+## at ranges 1–20. This is the Stage 1 regression for the old atan(15/48)≈17.4° cone.
+func _test_cone_covers_full_facing_sector() -> void:
+	var origin := Vector2i(50, 50)
+	var max_range := 20
+	var half_sector_deg := 22.5
+	var failures: Array[String] = []
+	for facing in FacingDirection.ALL:
+		var face_deg := rad_to_deg(atan2(float(facing.y), float(facing.x)))
+		for range_tiles in range(1, max_range + 1):
+			## Sample bearings across the whole sector, including both edges.
+			for sample in range(0, 9):
+				var t := float(sample) / 8.0
+				var bearing_deg := face_deg + lerpf(-half_sector_deg, half_sector_deg, t)
+				var bearing_rad := deg_to_rad(bearing_deg)
+				## Place a cell at approximately this range/bearing in grid space.
+				var dx := int(round(cos(bearing_rad) * float(range_tiles)))
+				var dy := int(round(sin(bearing_rad) * float(range_tiles)))
+				if dx == 0 and dy == 0:
+					continue
+				var target := origin + Vector2i(dx, dy)
+				## Only require coverage when the snapped facing for that cell matches —
+				## or when the continuous bearing is inside the sector (rounding can nudge
+				## edge samples onto a neighbor octant at short range).
+				var snapped := FacingDirection.toward_cell(origin, target)
+				var cell_bearing := rad_to_deg(atan2(float(dy), float(dx)))
+				var delta := absf(wrapf(cell_bearing - face_deg, -180.0, 180.0))
+				if snapped != facing and delta > half_sector_deg + 0.5:
+					continue
+				if not ConeOfFireClass.is_cell_in_cone(origin, facing, target, max_range):
+					failures.append(
+						"%s r=%d cell=%s bearing=%.1f"
+						% [FacingDirection.direction_name(facing), range_tiles, target, bearing_deg]
+					)
+					if failures.size() >= 12:
+						break
+			if failures.size() >= 12:
+				break
+		if failures.size() >= 12:
+			break
+	_assert(
+		"Cone covers full ±22.5° facing sector at ranges 1–20",
+		failures.is_empty(),
+		"first fails: %s" % ", ".join(failures),
 	)
 
 

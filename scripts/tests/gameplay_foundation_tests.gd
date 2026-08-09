@@ -1148,12 +1148,12 @@ func _test_grenade_stun_aborts_pending_throw() -> void:
 func _test_policy_defaults_unchanged() -> void:
 	GameplayPolicies.reset_all_to_defaults()
 	_assert(
-		"Hit scale calibrated for HUD anchors",
-		is_equal_approx(GameplayPolicies.hit.hit_scale, 0.07776),
+		"Hit scale calibrated for OG rifle≈9% at 11 tiles",
+		is_equal_approx(GameplayPolicies.hit.hit_scale, 0.060),
 	)
 	_assert(
-		"Hit lethality multiplier is tuned 0.40",
-		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.40),
+		"Hit lethality multiplier is tuned 0.90",
+		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.90),
 	)
 	_assert("Grenade policy range is recovered 5", GameplayPolicies.grenade.throw_range == 5)
 	_assert(
@@ -1212,8 +1212,8 @@ func _test_lethality_multiplier() -> void:
 	_bootstrap()
 	GameplayPolicies.reset_all_to_defaults()
 	_assert(
-		"Default lethality is TUNED 0.40 (not recovered 0.20)",
-		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.40),
+		"Default lethality is TUNED 0.90 (not recovered 0.20)",
+		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.90),
 		"got=%s" % GameplayPolicies.hit.lethality_multiplier,
 	)
 	_assert(
@@ -1284,8 +1284,8 @@ func _test_lethality_multiplier() -> void:
 		"kills=%d fired=%d/20" % [kills_at_full, full_lethality_fired],
 	)
 
-	## Tuned 0.40 must leave hit_chance() itself unchanged.
-	GameplayPolicies.hit.lethality_multiplier = 0.40
+	## Lethality must leave hit_chance() itself unchanged.
+	GameplayPolicies.hit.lethality_multiplier = 0.90
 	var rifle := GameplayPolicies.weapons.create_weapon("m1_garand")
 	var chance_a := CombatSystemClass.hit_chance(Vector2i(0, 0), Vector2i(8, 0), rifle)
 	GameplayPolicies.hit.lethality_multiplier = 0.0
@@ -1299,24 +1299,31 @@ func _test_lethality_multiplier() -> void:
 
 
 func _test_lethality_time_to_casualty_band() -> void:
-	## Stage G2: expected time-to-kill at moderate range should land in 60–120s.
-	## Uses HitFinal × lethality × base_fire_cycle (analytic; confirms the TUNED constant).
+	## Stage 2: close range decisive; ~11 tiles stays a slow grind (OG rifle ≈9%).
 	_bootstrap()
 	GameplayPolicies.reset_all_to_defaults()
 	var rifle := GameplayPolicies.weapons.create_weapon("m1_garand")
-	var from_cell := Vector2i(20, 30)
-	var to_cell := Vector2i(30, 30) ## Euclidean 10 — moderate clear LOS
-	var hit_final := CombatSystemClass.hit_chance(from_cell, to_cell, rifle)
 	var lethality := GameplayPolicies.hit.lethality_multiplier
 	var cycle := GameplayPolicies.hit.base_fire_cycle_sec
-	var p_kill := hit_final * lethality
-	_assert("Moderate-range rifle HitFinal is positive", hit_final > 0.05, "hit=%.4f" % hit_final)
-	_assert("P(kill) per shot is positive", p_kill > 0.0, "p=%.4f" % p_kill)
-	var expected_ttk_sec := cycle / p_kill
+	var close_hit := CombatSystemClass.hit_chance(Vector2i(20, 30), Vector2i(22, 30), rifle)
+	var mid_hit := CombatSystemClass.hit_chance(Vector2i(20, 30), Vector2i(31, 30), rifle)
+	_assert("Close-range rifle HitFinal is near certain", close_hit >= 0.85, "hit=%.4f" % close_hit)
 	_assert(
-		"Expected TTK in 60–120s band at moderate range",
-		expected_ttk_sec >= 60.0 and expected_ttk_sec <= 120.0,
-		"ttk=%.1fs hit=%.4f L=%.2f cycle=%.1f" % [expected_ttk_sec, hit_final, lethality, cycle],
+		"Rifle HitFinal ≈9% at 11 tiles",
+		mid_hit >= 0.08 and mid_hit <= 0.105,
+		"hit=%.4f" % mid_hit,
+	)
+	var close_ttk := cycle / maxf(close_hit * lethality, 0.001)
+	var mid_ttk := cycle / maxf(mid_hit * lethality, 0.001)
+	_assert(
+		"Close-range expected TTK is decisive (<20s)",
+		close_ttk < 20.0,
+		"ttk=%.1fs hit=%.4f L=%.2f" % [close_ttk, close_hit, lethality],
+	)
+	_assert(
+		"Mid-range expected TTK stays a grind (>=45s)",
+		mid_ttk >= 45.0,
+		"ttk=%.1fs hit=%.4f L=%.2f" % [mid_ttk, mid_hit, lethality],
 	)
 	## Grenade path shares the same lethality fold.
 	var casualty := GameplayPolicies.grenade.casualty_chance_at_distance(1.0)
@@ -1449,6 +1456,8 @@ func _test_fire_cadence_cycle() -> void:
 	## Stage 4: single ~5.5s aim/fire cycle; not stacked aim + short interval.
 	_bootstrap()
 	GameplayPolicies.reset_all_to_defaults()
+	## Cadence only — keep target alive at point-blank (Stage 2 lethality ≈ removes on hit).
+	GameplayPolicies.hit.lethality_multiplier = 0.0
 	var map_data := MapDataClass.create_default()
 	for cell in map_data.get_object_cells():
 		map_data.clear_object(cell)
@@ -1646,10 +1655,10 @@ func _test_smg_vs_rifle_range_falloff() -> void:
 
 
 func _test_hit_polynomial_anchors() -> void:
-	## Stage 5: HUD Hit% anchors at moderate range, Stress 0, MarksMan 0.
+	## Stage 2: HUD Hit% anchors at 11 tiles, Stress 0, MarksMan 0 (OG rifle≈9%).
 	GameplayPolicies.reset_all_to_defaults()
 	var from_cell := Vector2i(0, 0)
-	var to_cell := Vector2i(12, 0)
+	var to_cell := Vector2i(11, 0)
 	var rifle := GameplayPolicies.weapons.create_weapon("m1_garand")
 	var smg := GameplayPolicies.weapons.create_weapon("thompson")
 	var mg := GameplayPolicies.weapons.create_weapon("mg42")
@@ -1657,13 +1666,13 @@ func _test_hit_polynomial_anchors() -> void:
 	var smg_p := CombatSystemClass.hit_chance(from_cell, to_cell, smg)
 	var mg_p := CombatSystemClass.hit_chance(from_cell, to_cell, mg)
 	_assert(
-		"Rifle HitFinal near 0.09 at range 12",
+		"Rifle HitFinal near 0.09 at range 11",
 		absf(rifle_p - 0.09) < 0.005,
 		"rifle=%.4f" % rifle_p,
 	)
 	_assert(
-		"SMG HitFinal near 0.03 at range 12",
-		absf(smg_p - 0.03) < 0.005,
+		"SMG HitFinal near 0.037 at range 11",
+		absf(smg_p - 0.037) < 0.005,
 		"smg=%.4f" % smg_p,
 	)
 	_assert(
@@ -1672,8 +1681,8 @@ func _test_hit_polynomial_anchors() -> void:
 		"mg=%.4f rifle=%.4f ratio=%.3f" % [mg_p, rifle_p, mg_p / maxf(rifle_p, 0.0001)],
 	)
 	_assert(
-		"Rifle / SMG ratio near 3.0 at range 12",
-		absf(rifle_p / smg_p - 3.0) < 0.15,
+		"Rifle / SMG ratio near 2.4 at range 11",
+		absf(rifle_p / smg_p - 2.4) < 0.2,
 		"ratio=%.3f" % (rifle_p / maxf(smg_p, 0.0001)),
 	)
 	## Relative shape vs Garand@10 (pre-scale ratios from the recovered formula).
@@ -1818,13 +1827,63 @@ func _test_stress_model() -> void:
 		"near_ratio=%.3f far_ratio=%.3f" % [near_ratio, far_ratio],
 	)
 
-	## Decay toward 0 when unthreatened.
-	var decayed := policy.apply_stress_decay(50.0, false)
-	_assert("Stress decays when unthreatened", decayed < 50.0 and decayed >= 0.0, "decayed=%.3f" % decayed)
+	## Decay: retain 0.3 over one reference period; short scans only apply a fraction.
+	var one_period := policy.apply_stress_decay(50.0, false, policy.decay_reference_sec)
+	_assert(
+		"One reference period retains INITStressFallMultiplier",
+		is_equal_approx(one_period, 50.0 * policy.stress_fall_multiplier),
+		"got=%.3f" % one_period,
+	)
+	var half_scan := policy.apply_stress_decay(50.0, false, 0.5)
+	_assert(
+		"0.5s scan decays far less than a full period",
+		half_scan > one_period and half_scan < 50.0,
+		"scan=%.3f period=%.3f" % [half_scan, one_period],
+	)
 	var fully := 50.0
-	for _i in 20:
-		fully = policy.apply_stress_decay(fully, false)
-	_assert("Stress decays to 0", is_equal_approx(fully, 0.0), "fully=%.5f" % fully)
+	## ~60s of idle scans (0.5s) should drain to ~0.
+	for _i in 120:
+		fully = policy.apply_stress_decay(fully, false, 0.5)
+	_assert("Stress decays to 0 when idle long enough", fully < 0.5, "fully=%.5f" % fully)
+
+	## Scale: OG break at 7 ↔ runtime 100; HUD % is runtime directly.
+	_assert(
+		"OG 7 maps to runtime 100",
+		is_equal_approx(policy.to_runtime(7.0), 100.0),
+	)
+	_assert(
+		"Runtime 100 maps back to OG 7",
+		is_equal_approx(policy.to_original(100.0), 7.0),
+	)
+
+	## Squad-pace accrual: two rifle gains per cycle with scan decay stays in mid band.
+	var stress := 0.0
+	var rifle_gain := policy.range_suppression_gain_runtime(
+		garand.suppression_generated, garand.stress_limit_tiles, 10
+	)
+	for _cycle in 12: ## ~66s of two-rifle exchange
+		stress = minf(policy.max_stress, stress + rifle_gain)
+		for _scan in 5: ## ~2.5s until next overlapping shot
+			stress = policy.apply_stress_decay(stress, false, 0.5)
+	var og_band := policy.to_original(stress)
+	_assert(
+		"Sustained two-rifle fire reaches OG stress band 3–7",
+		og_band >= 3.0 and og_band <= 7.0,
+		"stress=%.1f og=%.2f gain=%.1f" % [stress, og_band, rifle_gain],
+	)
+	var smg_gain := policy.range_suppression_gain_runtime(
+		thompson.suppression_generated, thompson.stress_limit_tiles, 8
+	)
+	## Without a per-weapon accumulation cap, one close SMG shot reaches break (OG 7).
+	_assert(
+		"Close SMG gain is at least max_stress (can pin in one shot)",
+		smg_gain >= policy.max_stress,
+		"smg_gain=%.1f" % smg_gain,
+	)
+	_assert(
+		"SMG accumulation is not clipped by StressLimit cap mapping",
+		is_equal_approx(minf(policy.max_stress, smg_gain), policy.max_stress),
+	)
 
 	## Tier mapping is one documented function.
 	var tier_calm := policy.effective_tier_from_stress(0.0)

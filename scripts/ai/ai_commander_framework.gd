@@ -15,11 +15,11 @@ const CommandContextClass := preload("res://scripts/core/command_context.gd")
 const PerceptionCacheClass := preload("res://scripts/combat/perception_cache.gd")
 
 ## TUNED — think every N simulation ticks (movement still runs every tick).
-## 8 @ 20 Hz ≈ 2.5 Hz per commander; commanders are staggered across slots.
-const THINK_EVERY_N_TICKS := 8
+## 4 @ 20 Hz ≈ 5 Hz per commander; staggered across slots for snappier reactions.
+const THINK_EVERY_N_TICKS := 4
 ## Cap A* calls from all AI MoveCommands in one sim tick.
-## One staggered thinker ≈ one squad order: lead A* + a couple formation fallbacks.
-const MAX_AI_PATHFINDS_PER_TICK := 4
+## Budget for a full 4-man squad order (lead + formation fallbacks).
+const MAX_AI_PATHFINDS_PER_TICK := 8
 const PATH_MEMO_MAX := 96
 
 var _commanders: Dictionary = {} ## player_id -> AiCommander

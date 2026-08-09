@@ -18,15 +18,17 @@ const STRESS_SCALE := 100.0 / ORIGINAL_MAX_STRESS
 
 ## --- Recovered globals ---
 const INIT_STRESS_BASE := 0.80 ## RECOVERED
-## REVISIT after fire cadence (~5.5s cycle): decay runs on wall-clock time while shots
-## arrive ~5× less often. If suppression stops mattering, slow decay — do not inflate
-## per-shot StressFactor (recovered). Measure Stage 3 verification before changing.
-const INIT_STRESS_FALL_MULTIPLIER := 0.3 ## RECOVERED — retained fraction per recovery tick
+## RECOVERED retain fraction per decay_reference_sec (not per combat-scan tick).
+## Stage 3: scans are 0.5s while fire is ~5.5s — applying 0.3 every scan wiped stress
+## between shots. Time-normalize so 0.3 means “keep 30% over one fire-cycle of idle.”
+const INIT_STRESS_FALL_MULTIPLIER := 0.3
 const INIT_STRESS_INITIAL := 0.0 ## RECOVERED
 const STRESS_MULTIPLIER_GLOBAL := 1.0 ## RECOVERED StressMultiplier$global
+## TUNED — match base_fire_cycle_sec so decay is paced to shot arrival, not scan rate.
+const DEFAULT_DECAY_REFERENCE_SEC := 5.5
 
-## TUNED cap mapping: stress_limit (not stress_limit_tiles) → 0–100 via this ref.
-## OG StressLimit is a range cutoff; relative caps are our design choice.
+## TUNED relative mapping helper only (stress_limit → 0–100). OG StressLimit is a
+## range cutoff for gain; accumulation caps at max_stress (INITMaxStressOut → 100).
 const STRESS_LIMIT_REF := 25.0
 
 ## TUNED UI / band thresholds on the 0–100 runtime scale (not recovered).
@@ -85,6 +87,8 @@ var fire_delay_by_band: Array[float] = DEFAULT_FIRE_DELAY_BY_BAND.duplicate()
 var max_stress: float = DEFAULT_MAX_STRESS
 var stress_base: float = INIT_STRESS_BASE
 var stress_fall_multiplier: float = INIT_STRESS_FALL_MULTIPLIER
+## Seconds over which stress_fall_multiplier is applied once (see apply_stress_decay).
+var decay_reference_sec: float = DEFAULT_DECAY_REFERENCE_SEC
 var stress_initial: float = INIT_STRESS_INITIAL
 var stress_multiplier_global: float = STRESS_MULTIPLIER_GLOBAL
 var default_experience: float = DEFAULT_EXPERIENCE
@@ -118,6 +122,7 @@ func reset_to_defaults() -> void:
 	max_stress = DEFAULT_MAX_STRESS
 	stress_base = INIT_STRESS_BASE
 	stress_fall_multiplier = INIT_STRESS_FALL_MULTIPLIER
+	decay_reference_sec = DEFAULT_DECAY_REFERENCE_SEC
 	stress_initial = INIT_STRESS_INITIAL
 	stress_multiplier_global = STRESS_MULTIPLIER_GLOBAL
 	default_experience = DEFAULT_EXPERIENCE
@@ -226,15 +231,27 @@ func weapon_stress_cap_runtime(stress_limit: float) -> float:
 	return clampf((stress_limit / STRESS_LIMIT_REF) * max_stress, 0.0, max_stress)
 
 
-## Decay toward INITStressInitial when unthreatened. Fall multiplier = retain fraction.
-func apply_stress_decay(runtime_stress: float, prone: bool = false) -> float:
+## Decay toward INITStressInitial when unthreatened.
+## stress_fall_multiplier = retain fraction over decay_reference_sec; delta_sec scales it
+## so a 0.5s combat scan does not apply a full recovery step.
+func apply_stress_decay(
+	runtime_stress: float,
+	prone: bool = false,
+	delta_sec: float = -1.0,
+) -> float:
 	var target := stress_initial_runtime()
 	if runtime_stress <= target:
 		return target
-	var retain := stress_fall_multiplier
+	var dt := decay_reference_sec if delta_sec < 0.0 else maxf(delta_sec, 0.0)
+	if dt <= 0.0:
+		return runtime_stress
+	var retain_period := stress_fall_multiplier
 	if prone:
 		## TUNED: prone recovers faster (lower retain) than standing.
-		retain *= 0.5
+		retain_period *= 0.5
+	retain_period = clampf(retain_period, 0.0, 1.0)
+	var period := maxf(decay_reference_sec, 0.001)
+	var retain := pow(retain_period, dt / period)
 	return maxf(target, runtime_stress * retain)
 
 
@@ -340,6 +357,8 @@ func apply_config(section: Dictionary) -> void:
 		stress_base = float(section.stress_base)
 	if section.has("stress_fall_multiplier"):
 		stress_fall_multiplier = float(section.stress_fall_multiplier)
+	if section.has("decay_reference_sec"):
+		decay_reference_sec = float(section.decay_reference_sec)
 	if section.has("stress_initial"):
 		stress_initial = float(section.stress_initial)
 	if section.has("stress_multiplier_global"):

@@ -39,8 +39,11 @@ const CombatShotResultClass := preload("res://scripts/combat/combat_shot_result.
 const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
 
 ## Max Chebyshev distance between any two living fireteam members after a move.
-const FIRETEAM_COHESION_RADIUS := 25
+## TUNED — OG fireteams stay tight (cluster of ~3–4 tiles). Was 25 (left wingmen behind).
+const FIRETEAM_COHESION_RADIUS := 10
 const FIRETEAM_COHESION_FAIL_MSG := "Cannot move that far from fireteam"
+## TUNED — AI squad offsets clamped so wide spawn spreads compact on the first bound.
+const AI_FORMATION_OFFSET_MAX := 2
 
 
 static func execute(
@@ -473,18 +476,25 @@ static func execute_move(
 				squad_target, _living_fireteam_positions(fireteam, -1)
 			)
 		## Cap full A* after lead — translated / co-located reuse is free.
-		## Humans get a full FT budget so all 4 can Run To; AI stays lean.
+		## AI matches human budget so all 4 get a path (was 2 → leave-2-behind).
 		var full_pathfinds := 0
-		var max_full_pathfinds := 2 if _acting_is_ai(game_state, context) else 4
+		var max_full_pathfinds := 4
+		var acting_ai := _acting_is_ai(game_state, context)
 		for squad_soldier in orderable:
 			var squad_move_result := _resolve_move_order(squad_soldier, cmd.movement_mode)
 			var member_ref: Vector2i = formation_refs[squad_soldier.soldier_id]
+			var offset := member_ref - anchor_pos
+			if acting_ai:
+				offset = Vector2i(
+					clampi(offset.x, -AI_FORMATION_OFFSET_MAX, AI_FORMATION_OFFSET_MAX),
+					clampi(offset.y, -AI_FORMATION_OFFSET_MAX, AI_FORMATION_OFFSET_MAX),
+				)
 			var member_target := _squad_relative_formation_cell(
 				game_state.map_data,
 				squad_target,
-				member_ref - anchor_pos,
+				offset,
 			)
-			if _acting_is_ai(game_state, context):
+			if acting_ai:
 				var peers := _living_fireteam_positions(fireteam, squad_soldier.soldier_id)
 				member_target = _clamp_cell_to_fireteam_cohesion(member_target, peers)
 			if (

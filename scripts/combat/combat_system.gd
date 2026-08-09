@@ -53,6 +53,11 @@ const SPOTTING_RANGE_BONUS := HitChancePolicyClass.DEFAULT_SPOTTING_RANGE_BONUS
 ## stress = suppression/combat pressure; affects accuracy, movement, and fire cadence.
 ## spotting controls target eligibility; shot LOS controls whether bullets can fire.
 ## cover reduces both hit chance and spotting; recently fired enemies are easier to detect.
+
+## Stage 3 diagnostics (--combat-verbose): per-soldier gain/decay since last flush.
+static var _stress_diag_gain: Dictionary = {}
+static var _stress_diag_decay: Dictionary = {}
+static var _stress_diag_flush_msec: int = 0
 ## Manual Fire At remains priority-target behavior; Fire At Will uses tactical target scoring.
 
 static var _last_preview_debug_key: String = ""
@@ -1527,9 +1532,12 @@ static func apply_suppression_from_shot(
 	gain *= cover_mult * stance_mult
 	if gain <= 0.0:
 		return
-	var cap := minf(policy.max_stress, policy.weapon_stress_cap_runtime(weapon.stress_limit))
-	target.stress = clampf(target.stress + gain, 0.0, cap)
+	## Cap at max_stress only (OG INITMaxStressOut → 100). StressLimit is a range
+	## cutoff for gain, not a per-weapon accumulation ceiling — SMG must be able to pin.
+	var before := target.stress
+	target.stress = clampf(target.stress + gain, 0.0, policy.max_stress)
 	target.received_suppression_this_tick = true
+	_stress_diag_note_gain(target, target.stress - before)
 
 
 static func clear_suppression_tick_flags(game_state: GameStateClass) -> void:
@@ -1541,9 +1549,10 @@ static func clear_suppression_tick_flags(game_state: GameStateClass) -> void:
 
 static func recover_stress_tick(
 	game_state: GameStateClass,
-	_delta_sec: float = AUTO_FIRE_SCAN_INTERVAL,
+	delta_sec: float = AUTO_FIRE_SCAN_INTERVAL,
 ) -> void:
 	var policy := GameplayPolicies.suppression
+	var dt := maxf(delta_sec, 0.0)
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier: SoldierStateClass = state
@@ -1552,7 +1561,10 @@ static func recover_stress_tick(
 			if soldier.received_suppression_this_tick:
 				continue
 			var prone := soldier.position_state == PositionStateClass.DOWN
-			soldier.stress = policy.apply_stress_decay(soldier.stress, prone)
+			var before := soldier.stress
+			soldier.stress = policy.apply_stress_decay(soldier.stress, prone, dt)
+			_stress_diag_note_decay(soldier, before - soldier.stress)
+	_stress_diag_maybe_flush(game_state)
 
 
 static func _suppression_stress_gain(weapon: WeaponDataClass, range_tiles: int) -> float:
@@ -1569,6 +1581,80 @@ static func _suppression_stress_gain(weapon: WeaponDataClass, range_tiles: int) 
 		weapon.stress_limit_tiles,
 		range_tiles,
 	)
+
+
+static func _stress_diag_key(soldier: SoldierStateClass) -> String:
+	return "%d:%d" % [soldier.team_id, soldier.soldier_id]
+
+
+static func _stress_diag_note_gain(soldier: SoldierStateClass, amount: float) -> void:
+	if amount <= 0.0 or not GameConfig.combat_verbose_enabled():
+		return
+	var key := _stress_diag_key(soldier)
+	_stress_diag_gain[key] = float(_stress_diag_gain.get(key, 0.0)) + amount
+
+
+static func _stress_diag_note_decay(soldier: SoldierStateClass, amount: float) -> void:
+	if amount <= 0.0 or not GameConfig.combat_verbose_enabled():
+		return
+	var key := _stress_diag_key(soldier)
+	_stress_diag_decay[key] = float(_stress_diag_decay.get(key, 0.0)) + amount
+
+
+static func _stress_diag_maybe_flush(game_state: GameStateClass) -> void:
+	if not GameConfig.combat_verbose_enabled():
+		return
+	var now := SimulationClock.get_ticks_msec()
+	if _stress_diag_flush_msec <= 0:
+		_stress_diag_flush_msec = now
+		return
+	if now - _stress_diag_flush_msec < 1000:
+		return
+	_stress_diag_flush_msec = now
+	var keys: Dictionary = {}
+	for key in _stress_diag_gain.keys():
+		keys[key] = true
+	for key in _stress_diag_decay.keys():
+		keys[key] = true
+	for fireteam in game_state.session.all_fireteams():
+		for state in fireteam.soldiers:
+			var soldier: SoldierStateClass = state
+			if soldier.is_dead or soldier.stress <= 0.0:
+				continue
+			keys[_stress_diag_key(soldier)] = true
+	if keys.is_empty():
+		_stress_diag_gain.clear()
+		_stress_diag_decay.clear()
+		return
+	var ordered: Array = keys.keys()
+	ordered.sort()
+	for key in ordered:
+		var parts: PackedStringArray = str(key).split(":")
+		if parts.size() != 2:
+			continue
+		var team_id := int(parts[0])
+		var soldier_id := int(parts[1])
+		var soldier: SoldierStateClass = game_state.get_soldier(team_id, soldier_id)
+		if soldier == null or soldier.is_dead:
+			continue
+		var gain := float(_stress_diag_gain.get(key, 0.0))
+		var decay := float(_stress_diag_decay.get(key, 0.0))
+		if gain <= 0.0 and decay <= 0.0 and soldier.stress <= 0.0:
+			continue
+		print(
+			"[StressDiag] t=%d %s%d gain=+%.1f decay=-%.1f stress=%.1f (og=%.2f)"
+			% [
+				now,
+				Team.display_name(team_id),
+				soldier_id,
+				gain,
+				decay,
+				soldier.stress,
+				GameplayPolicies.suppression.to_original(soldier.stress),
+			]
+		)
+	_stress_diag_gain.clear()
+	_stress_diag_decay.clear()
 
 
 ## Stress represents suppression/combat pressure and reduces firing effectiveness.

@@ -11,9 +11,10 @@ const DEFAULT_MIN_HIT_CHANCE := 0.0
 const DEFAULT_SHOOTER_PRONE_ACCURACY_MULT := 1.15
 const DEFAULT_TARGET_PRONE_HIT_MULT := 0.55
 const DEFAULT_MODERATE_COVER_HIT_MULT := 0.5
-## TUNED — fitted so rifle ≈ 0.09 and SMG ≈ 0.03 at Euclidean range ~12, AimTime=1, Stress 0.
+## TUNED — fitted so rifle ≈ 0.09 at Euclidean range 11, AimTime=1, Stress 0 (OG HUD).
 ## Relative weapon shape is RECOVERED; only this absolute scale is free.
-const DEFAULT_HIT_SCALE := 0.07776
+## Was 0.07776 (rifle ≈11.7% at 11 tiles); trimmed so long-range matches original.
+const DEFAULT_HIT_SCALE := 0.060
 ## Fixed AimTime until Exp-Str × Range tables are wired.
 const DEFAULT_AIM_TIME := 1.0
 ## Floor on D = Range − MarksMan so the denominator never hits zero.
@@ -22,11 +23,10 @@ const DEFAULT_RANGE_EPSILON := 0.25
 const DEFAULT_MAX_ENGAGEMENT_TILES := 40
 ## RECOVERED INITKilledProbability = 0.20 (separate kill roll after hit).
 const RECOVERED_LETHALITY_MULTIPLIER := 0.20
-## TUNED — set from measured time-to-casualty vs original (~61s/rifleman).
-## At moderate range (~10 tiles, clear LOS) expected TTK ≈ 88s with HitFinal≈0.156.
-## Revert to 0.20 (RECOVERED) when the wound state lands.
+## TUNED — without a wound state, a hit should ≈ remove the soldier (OG casualty rate).
+## Was 0.40 (point-blank hits often did nothing). Revert to 0.20 when wound state lands.
 ## Folded as P(death) = HitFinal × lethality_multiplier (bullets + grenade casualty).
-const DEFAULT_LETHALITY_MULTIPLIER := 0.40
+const DEFAULT_LETHALITY_MULTIPLIER := 0.90
 const DEFAULT_AUTO_TARGET_ENGAGED_BONUS := 10.0
 const DEFAULT_AUTO_FIRE_SCAN_INTERVAL := 0.5
 ## RECOVERED from gameplay capture — 5.05s and 6.09s observed; midpoint used as default.
