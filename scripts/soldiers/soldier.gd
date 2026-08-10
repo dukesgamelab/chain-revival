@@ -238,6 +238,7 @@ func _corner_phase_blocks_locomotion() -> bool:
 
 
 ## Apply authoritative gameplay state to this sprite (position, facing, selection).
+## fire_aim_cell: engaged / Fire-At aim cell so hold facing matches play_fire.
 func sync_from_state(
 	state: SoldierState,
 	is_selected: bool,
@@ -246,6 +247,7 @@ func sync_from_state(
 	idle_peek_side: int = CoverSystem.PeekSide.NONE,
 	idle_corner_cell: Vector2i = Vector2i(-999, -999),
 	id_label_text: String = "",
+	fire_aim_cell: Vector2i = Vector2i(-999, -999),
 ) -> void:
 	var previous_team := team_id
 	soldier_id = state.soldier_id
@@ -254,6 +256,8 @@ func sync_from_state(
 	_id_label_text = id_label_text
 	_idle_peek_side = idle_peek_side
 	_cover_corner_cell = idle_corner_cell
+	if fire_aim_cell.x > -900:
+		_fire_target_cell = fire_aim_cell
 	_presentation_stress = state.stress
 	_presentation_fire_control = state.fire_control_state
 	_presentation_movement_mode = state.movement_mode
@@ -535,10 +539,13 @@ func apply_idle_pose_inputs(
 	stress: float,
 	fire_control_state: int,
 	state: SoldierState = null,
+	fire_aim_cell: Vector2i = Vector2i(-999, -999),
 ) -> void:
 	var prev_semantic := _idle_standing_semantic()
 	_presentation_stress = stress
 	_presentation_fire_control = fire_control_state
+	if fire_aim_cell.x > -900:
+		_fire_target_cell = fire_aim_cell
 	## Combat-tick light refresh must re-assert aim — full sync_from_state is rare.
 	if state != null and not _is_dead and not _presentation_stunned:
 		_sync_fire_aim_hold(state)
@@ -806,10 +813,18 @@ func _has_active_chase() -> bool:
 
 
 func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:
-	var normalized := FacingDirection.normalize(facing)
+	_facing_from_cell = from_cell
+	## Aim hold / enter own facing from shooter→target (same as play_fire). Do not let
+	## state.facing_direction stomp that bearing or hold aims one way while fire aims another.
+	var normalized: Vector2i
+	if _fire_aim_hold_active or _fire_aim_enter_active:
+		normalized = _resolve_fire_facing_step(facing, _fire_target_cell)
+		if normalized == Vector2i.ZERO:
+			normalized = FacingDirection.normalize(facing)
+	else:
+		normalized = FacingDirection.normalize(facing)
 	var changed := normalized != _last_applied_facing
 	_last_applied_facing = normalized
-	_facing_from_cell = from_cell
 	if not _is_moving and not _blocks_action_override():
 		_update_locomotion_visual(normalized, false)
 	if _facing_arrow != null and _show_facing_arrow():
@@ -2113,28 +2128,47 @@ func _begin_fire_aim_hold(position_state: int) -> void:
 		return
 	## Let ASAPA oneshot finish; sync must not restart it every tick.
 	## Exclude aim_standing_hold_* (also begins with aim_standing_).
+	## If enter finished without the finished signal, or camera/target changed the
+	## display letter, fall through and snap to the correct hold (Camera 90° latch).
 	if (
 		_fire_aim_enter_active
 		and current.begins_with("aim_standing_")
 		and not current.begins_with("aim_standing_hold_")
+		and _anim.is_playing()
+		and current == enter_anim
 	):
 		_log_aim_hold_diag(
 			position_state, hold_facing, display_dir, hold_anim, enter_anim, has_hold, has_enter,
 			"ENTER_WAIT"
 		)
 		return
+	## Enter oneshot ended but hold latch missed — snap ASAIS instead of replaying ASAPA.
+	if (
+		_fire_aim_enter_active
+		and current.begins_with("aim_standing_")
+		and not current.begins_with("aim_standing_hold_")
+		and not _anim.is_playing()
+	):
+		_fire_aim_enter_active = false
 	var from_fire := (
 		current.begins_with("fire_standing_")
 		or current.begins_with("fire_prone_")
 		or current.begins_with("corner_fire_")
 	)
+	var have_combat_aim := (
+		_fire_target_cell.x > -900
+		or _aim_hold_last_target_team_id >= 0
+	)
+	## ASAPA only for untargeted raise; engaged / between-shot always latch ASAIS (matches fire).
 	var want_enter := (
 		position_state != PositionState.DOWN
 		and not from_fire
 		and not _fire_aim_hold_active
 		and not _fire_aim_enter_active
+		and not have_combat_aim
 	)
 	_fire_aim_hold_active = true
+	_fire_aim_enter_active = false
 	_fire_semantic = hold_semantic
 	_apply_hit_reaction_scale(position_state)
 	if want_enter and has_enter:

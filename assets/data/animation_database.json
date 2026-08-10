@@ -105,21 +105,20 @@
 				"aim_standing": {
 					"comment": "Stage 1: GSAPA ragged frame counts by direction — do not pad.",
 					"directions": {
-						"e": {
+						"n": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5A.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5B.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5C.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5D.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5E.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5F.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5G.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5H.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5I.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5J.png"
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8A.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8B.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8C.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8D.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8E.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8F.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8G.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8H.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8I.png"
 							]
 						},
-						"n": {
+						"ne": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA7A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA7B.png",
@@ -133,7 +132,7 @@
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA7J.png"
 							]
 						},
-						"ne": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA6A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA6B.png",
@@ -147,34 +146,21 @@
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA6J.png"
 							]
 						},
-						"nw": {
+						"se": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8A.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8B.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8C.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8D.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8E.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8F.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8G.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8H.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8I.png"
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5A.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5B.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5C.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5D.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5E.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5F.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5G.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5H.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5I.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5J.png"
 							]
 						},
 						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3A.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3B.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3C.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3D.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3E.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3F.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3G.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3H.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3I.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3J.png"
-							]
-						},
-						"se": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA4A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA4B.png",
@@ -190,6 +176,20 @@
 						},
 						"sw": {
 							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3A.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3B.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3C.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3D.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3E.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3F.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3G.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3H.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3I.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3J.png"
+							]
+						},
+						"w": {
+							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2B.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2C.png",
@@ -202,7 +202,7 @@
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2J.png"
 							]
 						},
-						"w": {
+						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA1A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA1B.png",
@@ -223,42 +223,42 @@
 				"aim_standing_hold": {
 					"comment": "Stage 1: GSAIS single-frame aim hold.",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS5A.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS6A.png"
-							]
-						},
-						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS8A.png"
 							]
 						},
-						"s": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS3A.png"
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS7A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS6A.png"
 							]
 						},
 						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS5A.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS4A.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS2A.png"
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS3A.png"
 							]
 						},
 						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS2A.png"
+							]
+						},
+						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS1A.png"
 							]
@@ -2023,21 +2023,20 @@
 				"aim_standing": {
 					"comment": "Stage 1: GSAPA ragged frame counts by direction — do not pad.",
 					"directions": {
-						"e": {
+						"n": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5A.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5B.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5C.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5D.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5E.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5F.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5G.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5H.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5I.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5J.png"
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8A.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8B.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8C.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8D.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8E.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8F.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8G.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8H.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8I.png"
 							]
 						},
-						"n": {
+						"ne": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA7A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA7B.png",
@@ -2051,7 +2050,7 @@
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA7J.png"
 							]
 						},
-						"ne": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA6A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA6B.png",
@@ -2065,34 +2064,21 @@
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA6J.png"
 							]
 						},
-						"nw": {
+						"se": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8A.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8B.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8C.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8D.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8E.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8F.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8G.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8H.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8I.png"
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5A.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5B.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5C.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5D.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5E.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5F.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5G.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5H.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5I.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5J.png"
 							]
 						},
 						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3A.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3B.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3C.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3D.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3E.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3F.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3G.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3H.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3I.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3J.png"
-							]
-						},
-						"se": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA4A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA4B.png",
@@ -2108,6 +2094,20 @@
 						},
 						"sw": {
 							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3A.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3B.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3C.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3D.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3E.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3F.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3G.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3H.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3I.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3J.png"
+							]
+						},
+						"w": {
+							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2B.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2C.png",
@@ -2120,7 +2120,7 @@
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2J.png"
 							]
 						},
-						"w": {
+						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA1A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA1B.png",
@@ -2141,42 +2141,42 @@
 				"aim_standing_hold": {
 					"comment": "Stage 1: GSAIS single-frame aim hold.",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS5A.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS6A.png"
-							]
-						},
-						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS8A.png"
 							]
 						},
-						"s": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS3A.png"
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS7A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS6A.png"
 							]
 						},
 						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS5A.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS4A.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS2A.png"
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS3A.png"
 							]
 						},
 						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS2A.png"
+							]
+						},
+						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS1A.png"
 							]
@@ -5901,21 +5901,20 @@
 				"aim_standing": {
 					"comment": "Stage 1: GSAPA ragged frame counts by direction — do not pad.",
 					"directions": {
-						"e": {
+						"n": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5A.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5B.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5C.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5D.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5E.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5F.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5G.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5H.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5I.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA5J.png"
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8A.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8B.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8C.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8D.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8E.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8F.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8G.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8H.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA8I.png"
 							]
 						},
-						"n": {
+						"ne": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA7A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA7B.png",
@@ -5929,7 +5928,7 @@
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA7J.png"
 							]
 						},
-						"ne": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA6A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA6B.png",
@@ -5943,34 +5942,21 @@
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA6J.png"
 							]
 						},
-						"nw": {
+						"se": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8A.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8B.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8C.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8D.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8E.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8F.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8G.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8H.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA8I.png"
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5A.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5B.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5C.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5D.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5E.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5F.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5G.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5H.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5I.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA5J.png"
 							]
 						},
 						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3A.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3B.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3C.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3D.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3E.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3F.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3G.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3H.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3I.png",
-								"res://assets/sprites/german_soldier/aim_standing/GSAPA3J.png"
-							]
-						},
-						"se": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA4A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA4B.png",
@@ -5986,6 +5972,20 @@
 						},
 						"sw": {
 							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3A.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3B.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3C.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3D.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3E.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3F.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3G.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3H.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3I.png",
+								"res://assets/sprites/german_soldier/aim_standing/GSAPA3J.png"
+							]
+						},
+						"w": {
+							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2B.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2C.png",
@@ -5998,7 +5998,7 @@
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA2J.png"
 							]
 						},
-						"w": {
+						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA1A.png",
 								"res://assets/sprites/german_soldier/aim_standing/GSAPA1B.png",
@@ -6019,42 +6019,42 @@
 				"aim_standing_hold": {
 					"comment": "Stage 1: GSAIS single-frame aim hold.",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS5A.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS6A.png"
-							]
-						},
-						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS8A.png"
 							]
 						},
-						"s": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS3A.png"
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS7A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS6A.png"
 							]
 						},
 						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS5A.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS4A.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS2A.png"
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS3A.png"
 							]
 						},
 						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS2A.png"
+							]
+						},
+						"nw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/aim_standing_hold/GSAIS1A.png"
 							]
@@ -7819,21 +7819,20 @@
 				"aim_standing": {
 					"comment": "Stage 1: ASAPA ragged 9–11 frames by direction — do not pad.",
 					"directions": {
-						"e": {
+						"n": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5A.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5B.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5C.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5D.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5E.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5F.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5G.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5H.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5I.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5J.png"
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8A.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8B.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8C.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8D.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8E.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8F.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8G.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8H.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8I.png"
 							]
 						},
-						"n": {
+						"ne": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA7A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA7B.png",
@@ -7847,7 +7846,7 @@
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA7J.png"
 							]
 						},
-						"ne": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA6A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA6B.png",
@@ -7861,34 +7860,21 @@
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA6J.png"
 							]
 						},
-						"nw": {
+						"se": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8A.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8B.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8C.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8D.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8E.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8F.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8G.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8H.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8I.png"
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5A.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5B.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5C.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5D.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5E.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5F.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5G.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5H.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5I.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5J.png"
 							]
 						},
 						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3A.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3B.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3C.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3D.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3E.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3F.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3G.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3H.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3I.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3J.png"
-							]
-						},
-						"se": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA4A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA4B.png",
@@ -7905,6 +7891,20 @@
 						},
 						"sw": {
 							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3A.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3B.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3C.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3D.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3E.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3F.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3G.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3H.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3I.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3J.png"
+							]
+						},
+						"w": {
+							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2B.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2C.png",
@@ -7917,7 +7917,7 @@
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2J.png"
 							]
 						},
-						"w": {
+						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA1A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA1B.png",
@@ -7938,42 +7938,42 @@
 				"aim_standing_hold": {
 					"comment": "Stage 1: ASAIS single-frame aim hold (pixel-identical to fire_standing C).",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS5A.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS6A.png"
-							]
-						},
-						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS8A.png"
 							]
 						},
-						"s": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS3A.png"
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS7A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS6A.png"
 							]
 						},
 						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS5A.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS4A.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS2A.png"
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS3A.png"
 							]
 						},
 						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS2A.png"
+							]
+						},
+						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS1A.png"
 							]
@@ -9741,46 +9741,7 @@
 				"aim_standing": {
 					"comment": "Stage 1: ASAPA ragged 9–11 frames by direction — do not pad.",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5A.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5B.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5C.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5D.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5E.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5F.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5G.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5H.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5I.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA7A.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA7B.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA7C.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA7D.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA7E.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA7F.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA7G.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA7H.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA7I.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA6A.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA6B.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA6C.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA6D.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA6E.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA6F.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA6G.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA6H.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA6I.png"
-							]
-						},
-						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA8A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA8B.png",
@@ -9793,20 +9754,46 @@
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA8I.png"
 							]
 						},
-						"s": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3A.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3B.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3C.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3D.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3E.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3F.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3G.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3H.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3I.png"
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA7A.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA7B.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA7C.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA7D.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA7E.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA7F.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA7G.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA7H.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA7I.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA6A.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA6B.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA6C.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA6D.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA6E.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA6F.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA6G.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA6H.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA6I.png"
 							]
 						},
 						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5A.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5B.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5C.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5D.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5E.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5F.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5G.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5H.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5I.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA4A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA4B.png",
@@ -9822,6 +9809,19 @@
 						},
 						"sw": {
 							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3A.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3B.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3C.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3D.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3E.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3F.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3G.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3H.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3I.png"
+							]
+						},
+						"w": {
+							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2B.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2C.png",
@@ -9833,7 +9833,7 @@
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2I.png"
 							]
 						},
-						"w": {
+						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA1A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA1B.png",
@@ -9860,42 +9860,42 @@
 				"aim_standing_hold": {
 					"comment": "Stage 1: ASAIS single-frame aim hold (pixel-identical to fire_standing C).",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS5A.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS6A.png"
-							]
-						},
-						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS8A.png"
 							]
 						},
-						"s": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS3A.png"
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS7A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS6A.png"
 							]
 						},
 						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS5A.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS4A.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS2A.png"
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS3A.png"
 							]
 						},
 						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS2A.png"
+							]
+						},
+						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS1A.png"
 							]
@@ -14199,21 +14199,20 @@
 				"aim_standing": {
 					"comment": "Stage 1: ASAPA ragged 9–11 frames by direction — do not pad.",
 					"directions": {
-						"e": {
+						"n": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5A.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5B.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5C.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5D.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5E.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5F.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5G.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5H.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5I.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA5J.png"
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8A.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8B.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8C.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8D.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8E.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8F.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8G.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8H.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA8I.png"
 							]
 						},
-						"n": {
+						"ne": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA7A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA7B.png",
@@ -14227,7 +14226,7 @@
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA7J.png"
 							]
 						},
-						"ne": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA6A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA6B.png",
@@ -14241,34 +14240,21 @@
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA6J.png"
 							]
 						},
-						"nw": {
+						"se": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8A.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8B.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8C.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8D.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8E.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8F.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8G.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8H.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA8I.png"
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5A.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5B.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5C.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5D.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5E.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5F.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5G.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5H.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5I.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA5J.png"
 							]
 						},
 						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3A.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3B.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3C.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3D.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3E.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3F.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3G.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3H.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3I.png",
-								"res://assets/sprites/us_soldier/aim_standing/ASAPA3J.png"
-							]
-						},
-						"se": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA4A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA4B.png",
@@ -14285,6 +14271,20 @@
 						},
 						"sw": {
 							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3A.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3B.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3C.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3D.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3E.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3F.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3G.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3H.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3I.png",
+								"res://assets/sprites/us_soldier/aim_standing/ASAPA3J.png"
+							]
+						},
+						"w": {
+							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2B.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2C.png",
@@ -14297,7 +14297,7 @@
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA2J.png"
 							]
 						},
-						"w": {
+						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA1A.png",
 								"res://assets/sprites/us_soldier/aim_standing/ASAPA1B.png",
@@ -14318,42 +14318,42 @@
 				"aim_standing_hold": {
 					"comment": "Stage 1: ASAIS single-frame aim hold (pixel-identical to fire_standing C).",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS5A.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS7A.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS6A.png"
-							]
-						},
-						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS8A.png"
 							]
 						},
-						"s": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS3A.png"
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS7A.png"
+							]
+						},
+						"e": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS6A.png"
 							]
 						},
 						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS5A.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS4A.png"
 							]
 						},
 						"sw": {
 							"frames": [
-								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS2A.png"
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS3A.png"
 							]
 						},
 						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS2A.png"
+							]
+						},
+						"nw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/aim_standing_hold/ASAIS1A.png"
 							]

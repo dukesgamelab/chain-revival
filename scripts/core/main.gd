@@ -1728,6 +1728,7 @@ func _refresh_idle_pose_visuals() -> void:
 				soldier_state.stress,
 				soldier_state.fire_control_state,
 				soldier_state,
+				_corner_aim_cell_for_soldier(soldier_state),
 			)
 
 
@@ -1787,6 +1788,7 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		id_label = _overhead_name_for_soldier(soldier_state)
 	var idle_peek := CoverSystem.PeekSide.NONE
 	var idle_corner_cell := Vector2i(-999, -999)
+	var fire_aim_cell := _corner_aim_cell_for_soldier(soldier_state)
 	if (
 		soldier_state.is_alive()
 		and soldier_state.position_state != PositionState.DOWN
@@ -1797,7 +1799,7 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 			soldier_state.grid_position,
 			soldier_state.facing_direction,
 			_map_data,
-			_corner_aim_cell_for_soldier(soldier_state),
+			fire_aim_cell,
 		)
 		idle_peek = corner.peek_side
 		idle_corner_cell = corner.corner_cell
@@ -1809,6 +1811,7 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		idle_peek,
 		idle_corner_cell,
 		id_label,
+		fire_aim_cell,
 	)
 
 
