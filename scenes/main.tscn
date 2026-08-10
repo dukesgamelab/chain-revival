@@ -1,54 +1,53 @@
 [gd_scene format=3 uid="uid://hxqfddk1yrsk"]
 
 [ext_resource type="Script" uid="uid://cb3p3n36g1wb6" path="res://scripts/core/main.gd" id="1_main"]
-[ext_resource type="PackedScene" uid="uid://c14uyvmy1frdd" path="res://scenes/ui/command_bar.tscn" id="3_cmdbar"]
-[ext_resource type="Script" path="res://scripts/ui/status_hud.gd" id="7_status"]
-[ext_resource type="Script" path="res://scripts/ui/ai_plan_hud.gd" id="8_aiplan"]
-[ext_resource type="Script" path="res://scripts/map/map_camera.gd" id="4_camera"]
 [ext_resource type="PackedScene" uid="uid://cmapworld001" path="res://scenes/map/map_world.tscn" id="2_world"]
-[ext_resource type="Script" path="res://scripts/effects/los_visualizer.gd" id="6_losviz"]
-[ext_resource type="Script" path="res://scripts/ui/network_status_hud.gd" id="10_network"]
+[ext_resource type="PackedScene" uid="uid://c14uyvmy1frdd" path="res://scenes/ui/command_bar.tscn" id="3_cmdbar"]
+[ext_resource type="Script" uid="uid://dkk30m66sxqux" path="res://scripts/map/map_camera.gd" id="4_camera"]
+[ext_resource type="Script" uid="uid://dtxwmoexhq6oe" path="res://scripts/effects/los_visualizer.gd" id="6_losviz"]
+[ext_resource type="Script" uid="uid://bjvp67kmio0tr" path="res://scripts/ui/status_hud.gd" id="7_status"]
+[ext_resource type="Script" uid="uid://dw6va7ycakxpm" path="res://scripts/ui/ai_plan_hud.gd" id="8_aiplan"]
+[ext_resource type="Script" uid="uid://blmcqj6ib3l31" path="res://scripts/ui/network_status_hud.gd" id="10_network"]
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=815531701]
 script = ExtResource("1_main")
 
-[node name="World" parent="." instance=ExtResource("2_world")]
+[node name="World" parent="." unique_id=1299799516 instance=ExtResource("2_world")]
 
-[node name="Tracers" type="Node2D" parent="World"]
+[node name="Tracers" type="Node2D" parent="World" unique_id=215406997]
 z_index = 8
 
-[node name="LosVisualizer" type="Node2D" parent="World"]
+[node name="LosVisualizer" type="Node2D" parent="World" unique_id=364706207]
 script = ExtResource("6_losviz")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1452629784]
 zoom = Vector2(0.55, 0.55)
 script = ExtResource("4_camera")
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=1631235992]
 
-[node name="NetworkStatusHud" type="PanelContainer" parent="UI"]
-anchors_preset = 0
+[node name="NetworkStatusHud" type="PanelContainer" parent="UI" unique_id=423773021]
 offset_left = 8.0
 offset_top = 66.0
 offset_right = 280.0
 offset_bottom = 122.0
 script = ExtResource("10_network")
 
-[node name="Margin" type="MarginContainer" parent="UI/NetworkStatusHud"]
+[node name="Margin" type="MarginContainer" parent="UI/NetworkStatusHud" unique_id=2051338501]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 6
 
-[node name="StatusLabel" type="Label" parent="UI/NetworkStatusHud/Margin"]
+[node name="StatusLabel" type="Label" parent="UI/NetworkStatusHud/Margin" unique_id=175060450]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.95, 0.88, 1)
 theme_override_font_sizes/font_size = 14
 text = "Current Mode: OFFLINE_DEV"
 autowrap_mode = 3
 
-[node name="StatusHud" type="PanelContainer" parent="UI"]
+[node name="StatusHud" type="PanelContainer" parent="UI" unique_id=803078415]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -59,14 +58,14 @@ offset_bottom = 56.0
 grow_horizontal = 0
 script = ExtResource("7_status")
 
-[node name="StatusMargin" type="MarginContainer" parent="UI/StatusHud"]
+[node name="StatusMargin" type="MarginContainer" parent="UI/StatusHud" unique_id=606199865]
 layout_mode = 2
 theme_override_constants/margin_left = 6
 theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 4
 
-[node name="StatusLabel" type="Label" parent="UI/StatusHud/StatusMargin"]
+[node name="StatusLabel" type="Label" parent="UI/StatusHud/StatusMargin" unique_id=543297018]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -76,7 +75,7 @@ text = "Press 1 = USA, 2 = Germany."
 horizontal_alignment = 2
 autowrap_mode = 3
 
-[node name="AiPlanHud" type="PanelContainer" parent="UI"]
+[node name="AiPlanHud" type="PanelContainer" parent="UI" unique_id=1674153786]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -88,4 +87,4 @@ grow_horizontal = 0
 mouse_filter = 2
 script = ExtResource("8_aiplan")
 
-[node name="CommandBar" parent="UI" instance=ExtResource("3_cmdbar")]
+[node name="CommandBar" parent="UI" unique_id=1737796828 instance=ExtResource("3_cmdbar")]

@@ -29,7 +29,7 @@ func _ready() -> void:
 	if ok != null:
 		ok.text = "Close"
 		ok.clip_text = false
-		ok.custom_minimum_size = Vector2(72, CocUiTheme.BUTTON_HEIGHT)
+		ok.custom_minimum_size = Vector2(80, CocUiTheme.BUTTON_HEIGHT)
 	confirmed.connect(_notify_finished)
 	close_requested.connect(_on_close_requested)
 	visibility_changed.connect(_on_visibility_changed)

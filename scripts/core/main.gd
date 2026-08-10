@@ -1724,7 +1724,11 @@ func _refresh_idle_pose_visuals() -> void:
 			var view: Soldier = _get_view(soldier_state.team_id, soldier_state.soldier_id)
 			if view == null:
 				continue
-			view.apply_idle_pose_inputs(soldier_state.stress, soldier_state.fire_control_state)
+			view.apply_idle_pose_inputs(
+				soldier_state.stress,
+				soldier_state.fire_control_state,
+				soldier_state,
+			)
 
 
 ## Cheap fog-of-war update: only enemy modulate/selection, no full anim/facing resync.
@@ -2084,11 +2088,12 @@ func _refresh_view_rotation() -> void:
 	_camera.set_map_size(_map_data.width, _map_data.height)
 	_world.set_center_cell(_get_camera_focus_cell())
 	_world.refresh_view_rotation()
+	## Sync first (snap settle, latch open aim), then remap in-flight oneshots.
+	_refresh_all_views()
 	for view in _soldier_views.values():
 		var soldier_view: Soldier = view
 		soldier_view.refresh_movement_visual()
 		soldier_view.refresh_action_visual_for_camera()
-	_refresh_all_views()
 	_command_bar.show_status(
 		"Camera %d° — Q/E or Rotate. Simulation grid unchanged."
 		% IsometricGrid.camera_direction_degrees(),
