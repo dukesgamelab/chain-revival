@@ -387,7 +387,9 @@ static func process_combat_tick(game_state: GameStateClass) -> ActionResult:
 	for fireteam in game_state.session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier: SoldierState = state
-			soldier.recover_from_stun_if_expired()
+			## Stand-up after grenade stun must refresh views (prone → upright).
+			if soldier.recover_from_stun_if_expired():
+				result.refresh_views = true
 
 	game_state.objects.sync_grenades_from(game_state)
 	## Do not force a full view refresh every combat scan — shots/explosions already

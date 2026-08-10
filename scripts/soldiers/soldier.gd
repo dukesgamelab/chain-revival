@@ -103,6 +103,12 @@ var _idle_wait_remaining_sec: float = -1.0
 ## Mirrored from SoldierState for idle pose selection (stress / hold-fire / post-shot).
 var _presentation_stress: float = 0.0
 var _presentation_fire_control: int = FireControlState.FIRE_AT_WILL
+## Mirrored from SoldierState.is_stunned() — true while sim stun is active.
+var _presentation_stunned: bool = false
+## Stage 2 stun chain: knockdown → stun_idle → stun_recover.
+enum StunPresPhase { NONE, KNOCKDOWN, IDLE, RECOVER }
+var _stun_phase: int = StunPresPhase.NONE
+var _stun_world_direction: String = "n"
 ## Seconds remaining on brief ADHPA/GDHPA kneel-aim hold after an open standing shot.
 var _post_shot_crouch_remaining: float = 0.0
 
@@ -201,9 +207,10 @@ static func roster_marker_index(soldier_id: int) -> int:
 
 
 func _blocks_action_override() -> bool:
-	## Priority: death → hit → throw → fire/corner → stance transition → movement → idle.
+	## Priority: death → stun chain → hit → throw → fire/corner → stance → idle.
 	return (
 		_death_sequence_active
+		or _stun_phase != StunPresPhase.NONE
 		or _hit_reaction_active
 		or _throw_grenade_active
 		or _fire_active
@@ -247,6 +254,7 @@ func sync_from_state(
 	if state.is_dead:
 		state.ensure_death_sprite_family()
 		_death_sprite_family = state.death_sprite_family
+		_clear_stun_presentation()
 
 	## Corner aim hold ends when authoritative peek geometry is lost.
 	if (
@@ -258,14 +266,7 @@ func sync_from_state(
 	):
 		_start_corner_peek_exit()
 
-	if _blocks_action_override():
-		soldier_id = state.soldier_id
-		team_id = state.team_id
-		_set_world_position_from_cell(state.grid_position)
-		_apply_fog_visual(fog_visual, is_selected)
-		_refresh_id_marker(state)
-		return
-
+	## Death wins over stun presentation.
 	if state.is_dead:
 		stop_movement()
 		visible = true
@@ -275,6 +276,49 @@ func sync_from_state(
 		_apply_facing(state.facing_direction, _facing_from_cell)
 		_corpse_world_direction = UsSoldierSpriteFrames.direction_from_step(state.facing_direction)
 		_show_dead_static(_corpse_world_direction)
+		_refresh_id_marker(state)
+		return
+
+	## Stun chain: rising edge starts knockdown; falling edge starts recover.
+	## While is_stunned(), stay in knockdown/prone-hold — never stand or crouch.
+	var want_stunned := state.is_stunned()
+	if want_stunned and _stun_phase == StunPresPhase.NONE:
+		_enter_stun_presentation()
+	elif want_stunned:
+		_presentation_stunned = true
+		## Re-assert prone hold if something knocked us out of IDLE visuals.
+		if _stun_phase == StunPresPhase.IDLE:
+			var hold := str(_anim.animation)
+			if not hold.begins_with("idle_prone_") and not hold.begins_with("stun_knockdown_"):
+				_start_stun_idle()
+	elif (
+		_stun_phase == StunPresPhase.KNOCKDOWN
+		or _stun_phase == StunPresPhase.IDLE
+		or _presentation_stunned
+	):
+		_presentation_stunned = false
+		_begin_stun_recover()
+	else:
+		_presentation_stunned = false
+
+	if _stun_phase != StunPresPhase.NONE:
+		soldier_id = state.soldier_id
+		team_id = state.team_id
+		stop_movement()
+		_set_world_position_from_cell(state.grid_position)
+		_facing_from_cell = state.grid_position
+		## Facing refresh must not restart knockdown / overwrite stun hold.
+		_last_applied_facing = FacingDirection.normalize(state.facing_direction)
+		_apply_fog_visual(fog_visual, is_selected)
+		set_selected(is_selected)
+		_refresh_id_marker(state)
+		return
+
+	if _blocks_action_override():
+		soldier_id = state.soldier_id
+		team_id = state.team_id
+		_set_world_position_from_cell(state.grid_position)
+		_apply_fog_visual(fog_visual, is_selected)
 		_refresh_id_marker(state)
 		return
 
@@ -463,7 +507,13 @@ func apply_idle_pose_inputs(stress: float, fire_control_state: int) -> void:
 	var prev_semantic := _idle_standing_semantic()
 	_presentation_stress = stress
 	_presentation_fire_control = fire_control_state
-	if _is_dead or _blocks_action_override() or _is_moving:
+	if (
+		_is_dead
+		or _presentation_stunned
+		or _stun_phase != StunPresPhase.NONE
+		or _blocks_action_override()
+		or _is_moving
+	):
 		return
 	if _applied_position_state == PositionState.DOWN:
 		return
@@ -510,6 +560,11 @@ func _apply_dead_visual(_is_selected: bool) -> void:
 
 
 func _apply_position_visual(state: SoldierState) -> void:
+	## Stun chain owns posture/scale until recover finishes.
+	if _stun_phase != StunPresPhase.NONE:
+		_applied_position_state = PositionState.DOWN
+		_facing_arrow.visible = false
+		return
 	## Transition anim owns applied stance until it finishes.
 	if _stance_transition_active:
 		return
@@ -817,29 +872,34 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 				_anim.play("%s_%s" % [move_prefix, display_dir])
 			return
 	if not walking and _locomotion_direction == direction and not _locomotion_walking:
+		## Stun owns the pose — never keep standing idle / fidget / aim hold.
+		if _presentation_stunned:
+			pass
 		## Keep an in-flight standing fidget until it finishes or is cancelled.
-		if _idle_fidget_active:
+		elif _idle_fidget_active:
 			return
 		## Aiming hold owns the pose until the shot oneshot or disengage.
-		if _fire_aim_hold_active:
+		elif _fire_aim_hold_active:
 			return
 		## Already stationary in this world facing — keep current idle pose
 		## unless peek side changed or we still need to start the correct idle.
-		var idle_semantic := _idle_standing_semantic()
-		var idle_anim_name := "%s_%s" % [idle_semantic, display_dir]
+		elif _applied_position_state != PositionState.DOWN:
+			var idle_semantic := _idle_standing_semantic()
+			var idle_anim_name := "%s_%s" % [idle_semantic, display_dir]
+			if (
+				_idle_peek_side == _played_idle_peek_side
+				and _anim.sprite_frames.has_animation(idle_anim_name)
+				and str(_anim.animation).begins_with("%s_" % idle_semantic)
+			):
+				## Sync/facing refresh must not drop a stopped idle timer.
+				if idle_semantic == "idle_standing":
+					_ensure_standing_idle_timer()
+				elif idle_semantic == "idle_crouch":
+					_cancel_standing_idle()
+				return
 		if (
-			_idle_peek_side == _played_idle_peek_side
-			and _anim.sprite_frames.has_animation(idle_anim_name)
-			and str(_anim.animation).begins_with("%s_" % idle_semantic)
-		):
-			## Sync/facing refresh must not drop a stopped idle timer.
-			if idle_semantic == "idle_standing":
-				_ensure_standing_idle_timer()
-			elif idle_semantic == "idle_crouch":
-				_cancel_standing_idle()
-			return
-		if (
-			_applied_position_state == PositionState.DOWN
+			not _presentation_stunned
+			and _applied_position_state == PositionState.DOWN
 			and (
 				str(_anim.animation).begins_with("idle_prone_")
 				or (
@@ -870,7 +930,11 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		_anim.play(move_name)
 		return
 
-	## Stationary: prone idle, or standing open/corner CIS idle.
+	## Stationary: stun hold, prone idle, or standing open/corner CIS idle.
+	if _stun_phase == StunPresPhase.IDLE or _presentation_stunned:
+		_stun_world_direction = direction if not direction.is_empty() else _stun_world_direction
+		_start_stun_idle()
+		return
 	if _applied_position_state == PositionState.DOWN:
 		_play_idle_prone(direction)
 		return
@@ -1060,6 +1124,9 @@ func refresh_action_visual_for_camera() -> void:
 	if _hit_reaction_active or _death_sequence_active:
 		_remap_hit_or_fall_for_camera()
 		return
+	if _stun_phase != StunPresPhase.NONE:
+		_remap_stun_for_camera()
+		return
 	if _idle_fidget_active:
 		_remap_standing_idle_fidget_for_camera()
 		return
@@ -1111,6 +1178,33 @@ func _remap_hit_or_fall_for_camera() -> void:
 		return
 	var remapped := "%s_%s" % [semantic, display_dir]
 	if not _anim.sprite_frames.has_animation(remapped):
+		return
+	var frame := _anim.frame
+	var progress := _anim.frame_progress
+	var was_playing := _anim.is_playing()
+	_anim.play(remapped)
+	_anim.frame = mini(frame, maxi(_anim.sprite_frames.get_frame_count(remapped) - 1, 0))
+	_anim.frame_progress = progress
+	if not was_playing:
+		_anim.pause()
+
+
+func _remap_stun_for_camera() -> void:
+	var world_dir := _stun_world_direction if not _stun_world_direction.is_empty() else "n"
+	var display_dir := _idle_display_direction(world_dir)
+	if _stun_phase == StunPresPhase.IDLE:
+		_remap_idle_prone_for_camera()
+		return
+	var semantic := ""
+	match _stun_phase:
+		StunPresPhase.KNOCKDOWN:
+			semantic = "stun_knockdown"
+		StunPresPhase.RECOVER:
+			semantic = "stun_recover"
+		_:
+			return
+	var remapped := "%s_%s" % [semantic, display_dir]
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(remapped):
 		return
 	var frame := _anim.frame
 	var progress := _anim.frame_progress
@@ -1235,6 +1329,8 @@ func play_death_sequence(
 ) -> void:
 	if not _uses_og_frames() or _death_sequence_active or _corpse_direction_locked:
 		return
+	## Death wins outright over any stun chain.
+	_clear_stun_presentation()
 	_cancel_standing_idle()
 	_cancel_stance_transition_visual(false)
 	_cancel_throw_grenade_visual(false)
@@ -1274,6 +1370,8 @@ func play_throw_grenade(
 	facing_direction: Vector2i = Vector2i.ZERO,
 ) -> void:
 	if not _uses_og_frames() or _is_dead or _death_sequence_active or _corpse_direction_locked:
+		return
+	if _presentation_stunned or _stun_phase != StunPresPhase.NONE:
 		return
 	if _hit_reaction_active:
 		return
@@ -1331,6 +1429,8 @@ func play_fire(
 ) -> void:
 	if not _uses_og_frames() or _is_dead or _death_sequence_active or _corpse_direction_locked:
 		return
+	if _presentation_stunned or _stun_phase != StunPresPhase.NONE:
+		return
 	if _hit_reaction_active or _throw_grenade_active:
 		return
 	_cancel_standing_idle()
@@ -1378,6 +1478,10 @@ func play_stance_transition(
 ) -> void:
 	if not _uses_og_frames() or _is_dead or _death_sequence_active or _corpse_direction_locked:
 		## No anim — still clear the pending presentation gate.
+		stance_transition_finished.emit(team_id, soldier_id, target_position_state)
+		return
+	if _presentation_stunned or _stun_phase != StunPresPhase.NONE:
+		## Stun owns posture; clear the pending gate without a transition anim.
 		stance_transition_finished.emit(team_id, soldier_id, target_position_state)
 		return
 	if _hit_reaction_active or _throw_grenade_active or _fire_active:
@@ -1599,8 +1703,10 @@ func _clear_corner_presentation(_resume_idle: bool) -> void:
 func _sync_fire_aim_hold(state: SoldierState) -> void:
 	## While Fire At Will / Fire At is aiming (prep clock running), hold aim pose
 	## (last fire-clip frame = C). Shot oneshot plays A→B→C.
-	if state == null or _fire_active or _is_moving or _is_dead:
-		if _fire_aim_hold_active and (_fire_active or _is_moving or _is_dead):
+	if state == null or _fire_active or _is_moving or _is_dead or _presentation_stunned:
+		if _fire_aim_hold_active and (
+			_fire_active or _is_moving or _is_dead or _presentation_stunned
+		):
 			_clear_fire_aim_hold()
 		return
 	if not state.is_engaged():
@@ -1621,6 +1727,107 @@ func _sync_fire_aim_hold(state: SoldierState) -> void:
 			_clear_fire_aim_hold(true)
 		return
 	_begin_fire_aim_hold(state.position_state)
+
+
+## Cancel competing presentation and start knockdown → stun_idle → recover (Stage 2).
+func _enter_stun_presentation() -> void:
+	_presentation_stunned = true
+	_cancel_standing_idle()
+	_clear_fire_aim_hold(false)
+	_cancel_fire_visual(false)
+	_cancel_throw_grenade_visual(false)
+	_cancel_stance_transition_visual(false)
+	_clear_corner_presentation(false)
+	_hit_reaction_active = false
+	_cover_corner_cell = Vector2i(-999, -999)
+	_idle_peek_side = CoverSystem.PeekSide.NONE
+	_played_idle_peek_side = CoverSystem.PeekSide.NONE
+	stop_movement()
+	_stun_world_direction = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	if _stun_world_direction.is_empty():
+		_stun_world_direction = "n"
+	## Fall authored at standing scale; DOWN stance is already committed in sim.
+	_applied_position_state = PositionState.DOWN
+	_anim.position = Vector2.ZERO
+	_anim.scale = _standing_sprite_scale()
+	_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
+	_prone_marker.visible = false
+	_facing_arrow.visible = false
+	_stun_phase = StunPresPhase.KNOCKDOWN
+	var display_dir := _idle_display_direction(_stun_world_direction)
+	var anim_name := "stun_knockdown_%s" % display_dir
+	if _anim.sprite_frames != null and _anim.sprite_frames.has_animation(anim_name):
+		_anim.play(anim_name)
+		return
+	## Fallback: skip straight to held stun pose if DB entry missing.
+	_start_stun_idle()
+
+
+func _clear_stun_presentation() -> void:
+	_stun_phase = StunPresPhase.NONE
+	_presentation_stunned = false
+	_stun_world_direction = "n"
+
+
+func _start_stun_idle() -> void:
+	## Hold must read as lying down for the whole stun. ADHPA/GDHPA is kneel-aim
+	## (looked like "snapped back to crouch"); use prone idle instead.
+	_stun_phase = StunPresPhase.IDLE
+	_presentation_stunned = true
+	_applied_position_state = PositionState.DOWN
+	_anim.position = Vector2.ZERO
+	_anim.scale = _prone_sprite_scale()
+	_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
+	_prone_marker.visible = false
+	_facing_arrow.visible = false
+	_play_idle_prone(_stun_world_direction)
+
+
+func _begin_stun_recover() -> void:
+	## Only called when sim stun has ended (sync falling edge). Never interrupt a
+	## still-stunned hold — knockdown finish must go to prone idle instead.
+	if _stun_phase == StunPresPhase.RECOVER or _death_sequence_active or _is_dead:
+		return
+	if _presentation_stunned:
+		_start_stun_idle()
+		return
+	_stun_phase = StunPresPhase.RECOVER
+	_anim.position = Vector2.ZERO
+	_anim.scale = _standing_sprite_scale()
+	_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
+	var display_dir := _idle_display_direction(_stun_world_direction)
+	var anim_name := "stun_recover_%s" % display_dir
+	if _anim.sprite_frames != null and _anim.sprite_frames.has_animation(anim_name):
+		_anim.play(anim_name)
+		return
+	_finish_stun_recover()
+
+
+func _finish_stun_knockdown() -> void:
+	if _death_sequence_active or _is_dead:
+		_clear_stun_presentation()
+		return
+	## Hold prone for the rest of the sim stun. Recover only when sync clears the latch.
+	if _presentation_stunned:
+		_start_stun_idle()
+	else:
+		_begin_stun_recover()
+
+
+func _finish_stun_recover() -> void:
+	_clear_stun_presentation()
+	_applied_position_state = PositionState.UP
+	_anim.position = Vector2.ZERO
+	_anim.scale = _standing_sprite_scale()
+	_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
+	_sync_facing_arrow_visibility()
+	_locomotion_walking = true
+	var dir := (
+		_stun_world_direction
+		if not _stun_world_direction.is_empty()
+		else UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
+	)
+	_play_locomotion(dir if not dir.is_empty() else "n", false)
 
 
 func _clear_fire_aim_hold(resume_idle: bool = false) -> void:
@@ -2069,6 +2276,22 @@ func _on_anim_animation_finished() -> void:
 
 	var anim_name := str(_anim.animation)
 
+	if (
+		_stun_phase == StunPresPhase.KNOCKDOWN
+		and not _death_sequence_active
+		and anim_name.begins_with("stun_knockdown_")
+	):
+		_finish_stun_knockdown()
+		return
+
+	if (
+		_stun_phase == StunPresPhase.RECOVER
+		and not _death_sequence_active
+		and anim_name.begins_with("stun_recover_")
+	):
+		_finish_stun_recover()
+		return
+
 	if _throw_grenade_active and not _death_sequence_active:
 		_finish_throw_grenade(anim_name)
 		return
@@ -2493,7 +2716,13 @@ func _log_fire_anim(anim_name: String, status: String) -> void:
 ## --- Presentation-only standing idle fidgets (OG: static pose + rare oneshots) ---
 
 func _can_standing_fidget() -> bool:
-	if not _uses_og_frames() or _is_dead or _is_moving:
+	if (
+		not _uses_og_frames()
+		or _is_dead
+		or _is_moving
+		or _presentation_stunned
+		or _stun_phase != StunPresPhase.NONE
+	):
 		return false
 	if _blocks_action_override():
 		return false
