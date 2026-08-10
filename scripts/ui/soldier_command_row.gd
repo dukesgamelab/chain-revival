@@ -160,9 +160,13 @@ func set_grenade_pressed(is_pressed: bool) -> void:
 
 
 func set_activity_status(text: String) -> void:
-	if _status_label.text == text:
-		return
-	_status_label.text = text
+	if _status_label.text != text:
+		_status_label.text = text
+	## Stunned must read clearly — greyed buttons alone are easy to miss.
+	if text == "Stunned":
+		_status_label.modulate = Color(1.0, 0.85, 0.35, 1.0)
+	else:
+		_status_label.modulate = Color.WHITE
 
 
 func set_stress(stress: float) -> void:

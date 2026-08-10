@@ -22,8 +22,8 @@ extends RefCounted
 ##   Crawl:             APMOA / GPMOA  (A–V)  → crawl_*
 ##   (ASUPA/GSUPA were previously mis-mapped as stand→prone; packs retained, unused here.)
 ##   Fall/death:        AFALA / GFALA  (A–W) — also stun_knockdown uses A–Q (non-fatal)
-##   Stun hold/recover: prone idle (APIDS/GPIDS) for the hold · AHTBA/GHTBA get-up
-##                      (ADHPA was wrong for stun hold — that's kneel-aim / idle_crouch)
+##   Stun hold/recover: prone idle (APIDS/GPIDS) hold · transition_prone_to_standing get-up
+##                      (not AHTBA — that reads as hit/death)
 ##   Corpse (US):       ADDSS / ADOAS / ADFUS / ADLYS  (A) → dead_<family>_*
 ##   Corpse (German):   GDLYS / GDFUS                   (A) → dead_<family>_*
 ##

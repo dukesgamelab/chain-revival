@@ -297,7 +297,8 @@ func sync_from_state(
 		or _presentation_stunned
 	):
 		_presentation_stunned = false
-		_begin_stun_recover()
+		## Sim decides stand vs stay prone; never play hit/death (AHTBA) on recover.
+		_end_stun_presentation(state.position_state)
 	else:
 		_presentation_stunned = false
 
@@ -1200,7 +1201,7 @@ func _remap_stun_for_camera() -> void:
 		StunPresPhase.KNOCKDOWN:
 			semantic = "stun_knockdown"
 		StunPresPhase.RECOVER:
-			semantic = "stun_recover"
+			semantic = "transition_prone_to_standing"
 		_:
 			return
 	var remapped := "%s_%s" % [semantic, display_dir]
@@ -1783,20 +1784,41 @@ func _start_stun_idle() -> void:
 	_play_idle_prone(_stun_world_direction)
 
 
+func _end_stun_presentation(post_stun_position: int) -> void:
+	## Stun expired. Stand up with the normal prone→stand clip, or stay lying.
+	if _death_sequence_active or _is_dead:
+		_clear_stun_presentation()
+		return
+	if post_stun_position == PositionState.DOWN:
+		_clear_stun_presentation()
+		_applied_position_state = PositionState.DOWN
+		_anim.position = Vector2.ZERO
+		_anim.scale = _prone_sprite_scale()
+		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
+		_facing_arrow.visible = false
+		_play_idle_prone(
+			_stun_world_direction if not _stun_world_direction.is_empty() else "n"
+		)
+		return
+	_begin_stun_recover()
+
+
 func _begin_stun_recover() -> void:
-	## Only called when sim stun has ended (sync falling edge). Never interrupt a
-	## still-stunned hold — knockdown finish must go to prone idle instead.
+	## Stand-up only — uses transition_prone_to_standing (APRNA/GPRNA), not AHTBA hit.
 	if _stun_phase == StunPresPhase.RECOVER or _death_sequence_active or _is_dead:
 		return
 	if _presentation_stunned:
 		_start_stun_idle()
 		return
 	_stun_phase = StunPresPhase.RECOVER
+	## Keep prone footprint until stand-up frames finish (same as play_stance_transition).
+	_applied_position_state = PositionState.DOWN
 	_anim.position = Vector2.ZERO
-	_anim.scale = _standing_sprite_scale()
-	_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
+	_anim.scale = _prone_sprite_scale()
+	_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
+	_facing_arrow.visible = false
 	var display_dir := _idle_display_direction(_stun_world_direction)
-	var anim_name := "stun_recover_%s" % display_dir
+	var anim_name := "transition_prone_to_standing_%s" % display_dir
 	if _anim.sprite_frames != null and _anim.sprite_frames.has_animation(anim_name):
 		_anim.play(anim_name)
 		return
@@ -2287,7 +2309,10 @@ func _on_anim_animation_finished() -> void:
 	if (
 		_stun_phase == StunPresPhase.RECOVER
 		and not _death_sequence_active
-		and anim_name.begins_with("stun_recover_")
+		and (
+			anim_name.begins_with("transition_prone_to_standing_")
+			or anim_name.begins_with("stun_recover_")
+		)
 	):
 		_finish_stun_recover()
 		return

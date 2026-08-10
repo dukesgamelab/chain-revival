@@ -1968,7 +1968,10 @@ func _refresh_command_bar() -> void:
 			soldier_state.team_id,
 			soldier_state.soldier_id,
 		)
-		_command_bar.set_soldier_row_interactive(i, owned and soldier_state.is_alive())
+		_command_bar.set_soldier_row_interactive(
+			i,
+			owned and soldier_state.is_alive() and not soldier_state.is_stunned(),
+		)
 
 
 ## Combat-scan path: ammo/stress/status only — skip expensive hit% LOS unless needed.
@@ -1983,7 +1986,10 @@ func _refresh_command_bar_light() -> void:
 			soldier_state.team_id,
 			soldier_state.soldier_id,
 		)
-		_command_bar.set_soldier_row_interactive(i, owned and soldier_state.is_alive())
+		_command_bar.set_soldier_row_interactive(
+			i,
+			owned and soldier_state.is_alive() and not soldier_state.is_stunned(),
+		)
 
 
 func _update_command_bar_hit_columns() -> void:
@@ -2308,22 +2314,24 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 	if result.begin_fire_engagement:
 		_begin_fire_at_engagement()
 
-	if combat_tick and not combat_lines.is_empty():
-		_command_bar.show_status("\n".join(combat_lines.slice(-3)))
-	elif not result.grenade_explosions.is_empty():
-		_present_grenade_explosion_messages(result.grenade_explosions)
+	## Grenade stun/kill lines must reach the on-screen combat log even on a busy tick.
+	var status_lines: Array[String] = []
+	status_lines.append_array(combat_lines)
+	if not result.grenade_explosions.is_empty():
+		status_lines.append_array(_collect_grenade_explosion_messages(result.grenade_explosions))
+	if not status_lines.is_empty():
+		_command_bar.show_status("\n".join(status_lines.slice(-3)))
 	elif not result.status_message.is_empty():
 		_command_bar.show_status(result.status_message)
 
 
-func _present_grenade_explosion_messages(explosions: Array) -> void:
+func _collect_grenade_explosion_messages(explosions: Array) -> Array[String]:
 	var lines: Array[String] = []
 	for explosion in explosions:
 		for line in explosion.messages:
 			GameLog.log_combat(line)
-			lines.append(line)
-	if not lines.is_empty():
-		_command_bar.show_status("\n".join(lines.slice(-3)))
+			lines.append(str(line))
+	return lines
 
 
 func _spawn_grenade_explosions(explosions: Array) -> void:

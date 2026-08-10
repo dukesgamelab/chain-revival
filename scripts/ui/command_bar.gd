@@ -219,7 +219,10 @@ func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0
 	row.set_weapon_info(state)
 	row.set_ammo(state.ammo_current, state.ammo_max)
 	_soldier_weapon_names[row_index] = state.weapon_name
-	row.set_row_enabled(state.is_alive())
+	var alive := state.is_alive()
+	var stunned := alive and state.is_stunned()
+	## Stunned friendlies: show status, grey out orders (not just grenade).
+	row.set_row_enabled(alive and not stunned)
 	row.set_position_state(state.position_state)
 	row.set_fire_control_state(state.fire_control_state)
 	row.set_activity_status(state.activity_status_label())
@@ -227,10 +230,16 @@ func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0
 	row.set_hit_pct(hit_pct)
 	row.set_grenade_count(
 		state.grenade_count,
-		state.is_stunned() or state.has_pending_grenade(),
+		stunned or state.has_pending_grenade(),
 	)
-	row.set_move_button_enabled(MovementMode.RUN, MovementMode.is_allowed(state.position_state, MovementMode.RUN))
-	row.set_move_button_enabled(MovementMode.CRAWL, MovementMode.is_allowed(state.position_state, MovementMode.CRAWL))
+	row.set_move_button_enabled(
+		MovementMode.RUN,
+		(not stunned) and MovementMode.is_allowed(state.position_state, MovementMode.RUN),
+	)
+	row.set_move_button_enabled(
+		MovementMode.CRAWL,
+		(not stunned) and MovementMode.is_allowed(state.position_state, MovementMode.CRAWL),
+	)
 
 
 func set_soldier_row_interactive(row_index: int, enabled: bool) -> void:
