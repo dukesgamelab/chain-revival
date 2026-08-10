@@ -80,8 +80,15 @@ var _cover_corner_cell: Vector2i = Vector2i(-999, -999)
 ## Mirrored movement mode for corner lean run-factor (0.7 while Running).
 var _presentation_movement_mode: int = MovementMode.RUN
 var _fire_visual_shot_logged: bool = false
-## Open standing/prone: hold aim pose (last fire-clip frame = C) while status is Aiming.
+## Open standing/prone: hold aim_* pose while status is Aiming (between shots).
 var _fire_aim_hold_active: bool = false
+## Playing aim_standing (ASAPA/GSAPA) oneshot before aim_standing_hold.
+var _fire_aim_enter_active: bool = false
+## Last engaged target seen while aiming (presentation grace across clear→re-acquire).
+var _aim_hold_last_target_team_id: int = -1
+var _aim_hold_last_target_soldier_id: int = -1
+## SimulationClock msec when is_engaged() last went false (−1 = currently engaged / never).
+var _aim_hold_disengage_msec: int = -1
 ## At most one queued restart if a new shot arrives mid-sequence.
 var _fire_restart_pending: bool = false
 ## Presentation-only corner cover phases (not authoritative combat state).
@@ -514,6 +521,8 @@ func apply_idle_pose_inputs(stress: float, fire_control_state: int) -> void:
 		or _stun_phase != StunPresPhase.NONE
 		or _blocks_action_override()
 		or _is_moving
+		or _fire_aim_hold_active
+		or _fire_aim_enter_active
 	):
 		return
 	if _applied_position_state == PositionState.DOWN:
@@ -864,6 +873,15 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		return
 	## Presentation-only: prone locomotion uses crawl_* (APMOA/GPMOA). No root motion.
 	## `direction` is world letter; sprites use camera-remapped display letter.
+	## Aim owns the pose across facing changes — must run before the direction-match
+	## early-out. Otherwise face_toward_tile → idle_standing while hold stayed latched.
+	if (_fire_aim_hold_active or _fire_aim_enter_active) and not walking:
+		_locomotion_direction = direction
+		_locomotion_walking = false
+		if _fire_aim_enter_active:
+			return
+		_begin_fire_aim_hold(_applied_position_state)
+		return
 	var move_prefix := _locomotion_move_prefix()
 	var display_dir := _idle_display_direction(direction)
 	if walking and _locomotion_direction == direction and _locomotion_walking:
@@ -878,9 +896,6 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			pass
 		## Keep an in-flight standing fidget until it finishes or is cancelled.
 		elif _idle_fidget_active:
-			return
-		## Aiming hold owns the pose until the shot oneshot or disengage.
-		elif _fire_aim_hold_active:
 			return
 		## Already stationary in this world facing — keep current idle pose
 		## unless peek side changed or we still need to start the correct idle.
@@ -1702,19 +1717,14 @@ func _clear_corner_presentation(_resume_idle: bool) -> void:
 
 
 func _sync_fire_aim_hold(state: SoldierState) -> void:
-	## While Fire At Will / Fire At is aiming (prep clock running), hold aim pose
-	## (last fire-clip frame = C). Shot oneshot plays A→B→C.
+	## Engaged open fire: hold aim_* until the shot oneshot starts (_fire_active).
+	## Combat clears/re-acquires the engaged target every cycle; keep the pose across
+	## that flicker while still in a firing posture and (grace or HUD "Aiming").
 	if state == null or _fire_active or _is_moving or _is_dead or _presentation_stunned:
 		if _fire_aim_hold_active and (
 			_fire_active or _is_moving or _is_dead or _presentation_stunned
 		):
 			_clear_fire_aim_hold()
-		return
-	if not state.is_engaged():
-		## Safety: never latch aim-hold without a current target.
-		if _fire_aim_hold_active:
-			_clear_fire_aim_hold(true)
-		_fire_target_cell = Vector2i(-999, -999)
 		return
 	if _idle_peek_side != CoverSystem.PeekSide.NONE:
 		_clear_fire_aim_hold()
@@ -1722,12 +1732,46 @@ func _sync_fire_aim_hold(state: SoldierState) -> void:
 	if _corner_phase != CornerPresPhase.NONE and _corner_phase != CornerPresPhase.IDLE:
 		_clear_fire_aim_hold()
 		return
-	var aiming := state.fire_ready_after_msec > SimulationClock.get_ticks_msec()
-	if not aiming:
-		if _fire_aim_hold_active:
-			_clear_fire_aim_hold(true)
+	if state.is_engaged():
+		_aim_hold_last_target_team_id = state.engaged_target_team_id
+		_aim_hold_last_target_soldier_id = state.engaged_target_soldier_id
+		_aim_hold_disengage_msec = -1
+		_begin_fire_aim_hold(state.position_state)
 		return
-	_begin_fire_aim_hold(state.position_state)
+	if _aim_hold_disengage_msec < 0:
+		_aim_hold_disengage_msec = SimulationClock.get_ticks_msec()
+	## Re-assert the visual — grace must not return after _apply_facing stomped idle.
+	if _aim_hold_should_persist(state):
+		_begin_fire_aim_hold(state.position_state)
+		return
+	if _fire_aim_hold_active or _fire_aim_enter_active:
+		_clear_fire_aim_hold(true)
+	_fire_target_cell = Vector2i(-999, -999)
+
+
+func _aim_hold_firing_posture(state: SoldierState) -> bool:
+	return (
+		state != null
+		and (
+			state.fire_control_state == FireControlState.FIRE_AT_WILL
+			or state.is_sustained_fire()
+		)
+	)
+
+
+func _aim_hold_should_persist(state: SoldierState) -> bool:
+	## Survive clear→re-acquire: short grace, or whole HUD Aiming cycle (fire_ready).
+	if not _aim_hold_firing_posture(state):
+		return false
+	if state.fire_ready_after_msec > SimulationClock.get_ticks_msec():
+		return true
+	if _aim_hold_disengage_msec < 0:
+		return false
+	var grace_sec := GameplayPolicies.fire_anim.aim_hold_disengage_grace_sec
+	if grace_sec <= 0.0:
+		return false
+	var elapsed_msec := SimulationClock.get_ticks_msec() - _aim_hold_disengage_msec
+	return elapsed_msec < int(grace_sec * 1000.0)
 
 
 ## Cancel competing presentation and start knockdown → stun_idle → recover (Stage 2).
@@ -1853,9 +1897,17 @@ func _finish_stun_recover() -> void:
 
 
 func _clear_fire_aim_hold(resume_idle: bool = false) -> void:
-	if not _fire_aim_hold_active:
+	if not _fire_aim_hold_active and not _fire_aim_enter_active:
+		_aim_hold_disengage_msec = -1
 		return
 	_fire_aim_hold_active = false
+	_fire_aim_enter_active = false
+	_aim_hold_disengage_msec = -1
+	## Keep last-target ids across fire oneshots so post-shot clear→re-acquire
+	## grace still recognizes a prior engagement. Wipe only when lowering the rifle.
+	if resume_idle:
+		_aim_hold_last_target_team_id = -1
+		_aim_hold_last_target_soldier_id = -1
 	if (
 		resume_idle
 		and not _is_moving
@@ -1868,8 +1920,14 @@ func _clear_fire_aim_hold(resume_idle: bool = false) -> void:
 		)
 
 
+func _aim_hold_semantic(position_state: int) -> String:
+	return "aim_prone_hold" if position_state == PositionState.DOWN else "aim_standing_hold"
+
+
 func _fire_aim_hold_frame(anim_name: String) -> int:
-	## Aim pose is the last clip frame (C in A–B–C; B in ASFIA nw A–B).
+	## Dedicated aim holds are single-frame (ASAIS/APAIS). Legacy fire-clip hold used last frame.
+	if anim_name.begins_with("aim_standing_hold_") or anim_name.begins_with("aim_prone_hold_"):
+		return 0
 	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
 		return 0
 	return maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
@@ -1891,10 +1949,10 @@ func _resolve_fire_facing_step(
 
 
 func _begin_fire_aim_hold(position_state: int) -> void:
+	## Engaged + aiming: ASAPA enter (standing), then ASAIS/APAIS hold.
+	## fire_standing C is pixel-identical to ASAIS — post-shot hand-off is seamless.
 	_cancel_standing_idle()
-	var semantic := GameplayPolicies.fire_anim.semantic_for(
-		position_state, CoverSystem.PeekSide.NONE
-	)
+	_post_shot_crouch_remaining = 0.0
 	var hold_facing := _resolve_fire_facing_step(_last_applied_facing, _fire_target_cell)
 	if hold_facing != Vector2i.ZERO:
 		_last_applied_facing = hold_facing
@@ -1906,29 +1964,64 @@ func _begin_fire_aim_hold(position_state: int) -> void:
 		)
 		world_dir = "n"
 	_fire_world_direction = world_dir
-	_fire_semantic = semantic
 	var display_dir := _fire_display_direction()
-	var anim_name := "%s_%s" % [semantic, display_dir]
-	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+	var hold_semantic := _aim_hold_semantic(position_state)
+	var hold_anim := "%s_%s" % [hold_semantic, display_dir]
+	if _anim.sprite_frames == null:
 		return
-	var count := _anim.sprite_frames.get_frame_count(anim_name)
-	if count <= 0:
-		return
-	var aim_frame := _fire_aim_hold_frame(anim_name)
+	## Fallback: freeze last fire-clip frame if aim holds are missing from SpriteFrames.
+	if not _anim.sprite_frames.has_animation(hold_anim):
+		var fire_semantic := GameplayPolicies.fire_anim.semantic_for(
+			position_state, CoverSystem.PeekSide.NONE
+		)
+		hold_anim = "%s_%s" % [fire_semantic, display_dir]
+		hold_semantic = fire_semantic
+		if not _anim.sprite_frames.has_animation(hold_anim):
+			return
+	var current := str(_anim.animation)
 	if (
 		_fire_aim_hold_active
-		and str(_anim.animation) == anim_name
+		and not _fire_aim_enter_active
+		and current == hold_anim
 		and not _anim.is_playing()
-		and _anim.frame == aim_frame
+		and _anim.frame == _fire_aim_hold_frame(hold_anim)
 	):
 		return
+	## Let ASAPA oneshot finish; sync must not restart it every tick.
+	if _fire_aim_enter_active and current.begins_with("aim_standing_"):
+		return
+	var from_fire := (
+		current.begins_with("fire_standing_") or current.begins_with("fire_prone_")
+	)
+	var want_enter := (
+		position_state != PositionState.DOWN
+		and not from_fire
+		and not _fire_aim_hold_active
+		and not _fire_aim_enter_active
+	)
 	_fire_aim_hold_active = true
+	_fire_semantic = hold_semantic
 	_apply_hit_reaction_scale(position_state)
-	## Jump straight to aim (C) — never play through muzzle flash A while holding.
-	_anim.play(anim_name)
+	if want_enter:
+		var enter_anim := "aim_standing_%s" % display_dir
+		if _anim.sprite_frames.has_animation(enter_anim):
+			_fire_aim_enter_active = true
+			_fire_semantic = "aim_standing"
+			_anim.play(enter_anim)
+			_log_fire_anim(enter_anim, "AIM_ENTER")
+			return
+	_play_fire_aim_hold_pose(hold_anim)
+
+
+func _play_fire_aim_hold_pose(hold_anim: String) -> void:
+	_fire_aim_enter_active = false
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(hold_anim):
+		return
+	var aim_frame := _fire_aim_hold_frame(hold_anim)
+	_anim.play(hold_anim)
 	_anim.pause()
 	_anim.frame = aim_frame
-	_log_fire_anim(anim_name, "AIM_HOLD")
+	_log_fire_anim(hold_anim, "AIM_HOLD")
 
 
 func _begin_fire_sequence(
@@ -2221,7 +2314,7 @@ func _on_anim_frame_changed() -> void:
 		or _corner_phase == CornerPresPhase.PEEKING_IN
 	):
 		_refresh_corner_lean_offset()
-	if _fire_aim_hold_active and not _fire_active:
+	if _fire_aim_hold_active and not _fire_active and not _fire_aim_enter_active:
 		var hold_name := str(_anim.animation)
 		var aim_frame := _fire_aim_hold_frame(hold_name)
 		if _anim.frame != aim_frame:
@@ -2337,6 +2430,17 @@ func _on_anim_animation_finished() -> void:
 		_finish_fire(anim_name)
 		return
 
+	if (
+		_fire_aim_enter_active
+		and not _death_sequence_active
+		and anim_name.begins_with("aim_standing_")
+	):
+		_fire_aim_enter_active = false
+		var dir_token := anim_name.trim_prefix("aim_standing_")
+		_fire_semantic = "aim_standing_hold"
+		_play_fire_aim_hold_pose("aim_standing_hold_%s" % dir_token)
+		return
+
 	if _stance_transition_active and not _death_sequence_active:
 		_finish_stance_transition(anim_name)
 		return
@@ -2389,7 +2493,13 @@ func _finish_fire(anim_name: String) -> void:
 		_start_corner_peek_exit()
 		return
 	_fire_peek_side = CoverSystem.PeekSide.NONE
-	## Open standing shots duck briefly into ADHPA/GDHPA kneel-aim, then return to fire pose.
+	## Between shots: hand off to ASAIS/APAIS (C ≡ ASAIS). Sync clears if not aiming.
+	if not _is_moving:
+		_begin_fire_aim_hold(
+			PositionState.DOWN if _fire_return_prone else PositionState.UP
+		)
+		return
+	## Open standing shots duck briefly into ADHPA/GDHPA kneel-aim when not holding aim.
 	if not _fire_return_prone:
 		_begin_post_shot_crouch()
 	_finish_fire_idle()
