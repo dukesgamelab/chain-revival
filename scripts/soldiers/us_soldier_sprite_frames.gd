@@ -71,11 +71,11 @@ const _DIRECTION_DIGITS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8]
 static var _usa_frames: SpriteFrames
 static var _germany_frames: SpriteFrames
 static var _missing_warned: Dictionary = {}
-## When true (default), prefer AnimationDatabase families us_rifle / german_rifle.
+## When true (default), prefer AnimationDatabase families usa / germany.
 ## Falls back to hardcoded ASMOA packs if DB entries are missing/empty.
 const USE_ANIMATION_DATABASE := true
-const DB_FAMILY_USA := "us_rifle"
-const DB_FAMILY_GERMANY := "german_rifle"
+const DB_FAMILY_USA := "usa"
+const DB_FAMILY_GERMANY := "germany"
 
 
 static func get_usa_sprite_frames() -> SpriteFrames:

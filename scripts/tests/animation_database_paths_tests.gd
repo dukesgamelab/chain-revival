@@ -152,9 +152,7 @@ func _test_no_empty_anims() -> void:
 
 func _test_walk_seven_frames() -> void:
 	## Empirical loop boundary: A–G (7). Frame H is on disk but outside the walk loop.
-	for fam_id in [
-		"us_rifle", "us_smg", "us_bar", "german_rifle", "german_smg", "german_mg42"
-	]:
+	for fam_id in ["usa", "germany"]:
 		var ok := true
 		var detail := ""
 		for direction in ["n", "ne", "e", "se", "s", "sw", "w", "nw"]:
@@ -202,7 +200,7 @@ func _test_sync_from_state_passes_idle_peek() -> void:
 
 func _test_eight_dirs_equal_frame_counts() -> void:
 	## Phase 2: every animation has all 8 directions; equal frame counts within an anim.
-	## Skip us_rifle/fire_standing — ASFIA nw is A–B (2) while other dirs are A–B–C (3).
+	## Skip usa/fire_standing — ASFIA nw is A–B (2) while other dirs are A–B–C (3).
 	var expected_dirs: Array[String] = ["n", "ne", "e", "se", "s", "sw", "w", "nw"]
 	var bad: Array[String] = []
 	var file := FileAccess.open(DB_PATH, FileAccess.READ)
@@ -241,7 +239,7 @@ func _test_eight_dirs_equal_frame_counts() -> void:
 					if frames is Array:
 						n = (frames as Array).size()
 				counts.append(n)
-			if str(fam_id) == "us_rifle" and str(anim_id) == "fire_standing":
+			if str(fam_id) == "usa" and str(anim_id) == "fire_standing":
 				continue
 			if counts.size() == expected_dirs.size():
 				var first := counts[0]

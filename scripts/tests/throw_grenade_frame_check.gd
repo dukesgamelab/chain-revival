@@ -13,8 +13,8 @@ func _ready() -> void:
 	UsSoldierSpriteFrames.reload_cached_frames()
 	var failures: Array[String] = []
 
-	failures.append_array(_validate_family("us_rifle", "ASTGA", "USA"))
-	failures.append_array(_validate_family("german_rifle", "GSPRA", "Germany"))
+	failures.append_array(_validate_family("usa", "ASTGA", "USA"))
+	failures.append_array(_validate_family("germany", "GSPRA", "Germany"))
 	failures.append_array(_validate_sprite_frames(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
 	failures.append_array(_validate_sprite_frames(UsSoldierSpriteFrames.get_germany_sprite_frames(), "Germany"))
 	failures.append_array(_validate_camera_maps())

@@ -18,21 +18,21 @@ func _ready() -> void:
 	UsSoldierSpriteFrames.reload_cached_frames()
 	var failures: Array[String] = []
 
-	failures.append_array(_validate_held_pose("us_rifle", "ABRLA", "USA"))
-	failures.append_array(_validate_held_pose("german_rifle", "GBRLA", "Germany"))
-	failures.append_array(_validate_fidgets("us_rifle", "ABRLA", "USA"))
-	failures.append_array(_validate_fidgets("german_rifle", "GBRLA", "Germany"))
+	failures.append_array(_validate_held_pose("usa", "ABRLA", "USA"))
+	failures.append_array(_validate_held_pose("germany", "GBRLA", "Germany"))
+	failures.append_array(_validate_fidgets("usa", "ABRLA", "USA"))
+	failures.append_array(_validate_fidgets("germany", "GBRLA", "Germany"))
 	failures.append_array(
-		_validate_corner_idle_db("us_rifle", "corner_idle_left", "ALCIS", "USA corner L")
+		_validate_corner_idle_db("usa", "corner_idle_left", "ALCIS", "USA corner L")
 	)
 	failures.append_array(
-		_validate_corner_idle_db("us_rifle", "corner_idle_right", "ARCIS", "USA corner R")
+		_validate_corner_idle_db("usa", "corner_idle_right", "ARCIS", "USA corner R")
 	)
 	failures.append_array(
-		_validate_corner_idle_db("german_rifle", "corner_idle_left", "GLCIS", "Germany corner L")
+		_validate_corner_idle_db("germany", "corner_idle_left", "GLCIS", "Germany corner L")
 	)
 	failures.append_array(
-		_validate_corner_idle_db("german_rifle", "corner_idle_right", "GRCIS", "Germany corner R")
+		_validate_corner_idle_db("germany", "corner_idle_right", "GRCIS", "Germany corner R")
 	)
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_germany_sprite_frames(), "Germany"))
@@ -191,7 +191,7 @@ func _validate_camera_maps() -> Array[String]:
 
 func _validate_walk_untouched() -> Array[String]:
 	var fails: Array[String] = []
-	for family_id in ["us_rifle", "german_rifle"]:
+	for family_id in ["usa", "germany"]:
 		var walk := AnimationDatabase.get_animation(family_id, "walk")
 		if walk.is_empty():
 			fails.append("%s walk missing after idle patch" % family_id)

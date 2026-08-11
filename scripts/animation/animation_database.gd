@@ -173,7 +173,7 @@ const GERMANY_DEAD_STATIC_VARIANTS: PackedStringArray = ["GDLYS", "GDFUS"]
 
 static func dead_static_variants_for_team(team_id: int) -> PackedStringArray:
 	ensure_loaded()
-	var family_id := "german_rifle" if team_id == 2 else "us_rifle"
+	var family_id := "germany" if team_id == 2 else "usa"
 	var fam := get_family(family_id)
 	var meta: Variant = fam.get("metadata", {})
 	if meta is Dictionary:
@@ -406,12 +406,11 @@ static func auto_detect_from_folder(
 	return result
 
 
-static func make_empty_animation(label: String, loop: bool = true, fps: float = 12.0) -> Dictionary:
+static func make_empty_animation(loop: bool = true, fps: float = 12.0) -> Dictionary:
 	var dirs: Dictionary = {}
 	for d in DIRECTIONS:
 		dirs[d] = {"frames": []}
 	return {
-		"label": label,
 		"loop": loop,
 		"fps": fps,
 		"metadata": {
@@ -425,13 +424,11 @@ static func make_empty_animation(label: String, loop: bool = true, fps: float = 
 	}
 
 
-static func make_empty_family(family_id: String, label: String, category: String = "soldiers") -> Dictionary:
+static func make_empty_family(family_id: String, category: String = "soldiers") -> Dictionary:
 	return {
 		"id": family_id,
-		"label": label,
 		"category": category,
 		"faction": "",
-		"weapon": "",
 		"animations": {},
 	}
 

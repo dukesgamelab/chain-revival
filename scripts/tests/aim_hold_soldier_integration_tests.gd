@@ -114,7 +114,7 @@ func _test_hold_pose_survives_facing_refresh_all_cameras() -> void:
 			"DUMP rot=%d facet=%d coord=%d fire_world=%s display=%s anim=%s hold=%s enter=%s"
 			% [
 				rot, facet, coord,
-				soldier._fire_world_direction,
+				soldier._locomotion_direction,
 				soldier._fire_display_direction(),
 				after_full,
 				soldier._fire_aim_hold_active,

@@ -1,0 +1,167 @@
+{
+  "_note": "Chain of Command values recovered from cocSc.MDL. Every value here is VERIFIED - read directly from the original's data or script. Inferred and unresolved items are documented in README.md and deliberately excluded from this file.",
+  "globals": {
+    "INITKilledProbability": 20,
+    "INITKillOn": 1,
+    "INITShortRange": 5,
+    "INITChangeTarget": 20,
+    "INITGetTargetOnLongProb": 100,
+    "INITLongDMinSearch": 5,
+    "INITLongDMaxSearch": 20,
+    "INITShortDMinSearch": 1,
+    "INITShortDMaxSearch": 4,
+    "INITCoverHitMultiplier": 0.005,
+    "INITCoverInMultiplier": 1.0,
+    "INITCoverRangeLimit": 3,
+    "INITMinDuckingRange": 4,
+    "INITStressBase": 0.8,
+    "INITStressInitial": 0.0,
+    "INITStressFallMultiplier": 0.3,
+    "INITMaxStressOut": 7,
+    "INITMaxGranadeDistance": 5,
+    "GranadeHitDistance": 2,
+    "ShiftRightCorner": 0.25,
+    "ShiftLeftCorner": 0.5,
+    "CornerShiftRunFactor": 0.7
+  },
+  "weapons": {
+    "Garand": {
+      "AmmoMax": 70,
+      "BulletsPerShoot": 1,
+      "BulletSpeed": 6,
+      "Automatic": 0,
+      "range_const_cub": 1.0,
+      "range_const_sqr": 0.0,
+      "range_const_pent": 0.0,
+      "aim_factor_sqr": 2000,
+      "aim_factor": 0.0,
+      "aim_plus": 0.0,
+      "stress_aim_factor": 0.5,
+      "StressLimit": 25,
+      "StressFactor": 0.25
+    },
+    "Mauser": {
+      "AmmoMax": 70,
+      "BulletsPerShoot": 1,
+      "BulletSpeed": 6,
+      "Automatic": 0,
+      "range_const_cub": 1.0,
+      "range_const_sqr": 0.0,
+      "range_const_pent": 0.0,
+      "aim_factor_sqr": 2000,
+      "aim_factor": 0.0,
+      "aim_plus": 0.0,
+      "stress_aim_factor": 0.5,
+      "StressLimit": 25,
+      "StressFactor": 0.25
+    },
+    "Thompson": {
+      "AmmoMax": 200,
+      "BulletsPerShoot": 4,
+      "BulletSpeed": 6,
+      "Automatic": 1,
+      "range_const_cub": 0.0,
+      "range_const_sqr": 0.0,
+      "range_const_pent": 0.02,
+      "aim_factor_sqr": 2000,
+      "aim_factor": 0.0,
+      "aim_plus": 0.0,
+      "stress_aim_factor": 1.5,
+      "StressLimit": 13,
+      "StressFactor": 2.0,
+      "INIT_LimitPerSquad": 2
+    },
+    "MP40": {
+      "AmmoMax": 200,
+      "BulletsPerShoot": 5,
+      "BulletSpeed": 6,
+      "Automatic": 1,
+      "range_const_cub": 0.0,
+      "range_const_sqr": 0.0,
+      "range_const_pent": 0.02,
+      "aim_factor_sqr": 2000,
+      "aim_factor": 0.0,
+      "aim_plus": 0.0,
+      "stress_aim_factor": 1.5,
+      "StressLimit": 13,
+      "StressFactor": 2.0,
+      "INIT_LimitPerSquad": 2
+    },
+    "BAR": {
+      "AmmoMax": 900,
+      "BulletsPerShoot": 7,
+      "BulletSpeed": 6,
+      "Automatic": 1,
+      "range_const_cub": 1.0,
+      "range_const_sqr": 0.0,
+      "range_const_pent": 0.0,
+      "aim_factor_sqr": 8000,
+      "aim_factor": 0.0,
+      "aim_plus": 0.0,
+      "stress_aim_factor": 2.0,
+      "StressLimit": 25,
+      "StressFactor": 0.6,
+      "INIT_LimitPerSquad": 1
+    },
+    "MG42": {
+      "AmmoMax": 900,
+      "BulletsPerShoot": 6,
+      "BulletSpeed": 7,
+      "Automatic": 1,
+      "range_const_cub": 1.0,
+      "range_const_sqr": 0.0,
+      "range_const_pent": 0.0,
+      "aim_factor_sqr": 8000,
+      "aim_factor": 0.0,
+      "aim_plus": 0.0,
+      "stress_aim_factor": 2.0,
+      "StressLimit": 25,
+      "StressFactor": 0.6,
+      "INIT_LimitPerSquad": 1
+    }
+  },
+  "grenade": {
+    "VarA": 30,
+    "VarB": 0,
+    "VarC": 30,
+    "VarD": 5,
+    "BlowTouch": "before"
+  },
+  "formulas": {
+    "hit": "(aim_factor_sqr*AimTime^2 + aim_factor*AimTime + aim_plus) / (cub*D^3 + sqr*D^2 + pent*D^5), D = Range - MarksMan",
+    "cover_beyond_limit": "HitFinal = base * INITCoverHitMultiplier",
+    "cover_within_limit": "HitFinal = base * ((INITCoverHitMultiplier-1)*(range-1)/INITCoverRangeLimit + 1)",
+    "no_cover_running_target": "HitFinal *= MoveType.TypeMultipler * (1 - MoveType.MoveMultipler * abs(sin(DEG2RAD*(shooter.Direction - target.Direction))))",
+    "suppression": "GivenStress = (StressLimit - Range) * StressFactor, only when Range < StressLimit",
+    "lethality": "KIA = randBetween(1,101) <= INITKilledProbability",
+    "grenade_casualty": "P = VarA / (distance + VarB), as a percentage",
+    "grenade_stun_duration": "VarC / (distance + VarD)",
+    "aim_time": "1 / (ExpStr[bucket].Range[floor(range/4)] - ShootingSpeed); bucket = quantise(Expirience - Stress, 4) in [-8,-4,0,4,8]"
+  },
+  "measured": {
+    "_note": "Measured from original gameplay footage, not read from files. Screen-to-tile calibration residual 0.12 tiles.",
+    "hit_pct_at_11_tiles": {
+      "rifle": 9,
+      "smg": 3,
+      "heavy_mg": 25
+    },
+    "fire_cycle_sec": {
+      "observed": [
+        5.05,
+        6.09
+      ],
+      "per_weapon": false,
+      "note": "Identical across weapon types; shifts with conditions, not weapon."
+    },
+    "burst_visible_sec": [
+      0.15,
+      0.22
+    ],
+    "stress_observed_in_firefight": [
+      0.8,
+      5.7,
+      7.2
+    ],
+    "stress_scale": "0 to ~7, break at INITMaxStressOut = 7"
+  }
+}

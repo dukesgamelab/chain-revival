@@ -1545,7 +1545,7 @@ static func _stand_up_for_run(soldier: SoldierState, mode: int) -> String:
 
 
 static func _animation_family_for_soldier(soldier: SoldierState) -> String:
-	return "german_rifle" if soldier.team_id == Team.GERMANY else "us_rifle"
+	return "germany" if soldier.team_id == Team.GERMANY else "usa"
 
 
 static func _has_stance_transitions(family_id: String) -> bool:

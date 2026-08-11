@@ -1,0 +1,1215 @@
+{
+ "ABRL": {
+  "dirs": 8,
+  "frames": [
+   21
+  ]
+ },
+ "ACTL": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "ADDS": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ADFD": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ADFU": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ADHH": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ADHP": {
+  "dirs": 8,
+  "frames": [
+   2
+  ]
+ },
+ "ADLY": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ADOA": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "AFAL": {
+  "dirs": 8,
+  "frames": [
+   23
+  ]
+ },
+ "AHTB": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "AHTF": {
+  "dirs": 8,
+  "frames": [
+   19
+  ]
+ },
+ "AHTL": {
+  "dirs": 8,
+  "frames": [
+   23
+  ]
+ },
+ "AKNL": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "AKST": {
+  "dirs": 8,
+  "frames": [
+   12
+  ]
+ },
+ "AKUP": {
+  "dirs": 8,
+  "frames": [
+   3,
+   4
+  ]
+ },
+ "ALBX": {
+  "dirs": 8,
+  "frames": [
+   1,
+   2
+  ]
+ },
+ "ALBY": {
+  "dirs": 8,
+  "frames": [
+   2,
+   3
+  ]
+ },
+ "ALCA": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ALCF": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "ALCI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ALCP": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "ALPK": {
+  "dirs": 8,
+  "frames": [
+   16
+  ]
+ },
+ "AMAR": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "APAI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "APDD": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "APDP": {
+  "dirs": 8,
+  "frames": [
+   2
+  ]
+ },
+ "APFI": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "APID": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "APKN": {
+  "dirs": 8,
+  "frames": [
+   8
+  ]
+ },
+ "APLA": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "APLD": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "APLF": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "APLI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "APLP": {
+  "dirs": 8,
+  "frames": [
+   2
+  ]
+ },
+ "APMO": {
+  "dirs": 8,
+  "frames": [
+   22
+  ]
+ },
+ "APRA": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "APRD": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "APRF": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "APRI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "APRN": {
+  "dirs": 8,
+  "frames": [
+   5
+  ]
+ },
+ "APRP": {
+  "dirs": 8,
+  "frames": [
+   1,
+   2
+  ]
+ },
+ "ARBX": {
+  "dirs": 8,
+  "frames": [
+   1,
+   2
+  ]
+ },
+ "ARBY": {
+  "dirs": 8,
+  "frames": [
+   2,
+   3
+  ]
+ },
+ "ARCA": {
+  "dirs": 8,
+  "frames": [
+   1,
+   2
+  ]
+ },
+ "ARCF": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "ARCI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ARCP": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "ARPK": {
+  "dirs": 8,
+  "frames": [
+   16
+  ]
+ },
+ "ASAI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ASAP": {
+  "dirs": 8,
+  "frames": [
+   9,
+   10,
+   11
+  ]
+ },
+ "ASAX": {
+  "dirs": 6,
+  "frames": [
+   1
+  ]
+ },
+ "ASDD": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "ASFB": {
+  "dirs": 8,
+  "frames": [
+   12
+  ]
+ },
+ "ASFI": {
+  "dirs": 8,
+  "frames": [
+   2,
+   3
+  ]
+ },
+ "ASFX": {
+  "dirs": 7,
+  "frames": [
+   1,
+   2,
+   3
+  ]
+ },
+ "ASID": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ASKN": {
+  "dirs": 8,
+  "frames": [
+   10
+  ]
+ },
+ "ASMO": {
+  "dirs": 8,
+  "frames": [
+   8
+  ]
+ },
+ "ASPR": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "ASRW": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "ASSS": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "ASTG": {
+  "dirs": 8,
+  "frames": [
+   24
+  ]
+ },
+ "ASTH": {
+  "dirs": 8,
+  "frames": [
+   4
+  ]
+ },
+ "ASUP": {
+  "dirs": 8,
+  "frames": [
+   24
+  ]
+ },
+ "ASWK": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "ATTL": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "AWKN": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "AWKP": {
+  "dirs": 8,
+  "frames": [
+   12
+  ]
+ },
+ "AWLG": {
+  "dirs": 8,
+  "frames": [
+   12
+  ]
+ },
+ "AWSD": {
+  "dirs": 8,
+  "frames": [
+   12
+  ]
+ },
+ "BCOR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "BULL": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "BWAL": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "BWAQ": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "BWAR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "BWIN": {
+  "dirs": 3,
+  "frames": [
+   1
+  ]
+ },
+ "CVSI": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "DIBG": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "DPAR": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "DPGR": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "EFAL": {
+  "dirs": 8,
+  "frames": [
+   7
+  ]
+ },
+ "EPAI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "ESUP": {
+  "dirs": 8,
+  "frames": [
+   10
+  ]
+ },
+ "ESWK": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "GBRL": {
+  "dirs": 8,
+  "frames": [
+   21
+  ]
+ },
+ "GCTL": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "GDDS": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GDFD": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GDFU": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GDHH": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GDHP": {
+  "dirs": 8,
+  "frames": [
+   2
+  ]
+ },
+ "GDLY": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GDOA": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GEAR": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "GFAL": {
+  "dirs": 8,
+  "frames": [
+   23
+  ]
+ },
+ "GHTB": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "GHTF": {
+  "dirs": 8,
+  "frames": [
+   19
+  ]
+ },
+ "GHTL": {
+  "dirs": 8,
+  "frames": [
+   23
+  ]
+ },
+ "GKNL": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GKST": {
+  "dirs": 8,
+  "frames": [
+   12
+  ]
+ },
+ "GKUP": {
+  "dirs": 8,
+  "frames": [
+   3,
+   4
+  ]
+ },
+ "GLBX": {
+  "dirs": 2,
+  "frames": [
+   1,
+   2
+  ]
+ },
+ "GLBY": {
+  "dirs": 2,
+  "frames": [
+   1
+  ]
+ },
+ "GLCA": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GLCF": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "GLCI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GLCP": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "GLPK": {
+  "dirs": 8,
+  "frames": [
+   15,
+   16
+  ]
+ },
+ "GOAL": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "GOTO": {
+  "dirs": 1,
+  "frames": [
+   2
+  ]
+ },
+ "GPAI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GPDD": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GPDP": {
+  "dirs": 8,
+  "frames": [
+   2
+  ]
+ },
+ "GPFI": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "GPID": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GPKN": {
+  "dirs": 8,
+  "frames": [
+   8
+  ]
+ },
+ "GPLA": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GPLD": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GPLF": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "GPLI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GPLP": {
+  "dirs": 8,
+  "frames": [
+   2
+  ]
+ },
+ "GPMO": {
+  "dirs": 8,
+  "frames": [
+   22
+  ]
+ },
+ "GPRA": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GPRD": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GPRF": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "GPRI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GPRN": {
+  "dirs": 8,
+  "frames": [
+   5
+  ]
+ },
+ "GPRP": {
+  "dirs": 8,
+  "frames": [
+   2
+  ]
+ },
+ "GRBX": {
+  "dirs": 3,
+  "frames": [
+   1
+  ]
+ },
+ "GRBY": {
+  "dirs": 2,
+  "frames": [
+   1
+  ]
+ },
+ "GRCA": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GRCF": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "GRCI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GRCP": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "GREX": {
+  "dirs": 2,
+  "frames": [
+   24
+  ]
+ },
+ "GRPK": {
+  "dirs": 8,
+  "frames": [
+   16
+  ]
+ },
+ "GRSC": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "GSAI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GSAP": {
+  "dirs": 8,
+  "frames": [
+   9,
+   10
+  ]
+ },
+ "GSAX": {
+  "dirs": 6,
+  "frames": [
+   1
+  ]
+ },
+ "GSDD": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "GSFB": {
+  "dirs": 8,
+  "frames": [
+   12
+  ]
+ },
+ "GSFI": {
+  "dirs": 8,
+  "frames": [
+   3
+  ]
+ },
+ "GSFX": {
+  "dirs": 7,
+  "frames": [
+   1,
+   2,
+   3
+  ]
+ },
+ "GSID": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GSKN": {
+  "dirs": 8,
+  "frames": [
+   10
+  ]
+ },
+ "GSMO": {
+  "dirs": 8,
+  "frames": [
+   8
+  ]
+ },
+ "GSPR": {
+  "dirs": 8,
+  "frames": [
+   24
+  ]
+ },
+ "GSRW": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "GSRX": {
+  "dirs": 8,
+  "frames": [
+   10
+  ]
+ },
+ "GSRZ": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "GSSS": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "GSTG": {
+  "dirs": 8,
+  "frames": [
+   24
+  ]
+ },
+ "GSTH": {
+  "dirs": 8,
+  "frames": [
+   4
+  ]
+ },
+ "GSUP": {
+  "dirs": 8,
+  "frames": [
+   24
+  ]
+ },
+ "GSWK": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "GTTL": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "GWLG": {
+  "dirs": 8,
+  "frames": [
+   12
+  ]
+ },
+ "GWSD": {
+  "dirs": 8,
+  "frames": [
+   12
+  ]
+ },
+ "ICOR": {
+  "dirs": 5,
+  "frames": [
+   1
+  ]
+ },
+ "IDOR": {
+  "dirs": 2,
+  "frames": [
+   1
+  ]
+ },
+ "IWAL": {
+  "dirs": 2,
+  "frames": [
+   1
+  ]
+ },
+ "IWCL": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "IWCR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "IWDR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "IWWL": {
+  "dirs": 4,
+  "frames": [
+   1,
+   2
+  ]
+ },
+ "LIHW": {
+  "dirs": 3,
+  "frames": [
+   1
+  ]
+ },
+ "LINE": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "LRHW": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "PLGA": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "QCOR": {
+  "dirs": 2,
+  "frames": [
+   1
+  ]
+ },
+ "RIHW": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "SCOR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "SDOR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "SFAR": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "SFLO": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "SICR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "SWAI": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "SWAL": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "SWAQ": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "SWAR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "SWIN": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "TARG": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "TRAN": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "UFAL": {
+  "dirs": 8,
+  "frames": [
+   7
+  ]
+ },
+ "UPAI": {
+  "dirs": 8,
+  "frames": [
+   1
+  ]
+ },
+ "USUP": {
+  "dirs": 8,
+  "frames": [
+   10
+  ]
+ },
+ "USWK": {
+  "dirs": 8,
+  "frames": [
+   20
+  ]
+ },
+ "WCOR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "WDOR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "WFLO": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ },
+ "WICR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "WWAI": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "WWAL": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "WWAQ": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "WWAR": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "WWIN": {
+  "dirs": 4,
+  "frames": [
+   1
+  ]
+ },
+ "ZCOR": {
+  "dirs": 1,
+  "frames": [
+   1
+  ]
+ }
+}

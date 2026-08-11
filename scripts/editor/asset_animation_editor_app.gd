@@ -178,10 +178,7 @@ func _populate_world_facing() -> void:
 func _refresh_families() -> void:
 	_family_list.clear()
 	for fid in AnimationDatabase.family_ids():
-		var fam := AnimationDatabase.get_family(fid)
-		var label := str(fam.get("label", fid))
-		var cat := str(fam.get("category", "soldiers"))
-		_family_list.add_item("%s  [%s] · %s" % [label, fid, cat])
+		_family_list.add_item(str(fid))
 		_family_list.set_item_metadata(_family_list.item_count - 1, fid)
 
 
@@ -194,8 +191,7 @@ func _refresh_anims() -> void:
 	var keys: Array = anims.keys()
 	keys.sort()
 	for aid in keys:
-		var anim: Dictionary = anims[aid]
-		_anim_list.add_item(str(anim.get("label", aid)))
+		_anim_list.add_item(str(aid))
 		_anim_list.set_item_metadata(_anim_list.item_count - 1, str(aid))
 
 
@@ -527,8 +523,8 @@ func _on_world_facing_selected(index: int) -> void:
 
 func _on_new_family_pressed() -> void:
 	var id := "new_family_%d" % (AnimationDatabase.family_ids().size() + 1)
-	var fam := AnimationDatabase.make_empty_family(id, "New Family")
-	fam["animations"]["idle"] = AnimationDatabase.make_empty_animation("Idle", true, 1.0)
+	var fam := AnimationDatabase.make_empty_family(id)
+	fam["animations"]["idle"] = AnimationDatabase.make_empty_animation(true, 1.0)
 	AnimationDatabase.upsert_family(fam)
 	_mark_dirty()
 	_refresh_families()
@@ -540,7 +536,7 @@ func _on_new_anim_pressed() -> void:
 		return
 	var id := "anim_%d" % (Time.get_ticks_msec() % 100000)
 	AnimationDatabase.set_animation(
-		_family_id, id, AnimationDatabase.make_empty_animation(id.capitalize(), true, 12.0)
+		_family_id, id, AnimationDatabase.make_empty_animation(true, 12.0)
 	)
 	_mark_dirty()
 	_refresh_anims()
@@ -571,7 +567,7 @@ func _on_auto_detect_pressed() -> void:
 	var by_dir: Dictionary = detected[use_prefix]
 	var anim := AnimationDatabase.get_animation(_family_id, anim_name)
 	if anim.is_empty():
-		anim = AnimationDatabase.make_empty_animation(anim_name.capitalize(), true, 12.0)
+		anim = AnimationDatabase.make_empty_animation(true, 12.0)
 	var dirs: Dictionary = anim.get("directions", {})
 	for d in DIRECTIONS:
 		var paths: Array = by_dir.get(d, [])

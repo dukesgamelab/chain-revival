@@ -67,7 +67,6 @@ var _throw_world_direction: String = "n"
 var _throw_release_fired: bool = false
 var _throw_return_prone: bool = false
 var _fire_active: bool = false
-var _fire_world_direction: String = "n"
 var _fire_return_prone: bool = false
 var _fire_semantic: String = "fire_standing"
 var _fire_peek_side: int = CoverSystem.PeekSide.NONE
@@ -813,22 +812,17 @@ func _has_active_chase() -> bool:
 
 
 func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:
-	_facing_from_cell = from_cell
-	## Aim hold / enter own facing from shooter→target (same as play_fire). Do not let
-	## state.facing_direction stomp that bearing or hold aims one way while fire aims another.
-	var normalized: Vector2i
+	var step := facing
 	if _fire_aim_hold_active or _fire_aim_enter_active:
-		normalized = _resolve_fire_facing_step(facing, _fire_target_cell)
-		if normalized == Vector2i.ZERO:
-			normalized = FacingDirection.normalize(facing)
-	else:
-		normalized = FacingDirection.normalize(facing)
-	var changed := normalized != _last_applied_facing
-	_last_applied_facing = normalized
+		step = _resolve_fire_facing_step(facing, _fire_target_cell)
+	if step == Vector2i.ZERO:
+		step = FacingDirection.normalize(facing)
+	var changed := step != _last_applied_facing
+	_commit_sprite_facing_from_step(step, from_cell)
 	if not _is_moving and not _blocks_action_override():
-		_update_locomotion_visual(normalized, false)
+		_update_locomotion_visual(step, false)
 	if _facing_arrow != null and _show_facing_arrow():
-		_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(normalized, from_cell)
+		_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(_last_applied_facing, from_cell)
 	_sync_facing_arrow_visibility()
 	if changed:
 		_log_facing_debug("APPLY")
@@ -910,7 +904,7 @@ func _update_locomotion_visual(step: Vector2i, walking: bool) -> void:
 	if _anim == null or _blocks_action_override():
 		return
 	if _uses_og_frames():
-		_play_locomotion(UsSoldierSpriteFrames.direction_from_step(step), walking)
+		_play_locomotion(_world_direction_from_step(step), walking)
 
 
 func _play_locomotion(direction: String, walking: bool) -> void:
@@ -1029,11 +1023,66 @@ func _presentation_camera_degrees() -> int:
 	return IsometricGrid.facet_camera_direction_degrees()
 
 
-func _idle_display_direction(world_direction: String) -> String:
+## Walk / fire / aim share one pipeline: grid step → world letter → camera display suffix.
+func _world_direction_from_step(step: Vector2i) -> String:
+	var letter := UsSoldierSpriteFrames.direction_from_step(step)
+	return letter if not letter.is_empty() else "n"
+
+
+func _body_world_direction() -> String:
+	return _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+
+
+func _display_direction_for_world(world_direction: String) -> String:
 	return AnimationDatabase.display_direction(
-		world_direction,
+		world_direction.to_lower(),
 		_presentation_camera_degrees(),
 	)
+
+
+func _idle_display_direction(world_direction: String) -> String:
+	return _display_direction_for_world(world_direction)
+
+
+func _sprite_anim_name(semantic: String, world_direction: String) -> String:
+	return "%s_%s" % [semantic, _display_direction_for_world(world_direction)]
+
+
+func _commit_sprite_facing_from_step(step: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:
+	if step == Vector2i.ZERO:
+		step = FacingDirection.NORTH
+	_facing_from_cell = from_cell
+	_last_applied_facing = FacingDirection.from_step(step)
+	_locomotion_direction = _world_direction_from_step(step)
+
+
+func _commit_combat_facing(
+	facing_direction: Vector2i,
+	target_cell: Vector2i,
+	from_cell: Vector2i = Vector2i(-999, -999),
+) -> Vector2i:
+	if from_cell.x > -900:
+		_facing_from_cell = from_cell
+	var step := _resolve_fire_facing_step(facing_direction, target_cell)
+	_commit_sprite_facing_from_step(step, _facing_from_cell)
+	return step
+
+
+func _remap_animation_preserving_progress(anim_name: String, force_pause: bool = false) -> bool:
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+		return false
+	if str(_anim.animation) == anim_name:
+		return true
+	var frame := _anim.frame
+	var progress := _anim.frame_progress
+	var was_playing := _anim.is_playing()
+	_anim.play(anim_name)
+	var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
+	_anim.frame = mini(frame, max_frame)
+	_anim.frame_progress = progress
+	if force_pause or not was_playing:
+		_anim.pause()
+	return true
 
 
 func _idle_standing_semantic() -> String:
@@ -1206,7 +1255,7 @@ func refresh_action_visual_for_camera() -> void:
 		_remap_standing_idle_fidget_for_camera()
 		return
 	if _fire_aim_hold_active or _fire_aim_enter_active:
-		_begin_fire_aim_hold(_applied_position_state)
+		_remap_fire_aim_hold_for_camera()
 		return
 	if _blocks_action_override():
 		return
@@ -1220,22 +1269,32 @@ func refresh_action_visual_for_camera() -> void:
 
 
 func _remap_locomotion_for_camera() -> void:
-	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
-	var display_dir := _idle_display_direction(world_dir)
-	var move_prefix := _locomotion_move_prefix()
-	var anim_name := "%s_%s" % [move_prefix, display_dir]
-	if not _anim.sprite_frames.has_animation(anim_name) and move_prefix == "crawl":
-		anim_name = "walk_%s" % display_dir
-	if not _anim.sprite_frames.has_animation(anim_name):
+	var world_dir := _body_world_direction()
+	var anim_name := _sprite_anim_name(_locomotion_move_prefix(), world_dir)
+	if not _remap_animation_preserving_progress(anim_name):
+		if _locomotion_move_prefix() == "crawl":
+			_remap_animation_preserving_progress(_sprite_anim_name("walk", world_dir))
+
+
+func _remap_fire_aim_hold_for_camera() -> void:
+	if not _fire_aim_hold_active:
 		return
-	var frame := _anim.frame
-	var progress := _anim.frame_progress
-	var was_playing := _anim.is_playing()
-	_anim.play(anim_name)
-	_anim.frame = mini(frame, maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0))
-	_anim.frame_progress = progress
-	if not was_playing:
-		_anim.pause()
+	var world_dir := _body_world_direction()
+	if _fire_aim_enter_active:
+		var enter_anim := _sprite_anim_name("aim_standing", world_dir)
+		if _anim.sprite_frames != null and _anim.sprite_frames.has_animation(enter_anim):
+			_remap_animation_preserving_progress(enter_anim)
+		return
+	var hold_semantic := _aim_hold_semantic(_applied_position_state)
+	var hold_anim := _sprite_anim_name(hold_semantic, world_dir)
+	if not _anim.sprite_frames.has_animation(hold_anim):
+		return
+	var aim_frame := _fire_aim_hold_frame(hold_anim)
+	if str(_anim.animation) == hold_anim and not _anim.is_playing() and _anim.frame == aim_frame:
+		return
+	_anim.play(hold_anim)
+	_anim.pause()
+	_anim.frame = aim_frame
 
 
 func _remap_hit_or_fall_for_camera() -> void:
@@ -1527,7 +1586,7 @@ func play_fire(
 		else:
 			_fire_peek_side = peek_side
 		if fire_facing != Vector2i.ZERO:
-			_last_applied_facing = fire_facing
+			_commit_sprite_facing_from_step(fire_facing, _facing_from_cell)
 		_log_fire_anim("queued", "RESTART_QUEUED")
 		return
 
@@ -1638,13 +1697,7 @@ func _request_corner_fire(
 	peek_side: int,
 ) -> void:
 	_fire_return_prone = position_state == PositionState.DOWN
-	if facing_direction != Vector2i.ZERO:
-		_last_applied_facing = facing_direction
-	_fire_world_direction = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
-	if _fire_world_direction.is_empty():
-		_fire_world_direction = (
-			_locomotion_direction if not _locomotion_direction.is_empty() else "n"
-		)
+	_commit_combat_facing(facing_direction, _fire_target_cell)
 
 	## Lock peek side for the whole enter/aim/fire/exit chain.
 	if (
@@ -1686,9 +1739,7 @@ func _start_corner_peek_enter() -> void:
 		return
 	_corner_phase = CornerPresPhase.PEEKING_OUT
 	_corner_semantic = "corner_peek_enter_%s" % _corner_side_token()
-	var display_dir := _idle_display_direction(
-		_fire_world_direction if not _fire_world_direction.is_empty() else "n"
-	)
+	var display_dir := _idle_display_direction(_body_world_direction())
 	var anim_name := "%s_%s" % [_corner_semantic, display_dir]
 	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
 		push_warning("Soldier: missing %s — skipping to aim hold" % anim_name)
@@ -1706,9 +1757,7 @@ func _start_corner_aim_hold() -> void:
 	_corner_phase = CornerPresPhase.AIMING
 	_fire_active = false
 	_corner_semantic = "corner_aim_%s" % _corner_side_token()
-	var display_dir := _idle_display_direction(
-		_fire_world_direction if not _fire_world_direction.is_empty() else "n"
-	)
+	var display_dir := _idle_display_direction(_body_world_direction())
 	var anim_name := "%s_%s" % [_corner_semantic, display_dir]
 	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
 		push_warning("Soldier: missing %s" % anim_name)
@@ -1736,9 +1785,7 @@ func _start_corner_peek_exit() -> void:
 	_fire_active = false
 	_fire_restart_pending = false
 	_corner_semantic = "corner_peek_exit_%s" % _corner_side_token()
-	var display_dir := _idle_display_direction(
-		_fire_world_direction if not _fire_world_direction.is_empty() else "n"
-	)
+	var display_dir := _idle_display_direction(_body_world_direction())
 	var anim_name := "%s_%s" % [_corner_semantic, display_dir]
 	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
 		push_warning("Soldier: missing %s — snap to corner idle" % anim_name)
@@ -2019,10 +2066,7 @@ func _clear_fire_aim_hold(resume_idle: bool = false, reason: String = "") -> voi
 		and not _blocks_action_override()
 		and not _is_dead
 	):
-		_play_locomotion(
-			UsSoldierSpriteFrames.direction_from_step(_last_applied_facing),
-			false,
-		)
+		_play_locomotion(_body_world_direction(), false)
 
 
 func _aim_hold_semantic(position_state: int) -> String:
@@ -2055,35 +2099,20 @@ func _resolve_fire_facing_step(
 
 func _begin_fire_aim_hold(position_state: int) -> void:
 	## Engaged + aiming: ASAPA enter (standing), then ASAIS/APAIS hold.
-	## fire_standing C is pixel-identical to ASAIS — post-shot hand-off is seamless.
-	##
-	## Facing spaces (asserted by DEBUG_AIM_HOLD / aim_hold_camera_tests):
-	##   _last_applied_facing, hold_facing — logical grid Vector2i steps
-	##   _fire_world_direction — letter from direction_from_step (may X-flip for CoC)
-	##   display_dir — one camera remap via display_direction(facet degrees)
+	## Uses the same step → _locomotion_direction → display suffix path as walk/crawl.
 	_cancel_standing_idle()
 	_post_shot_crouch_remaining = 0.0
-	## Open aim owns between-shot pose — do not leave CIS/CAS latched underneath.
 	if (
 		_corner_phase == CornerPresPhase.IDLE
 		or _corner_phase == CornerPresPhase.AIMING
 	):
 		_clear_corner_presentation(false)
-	var hold_facing := _resolve_fire_facing_step(_last_applied_facing, _fire_target_cell)
-	if hold_facing != Vector2i.ZERO:
-		_last_applied_facing = hold_facing
-	var world_dir := UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
-	if world_dir.is_empty():
-		push_warning(
-			"Soldier: fire aim-hold direction empty (team=%d soldier=%d) — defaulting to n"
-			% [team_id, soldier_id]
-		)
-		world_dir = "n"
-	_fire_world_direction = world_dir
-	var display_dir := _fire_display_direction()
+	var hold_facing := _commit_combat_facing(_last_applied_facing, _fire_target_cell)
+	var world_dir := _body_world_direction()
 	var hold_semantic := _aim_hold_semantic(position_state)
-	var hold_anim := "%s_%s" % [hold_semantic, display_dir]
-	var enter_anim := "aim_standing_%s" % display_dir
+	var hold_anim := _sprite_anim_name(hold_semantic, world_dir)
+	var enter_anim := _sprite_anim_name("aim_standing", world_dir)
+	var display_dir := _display_direction_for_world(world_dir)
 	var has_hold := (
 		_anim.sprite_frames != null and _anim.sprite_frames.has_animation(hold_anim)
 	)
@@ -2223,7 +2252,7 @@ func _log_aim_hold_diag(
 			hold_facing,
 			_last_applied_facing,
 			pure_world,
-			_fire_world_direction,
+			_locomotion_direction,
 			display_dir,
 			hold_anim,
 			has_hold,
@@ -2264,20 +2293,11 @@ func _begin_fire_sequence(
 		_corner_phase = CornerPresPhase.FIRING
 		_corner_peek_side = peek_side
 	_fire_semantic = GameplayPolicies.fire_anim.semantic_for(position_state, peek_side)
-	var fire_facing := _resolve_fire_facing_step(facing_direction, _fire_target_cell)
-	if fire_facing != Vector2i.ZERO:
-		_last_applied_facing = fire_facing
-	_fire_world_direction = UsSoldierSpriteFrames.direction_from_step(_last_applied_facing)
-	if _fire_world_direction.is_empty():
-		push_warning(
-			"Soldier: fire world direction empty (team=%d soldier=%d) — defaulting to n"
-			% [team_id, soldier_id]
-		)
-		_fire_world_direction = "n"
+	_commit_combat_facing(facing_direction, _fire_target_cell)
 	_apply_hit_reaction_scale(position_state)
 
-	var display_dir := _fire_display_direction()
-	var anim_name := "%s_%s" % [_fire_semantic, display_dir]
+	var world_dir := _body_world_direction()
+	var anim_name := _sprite_anim_name(_fire_semantic, world_dir)
 	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
 		push_error(
 			"Soldier: missing fire animation %s (team=%d soldier=%d family=%s)"
@@ -2320,17 +2340,10 @@ func _remap_throw_for_camera() -> void:
 
 
 func _remap_fire_for_camera() -> void:
-	var saved_frame := _anim.frame
-	var display_dir := _fire_display_direction()
-	var anim_name := "%s_%s" % [_fire_semantic, display_dir]
-	if not _anim.sprite_frames.has_animation(anim_name):
+	var anim_name := _sprite_anim_name(_fire_semantic, _body_world_direction())
+	if not _remap_animation_preserving_progress(anim_name):
 		push_error("Soldier: missing fire animation on camera rotate: %s" % anim_name)
 		return
-	if str(_anim.animation) == anim_name:
-		return
-	var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
-	_anim.play(anim_name)
-	_anim.frame = mini(saved_frame, max_frame)
 	_log_fire_anim(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
 
 
@@ -2338,11 +2351,7 @@ func _remap_corner_presentation_for_camera() -> void:
 	if _corner_semantic.is_empty():
 		return
 	var saved_frame := _anim.frame
-	var world_dir := (
-		_fire_world_direction if not _fire_world_direction.is_empty() else _locomotion_direction
-	)
-	if world_dir.is_empty():
-		world_dir = "n"
+	var world_dir := _body_world_direction()
 	var display_dir := _idle_display_direction(world_dir)
 	var anim_name := "%s_%s" % [_corner_semantic, display_dir]
 	if not _anim.sprite_frames.has_animation(anim_name):
@@ -2412,10 +2421,7 @@ func _cancel_throw_grenade_visual(resume_idle: bool) -> void:
 
 
 func _fire_display_direction() -> String:
-	return AnimationDatabase.display_direction(
-		_fire_world_direction,
-		_presentation_camera_degrees(),
-	)
+	return _display_direction_for_world(_body_world_direction())
 
 
 func _fire_source_family() -> String:
@@ -2490,9 +2496,8 @@ func dump_fire_validation() -> Dictionary:
 		if not _fire_semantic.is_empty()
 		else GameplayPolicies.fire_anim.semantic_for(stance, _fire_peek_side)
 	)
-	var display_dir := _fire_display_direction() if _fire_active else AnimationDatabase.display_direction(
-		_fire_world_direction if not _fire_world_direction.is_empty() else "n",
-		IsometricGrid.facet_camera_direction_degrees(),
+	var display_dir := _fire_display_direction() if _fire_active else _display_direction_for_world(
+		_body_world_direction(),
 	)
 	var anim_name := "%s_%s" % [semantic, display_dir]
 	var family_id := (
@@ -2513,7 +2518,7 @@ func dump_fire_validation() -> Dictionary:
 		"stance": PositionState.display_name(stance),
 		"semantic": semantic,
 		"source_family": _fire_source_family(),
-		"world_facing": _fire_world_direction,
+		"world_facing": _body_world_direction(),
 		"camera_rotation": IsometricGrid.facet_camera_direction_degrees(),
 		"resolved_source_direction": display_dir,
 		"animation": anim_name,
@@ -2779,10 +2784,7 @@ func _tick_post_shot_crouch(delta: float) -> void:
 	if _is_moving or _applied_position_state == PositionState.DOWN:
 		return
 	_locomotion_walking = true
-	var idle_dir := (
-		_fire_world_direction if not _fire_world_direction.is_empty() else _locomotion_direction
-	)
-	_play_locomotion(idle_dir if not idle_dir.is_empty() else "n", false)
+	_play_locomotion(_body_world_direction(), false)
 
 
 func _finish_fire_idle() -> void:
@@ -2790,8 +2792,8 @@ func _finish_fire_idle() -> void:
 	## Settling (empty path) or waiting at a cell must stay idle — not run-in-place.
 	if _is_moving and _has_active_chase() and position.distance_to(_move_target_world) > 0.5:
 		_locomotion_walking = false
-		var move_dir := _fire_world_direction if not _fire_world_direction.is_empty() else _locomotion_direction
-		_play_locomotion(move_dir if not move_dir.is_empty() else "n", true)
+		var move_dir := _body_world_direction()
+		_play_locomotion(move_dir, true)
 		_sync_facing_arrow_visibility()
 		return
 	if _is_moving and not _has_active_chase():
@@ -2811,8 +2813,7 @@ func _finish_fire_idle() -> void:
 		_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
 		_prone_marker.visible = false
 	_locomotion_walking = true
-	var idle_dir := _fire_world_direction if not _fire_world_direction.is_empty() else _locomotion_direction
-	_play_locomotion(idle_dir if not idle_dir.is_empty() else "n", false)
+	_play_locomotion(_body_world_direction(), false)
 	_sync_facing_arrow_visibility()
 
 
@@ -3078,7 +3079,7 @@ func _log_fire_anim(anim_name: String, status: String) -> void:
 			_fire_semantic,
 			_fire_source_family(),
 			anim_name,
-			_fire_world_direction,
+			_locomotion_direction,
 			cam_rot,
 			display_dir,
 			frame_idx,

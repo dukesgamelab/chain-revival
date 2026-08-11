@@ -19,7 +19,7 @@ func _ready() -> void:
 
 	failures.append_array(
 		_validate_transition(
-			"us_rifle",
+			"usa",
 			"transition_prone_to_standing",
 			"APRNA",
 			PRONE_TO_STAND_ORDER,
@@ -27,7 +27,7 @@ func _ready() -> void:
 	)
 	failures.append_array(
 		_validate_transition(
-			"german_rifle",
+			"germany",
 			"transition_prone_to_standing",
 			"GPRNA",
 			PRONE_TO_STAND_ORDER,
@@ -35,7 +35,7 @@ func _ready() -> void:
 	)
 	failures.append_array(
 		_validate_transition(
-			"us_rifle",
+			"usa",
 			"transition_standing_to_prone",
 			"APRNA",
 			STAND_TO_PRONE_ORDER,
@@ -43,18 +43,17 @@ func _ready() -> void:
 	)
 	failures.append_array(
 		_validate_transition(
-			"german_rifle",
+			"germany",
 			"transition_standing_to_prone",
 			"GPRNA",
 			STAND_TO_PRONE_ORDER,
 		)
 	)
-	failures.append_array(_validate_crawl("us_rifle", "APMOA"))
-	failures.append_array(_validate_crawl("german_rifle", "GPMOA"))
+	failures.append_array(_validate_crawl("usa", "APMOA"))
+	failures.append_array(_validate_crawl("germany", "GPMOA"))
 	failures.append_array(_validate_no_forbidden_stance_refs())
 	failures.append_array(_validate_runtime_sprite_frames())
 	failures.append_array(_validate_camera_maps())
-	failures.append_array(_validate_shared_family_entries())
 	failures.append_array(_validate_presentation_guards())
 
 	## German idle packs (unchanged by this correction).
@@ -170,7 +169,7 @@ func _validate_crawl(family_id: String, expected_source: String) -> Array[String
 
 func _validate_no_forbidden_stance_refs() -> Array[String]:
 	var fails: Array[String] = []
-	for family_id in ["us_rifle", "german_rifle", "us_smg", "us_bar", "german_smg", "german_mg42"]:
+	for family_id in ["usa", "germany"]:
 		for semantic in ["transition_standing_to_prone", "transition_prone_to_standing"]:
 			for direction in DIRS:
 				for path_v in AnimationDatabase.get_direction_frames(family_id, semantic, direction):
@@ -231,10 +230,10 @@ func _validate_camera_maps() -> Array[String]:
 		fails.append("camera 180° should map w → e")
 	## Stance transitions resolve through the same display_direction remap.
 	var usa_ne := AnimationDatabase.resolve_frames(
-		"us_rifle", "transition_prone_to_standing", "ne", 0.0
+		"usa", "transition_prone_to_standing", "ne", 0.0
 	)
 	var usa_ne_rot := AnimationDatabase.resolve_frames(
-		"us_rifle", "transition_prone_to_standing", "ne", 180.0
+		"usa", "transition_prone_to_standing", "ne", 180.0
 	)
 	if usa_ne.is_empty() or usa_ne_rot.is_empty():
 		fails.append("resolve_frames returned empty for USA prone→stand")
@@ -245,28 +244,6 @@ func _validate_camera_maps() -> Array[String]:
 		fails.append(
 			"USA ne@180° first frame=%s expected APRNA2E.png" % str(usa_ne_rot[0]).get_file()
 		)
-	return fails
-
-
-func _validate_shared_family_entries() -> Array[String]:
-	## AI and human both resolve through us_rifle / german_rifle DB families.
-	var fails: Array[String] = []
-	for fam in ["us_smg", "us_bar"]:
-		var src := str(
-			AnimationDatabase.get_animation(fam, "crawl").get("metadata", {}).get(
-				"source_family", ""
-			)
-		)
-		if src != "APMOA":
-			fails.append("%s crawl source_family=%s expected APMOA" % [fam, src])
-	for fam in ["german_smg", "german_mg42"]:
-		var src := str(
-			AnimationDatabase.get_animation(fam, "crawl").get("metadata", {}).get(
-				"source_family", ""
-			)
-		)
-		if src != "GPMOA":
-			fails.append("%s crawl source_family=%s expected GPMOA" % [fam, src])
 	return fails
 
 
@@ -297,27 +274,27 @@ func _validate_presentation_guards() -> Array[String]:
 
 func _validate_german_idles() -> Array[String]:
 	var fails: Array[String] = []
-	var standing := AnimationDatabase.get_animation("german_rifle", "idle_standing")
-	var prone := AnimationDatabase.get_animation("german_rifle", "idle_prone")
+	var standing := AnimationDatabase.get_animation("germany", "idle_standing")
+	var prone := AnimationDatabase.get_animation("germany", "idle_prone")
 	if str(standing.get("metadata", {}).get("source_family", "")) != "GBRLA":
 		fails.append("german idle_standing source drift")
 	if str(prone.get("metadata", {}).get("source_family", "")) != "GPIDS":
 		fails.append("german idle_prone source drift")
-	var usa_prone := AnimationDatabase.get_animation("us_rifle", "idle_prone")
+	var usa_prone := AnimationDatabase.get_animation("usa", "idle_prone")
 	if usa_prone.is_empty():
-		fails.append("us_rifle idle_prone (APIDS) missing")
+		fails.append("usa idle_prone (APIDS) missing")
 	elif str(usa_prone.get("metadata", {}).get("source_family", "")) != "APIDS":
-		fails.append("us_rifle idle_prone source_family expected APIDS")
+		fails.append("usa idle_prone source_family expected APIDS")
 	else:
 		for direction in DIRS:
-			var frames := AnimationDatabase.get_direction_frames("us_rifle", "idle_prone", direction)
+			var frames := AnimationDatabase.get_direction_frames("usa", "idle_prone", direction)
 			if frames.size() != 1:
-				fails.append("us_rifle idle_prone %s frames=%d" % [direction, frames.size()])
+				fails.append("usa idle_prone %s frames=%d" % [direction, frames.size()])
 				continue
 			var digit := _digit_for_direction(direction)
 			if str(frames[0]).get_file() != "APIDS%dA.png" % digit:
 				fails.append(
-					"us_rifle idle_prone %s got %s" % [direction, str(frames[0]).get_file()]
+					"usa idle_prone %s got %s" % [direction, str(frames[0]).get_file()]
 				)
 	return fails
 

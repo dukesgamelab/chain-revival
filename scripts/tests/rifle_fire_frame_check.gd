@@ -17,26 +17,26 @@ func _ready() -> void:
 	GameplayPolicies.fire_anim.reset_to_defaults()
 	var failures: Array[String] = []
 
-	failures.append_array(_validate_fire_db("us_rifle", "fire_standing", "ASFIA", "USA standing", {8: 2}))
-	failures.append_array(_validate_fire_db("us_rifle", "fire_prone", "APRFA", "USA prone", {}))
+	failures.append_array(_validate_fire_db("usa", "fire_standing", "ASFIA", "USA standing", {8: 2}))
+	failures.append_array(_validate_fire_db("usa", "fire_prone", "APRFA", "USA prone", {}))
 	failures.append_array(
-		_validate_corner_fire_db("us_rifle", "corner_fire_left", "ALCFA", "USA corner L")
+		_validate_corner_fire_db("usa", "corner_fire_left", "ALCFA", "USA corner L")
 	)
 	failures.append_array(
-		_validate_corner_fire_db("us_rifle", "corner_fire_right", "ARCFA", "USA corner R")
+		_validate_corner_fire_db("usa", "corner_fire_right", "ARCFA", "USA corner R")
 	)
 	failures.append_array(
-		_validate_fire_db("german_rifle", "fire_standing", "GSFIA", "Germany standing", {})
+		_validate_fire_db("germany", "fire_standing", "GSFIA", "Germany standing", {})
 	)
-	failures.append_array(_validate_fire_db("german_rifle", "fire_prone", "GPRFA", "Germany prone", {}))
+	failures.append_array(_validate_fire_db("germany", "fire_prone", "GPRFA", "Germany prone", {}))
 	failures.append_array(
-		_validate_corner_fire_db("german_rifle", "corner_fire_left", "GLCFA", "Germany corner L")
+		_validate_corner_fire_db("germany", "corner_fire_left", "GLCFA", "Germany corner L")
 	)
 	failures.append_array(
-		_validate_corner_fire_db("german_rifle", "corner_fire_right", "GRCFA", "Germany corner R")
+		_validate_corner_fire_db("germany", "corner_fire_right", "GRCFA", "Germany corner R")
 	)
-	failures.append_array(_validate_no_dupes("us_rifle"))
-	failures.append_array(_validate_no_dupes("german_rifle"))
+	failures.append_array(_validate_no_dupes("usa"))
+	failures.append_array(_validate_no_dupes("germany"))
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
 	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_germany_sprite_frames(), "Germany"))
 	failures.append_array(_validate_corner_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
@@ -246,7 +246,7 @@ func _validate_asfia8_exception() -> Array[String]:
 	var bogus := "res://assets/sprites/us_soldier/fire_standing/ASFIA8C.png"
 	if ResourceLoader.exists(bogus) or FileAccess.file_exists(bogus):
 		fails.append("ASFIA8C.png must not exist / must not be fabricated")
-	var nw := AnimationDatabase.get_direction_frames("us_rifle", "fire_standing", "nw")
+	var nw := AnimationDatabase.get_direction_frames("usa", "fire_standing", "nw")
 	## No 8C — authored as A, B (flash then settle/aim).
 	if nw.size() != 2:
 		fails.append("ASFIA nw must be exactly 2 frames (A-B), got %d" % nw.size())
@@ -260,7 +260,7 @@ func _validate_asfia8_exception() -> Array[String]:
 
 func _validate_corner_idle_aim() -> Array[String]:
 	var fails: Array[String] = []
-	for fam in ["us_rifle", "german_rifle"]:
+	for fam in ["usa", "germany"]:
 		for anim_id in ["corner_idle_left", "corner_idle_right", "corner_aim_left", "corner_aim_right"]:
 			var anim := AnimationDatabase.get_animation(fam, anim_id)
 			if anim.is_empty():
@@ -276,7 +276,7 @@ func _validate_corner_idle_aim() -> Array[String]:
 func _validate_corner_peek_enter_exit() -> Array[String]:
 	var fails: Array[String] = []
 	## Dedicated 16-frame peek (ALPKA/ARPKA) — no state-machine caller yet.
-	for fam in ["us_rifle", "german_rifle"]:
+	for fam in ["usa", "germany"]:
 		for anim_id in ["corner_peek_left", "corner_peek_right"]:
 			var peek := AnimationDatabase.get_animation(fam, anim_id)
 			if peek.is_empty():
@@ -285,8 +285,8 @@ func _validate_corner_peek_enter_exit() -> Array[String]:
 			var peek_meta_v: Variant = peek.get("metadata", {})
 			var peek_meta: Dictionary = peek_meta_v if peek_meta_v is Dictionary else {}
 			var expected_src := (
-				"ALPKA" if fam == "us_rifle" and anim_id.ends_with("left")
-				else "ARPKA" if fam == "us_rifle"
+				"ALPKA" if fam == "usa" and anim_id.ends_with("left")
+				else "ARPKA" if fam == "usa"
 				else "GLPKA" if anim_id.ends_with("left")
 				else "GRPKA"
 			)
@@ -300,7 +300,7 @@ func _validate_corner_peek_enter_exit() -> Array[String]:
 					fails.append("%s/%s %s frames=%d expected 16" % [fam, anim_id, direction, frames.size()])
 
 	## Enter C-A-B (idle→aim), exit B-A-C (aim→idle) — ALCPA/ARCPA.
-	for fam in ["us_rifle", "german_rifle"]:
+	for fam in ["usa", "germany"]:
 		for anim_id in [
 			"corner_peek_enter_left",
 			"corner_peek_enter_right",
@@ -331,7 +331,7 @@ func _validate_corner_peek_enter_exit() -> Array[String]:
 func _validate_corner_presentation_source() -> Array[String]:
 	## No corner-fire entry may still claim muzzle frame 2 (old B-C-A order).
 	var fails: Array[String] = []
-	for fam in ["us_rifle", "german_rifle"]:
+	for fam in ["usa", "germany"]:
 		for anim_id in ["corner_fire_left", "corner_fire_right"]:
 			var anim := AnimationDatabase.get_animation(fam, anim_id)
 			var meta_v: Variant = anim.get("metadata", {})

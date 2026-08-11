@@ -42,9 +42,8 @@ def collect(dir_rel: str, prefix: str) -> dict[str, list[str]]:
 	return out
 
 
-def make_anim(label: str, dirs: dict[str, list[str]], loop: bool, fps: float, **meta) -> dict:
+def make_anim(dirs: dict[str, list[str]], loop: bool, fps: float, **meta) -> dict:
 	return {
-		"label": label,
 		"loop": loop,
 		"fps": fps,
 		"metadata": {
@@ -63,70 +62,58 @@ def main() -> None:
 	us_walk = collect("assets/sprites/us_soldier/walk", "ASMOA")
 	ger_walk = collect("assets/sprites/german_soldier/walk", "GSMOA")
 	families = {
-		"us_rifle": {
-			"id": "us_rifle",
-			"label": "US Rifle Soldier",
+		"usa": {
+			"id": "usa",
 			"category": "soldiers",
 			"faction": "usa",
-			"weapon": "rifle",
 			"animations": {
 				"idle": make_anim(
-					"Idle",
 					{d: us_walk.get(d, [])[:1] for d in DIRS},
 					True,
 					1.0,
 					notes="Idle uses first walk frame until dedicated idle pack is assigned",
 				),
-				"walk": make_anim("Walk", us_walk, True, 12.0, footstep_frame=0),
+				"walk": make_anim(us_walk, True, 12.0, footstep_frame=0),
 				"hit": make_anim(
-					"Hit",
 					collect("assets/sprites/us_soldier/hit_reaction", "AHTLA"),
 					False,
 					14.0,
 				),
 				"death": make_anim(
-					"Death",
 					collect("assets/sprites/us_soldier/fall_or_death", "AFALA"),
 					False,
 					12.0,
 				),
 				"corpse": make_anim(
-					"Corpse",
 					collect("assets/sprites/us_soldier/dead_fallen", "ADFUS"),
 					True,
 					1.0,
 				),
 			},
 		},
-		"german_rifle": {
-			"id": "german_rifle",
-			"label": "German Rifle Soldier",
+		"germany": {
+			"id": "germany",
 			"category": "soldiers",
 			"faction": "germany",
-			"weapon": "rifle",
 			"animations": {
 				"idle": make_anim(
-					"Idle",
 					{d: ger_walk.get(d, [])[:1] for d in DIRS},
 					True,
 					1.0,
 					notes="Idle uses first walk frame until dedicated idle pack is assigned",
 				),
-				"walk": make_anim("Walk", ger_walk, True, 12.0, footstep_frame=0),
+				"walk": make_anim(ger_walk, True, 12.0, footstep_frame=0),
 				"hit": make_anim(
-					"Hit",
 					collect("assets/sprites/german_soldier/hit_reaction", "GHTLA"),
 					False,
 					14.0,
 				),
 				"death": make_anim(
-					"Death",
 					collect("assets/sprites/german_soldier/fall_or_death", "GFALA"),
 					False,
 					12.0,
 				),
 				"corpse": make_anim(
-					"Corpse",
 					collect("assets/sprites/german_soldier/dead_fallen", "GDFUS"),
 					True,
 					1.0,
