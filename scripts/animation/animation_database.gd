@@ -240,7 +240,6 @@ static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteF
 		return sf
 	var alias := {
 		"walk": "walk",
-		"hit": "hit",
 		"hit_standing": "hit_standing",
 		"hit_prone": "hit_prone",
 		"throw_grenade": "throw_grenade",
@@ -268,7 +267,6 @@ static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteF
 		"aim_standing": "aim_standing",
 		"aim_standing_hold": "aim_standing_hold",
 		"aim_prone_hold": "aim_prone_hold",
-		"death": "fall",
 		"corpse": "dead",
 		"idle": "idle",
 	}

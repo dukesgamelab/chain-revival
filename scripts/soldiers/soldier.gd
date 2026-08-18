@@ -285,6 +285,12 @@ func sync_from_state(
 		_cover_corner_cell = Vector2i(-999, -999)
 		_set_world_position_from_cell(state.grid_position)
 		_facing_from_cell = state.grid_position
+		if _death_sequence_active:
+			## Let play_death_sequence finish hit → dead_static; do not skip the hit reaction.
+			_apply_facing(state.facing_direction, _facing_from_cell)
+			_apply_fog_visual(fog_visual, is_selected)
+			_refresh_id_marker(state)
+			return
 		_apply_facing(state.facing_direction, _facing_from_cell)
 		_corpse_world_direction = UsSoldierSpriteFrames.direction_from_step(state.facing_direction)
 		_show_dead_static(_corpse_world_direction)
@@ -1485,7 +1491,7 @@ func play_hit_reaction(threat_step: Vector2i, position_state: int = PositionStat
 		return
 
 
-## Fatal hit → stance hit reaction → fall → dead. Never returns to idle.
+## Fatal hit → stance hit reaction → dead_static. Never returns to idle.
 func play_death_sequence(
 	threat_step: Vector2i,
 	position_state: int = PositionState.UP,
@@ -1523,8 +1529,8 @@ func play_death_sequence(
 	var hit_display := _idle_display_direction(_death_direction)
 	var anim_name := "%s_%s" % [_hit_semantic, hit_display]
 	if not _play_hit_animation(anim_name, position_state, true):
-		## Missing hit frames must not invent idle; skip straight to fall if available.
-		_play_animation("fall_%s" % hit_display)
+		## Missing hit frames — show static corpse directly (no fall/death anim).
+		_finish_death_sequence()
 
 
 ## Presentation-only grenade throw (ASTGA / GSPRA). Does not consume inventory or arm fuse.
@@ -2597,13 +2603,9 @@ func _on_anim_frame_changed() -> void:
 
 
 func _hit_semantic_for(position_state: int) -> String:
-	## US verified families: standing/kneeling → AHTFA; prone → AHTLA.
-	## German keeps legacy hit_* (GHTLA) until those families are wired.
-	if team_id == Team.USA:
-		if position_state == PositionState.DOWN:
-			return "hit_prone"
-		return "hit_standing"
-	return "hit"
+	if position_state == PositionState.DOWN:
+		return "hit_prone"
+	return "hit_standing"
 
 
 func _apply_hit_reaction_scale(position_state: int) -> void:
@@ -2708,11 +2710,7 @@ func _on_anim_animation_finished() -> void:
 		return
 
 	if _is_hit_reaction_anim(anim_name):
-		var fall_dir := _idle_display_direction(_death_direction)
-		_log_hit_completion(anim_name, "→ fall_%s" % fall_dir)
-		_play_animation("fall_%s" % fall_dir)
-	elif anim_name.begins_with("fall_"):
-		_log_hit_completion(anim_name, "→ dead_%s" % _death_direction)
+		_log_hit_completion(anim_name, "→ dead_static")
 		_finish_death_sequence()
 
 
@@ -2975,11 +2973,9 @@ func _play_animation(anim_name: String) -> void:
 func _source_family_for_semantic(semantic: String) -> String:
 	match semantic:
 		"hit_standing":
-			return "AHTFA"
+			return "AHTFA" if team_id == Team.USA else "GHTLA"
 		"hit_prone":
-			return "AHTLA"
-		"hit":
-			return "GHTLA" if team_id == Team.GERMANY else "AHTLA"
+			return "AHTLA" if team_id == Team.USA else "GHTLA"
 		"throw_grenade":
 			return _throw_source_family()
 		"fire_standing", "fire_prone", "corner_fire_left", "corner_fire_right":

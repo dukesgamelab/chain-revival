@@ -103,7 +103,7 @@
 					"loop": true
 				},
 				"aim_standing": {
-					"comment": "Stage 1: GSAPA ragged frame counts by direction — do not pad.",
+					"comment": "Stage 1: GSAPA ragged frame counts by direction \u2014 do not pad.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -325,7 +325,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GLCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GLCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -383,7 +383,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GRCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GRCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -457,10 +457,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "GLCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -531,10 +531,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "GRCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -589,7 +589,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GLCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GLCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -647,7 +647,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GRCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GRCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -722,10 +722,10 @@
 						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"notes": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "GLCPA",
-						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"verification": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -797,10 +797,10 @@
 						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"notes": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "GRCPA",
-						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"verification": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -872,10 +872,10 @@
 						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"notes": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "GLCPA",
-						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"verification": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -947,10 +947,10 @@
 						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"notes": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "GRCPA",
-						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"verification": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -1125,7 +1125,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered. GLPKA8P missing from import — NW last frame uses GLCIS8A (P≈CIS).",
+						"notes": "Source GLPKA frames A\u2013P (16). One-shot lean-out/observe/return; last frame P \u2248 corner idle (CIS). ## TUNED fps 12.0 \u2014 no OG timing recovered. GLPKA8P missing from import \u2014 NW last frame uses GLCIS8A (P\u2248CIS).",
 						"sound_effect": "",
 						"source_family": "GLPKA",
 						"verification": "Replaced duplicate CPA peek with dedicated GLPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
@@ -1303,7 +1303,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered.",
+						"notes": "Source GRPKA frames A\u2013P (16). One-shot lean-out/observe/return; last frame P \u2248 corner idle (CIS). ## TUNED fps 12.0 \u2014 no OG timing recovered.",
 						"sound_effect": "",
 						"source_family": "GRPKA",
 						"verification": "Replaced duplicate CPA peek with dedicated GRPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
@@ -1700,235 +1700,6 @@
 						"verified": true
 					}
 				},
-				"death": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5A.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5B.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5C.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5D.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5E.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5F.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5G.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5H.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5I.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5J.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5K.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5L.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5M.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5N.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5O.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5P.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5Q.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5R.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5S.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5T.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5U.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5V.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA5W.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7A.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7B.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7C.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7D.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7E.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7F.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7G.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7H.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7I.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7J.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7K.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7L.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7M.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7N.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7O.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7P.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7Q.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7R.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7S.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7T.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7U.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7V.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA7W.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6A.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6B.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6C.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6D.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6E.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6F.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6G.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6H.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6I.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6J.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6K.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6L.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6M.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6N.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6O.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6P.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6Q.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6R.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6S.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6T.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6U.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6V.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA6W.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8A.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8B.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8C.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8D.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8E.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8F.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8G.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8H.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8I.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8J.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8K.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8L.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8M.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8N.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8O.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8P.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8Q.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8R.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8S.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8T.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8U.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8V.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA8W.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3A.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3B.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3C.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3D.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3E.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3F.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3G.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3H.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3I.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3J.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3K.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3L.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3M.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3N.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3O.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3P.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3Q.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3R.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3S.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3T.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3U.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3V.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA3W.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4A.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4B.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4C.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4D.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4E.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4F.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4G.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4H.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4I.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4J.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4K.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4L.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4M.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4N.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4O.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4P.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4Q.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4R.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4S.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4T.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4U.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4V.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA4W.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2A.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2B.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2C.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2D.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2E.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2F.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2G.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2H.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2I.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2J.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2K.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2L.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2M.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2N.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2O.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2P.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2Q.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2R.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2S.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2T.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2U.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2V.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA2W.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1A.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1B.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1C.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1D.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1E.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1F.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1G.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1H.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1I.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1J.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1K.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1L.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1M.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1N.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1O.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1P.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1Q.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1R.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1S.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1T.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1U.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1V.png",
-								"res://assets/sprites/german_soldier/fall_or_death/GFALA1W.png"
-							]
-						}
-					},
-					"fps": 12.0,
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "",
-						"sound_effect": ""
-					}
-				},
 				"fire_prone": {
 					"directions": {
 						"e": {
@@ -2081,235 +1852,6 @@
 						"visual_shot_frame_letter": "A"
 					}
 				},
-				"hit": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5A.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5B.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5C.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5D.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5E.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5F.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5G.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5H.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5I.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5J.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5K.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5L.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5M.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5N.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5O.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5P.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5Q.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5R.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5S.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5T.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5U.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5V.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5W.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7A.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7B.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7C.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7D.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7E.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7F.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7G.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7H.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7I.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7J.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7K.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7L.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7M.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7N.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7O.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7P.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7Q.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7R.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7S.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7T.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7U.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7V.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7W.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6A.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6B.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6C.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6D.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6E.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6F.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6G.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6H.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6I.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6J.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6K.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6L.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6M.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6N.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6O.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6P.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6Q.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6R.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6S.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6T.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6U.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6V.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6W.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8A.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8B.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8C.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8D.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8E.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8F.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8G.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8H.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8I.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8J.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8K.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8L.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8M.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8N.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8O.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8P.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8Q.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8R.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8S.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8T.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8U.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8V.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8W.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3A.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3B.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3C.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3D.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3E.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3F.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3G.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3H.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3I.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3J.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3K.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3L.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3M.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3N.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3O.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3P.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3Q.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3R.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3S.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3T.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3U.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3V.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3W.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4A.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4B.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4C.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4D.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4E.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4F.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4G.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4H.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4I.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4J.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4K.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4L.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4M.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4N.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4O.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4P.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4Q.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4R.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4S.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4T.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4U.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4V.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4W.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2A.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2B.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2C.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2D.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2E.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2F.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2G.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2H.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2I.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2J.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2K.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2L.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2M.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2N.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2O.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2P.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2Q.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2R.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2S.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2T.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2U.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2V.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2W.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1A.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1B.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1C.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1D.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1E.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1F.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1G.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1H.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1I.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1J.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1K.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1L.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1M.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1N.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1O.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1P.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1Q.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1R.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1S.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1T.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1U.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1V.png",
-								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1W.png"
-							]
-						}
-					},
-					"fps": 14.0,
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "",
-						"sound_effect": ""
-					}
-				},
 				"idle": {
 					"directions": {
 						"e": {
@@ -2364,7 +1906,7 @@
 					}
 				},
 				"idle_breathing": {
-					"comment": "UM_ImageBreathing — full ABRLA/GBRLA one-shot A–T (excludes U).",
+					"comment": "UM_ImageBreathing \u2014 full ABRLA/GBRLA one-shot A\u2013T (excludes U).",
 					"directions": {
 						"e": {
 							"frames": [
@@ -2690,7 +2232,7 @@
 					}
 				},
 				"idle_rest_1": {
-					"comment": "Original StRest1 — GSRWA one-shot.",
+					"comment": "Original StRest1 \u2014 GSRWA one-shot.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -2895,7 +2437,7 @@
 					}
 				},
 				"idle_rest_2": {
-					"comment": "Original StRest2 — GSSSA one-shot.",
+					"comment": "Original StRest2 \u2014 GSSSA one-shot.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -3100,7 +2642,7 @@
 					}
 				},
 				"idle_rest_3": {
-					"comment": "Original StRest3 — GSFBA one-shot.",
+					"comment": "Original StRest3 \u2014 GSFBA one-shot.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -3291,7 +2833,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Held standing pose — frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
+						"notes": "Held standing pose \u2014 frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
 						"sound_effect": "",
 						"source_family": "GBRLA",
 						"stance": "standing",
@@ -3300,7 +2842,7 @@
 					}
 				},
 				"stun_idle": {
-					"comment": "Stage 2 lying stunned. GDHPA A–B loop ~2 fps.",
+					"comment": "Stage 2 lying stunned. GDHPA A\u2013B loop ~2 fps.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -3355,7 +2897,7 @@
 					"loop": true
 				},
 				"stun_knockdown": {
-					"comment": "Stage 2 grenade stun fall. GFALA A–Q (trimmed before corpse-settle R–W).",
+					"comment": "Stage 2 grenade stun fall. GFALA A\u2013Q (trimmed before corpse-settle R\u2013W).",
 					"directions": {
 						"e": {
 							"frames": [
@@ -3530,7 +3072,7 @@
 					"loop": false
 				},
 				"stun_recover": {
-					"comment": "Stage 2 get-up after stun. GHTBA A–T from coc_soldiers pack.",
+					"comment": "Stage 2 get-up after stun. GHTBA A\u2013T from coc_soldiers pack.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -4249,6 +3791,468 @@
 						"notes": "",
 						"sound_effect": ""
 					}
+				},
+				"hit_prone": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5W.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7W.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6W.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8W.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3W.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4W.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2W.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1W.png"
+							]
+						}
+					},
+					"fps": 14.0,
+					"loop": false,
+					"metadata": {
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "",
+						"sound_effect": "",
+						"source_family": "GHTLA",
+						"note": "Prone hit reaction (from legacy hit)."
+					}
+				},
+				"hit_standing": {
+					"directions": {
+						"e": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA5W.png"
+							]
+						},
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA7W.png"
+							]
+						},
+						"ne": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA6W.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA8W.png"
+							]
+						},
+						"s": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA3W.png"
+							]
+						},
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA4W.png"
+							]
+						},
+						"sw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA2W.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1A.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1B.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1C.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1D.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1E.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1F.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1G.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1H.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1I.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1J.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1K.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1L.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1M.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1N.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1O.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1P.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1Q.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1R.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1S.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1T.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1U.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1V.png",
+								"res://assets/sprites/german_soldier/hit_reaction/GHTLA1W.png"
+							]
+						}
+					},
+					"fps": 14.0,
+					"loop": false,
+					"metadata": {
+						"footstep_frame": -1.0,
+						"movement_per_cycle": 0.0,
+						"muzzle_flash_frame": -1.0,
+						"notes": "",
+						"sound_effect": "",
+						"source_family": "GHTLA",
+						"note": "Standing hit reaction (GHTLA until dedicated standing pack)."
+					}
 				}
 			},
 			"category": "soldiers",
@@ -4311,7 +4315,7 @@
 					"loop": true
 				},
 				"aim_standing": {
-					"comment": "Stage 1: ASAPA ragged 9–11 frames by direction — do not pad.",
+					"comment": "Stage 1: ASAPA ragged 9\u201311 frames by direction \u2014 do not pad.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -4527,7 +4531,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ALCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ALCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -4585,7 +4589,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ARCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ARCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ARCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -4659,10 +4663,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "ALCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -4733,10 +4737,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "ARCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -4791,7 +4795,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ALCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ALCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -4849,7 +4853,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ARCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ARCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ARCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -4924,10 +4928,10 @@
 						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"notes": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "ALCPA",
-						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"verification": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -4999,10 +5003,10 @@
 						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"notes": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "ARCPA",
-						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"verification": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -5074,10 +5078,10 @@
 						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"notes": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "ALCPA",
-						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"verification": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -5149,10 +5153,10 @@
 						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"notes": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "ARCPA",
-						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"verification": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -5327,7 +5331,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered.",
+						"notes": "Source ALPKA frames A\u2013P (16). One-shot lean-out/observe/return; last frame P \u2248 corner idle (CIS). ## TUNED fps 12.0 \u2014 no OG timing recovered.",
 						"sound_effect": "",
 						"source_family": "ALPKA",
 						"verification": "Replaced duplicate CPA peek with dedicated ALPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
@@ -5505,7 +5509,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ARPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered.",
+						"notes": "Source ARPKA frames A\u2013P (16). One-shot lean-out/observe/return; last frame P \u2248 corner idle (CIS). ## TUNED fps 12.0 \u2014 no OG timing recovered.",
 						"sound_effect": "",
 						"source_family": "ARPKA",
 						"verification": "Replaced duplicate CPA peek with dedicated ARPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
@@ -6035,235 +6039,6 @@
 						"verified": true
 					}
 				},
-				"death": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5A.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5B.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5C.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5D.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5E.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5F.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5G.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5H.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5I.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5J.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5K.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5L.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5M.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5N.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5O.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5P.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5Q.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5R.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5S.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5T.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5U.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5V.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA5W.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7A.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7B.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7C.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7D.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7E.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7F.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7G.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7H.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7I.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7J.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7K.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7L.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7M.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7N.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7O.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7P.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7Q.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7R.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7S.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7T.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7U.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7V.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA7W.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6A.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6B.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6C.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6D.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6E.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6F.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6G.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6H.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6I.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6J.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6K.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6L.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6M.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6N.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6O.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6P.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6Q.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6R.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6S.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6T.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6U.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6V.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA6W.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8A.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8B.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8C.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8D.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8E.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8F.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8G.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8H.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8I.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8J.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8K.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8L.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8M.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8N.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8O.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8P.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8Q.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8R.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8S.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8T.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8U.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8V.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA8W.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3A.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3B.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3C.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3D.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3E.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3F.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3G.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3H.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3I.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3J.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3K.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3L.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3M.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3N.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3O.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3P.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3Q.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3R.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3S.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3T.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3U.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3V.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA3W.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4A.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4B.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4C.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4D.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4E.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4F.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4G.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4H.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4I.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4J.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4K.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4L.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4M.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4N.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4O.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4P.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4Q.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4R.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4S.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4T.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4U.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4V.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA4W.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2A.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2B.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2C.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2D.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2E.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2F.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2G.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2H.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2I.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2J.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2K.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2L.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2M.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2N.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2O.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2P.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2Q.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2R.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2S.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2T.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2U.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2V.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA2W.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1A.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1B.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1C.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1D.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1E.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1F.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1G.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1H.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1I.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1J.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1K.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1L.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1M.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1N.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1O.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1P.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1Q.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1R.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1S.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1T.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1U.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1V.png",
-								"res://assets/sprites/us_soldier/fall_or_death/AFALA1W.png"
-							]
-						}
-					},
-					"fps": 12.0,
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"notes": "",
-						"sound_effect": ""
-					}
-				},
 				"fire_prone": {
 					"directions": {
 						"e": {
@@ -6413,238 +6188,6 @@
 						"verified": true,
 						"visual_shot_frame": 0.0,
 						"visual_shot_frame_letter": "A"
-					}
-				},
-				"hit": {
-					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5A.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5B.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5C.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5D.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5E.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5F.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5G.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5H.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5I.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5J.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5K.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5L.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5M.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5N.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5O.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5P.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5Q.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5R.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5S.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5T.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5U.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5V.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA5W.png"
-							]
-						},
-						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7A.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7C.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7B.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7D.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7E.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7F.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7G.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7H.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7I.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7J.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7K.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7L.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7M.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7N.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7O.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7P.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7Q.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7R.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7S.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7T.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7U.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7V.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA7W.png"
-							]
-						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6A.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6B.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6C.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6D.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6E.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6F.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6G.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6H.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6I.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6J.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6K.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6L.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6M.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6N.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6O.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6P.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6Q.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6R.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6S.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6T.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6U.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6V.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA6W.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8A.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8B.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8C.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8D.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8E.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8F.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8G.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8H.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8I.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8J.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8K.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8L.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8M.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8N.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8O.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8P.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8Q.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8R.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8S.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8T.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8U.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8V.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA8W.png"
-							]
-						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3A.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3B.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3C.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3D.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3E.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3F.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3G.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3H.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3I.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3J.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3K.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3L.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3M.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3N.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3O.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3P.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3Q.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3R.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3S.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3T.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3U.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3V.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA3W.png"
-							]
-						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4A.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4B.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4C.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4D.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4E.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4F.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4G.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4H.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4I.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4J.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4K.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4L.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4M.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4N.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4O.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4P.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4Q.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4R.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4S.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4T.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4U.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4V.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA4W.png"
-							]
-						},
-						"sw": {
-							"frames": [
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2A.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2B.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2C.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2D.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2E.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2F.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2G.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2H.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2I.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2J.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2K.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2L.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2M.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2N.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2O.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2P.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2Q.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2R.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2S.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2T.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2U.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2V.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA2W.png"
-							]
-						},
-						"w": {
-							"frames": [
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1A.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1B.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1C.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1D.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1E.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1F.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1G.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1H.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1I.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1J.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1K.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1L.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1M.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1N.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1O.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1P.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1Q.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1R.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1S.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1T.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1U.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1V.png",
-								"res://assets/sprites/us_soldier/hit_reaction/AHTLA1W.png"
-							]
-						}
-					},
-					"fps": 14.0,
-					"loop": false,
-					"metadata": {
-						"footstep_frame": -1.0,
-						"movement_per_cycle": 0.0,
-						"muzzle_flash_frame": -1.0,
-						"note": "Legacy alias; prefer hit_standing (AHTFA) / hit_prone (AHTLA)",
-						"notes": "",
-						"sound_effect": "",
-						"source_family": "AHTLA",
-						"superseded_by": "hit_prone"
 					}
 				},
 				"hit_prone": {
@@ -7121,7 +6664,7 @@
 					}
 				},
 				"idle_breathing": {
-					"comment": "UM_ImageBreathing — full ABRLA/GBRLA one-shot A–T (excludes U).",
+					"comment": "UM_ImageBreathing \u2014 full ABRLA/GBRLA one-shot A\u2013T (excludes U).",
 					"directions": {
 						"e": {
 							"frames": [
@@ -7380,7 +6923,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "ADHPA kneel aim A-B loop. Held crouch/stress pose — loops like stun_idle.",
+						"notes": "ADHPA kneel aim A-B loop. Held crouch/stress pose \u2014 loops like stun_idle.",
 						"sound_effect": "",
 						"source_family": "ADHPA",
 						"stance": "kneeling",
@@ -7448,7 +6991,7 @@
 					}
 				},
 				"idle_rest_1": {
-					"comment": "Original StRest1 — ASRWA one-shot.",
+					"comment": "Original StRest1 \u2014 ASRWA one-shot.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -7653,7 +7196,7 @@
 					}
 				},
 				"idle_rest_2": {
-					"comment": "Original StRest2 — ASSSA one-shot.",
+					"comment": "Original StRest2 \u2014 ASSSA one-shot.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -7858,7 +7401,7 @@
 					}
 				},
 				"idle_rest_3": {
-					"comment": "Original StRest3 — ASFBA one-shot.",
+					"comment": "Original StRest3 \u2014 ASFBA one-shot.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -8049,7 +7592,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Held standing pose — frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
+						"notes": "Held standing pose \u2014 frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
 						"sound_effect": "",
 						"source_family": "ABRLA",
 						"stance": "standing",
@@ -8058,7 +7601,7 @@
 					}
 				},
 				"stun_idle": {
-					"comment": "Stage 2 lying stunned. ADHPA A–B loop ~2 fps.",
+					"comment": "Stage 2 lying stunned. ADHPA A\u2013B loop ~2 fps.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -8113,7 +7656,7 @@
 					"loop": true
 				},
 				"stun_knockdown": {
-					"comment": "Stage 2 grenade stun fall. AFALA A–Q (trimmed before corpse-settle R–W).",
+					"comment": "Stage 2 grenade stun fall. AFALA A\u2013Q (trimmed before corpse-settle R\u2013W).",
 					"directions": {
 						"e": {
 							"frames": [
@@ -8295,7 +7838,7 @@
 					}
 				},
 				"stun_recover": {
-					"comment": "Stage 2 get-up after stun. AHTBA A–T (20 frames).",
+					"comment": "Stage 2 get-up after stun. AHTBA A\u2013T (20 frames).",
 					"directions": {
 						"e": {
 							"frames": [
