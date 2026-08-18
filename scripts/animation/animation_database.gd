@@ -10,6 +10,7 @@ const DIRECTIONS: PackedStringArray = ["n", "ne", "e", "se", "s", "sw", "w", "nw
 
 static var _root: Dictionary = {}
 static var _loaded: bool = false
+static var _json_load_msec: float = 0.0
 
 
 static func reload() -> void:
@@ -20,8 +21,11 @@ static func reload() -> void:
 static func ensure_loaded() -> void:
 	if _loaded:
 		return
-	_loaded = true
+	var t0 := Time.get_ticks_usec()
+	var json_bytes := _json_file_byte_size(DB_PATH)
 	_root = _read_json(DB_PATH)
+	_json_load_msec = float(Time.get_ticks_usec() - t0) / 1000.0
+	_loaded = true
 	if _root.is_empty():
 		_root = {
 			"version": 1,
@@ -29,6 +33,10 @@ static func ensure_loaded() -> void:
 			"camera_rotation_maps": _default_camera_maps(),
 			"families": {},
 		}
+	GameLog.log_system(
+		"[Load] animation_database.json parse %.1fms (%d bytes)"
+		% [_json_load_msec, json_bytes]
+	)
 
 
 static func save() -> bool:
@@ -220,6 +228,12 @@ static func source_direction_digit(direction: String) -> int:
 ## Soldier runtime expects walk_/hit_/hit_standing_/hit_prone_/fall_/dead_ prefixes.
 static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteFrames:
 	ensure_loaded()
+	var t0 := Time.get_ticks_usec()
+	var exists_usec := 0
+	var load_usec := 0
+	var textures_loaded := 0
+	var textures_missing := 0
+	var animations_built := 0
 	var sf := SpriteFrames.new()
 	var fam := get_family(family_id)
 	if fam.is_empty():
@@ -285,24 +299,46 @@ static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteF
 			sf.add_animation(anim_name)
 			sf.set_animation_loop(anim_name, loop)
 			sf.set_animation_speed(anim_name, fps if fps > 0.0 else 1.0)
+			animations_built += 1
 			for path_v in frame_paths:
 				var path := str(path_v)
 				if path.is_empty():
 					continue
-				if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
+				var exists_t := Time.get_ticks_usec()
+				var path_ok := ResourceLoader.exists(path) or FileAccess.file_exists(path)
+				exists_usec += Time.get_ticks_usec() - exists_t
+				if not path_ok:
 					push_error(
 						"AnimationDatabase: missing frame path %s (%s/%s/%s) — not substituted"
 						% [path, family_id, anim_id, direction]
 					)
+					textures_missing += 1
 					continue
+				var load_t := Time.get_ticks_usec()
 				var tex: Texture2D = load(path) as Texture2D
+				load_usec += Time.get_ticks_usec() - load_t
 				if tex != null:
 					sf.add_frame(anim_name, tex, 1.0)
+					textures_loaded += 1
 				else:
 					push_error(
 						"AnimationDatabase: failed to load texture %s (%s/%s/%s)"
 						% [path, family_id, anim_id, direction]
 					)
+					textures_missing += 1
+	var total_msec := float(Time.get_ticks_usec() - t0) / 1000.0
+	GameLog.log_system(
+		"[Load] sprite_frames %s: %d anims, %d textures (missing %d), exists %.0fms load %.0fms total %.0fms"
+		% [
+			family_id,
+			animations_built,
+			textures_loaded,
+			textures_missing,
+			float(exists_usec) / 1000.0,
+			float(load_usec) / 1000.0,
+			total_msec,
+		]
+	)
 	return sf
 
 
@@ -463,3 +499,14 @@ static func _read_json(path: String) -> Dictionary:
 	file.close()
 	var parsed: Variant = JSON.parse_string(text)
 	return parsed if parsed is Dictionary else {}
+
+
+static func _json_file_byte_size(path: String) -> int:
+	if not FileAccess.file_exists(path):
+		return 0
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return 0
+	var size := file.get_length()
+	file.close()
+	return size

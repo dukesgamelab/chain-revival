@@ -135,6 +135,10 @@ func _ready() -> void:
 	## first ground/object frame painted under that label.
 	await _boot_apply_map_presentation_staged()
 
+	_set_loading_status("Loading soldier sprites…")
+	await get_tree().process_frame
+	UsSoldierSpriteFrames.prewarm_all(_set_loading_status)
+
 	_set_loading_status("Spawning units…")
 	await get_tree().process_frame
 	_spawn_all_soldier_views()
@@ -1676,6 +1680,8 @@ func _toggle_debug_targeting_overlays() -> void:
 
 
 func _spawn_all_soldier_views() -> void:
+	var t0 := Time.get_ticks_usec()
+	var spawned := 0
 	var movers_root: Node2D = _depth_sorted
 	if _depth_sorted != null and _depth_sorted.has_method("get_movers_root"):
 		movers_root = _depth_sorted.get_movers_root()
@@ -1691,6 +1697,11 @@ func _spawn_all_soldier_views() -> void:
 			view.stance_transition_cancelled.connect(_on_soldier_stance_transition_cancelled)
 			movers_root.add_child(view)
 			_soldier_views[Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)] = view
+			spawned += 1
+	GameLog.log_system(
+		"[Load] spawned %d soldier views in %.0fms"
+		% [spawned, float(Time.get_ticks_usec() - t0) / 1000.0]
+	)
 
 
 func _refresh_all_views() -> void:

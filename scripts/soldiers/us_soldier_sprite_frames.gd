@@ -96,18 +96,44 @@ static func reload_cached_frames() -> void:
 	AnimationDatabase.reload()
 
 
+## Load both faction SpriteFrames during boot (before spawning soldiers).
+## Logs per-faction timing; optional callback updates loading overlay text.
+static func prewarm_all(status_callback: Callable = Callable()) -> void:
+	var total_t0 := Time.get_ticks_usec()
+	if status_callback.is_valid():
+		status_callback.call("Loading US soldier sprites…")
+	var usa_t0 := Time.get_ticks_usec()
+	get_usa_sprite_frames()
+	var usa_msec := float(Time.get_ticks_usec() - usa_t0) / 1000.0
+	if status_callback.is_valid():
+		status_callback.call("Loading German soldier sprites…")
+	var ger_t0 := Time.get_ticks_usec()
+	get_germany_sprite_frames()
+	var ger_msec := float(Time.get_ticks_usec() - ger_t0) / 1000.0
+	var total_msec := float(Time.get_ticks_usec() - total_t0) / 1000.0
+	GameLog.log_system(
+		"[Load] soldier prewarm USA %.0fms + Germany %.0fms = %.0fms (cached=%s)"
+		% [usa_msec, ger_msec, total_msec, str(_usa_frames != null and _germany_frames != null)]
+	)
+
+
 static func _load_faction_frames(is_usa: bool) -> SpriteFrames:
+	var label := "USA" if is_usa else "Germany"
+	var t0 := Time.get_ticks_usec()
 	## Single source of truth: AnimationDatabase. Legacy pack builder is emergency-only
 	## and derives walk A–G from the DB so constants cannot silently disagree.
+	var result: SpriteFrames
 	if USE_ANIMATION_DATABASE:
 		var family_id := DB_FAMILY_USA if is_usa else DB_FAMILY_GERMANY
 		AnimationDatabase.ensure_loaded()
 		var fam := AnimationDatabase.get_family(family_id)
 		var walk := AnimationDatabase.get_direction_frames(family_id, "walk", "n")
 		if not fam.is_empty() and walk.size() > 0:
-			return AnimationDatabase.build_soldier_compatible_sprite_frames(family_id)
+			result = AnimationDatabase.build_soldier_compatible_sprite_frames(family_id)
+			_log_faction_load(label, "animation_database", t0, result)
+			return result
 	if is_usa:
-		return _build_sprite_frames(
+		result = _build_sprite_frames(
 			WALK_SPRITES_DIR_USA,
 			WALK_PREFIX_USA,
 			HIT_SPRITES_DIR_USA,
@@ -119,7 +145,9 @@ static func _load_faction_frames(is_usa: bool) -> SpriteFrames:
 			"USA",
 			true,
 		)
-	return _build_sprite_frames(
+		_log_faction_load(label, "legacy_disk_packs", t0, result)
+		return result
+	result = _build_sprite_frames(
 		WALK_SPRITES_DIR_GER,
 		WALK_PREFIX_GER,
 		HIT_SPRITES_DIR_GER,
@@ -130,6 +158,17 @@ static func _load_faction_frames(is_usa: bool) -> SpriteFrames:
 		DEAD_PREFIX_GER,
 		"Germany",
 		false,
+	)
+	_log_faction_load(label, "legacy_disk_packs", t0, result)
+	return result
+
+
+static func _log_faction_load(label: String, source: String, t0_usec: int, sf: SpriteFrames) -> void:
+	var msec := float(Time.get_ticks_usec() - t0_usec) / 1000.0
+	var anim_count := sf.get_animation_names().size() if sf != null else 0
+	GameLog.log_system(
+		"[Load] %s sprite_frames via %s: %d runtime anims in %.0fms"
+		% [label, source, anim_count, msec]
 	)
 
 
