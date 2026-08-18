@@ -246,8 +246,21 @@ func _validate_idle_policy() -> Array[String]:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1
 	var delay := policy.random_fidget_delay_sec(rng)
-	if delay < IdleAnimPolicy.FIDGET_DELAY_MIN_SEC or delay > IdleAnimPolicy.FIDGET_DELAY_MAX_SEC:
+	if delay < policy.fidget_delay_min_sec or delay > policy.fidget_delay_max_sec:
 		fails.append("idle policy delay out of range: %s" % delay)
-	if policy.FIDGET_PLAY_CHANCE != 0.20:
+	if policy.fidget_play_chance != IdleAnimPolicy.DEFAULT_FIDGET_PLAY_CHANCE:
 		fails.append("idle policy play chance drift")
+	if policy.fidget_fps != IdleAnimPolicy.DEFAULT_FIDGET_FPS:
+		fails.append("idle policy fidget fps drift")
+	for semantic in IdleAnimPolicy.FIDGET_SEMANTICS:
+		var expected := float(IdleAnimPolicy.DEFAULT_FIDGET_WEIGHTS.get(semantic, 0.0))
+		if float(policy.fidget_weights.get(semantic, -1.0)) != expected:
+			fails.append("idle policy weight drift for %s" % semantic)
+	rng.seed = 42
+	var picks: Dictionary = {}
+	for i in 100:
+		var picked := policy.pick_fidget_semantic(rng)
+		picks[picked] = int(picks.get(picked, 0)) + 1
+	if int(picks.get("idle_breathing", 0)) < 30:
+		fails.append("idle policy weighted pick skew: %s" % str(picks))
 	return fails

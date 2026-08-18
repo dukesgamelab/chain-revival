@@ -5,12 +5,13 @@ extends RefCounted
 
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
 
-## Independent per-soldier wait before a fidget roll (seconds).
-const FIDGET_DELAY_MIN_SEC := 7.0
-const FIDGET_DELAY_MAX_SEC := 18.0
-## Chance to actually play a fidget when the wait expires.
-const FIDGET_PLAY_CHANCE := 0.20
-const FIDGET_FPS := 8.0
+## RECOVERED — measured from original footage: median 6.1s between idle animations,
+## range 2.3–24s across 24 observed episodes.
+const DEFAULT_FIDGET_DELAY_MIN_SEC := 4.0
+const DEFAULT_FIDGET_DELAY_MAX_SEC := 8.0
+## The interval itself provides the variation; a low play chance suppresses idles entirely.
+const DEFAULT_FIDGET_PLAY_CHANCE := 1.0
+const DEFAULT_FIDGET_FPS := 12.0
 
 ## TUNED — crouch when stress reaches suppressed band (matches Stage 3 testing needs).
 const DEFAULT_CROUCH_STRESS_THRESHOLD := 25.0
@@ -24,8 +25,21 @@ const FIDGET_SEMANTICS: PackedStringArray = [
 	"idle_rest_3",
 ]
 
+## TUNED — episode-count distribution from original footage (short : medium : long).
+const DEFAULT_FIDGET_WEIGHTS: Dictionary = {
+	"idle_breathing": 0.5,
+	"idle_rest_1": 0.2,
+	"idle_rest_2": 0.2,
+	"idle_rest_3": 0.1,
+}
+
 var crouch_stress_threshold: float = DEFAULT_CROUCH_STRESS_THRESHOLD
 var post_shot_crouch_sec: float = DEFAULT_POST_SHOT_CROUCH_SEC
+var fidget_delay_min_sec: float = DEFAULT_FIDGET_DELAY_MIN_SEC
+var fidget_delay_max_sec: float = DEFAULT_FIDGET_DELAY_MAX_SEC
+var fidget_play_chance: float = DEFAULT_FIDGET_PLAY_CHANCE
+var fidget_fps: float = DEFAULT_FIDGET_FPS
+var fidget_weights: Dictionary = DEFAULT_FIDGET_WEIGHTS.duplicate()
 
 
 func source_family_for(
@@ -81,16 +95,21 @@ func semantic_for(
 
 
 func random_fidget_delay_sec(rng: RandomNumberGenerator) -> float:
-	return rng.randf_range(FIDGET_DELAY_MIN_SEC, FIDGET_DELAY_MAX_SEC)
+	return rng.randf_range(fidget_delay_min_sec, fidget_delay_max_sec)
 
 
 func should_play_fidget(rng: RandomNumberGenerator) -> bool:
-	return rng.randf() < FIDGET_PLAY_CHANCE
+	return rng.randf() < fidget_play_chance
 
 
 func pick_fidget_semantic(rng: RandomNumberGenerator) -> String:
-	var idx := rng.randi_range(0, FIDGET_SEMANTICS.size() - 1)
-	return str(FIDGET_SEMANTICS[idx])
+	var roll := rng.randf()
+	var cumulative := 0.0
+	for semantic in FIDGET_SEMANTICS:
+		cumulative += float(fidget_weights.get(semantic, 0.0))
+		if roll < cumulative:
+			return semantic
+	return str(FIDGET_SEMANTICS[FIDGET_SEMANTICS.size() - 1])
 
 
 func is_fidget_semantic(semantic: String) -> bool:
@@ -100,6 +119,11 @@ func is_fidget_semantic(semantic: String) -> bool:
 func reset_to_defaults() -> void:
 	crouch_stress_threshold = DEFAULT_CROUCH_STRESS_THRESHOLD
 	post_shot_crouch_sec = DEFAULT_POST_SHOT_CROUCH_SEC
+	fidget_delay_min_sec = DEFAULT_FIDGET_DELAY_MIN_SEC
+	fidget_delay_max_sec = DEFAULT_FIDGET_DELAY_MAX_SEC
+	fidget_play_chance = DEFAULT_FIDGET_PLAY_CHANCE
+	fidget_fps = DEFAULT_FIDGET_FPS
+	fidget_weights = DEFAULT_FIDGET_WEIGHTS.duplicate()
 
 
 func apply_config(section: Dictionary) -> void:
@@ -107,3 +131,16 @@ func apply_config(section: Dictionary) -> void:
 		crouch_stress_threshold = float(section.crouch_stress_threshold)
 	if section.has("post_shot_crouch_sec"):
 		post_shot_crouch_sec = float(section.post_shot_crouch_sec)
+	if section.has("fidget_delay_min_sec"):
+		fidget_delay_min_sec = float(section.fidget_delay_min_sec)
+	if section.has("fidget_delay_max_sec"):
+		fidget_delay_max_sec = float(section.fidget_delay_max_sec)
+	if section.has("fidget_play_chance"):
+		fidget_play_chance = float(section.fidget_play_chance)
+	if section.has("fidget_fps"):
+		fidget_fps = float(section.fidget_fps)
+	if section.has("fidget_weights") and section.fidget_weights is Dictionary:
+		for key in section.fidget_weights.keys():
+			var semantic := str(key)
+			if FIDGET_SEMANTICS.has(semantic):
+				fidget_weights[semantic] = float(section.fidget_weights[key])

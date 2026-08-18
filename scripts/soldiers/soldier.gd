@@ -3160,6 +3160,8 @@ func _cancel_standing_idle() -> void:
 	var was_fidget := _idle_fidget_active
 	_idle_fidget_active = false
 	_idle_fidget_semantic = ""
+	if was_fidget:
+		_reset_idle_fidget_play_speed()
 	if not was_fidget:
 		return
 	if DEBUG_IDLE_STANDING:
@@ -3256,13 +3258,32 @@ func _play_standing_idle_fidget() -> void:
 	_idle_fidget_active = true
 	_idle_fidget_semantic = semantic
 	set_process(true)
+	_apply_idle_fidget_play_speed(anim_name)
 	_anim.play(anim_name)
 	_log_idle_standing(anim_name, "FIDGET_PLAY")
+
+
+func _apply_idle_fidget_play_speed(anim_name: String) -> void:
+	var policy_fps := GameplayPolicies.idle_anim.fidget_fps
+	if policy_fps <= 0.0 or _anim.sprite_frames == null:
+		_anim.speed_scale = 1.0
+		return
+	var db_fps := _anim.sprite_frames.get_animation_speed(anim_name)
+	if db_fps <= 0.0:
+		_anim.speed_scale = 1.0
+		return
+	_anim.speed_scale = policy_fps / db_fps
+
+
+func _reset_idle_fidget_play_speed() -> void:
+	if _anim != null:
+		_anim.speed_scale = 1.0
 
 
 func _finish_standing_idle_fidget(anim_name: String) -> void:
 	_idle_fidget_active = false
 	_idle_fidget_semantic = ""
+	_reset_idle_fidget_play_speed()
 	_log_idle_standing(anim_name, "FIDGET_COMPLETE → HOLD_POSE")
 	## Return to the held standing pose and start a new independent delay.
 	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"

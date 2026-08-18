@@ -51,9 +51,19 @@
 		"distance_denom_min": 0.5
 	},
 	"idle_anim": {
-		"comment": "TUNED presentation: ADHPA/GDHPA kneel-aim loop when stress>=threshold, HOLD_FIRE, or briefly after an open standing shot.",
+		"comment": "TUNED presentation: ADHPA/GDHPA kneel-aim loop when stress>=threshold, HOLD_FIRE, or briefly after an open standing shot. Fidget timing recovered from OG footage (median ~6.1s between episodes).",
 		"crouch_stress_threshold": 25.0,
-		"post_shot_crouch_sec": 0.85
+		"post_shot_crouch_sec": 0.85,
+		"fidget_delay_min_sec": 4.0,
+		"fidget_delay_max_sec": 8.0,
+		"fidget_play_chance": 1.0,
+		"fidget_fps": 12.0,
+		"fidget_weights": {
+			"idle_breathing": 0.5,
+			"idle_rest_1": 0.2,
+			"idle_rest_2": 0.2,
+			"idle_rest_3": 0.1
+		}
 	},
 
 	"suppression": {
