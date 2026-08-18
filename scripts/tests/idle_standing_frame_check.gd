@@ -143,7 +143,7 @@ func _validate_idle_crouch_loop(family_id: String, label: String) -> Array[Strin
 		fails.append("%s: idle_crouch missing" % label)
 		return fails
 	if not bool(anim.get("loop", false)):
-		fails.append("%s: idle_crouch should loop (held kneel aim, same asset as stun_idle)" % label)
+		fails.append("%s: idle_crouch should loop (held kneel aim)" % label)
 	return fails
 
 

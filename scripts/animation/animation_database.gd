@@ -264,7 +264,6 @@ static func build_soldier_compatible_sprite_frames(family_id: String) -> SpriteF
 		"transition_standing_to_prone": "transition_standing_to_prone",
 		"transition_prone_to_standing": "transition_prone_to_standing",
 		"stun_knockdown": "stun_knockdown",
-		"stun_idle": "stun_idle",
 		"stun_recover": "stun_recover",
 		"aim_standing": "aim_standing",
 		"aim_standing_hold": "aim_standing_hold",

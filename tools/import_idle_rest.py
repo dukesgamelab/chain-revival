@@ -190,7 +190,7 @@ def wire_family(fam: dict, nation: str, inventory: dict) -> None:
 		if anims.get("idle_crouch", {}).get("loop") is False:
 			anims["idle_crouch"]["loop"] = True
 			anims["idle_crouch"]["metadata"]["notes"] = (
-				"ADHPA kneel aim A-B loop. Held crouch/stress pose — loops like stun_idle."
+				"ADHPA kneel aim A-B loop. Held crouch/stress pose."
 			)
 	else:
 		folder_breath = "german_soldier/idle_standing"

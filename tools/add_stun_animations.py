@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add stun_knockdown / stun_idle / stun_recover to all six soldier families."""
+"""Add stun_knockdown / stun_recover to soldier families (hold uses idle_crouch / idle_prone)."""
 from __future__ import annotations
 
 import json
@@ -14,7 +14,6 @@ DIRS = ["e", "n", "ne", "nw", "s", "se", "sw", "w"]
 
 # Knockdown: AFALA/GFALA A–Q (17). Drop R–W corpse-settle so stun ≠ death.
 KNOCKDOWN_LETTERS = [chr(ord("A") + i) for i in range(17)]  # A–Q
-IDLE_LETTERS = ["A", "B"]
 RECOVER_LETTERS = [chr(ord("A") + i) for i in range(20)]  # A–T
 
 
@@ -40,8 +39,6 @@ def main() -> int:
     data = json.loads(DB.read_text(encoding="utf-8"))
     usa_fall = ROOT / "assets/sprites/us_soldier/fall_or_death"
     ger_fall = ROOT / "assets/sprites/german_soldier/fall_or_death"
-    usa_crouch = ROOT / "assets/sprites/us_soldier/idle_crouch"
-    ger_crouch = ROOT / "assets/sprites/german_soldier/idle_crouch"
     usa_recover = ROOT / "assets/sprites/us_soldier/hit_reaction"
     ger_recover = ROOT / "assets/sprites/coc_soldiers"
 
@@ -51,12 +48,6 @@ def main() -> int:
             "loop": False,
             "fps": 12.0,
             "directions": frames_for("AFALA", usa_fall, KNOCKDOWN_LETTERS),
-        },
-        "stun_idle": {
-            "comment": "Stage 2 lying stunned. ADHPA A–B loop ~2 fps.",
-            "loop": True,
-            "fps": 2.0,
-            "directions": frames_for("ADHPA", usa_crouch, IDLE_LETTERS),
         },
         "stun_recover": {
             "comment": "Stage 2 get-up after stun. AHTBA A–T (20 frames).",
@@ -72,12 +63,6 @@ def main() -> int:
             "fps": 12.0,
             "directions": frames_for("GFALA", ger_fall, KNOCKDOWN_LETTERS),
         },
-        "stun_idle": {
-            "comment": "Stage 2 lying stunned. GDHPA A–B loop ~2 fps.",
-            "loop": True,
-            "fps": 2.0,
-            "directions": frames_for("GDHPA", ger_crouch, IDLE_LETTERS),
-        },
         "stun_recover": {
             "comment": "Stage 2 get-up after stun. GHTBA A–T from coc_soldiers pack.",
             "loop": False,
@@ -91,6 +76,7 @@ def main() -> int:
         chosen = ger_anims if fam_id.startswith("german_") else usa_anims
         for anim_id, payload in chosen.items():
             anims[anim_id] = payload
+        anims.pop("stun_idle", None)
         print(f"updated {fam_id}")
 
     DB.write_text(json.dumps(data, indent="\t", ensure_ascii=False) + "\n", encoding="utf-8")

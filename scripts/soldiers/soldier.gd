@@ -111,8 +111,8 @@ var _presentation_stress: float = 0.0
 var _presentation_fire_control: int = FireControlState.FIRE_AT_WILL
 ## Mirrored from SoldierState.is_stunned() — true while sim stun is active.
 var _presentation_stunned: bool = false
-## Stage 2 stun chain: knockdown → stun_idle → stun_recover.
-enum StunPresPhase { NONE, KNOCKDOWN, IDLE, RECOVER }
+## Stage 2 stun chain: knockdown → normal idle hold → recover.
+enum StunPresPhase { NONE, KNOCKDOWN, HOLD, RECOVER }
 var _stun_phase: int = StunPresPhase.NONE
 var _stun_world_direction: String = "n"
 ## Seconds remaining on brief ADHPA/GDHPA kneel-aim hold after an open standing shot.
@@ -298,14 +298,13 @@ func sync_from_state(
 		_enter_stun_presentation()
 	elif want_stunned:
 		_presentation_stunned = true
-		## Re-assert prone hold if something knocked us out of IDLE visuals.
-		if _stun_phase == StunPresPhase.IDLE:
-			var hold := str(_anim.animation)
-			if not hold.begins_with("idle_prone_") and not hold.begins_with("stun_knockdown_"):
-				_start_stun_idle()
+		## Re-assert normal idle hold if something knocked us out of stunned visuals.
+		if _stun_phase == StunPresPhase.HOLD:
+			if not _is_stun_hold_anim(str(_anim.animation)):
+				_play_stun_hold_pose()
 	elif (
 		_stun_phase == StunPresPhase.KNOCKDOWN
-		or _stun_phase == StunPresPhase.IDLE
+		or _stun_phase == StunPresPhase.HOLD
 		or _presentation_stunned
 	):
 		_presentation_stunned = false
@@ -1013,10 +1012,14 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		_anim.play(move_name)
 		return
 
-	## Stationary: stun hold, prone idle, or standing open/corner CIS idle.
-	if _stun_phase == StunPresPhase.IDLE or _presentation_stunned:
+	## Stationary: stunned hold, prone idle, or standing open/corner CIS idle.
+	if (
+		_presentation_stunned
+		and _stun_phase != StunPresPhase.KNOCKDOWN
+		and _stun_phase != StunPresPhase.RECOVER
+	):
 		_stun_world_direction = direction if not direction.is_empty() else _stun_world_direction
-		_start_stun_idle()
+		_play_stun_hold_pose()
 		return
 	if _applied_position_state == PositionState.DOWN:
 		_play_idle_prone(direction)
@@ -1352,8 +1355,11 @@ func _remap_hit_or_fall_for_camera() -> void:
 func _remap_stun_for_camera() -> void:
 	var world_dir := _stun_world_direction if not _stun_world_direction.is_empty() else "n"
 	var display_dir := _idle_display_direction(world_dir)
-	if _stun_phase == StunPresPhase.IDLE:
-		_remap_idle_prone_for_camera()
+	if _stun_phase == StunPresPhase.HOLD:
+		if _applied_position_state == PositionState.DOWN:
+			_remap_idle_prone_for_camera()
+		else:
+			_remap_idle_standing_for_camera()
 		return
 	var semantic := ""
 	match _stun_phase:
@@ -1912,7 +1918,7 @@ func _aim_hold_should_persist(state: SoldierState) -> bool:
 	return elapsed_msec < int(grace_sec * 1000.0)
 
 
-## Cancel competing presentation and start knockdown → stun_idle → recover (Stage 2).
+## Cancel competing presentation and start knockdown → idle hold → recover (Stage 2).
 func _enter_stun_presentation() -> void:
 	_presentation_stunned = true
 	_interrupt_standing_idle_for_action()
@@ -1942,8 +1948,8 @@ func _enter_stun_presentation() -> void:
 	if _anim.sprite_frames != null and _anim.sprite_frames.has_animation(anim_name):
 		_anim.play(anim_name)
 		return
-	## Fallback: skip straight to held stun pose if DB entry missing.
-	_start_stun_idle()
+	## Fallback: skip straight to normal idle hold if DB entry missing.
+	_play_stun_hold_pose()
 
 
 func _clear_stun_presentation() -> void:
@@ -1952,18 +1958,33 @@ func _clear_stun_presentation() -> void:
 	_stun_world_direction = "n"
 
 
-func _start_stun_idle() -> void:
-	## Hold must read as lying down for the whole stun. ADHPA/GDHPA is kneel-aim
-	## (looked like "snapped back to crouch"); use prone idle instead.
-	_stun_phase = StunPresPhase.IDLE
+func _play_stun_hold_pose() -> void:
+	## Stunned hold uses the same standing/prone idle as normal play — not stun_idle.
+	_stun_phase = StunPresPhase.HOLD
 	_presentation_stunned = true
-	_applied_position_state = PositionState.DOWN
-	_anim.position = Vector2.ZERO
-	_anim.scale = _prone_sprite_scale()
-	_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
 	_prone_marker.visible = false
 	_facing_arrow.visible = false
-	_play_idle_prone(_stun_world_direction)
+	var world_dir := _stun_world_direction if not _stun_world_direction.is_empty() else "n"
+	if _applied_position_state == PositionState.DOWN:
+		_anim.position = Vector2.ZERO
+		_anim.scale = _prone_sprite_scale()
+		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
+		_play_idle_prone(world_dir)
+	else:
+		_applied_position_state = PositionState.UP
+		_anim.position = Vector2.ZERO
+		_anim.scale = _standing_sprite_scale()
+		_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
+		_play_idle_standing(world_dir)
+
+
+func _is_stun_hold_anim(anim_name: String) -> bool:
+	return (
+		anim_name.begins_with("idle_prone_")
+		or anim_name.begins_with("idle_crouch_")
+		or anim_name.begins_with("idle_standing_")
+		or anim_name.begins_with("stun_knockdown_")
+	)
 
 
 func _end_stun_presentation(post_stun_position: int) -> void:
@@ -1990,7 +2011,7 @@ func _begin_stun_recover() -> void:
 	if _stun_phase == StunPresPhase.RECOVER or _death_sequence_active or _is_dead:
 		return
 	if _presentation_stunned:
-		_start_stun_idle()
+		_play_stun_hold_pose()
 		return
 	_stun_phase = StunPresPhase.RECOVER
 	## Keep prone footprint until stand-up frames finish (same as play_stance_transition).
@@ -2013,7 +2034,7 @@ func _finish_stun_knockdown() -> void:
 		return
 	## Hold prone for the rest of the sim stun. Recover only when sync clears the latch.
 	if _presentation_stunned:
-		_start_stun_idle()
+		_play_stun_hold_pose()
 	else:
 		_begin_stun_recover()
 
