@@ -89,6 +89,12 @@ var _fire_at_preview_accum_sec: float = 0.0
 var _fire_at_hit_accum_sec: float = 0.0
 var _last_fire_at_preview_cell: Vector2i = Vector2i(-999999, -999999)
 const _FIRE_AT_PREVIEW_INTERVAL_SEC := 0.08
+## After Face on empty tile: keep manual aim visuals until revert toward engaged target.
+var _face_manual_aim_cell: Vector2i = Vector2i(-999999, -999999)
+var _face_manual_aim_world: Vector2 = Vector2(-99999, -99999)
+var _face_manual_override_until_msec: int = 0
+var _face_revert_keys: Array[String] = []
+const _FACE_REVERT_DELAY_MSEC := 3000
 ## Fog lookup rebuilt once per need (move/combat), not per soldier per sync.
 var _fog_spotted_cache: Dictionary = {} ## Team.soldier_key -> bool
 var _fog_cache_valid: bool = false
@@ -409,6 +415,7 @@ func _process(delta: float) -> void:
 
 	if not _map_edit_mode:
 		_update_los_preview_throttled(delta)
+		_tick_face_manual_revert()
 		## Hit % columns: throttle while aiming; combat-scan path covers Fire At Will.
 		if _fire_at_mode:
 			_fire_at_hit_accum_sec += delta
@@ -437,12 +444,15 @@ func _process(delta: float) -> void:
 		)
 
 func _update_los_preview_throttled(delta: float) -> void:
-	if not _fire_at_mode and not _grenade_mode:
+	if not _fire_at_mode and not _grenade_mode and not _face_mode:
 		_los_visualizer.hide_preview()
 		_last_fire_at_preview_cell = Vector2i(-999999, -999999)
 		return
 	## Skip work when there is no valid shooter selection.
 	if _fire_at_mode and _get_manual_fire_at_shooters().is_empty():
+		_los_visualizer.hide_preview()
+		return
+	if _face_mode and _get_face_scope_soldiers().is_empty():
 		_los_visualizer.hide_preview()
 		return
 	_fire_at_preview_accum_sec += delta
@@ -844,6 +854,195 @@ func _get_manual_fire_at_shooters() -> Array[SoldierState]:
 	return shooters
 
 
+func _get_face_scope_soldiers() -> Array[SoldierState]:
+	var soldiers: Array[SoldierState] = []
+	var fireteam: Fireteam = _control_fireteam()
+	if fireteam == null:
+		return soldiers
+	if _face_soldier_id == CommandBar.SQUAD_ID:
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if not soldier_state.is_alive():
+				continue
+			if not _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id):
+				continue
+			if soldier_state.is_stunned():
+				continue
+			soldiers.append(soldier_state)
+	else:
+		var soldier_state: SoldierState = fireteam.get_soldier(_face_soldier_id)
+		if (
+			soldier_state != null
+			and soldier_state.is_alive()
+			and not soldier_state.is_stunned()
+			and _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id)
+		):
+			soldiers.append(soldier_state)
+	return soldiers
+
+
+func _get_face_preview_shooter() -> SoldierState:
+	var fireteam: Fireteam = _control_fireteam()
+	if _face_soldier_id == CommandBar.SQUAD_ID:
+		var selected: SoldierState = fireteam.get_selected()
+		if selected != null and selected.is_alive():
+			return selected
+		for state in fireteam.soldiers:
+			var soldier_state: SoldierState = state
+			if soldier_state.is_alive():
+				return soldier_state
+		return null
+	return fireteam.get_soldier(_face_soldier_id)
+
+
+func _clear_face_manual_override() -> void:
+	_face_manual_aim_cell = Vector2i(-999999, -999999)
+	_face_manual_aim_world = Vector2(-99999, -99999)
+	_face_manual_override_until_msec = 0
+	_face_revert_keys.clear()
+
+
+func _tick_face_manual_revert() -> void:
+	if _face_manual_override_until_msec <= 0:
+		return
+	if Time.get_ticks_msec() < _face_manual_override_until_msec:
+		return
+	_apply_face_revert_to_engaged()
+
+
+func _apply_face_revert_to_engaged() -> void:
+	_face_manual_override_until_msec = 0
+	_face_manual_aim_cell = Vector2i(-999999, -999999)
+	_face_manual_aim_world = Vector2(-99999, -99999)
+	if _face_revert_keys.is_empty():
+		return
+	var reverted := false
+	for key in _face_revert_keys:
+		var parts: PackedStringArray = str(key).split(":")
+		if parts.size() < 2:
+			continue
+		var team_id := int(parts[0])
+		var soldier_id := int(parts[1])
+		var soldier_state: SoldierState = _game_state.get_soldier(team_id, soldier_id)
+		if soldier_state == null or not soldier_state.is_engaged():
+			continue
+		var engaged_target: SoldierState = _game_state.get_soldier(
+			soldier_state.engaged_target_team_id,
+			soldier_state.engaged_target_soldier_id,
+		)
+		if engaged_target == null or not engaged_target.is_alive():
+			continue
+		var fireteam: Fireteam = _game_state.session.get_fireteam(team_id)
+		if fireteam.face_toward_tile(soldier_id, engaged_target.grid_position):
+			reverted = true
+	_face_revert_keys.clear()
+	if reverted:
+		if _face_mode:
+			_sync_face_soldier_views()
+		else:
+			_refresh_all_views()
+
+
+func _update_face_preview() -> void:
+	var cone_shooter: SoldierState = _get_face_preview_shooter()
+	if cone_shooter == null or cone_shooter.is_dead:
+		_los_visualizer.hide_preview()
+		return
+
+	var hover_soldier: SoldierState = _find_living_soldier_at_mouse()
+	var aim_world := _get_world_mouse_local()
+	var click_cell := IsometricGrid.world_to_grid(aim_world)
+	var explicit_team_id := -1
+	var explicit_soldier_id := -1
+	if hover_soldier != null and hover_soldier.team_id != cone_shooter.team_id:
+		explicit_team_id = hover_soldier.team_id
+		explicit_soldier_id = hover_soldier.soldier_id
+		click_cell = hover_soldier.grid_position
+		aim_world = _get_soldier_tracer_point(hover_soldier)
+
+	if _face_soldier_id == CommandBar.SQUAD_ID:
+		_update_face_squad_los_preview(
+			cone_shooter,
+			aim_world,
+			click_cell,
+			explicit_team_id,
+			explicit_soldier_id,
+		)
+		return
+
+	var shooter: SoldierState = cone_shooter
+	var weapon := shooter.get_weapon_data()
+	var max_range := ConeOfFireClass.effective_range(weapon.range_tiles) if weapon != null else ConeOfFireClass.RANGE_BONUS
+	var from_world := _get_soldier_tracer_point(shooter)
+	var preview := CombatSystem.evaluate_fire_at_preview(
+		_game_state,
+		shooter,
+		from_world,
+		aim_world,
+		click_cell,
+		explicit_team_id,
+		explicit_soldier_id,
+	)
+	var cone_world := ConeOfFireClass.cone_outline_world_toward(
+		from_world,
+		aim_world,
+		shooter.grid_position,
+		max_range,
+	)
+	## LOS cone only — soldiers face on click, not while the mouse moves.
+	_los_visualizer.show_fire_at_preview(from_world, cone_world, preview)
+
+
+func _update_face_squad_los_preview(
+	cone_shooter: SoldierState,
+	aim_world: Vector2,
+	click_cell: Vector2i,
+	explicit_team_id: int,
+	explicit_soldier_id: int,
+) -> void:
+	var weapon := cone_shooter.get_weapon_data()
+	var max_range := (
+		ConeOfFireClass.effective_range(weapon.range_tiles)
+		if weapon != null
+		else ConeOfFireClass.RANGE_BONUS
+	)
+	var cone_from_world := _get_soldier_tracer_point(cone_shooter)
+	var cone_world := ConeOfFireClass.cone_outline_world_toward(
+		cone_from_world,
+		aim_world,
+		cone_shooter.grid_position,
+		max_range,
+	)
+
+	var entries: Array = []
+	var cone_has_target := false
+
+	for shooter_state in _get_face_scope_soldiers():
+		var from_world := _get_soldier_tracer_point(shooter_state)
+		var preview: FireAtPreviewResult = CombatSystem.evaluate_fire_at_preview(
+			_game_state,
+			shooter_state,
+			from_world,
+			aim_world,
+			click_cell,
+			explicit_team_id,
+			explicit_soldier_id,
+		)
+		if preview.target != null and preview.targetable:
+			cone_has_target = true
+		entries.append({"from_world": from_world, "preview": preview})
+
+	## LOS cone only — soldiers face on click, not while the mouse moves.
+	_los_visualizer.show_squad_fire_at_previews(entries, cone_world, cone_has_target)
+
+
+func _sync_face_soldier_views() -> void:
+	var active_fireteam: Fireteam = _control_fireteam()
+	for soldier_state in _get_face_scope_soldiers():
+		var is_selected: bool = soldier_state.soldier_id == active_fireteam.selected_soldier_id
+		_sync_soldier_view(soldier_state.team_id, soldier_state.soldier_id, is_selected)
+
+
 func _clear_manual_fire_at_targets() -> void:
 	CommandRouter.cancel_sustained_fire(_game_state)
 
@@ -892,6 +1091,9 @@ func _update_los_preview() -> void:
 	## Presentation-only: reads GameState + CombatSystem queries; does not mutate gameplay data.
 	if _grenade_mode:
 		_update_grenade_preview()
+		return
+	if _face_mode:
+		_update_face_preview()
 		return
 	if not _fire_at_mode:
 		_los_visualizer.hide_preview()
@@ -954,6 +1156,7 @@ func _update_los_preview() -> void:
 		_session.active_team_id,
 		shooter_ids,
 		face_cell,
+		aim_world,
 	)
 	_sync_fire_at_shooter_views()
 	_los_visualizer.show_fire_at_preview(from_world, cone_world, preview)
@@ -1070,6 +1273,7 @@ func _update_squad_los_preview(
 		_session.active_team_id,
 		shooter_ids,
 		face_cell,
+		aim_world,
 	)
 	## Refresh facing + corner idle against the current aim cell.
 	_sync_fire_at_shooter_views()
@@ -1463,6 +1667,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _face_mode:
 			_face_mode = false
 			_command_bar.clear_face_mode()
+			_clear_face_manual_override()
+			_los_visualizer.hide_preview()
 			_command_bar.show_status("Facing cancelled.")
 			get_viewport().set_input_as_handled()
 			return
@@ -1494,19 +1700,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if _face_mode:
-		var face_target_cell := target_cell
-		var face_target_soldier: SoldierState = _find_living_soldier_at_mouse()
-		if face_target_soldier != null:
-			face_target_cell = face_target_soldier.grid_position
-		var face_cmd := FaceCommand.new()
-		face_cmd.team_id = _session.active_team_id
-		face_cmd.target_cell = face_target_cell
-		if _face_soldier_id == CommandBar.SQUAD_ID:
-			face_cmd.scope = FaceCommand.Scope.SQUAD
+		var clicked_soldier: SoldierState = _find_living_soldier_at_mouse()
+		if clicked_soldier != null and clicked_soldier.team_id == _session.active_team_id:
+			_command_bar.show_status("Cannot face onto friendlies.")
+			get_viewport().set_input_as_handled()
+			return
+
+		var aim_world: Vector2
+		if clicked_soldier != null:
+			aim_world = _get_soldier_tracer_point(clicked_soldier)
+			_apply_face_enemy_fire(aim_world, clicked_soldier)
 		else:
-			face_cmd.scope = FaceCommand.Scope.SINGLE
-			face_cmd.soldier_id = _face_soldier_id
-		_apply_face_command(face_cmd)
+			aim_world = IsometricGrid.soldier_aim_point(target_cell)
+			_apply_face_at_tile(target_cell, aim_world)
 		get_viewport().set_input_as_handled()
 		return
 
@@ -1869,10 +2075,17 @@ func _fog_visual_for_enemy(enemy: SoldierState) -> int:
 	return Soldier.FogVisual.HIDDEN
 
 
-## Aim cell used to decide corner idle — engaged target, else Fire At / Face preview.
+## Aim cell for corner idle — committed face override, engaged target, else Fire At preview.
 func _corner_aim_cell_for_soldier(soldier_state: SoldierState) -> Vector2i:
 	if soldier_state == null:
 		return Vector2i(-999, -999)
+	var soldier_key := Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)
+	if (
+		_face_manual_override_until_msec > Time.get_ticks_msec()
+		and _face_revert_keys.has(soldier_key)
+		and _face_manual_aim_cell.x > -99999
+	):
+		return _face_manual_aim_cell
 	if soldier_state.is_engaged() and _game_state != null:
 		var engaged: SoldierState = _game_state.get_soldier(
 			soldier_state.engaged_target_team_id,
@@ -1883,14 +2096,6 @@ func _corner_aim_cell_for_soldier(soldier_state: SoldierState) -> Vector2i:
 	if _fire_at_mode and _is_soldier_in_fire_at_scope(soldier_state):
 		if _last_fire_at_preview_cell.x > -99999:
 			return _last_fire_at_preview_cell
-	if _face_mode and (
-		_face_soldier_id == CommandBar.SQUAD_ID
-		or _face_soldier_id == soldier_state.soldier_id
-	):
-		if _last_fire_at_preview_cell.x > -99999:
-			return _last_fire_at_preview_cell
-		## Face mode tracks mouse via world→grid when preview cell unset.
-		return IsometricGrid.world_to_grid(_get_world_mouse_local())
 	return Vector2i(-999, -999)
 
 
@@ -2601,7 +2806,128 @@ func _apply_move_command(cmd: MoveCommand) -> void:
 
 func _apply_face_command(cmd: FaceCommand) -> void:
 	var result: ActionResultClass = CommandRouter.submit_command(_game_state, cmd)
+	if result.success:
+		_sync_face_soldier_views()
 	_present_action_result(result)
+
+
+func _apply_face_at_tile(target_cell: Vector2i, aim_world: Vector2) -> void:
+	var soldiers: Array[SoldierState] = _get_face_scope_soldiers()
+	if soldiers.is_empty():
+		_command_bar.show_status("No soldiers available to face.")
+		return
+
+	var lead: SoldierState = soldiers[0]
+	var click_cell := IsometricGrid.world_to_grid(aim_world)
+	var preview := CombatSystem.evaluate_fire_at_preview(
+		_game_state,
+		lead,
+		_get_soldier_tracer_point(lead),
+		aim_world,
+		click_cell,
+		-1,
+		-1,
+	)
+	var face_cell := preview.click_cell if preview.click_cell.x > -900 else target_cell
+
+	var face_cmd := FaceCommand.new()
+	face_cmd.team_id = _session.active_team_id
+	face_cmd.target_cell = face_cell
+	face_cmd.aim_world = aim_world
+	if _face_soldier_id == CommandBar.SQUAD_ID:
+		face_cmd.scope = FaceCommand.Scope.SQUAD
+	else:
+		face_cmd.scope = FaceCommand.Scope.SINGLE
+		face_cmd.soldier_id = _face_soldier_id
+
+	_face_revert_keys.clear()
+	for soldier_state in soldiers:
+		if soldier_state.is_engaged():
+			_face_revert_keys.append(
+				Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)
+			)
+
+	var result: ActionResultClass = CommandRouter.submit_command(_game_state, face_cmd)
+	if result.success:
+		_face_manual_aim_cell = face_cell
+		_face_manual_aim_world = aim_world
+		if not _face_revert_keys.is_empty():
+			_face_manual_override_until_msec = Time.get_ticks_msec() + _FACE_REVERT_DELAY_MSEC
+		else:
+			_clear_face_manual_override()
+			_face_manual_aim_cell = face_cell
+			_face_manual_aim_world = aim_world
+		_sync_face_soldier_views()
+	_present_action_result(result)
+
+
+func _apply_face_enemy_fire(aim_world: Vector2, clicked_soldier: SoldierState) -> void:
+	var soldiers: Array[SoldierState] = _get_face_scope_soldiers()
+	if soldiers.is_empty():
+		_command_bar.show_status("No available soldiers to face.")
+		return
+
+	_clear_face_manual_override()
+
+	var face_cmd := FaceCommand.new()
+	face_cmd.team_id = _session.active_team_id
+	face_cmd.target_cell = clicked_soldier.grid_position
+	face_cmd.aim_world = aim_world
+	if _face_soldier_id == CommandBar.SQUAD_ID:
+		face_cmd.scope = FaceCommand.Scope.SQUAD
+	else:
+		face_cmd.scope = FaceCommand.Scope.SINGLE
+		face_cmd.soldier_id = _face_soldier_id
+
+	var face_result: ActionResultClass = CommandRouter.submit_command(_game_state, face_cmd)
+	if face_result.success:
+		_sync_face_soldier_views()
+
+	var fire_shooters: Array[SoldierState] = []
+	for soldier_state in soldiers:
+		var from_world := _get_soldier_tracer_point(soldier_state)
+		var preview := CombatSystem.evaluate_fire_at_preview(
+			_game_state,
+			soldier_state,
+			from_world,
+			aim_world,
+			clicked_soldier.grid_position,
+			clicked_soldier.team_id,
+			clicked_soldier.soldier_id,
+		)
+		if preview.targetable:
+			fire_shooters.append(soldier_state)
+
+	if fire_shooters.is_empty():
+		if not face_result.status_message.is_empty():
+			_command_bar.show_status(face_result.status_message)
+		else:
+			_command_bar.show_status("Facing enemy — no line of sight to fire.")
+		if face_result.success:
+			_present_action_result(face_result)
+		return
+
+	var cmd := FireCommand.new()
+	cmd.team_id = _session.active_team_id
+	cmd.aim_world = aim_world
+	cmd.target_team_id = clicked_soldier.team_id
+	cmd.target_soldier_id = clicked_soldier.soldier_id
+	if _face_soldier_id == CommandBar.SQUAD_ID:
+		cmd.scope = FireCommand.Scope.SQUAD
+	else:
+		cmd.scope = FireCommand.Scope.SINGLE
+		cmd.soldier_id = _face_soldier_id
+
+	var fire_result: ActionResultClass = CommandRouter.submit_command(
+		_game_state,
+		cmd,
+		_make_fire_context(fire_shooters),
+	)
+	if fire_result.success:
+		_sync_face_soldier_views()
+	if not fire_result.status_message.is_empty():
+		_command_bar.show_status(fire_result.status_message)
+	_present_action_result(fire_result)
 
 
 func _apply_position_command(cmd: PositionCommand) -> void:
@@ -2986,6 +3312,7 @@ func _on_face_mode_changed(is_active: bool, soldier_id: int) -> void:
 	_face_mode = is_active
 	_face_soldier_id = soldier_id if is_active else 1
 	if is_active:
+		_clear_face_manual_override()
 		_map_edit_mode = false
 		_command_bar.clear_map_edit_mode()
 		_move_targeting = false

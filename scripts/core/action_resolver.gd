@@ -655,8 +655,8 @@ static func execute_face(
 	if soldier_state.is_stunned():
 		return ActionResult.fail("Soldier is stunned.")
 
-	if not fireteam.face_toward_tile(cmd.soldier_id, cmd.target_cell):
-		return ActionResult.fail("Pick a different tile to face.")
+	if not fireteam.face_toward_tile(cmd.soldier_id, cmd.target_cell, cmd.aim_world):
+		return ActionResult.fail("Could not determine facing from that click.")
 	CombatSystem.notify_soldier_perception_dirty(game_state, soldier_state)
 
 	return _face_result_after_reorient(game_state, cmd.team_id, soldier_state)
@@ -676,7 +676,7 @@ static func _execute_face_squad(
 			continue
 		if not _can_order_soldier(game_state, cmd.team_id, soldier_state.soldier_id, context):
 			continue
-		if not fireteam.face_toward_tile(soldier_state.soldier_id, cmd.target_cell):
+		if not fireteam.face_toward_tile(soldier_state.soldier_id, cmd.target_cell, cmd.aim_world):
 			continue
 		CombatSystem.notify_soldier_perception_dirty(game_state, soldier_state)
 		faced += 1
@@ -684,7 +684,7 @@ static func _execute_face_squad(
 		if one.sync_fire_at_ui:
 			result.sync_fire_at_ui = true
 	if faced <= 0:
-		return ActionResult.fail("No soldiers available to face.")
+		return ActionResult.fail("No soldiers could face that direction.")
 	return result.set_status(
 		"%s Fireteam facing — %d soldier(s) reoriented."
 		% [Team.display_name(cmd.team_id), faced],
@@ -755,23 +755,6 @@ static func _face_result_after_reorient(
 					FacingDirection.direction_name(soldier_state.facing_direction),
 				],
 			)
-	elif soldier_state.is_engaged():
-		var engaged_target: SoldierState = game_state.get_soldier(
-			soldier_state.engaged_target_team_id,
-			soldier_state.engaged_target_soldier_id,
-		)
-		if engaged_target != null and not CombatSystem.is_facing_target(soldier_state, engaged_target):
-			soldier_state.clear_engagement()
-			result.sync_fire_at_ui = true
-			return result.set_status(
-				"%s Soldier %d ceased fire — facing %s."
-				% [
-					Team.display_name(team_id),
-					soldier_state.soldier_id,
-					FacingDirection.direction_name(soldier_state.facing_direction),
-				],
-			)
-
 	return result.set_status(
 		"%s Soldier %d facing %s."
 		% [
@@ -789,14 +772,36 @@ static func preview_fire_at_facing(
 	team_id: int,
 	shooter_ids: Array,
 	face_cell: Vector2i,
+	aim_world: Vector2 = Vector2(-99999, -99999),
+) -> bool:
+	return _preview_scope_facing(game_state, team_id, shooter_ids, face_cell, aim_world)
+
+
+## Face-command preview — same facing math as Fire At, including mouse bearing on same cell.
+static func preview_face_facing(
+	game_state: GameStateClass,
+	team_id: int,
+	soldier_ids: Array,
+	face_cell: Vector2i,
+	aim_world: Vector2 = Vector2(-99999, -99999),
+) -> bool:
+	return _preview_scope_facing(game_state, team_id, soldier_ids, face_cell, aim_world)
+
+
+static func _preview_scope_facing(
+	game_state: GameStateClass,
+	team_id: int,
+	soldier_ids: Array,
+	face_cell: Vector2i,
+	aim_world: Vector2,
 ) -> bool:
 	var fireteam := game_state.session.get_fireteam(team_id)
 	var changed := false
-	for soldier_id in shooter_ids:
+	for soldier_id in soldier_ids:
 		var shooter: SoldierState = fireteam.get_soldier(soldier_id)
 		if shooter == null or shooter.is_dead:
 			continue
-		if fireteam.face_toward_tile(soldier_id, face_cell):
+		if fireteam.face_toward_tile(soldier_id, face_cell, aim_world):
 			changed = true
 	return changed
 

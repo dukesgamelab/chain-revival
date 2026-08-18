@@ -677,6 +677,8 @@ func stop_movement() -> void:
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
+	if was_moving:
+		_interrupt_standing_idle_for_action()
 	if was_moving and _uses_og_frames() and not _blocks_action_override():
 		## Idle arm keeps _process on for the standing fidget wait.
 		_play_locomotion(_locomotion_direction, false)
@@ -705,7 +707,7 @@ func _finish_presentation_move() -> void:
 
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	## Presentation-only path chase. Authoritative grid_position advances on sim ticks.
-	_cancel_standing_idle()
+	_interrupt_standing_idle_for_action()
 	_cancel_stance_transition_visual(false)
 	## Movement cancels corner peek/aim/fire presentation immediately.
 	_cancel_fire_visual(false)
@@ -779,6 +781,7 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 		return
 	_speed_multiplier = state.move_speed_mult if state.move_speed_mult > 0.0 else _speed_multiplier
 	if state.is_moving and state.current_path.size() > state.path_index and state.path_index > 0:
+		_interrupt_standing_idle_for_action()
 		_path = state.current_path.duplicate()
 		_path_index = state.path_index
 		_previous_grid_pos = state.grid_position
@@ -818,6 +821,14 @@ func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> voi
 	if step == Vector2i.ZERO:
 		step = FacingDirection.normalize(facing)
 	var changed := step != _last_applied_facing
+	if changed and not _is_moving:
+		_interrupt_standing_idle_for_action()
+	elif (
+		not _is_moving
+		and _idle_fidget_active
+		and _idle_peek_side != _played_idle_peek_side
+	):
+		_interrupt_standing_idle_for_action()
 	_commit_sprite_facing_from_step(step, from_cell)
 	if not _is_moving and not _blocks_action_override():
 		_update_locomotion_visual(step, false)
@@ -947,7 +958,14 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			pass
 		## Keep an in-flight standing fidget until it finishes or is cancelled.
 		elif _idle_fidget_active:
-			return
+			if (
+				walking
+				or _locomotion_direction != direction
+				or _idle_peek_side != _played_idle_peek_side
+			):
+				_interrupt_standing_idle_for_action()
+			else:
+				return
 		## Already stationary in this world facing — keep current idle pose
 		## unless peek side changed or we still need to start the correct idle.
 		elif _applied_position_state != PositionState.DOWN:
@@ -955,14 +973,13 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			var idle_anim_name := "%s_%s" % [idle_semantic, display_dir]
 			if (
 				_idle_peek_side == _played_idle_peek_side
-				and _anim.sprite_frames.has_animation(idle_anim_name)
-				and str(_anim.animation).begins_with("%s_" % idle_semantic)
+				and str(_anim.animation) == idle_anim_name
 			):
 				## Sync/facing refresh must not drop a stopped idle timer.
 				if idle_semantic == "idle_standing":
 					_ensure_standing_idle_timer()
 				elif idle_semantic == "idle_crouch":
-					_cancel_standing_idle()
+					_cancel_standing_idle(false)
 				return
 		if (
 			not _presentation_stunned
@@ -981,7 +998,7 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 			return
 
 	if walking:
-		_cancel_standing_idle()
+		_interrupt_standing_idle_for_action()
 
 	_locomotion_direction = direction
 	_locomotion_walking = walking
@@ -1142,7 +1159,7 @@ func _play_idle_standing(world_direction: String) -> void:
 			return
 		if semantic == "idle_crouch":
 			## ADHPA/GDHPA A–B loop — keep playing; no fidgets while kneeling.
-			_cancel_standing_idle()
+			_cancel_standing_idle(false)
 			if not _anim.is_playing():
 				_anim.play(anim_name)
 			return
@@ -1169,14 +1186,14 @@ func _play_idle_standing(world_direction: String) -> void:
 		return
 	if semantic == "idle_crouch":
 		## Kneel-aim loop (ADHPA/GDHPA) — no fidgets while crouched.
-		_cancel_standing_idle()
+		_cancel_standing_idle(false)
 		if _corner_phase == CornerPresPhase.IDLE:
 			_clear_corner_presentation(false)
 		_played_idle_peek_side = _idle_peek_side
 		_log_idle_standing(anim_name, "LOOP_CROUCH")
 		return
 	if semantic.begins_with("corner_idle_"):
-		_cancel_standing_idle()
+		_cancel_standing_idle(false)
 		_corner_phase = CornerPresPhase.IDLE
 		_corner_peek_side = _idle_peek_side
 		_corner_semantic = semantic
@@ -1191,7 +1208,7 @@ func _play_idle_standing(world_direction: String) -> void:
 
 
 func _play_idle_prone(world_direction: String) -> void:
-	_cancel_standing_idle()
+	_interrupt_standing_idle_for_action()
 	var display_dir := _idle_display_direction(world_direction)
 	var anim_name := "idle_prone_%s" % display_dir
 	if _anim.sprite_frames.has_animation(anim_name):
@@ -1433,7 +1450,7 @@ func _remap_stance_transition_for_camera() -> void:
 
 ## Survivable flinch. US uses hit_standing / hit_prone; never falls back to idle/walk frames.
 func play_hit_reaction(threat_step: Vector2i, position_state: int = PositionState.UP) -> void:
-	_cancel_standing_idle()
+	_interrupt_standing_idle_for_action()
 	if not _uses_og_frames() or _death_sequence_active or _hit_reaction_active or _is_dead:
 		return
 	if _corpse_direction_locked:
@@ -1467,7 +1484,7 @@ func play_death_sequence(
 		return
 	## Death wins outright over any stun chain.
 	_clear_stun_presentation()
-	_cancel_standing_idle()
+	_interrupt_standing_idle_for_action()
 	_cancel_stance_transition_visual(false)
 	_cancel_throw_grenade_visual(false)
 	_cancel_fire_visual(false)
@@ -1514,7 +1531,7 @@ func play_throw_grenade(
 	if _throw_grenade_active:
 		return
 	## Throw outranks firing and stance transition.
-	_cancel_standing_idle()
+	_interrupt_standing_idle_for_action()
 	_cancel_stance_transition_visual(false)
 	_cancel_fire_visual(false)
 
@@ -1569,7 +1586,7 @@ func play_fire(
 		return
 	if _hit_reaction_active or _throw_grenade_active:
 		return
-	_cancel_standing_idle()
+	_interrupt_standing_idle_for_action()
 	if target_cell.x > -900:
 		_fire_target_cell = target_cell
 	if corner_cell.x > -900:
@@ -1625,7 +1642,7 @@ func play_stance_transition(
 		return
 	if _stance_transition_active:
 		return
-	_cancel_standing_idle()
+	_interrupt_standing_idle_for_action()
 	## Stance change must never leave aim-hold latched.
 	_clear_fire_aim_hold(false, "stance_transition")
 	## Drop/stand even if we were chasing a path — sim already halted.
@@ -1732,7 +1749,7 @@ func _corner_side_token() -> String:
 
 
 func _start_corner_peek_enter() -> void:
-	_cancel_standing_idle()
+	_interrupt_standing_idle_for_action()
 	if _corner_peek_side == CoverSystem.PeekSide.NONE:
 		_corner_fire_pending = false
 		return
@@ -1828,7 +1845,7 @@ func _sync_fire_aim_hold(state: SoldierState) -> void:
 	## Clear stale open aim-hold latch only. Idle / engagement never drive ASAPA/ASAIS —
 	## those belong to fire and corner peek pipelines, not the standing idle family.
 	if _idle_fidget_active:
-		return
+		_interrupt_standing_idle_for_action()
 	if state == null or _fire_active or _is_dead or _presentation_stunned:
 		if _fire_aim_hold_active and (
 			_fire_active or _is_dead or _presentation_stunned
@@ -1893,7 +1910,7 @@ func _aim_hold_should_persist(state: SoldierState) -> bool:
 ## Cancel competing presentation and start knockdown → stun_idle → recover (Stage 2).
 func _enter_stun_presentation() -> void:
 	_presentation_stunned = true
-	_cancel_standing_idle()
+	_interrupt_standing_idle_for_action()
 	_clear_fire_aim_hold(false, "stun_enter")
 	_cancel_fire_visual(false)
 	_cancel_throw_grenade_visual(false)
@@ -2083,10 +2100,10 @@ func _resolve_fire_facing_step(
 func _begin_fire_aim_hold(position_state: int) -> void:
 	## Engaged + aiming: ASAPA enter (standing), then ASAIS/APAIS hold.
 	## Uses the same step → _locomotion_direction → display suffix path as walk/crawl.
-	## Let standing idle one-shots finish — sync must not clear the fidget latch mid-play.
 	if _idle_fidget_active:
-		return
-	_cancel_standing_idle()
+		_interrupt_standing_idle_for_action()
+	else:
+		_cancel_standing_idle()
 	_post_shot_crouch_remaining = 0.0
 	if (
 		_corner_phase == CornerPresPhase.IDLE
@@ -2260,7 +2277,7 @@ func _begin_fire_sequence(
 	facing_direction: Vector2i,
 	peek_side: int = CoverSystem.PeekSide.NONE,
 ) -> void:
-	_cancel_standing_idle()
+	_interrupt_standing_idle_for_action()
 	_clear_fire_aim_hold(false, "begin_fire_sequence")
 	_fire_active = true
 	_fire_restart_pending = false
@@ -3155,20 +3172,23 @@ func _tick_standing_idle_wait(delta: float) -> void:
 	_play_standing_idle_fidget()
 
 
-func _cancel_standing_idle() -> void:
+func _cancel_standing_idle(resume_hold_pose: bool = true) -> void:
 	_idle_wait_remaining_sec = -1.0
 	var was_fidget := _idle_fidget_active
 	_idle_fidget_active = false
 	_idle_fidget_semantic = ""
 	if was_fidget:
 		_reset_idle_fidget_play_speed()
+	if not resume_hold_pose:
+		_post_shot_crouch_remaining = 0.0
+		return
 	if not was_fidget:
 		return
 	if DEBUG_IDLE_STANDING:
 		GameLog.log_system(
 			"[IdleFidget] cancelled team=%d soldier=%d" % [team_id, soldier_id]
 		)
-	## Mid-fidget interrupt: snap ABRLA/GBRLA pose A — do not leave the last rest frame.
+	## Mid-fidget interrupt returning to idle: snap ABRLA/GBRLA pose A.
 	if (
 		_is_dead
 		or _presentation_stunned
@@ -3183,6 +3203,11 @@ func _cancel_standing_idle() -> void:
 		return
 	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
 	_play_idle_standing(world_dir)
+
+
+## Drop open idle (wait, fidget, post-shot crouch) so combat / move / stance can take over.
+func _interrupt_standing_idle_for_action() -> void:
+	_cancel_standing_idle(false)
 
 
 func _is_idle_fidget_anim_name(anim_name: String) -> bool:

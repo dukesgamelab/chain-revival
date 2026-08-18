@@ -145,6 +145,30 @@ static func toward_cell(from_cell: Vector2i, target_cell: Vector2i) -> Vector2i:
 	return from_step(target_cell - from_cell)
 
 
+## Face toward a clicked world point — uses target_cell when different, else mouse bearing.
+static func toward_world_point(
+	from_cell: Vector2i,
+	target_cell: Vector2i,
+	world_point: Vector2 = Vector2(-99999, -99999),
+) -> Vector2i:
+	if target_cell != from_cell:
+		return toward_cell(from_cell, target_cell)
+	if world_point.x < -90000:
+		return Vector2i.ZERO
+	var from_world := IsometricGrid.grid_to_world(from_cell)
+	var dx := world_point.x - from_world.x
+	var dy := world_point.y - from_world.y
+	const MIN_AXIS := 2.0
+	if abs(dx) < MIN_AXIS and abs(dy) < MIN_AXIS:
+		return Vector2i.ZERO
+	var step := Vector2i.ZERO
+	if abs(dx) >= MIN_AXIS:
+		step.x = 1 if dx > 0.0 else -1
+	if abs(dy) >= MIN_AXIS:
+		step.y = 1 if dy > 0.0 else -1
+	return from_step(step)
+
+
 ## True if facing is already one of the eight normalized directions (or zero→false).
 static func is_valid(facing: Vector2i) -> bool:
 	if facing == Vector2i.ZERO:

@@ -112,16 +112,22 @@ func on_soldier_reached_tile(soldier_id: int, tile: Vector2i, step_from: Vector2
 		state.facing_direction = FacingDirection.from_step(step_from)
 
 
-func face_toward_tile(soldier_id: int, target_cell: Vector2i) -> bool:
+func face_toward_tile(
+	soldier_id: int,
+	target_cell: Vector2i,
+	aim_world: Vector2 = Vector2(-99999, -99999),
+) -> bool:
 	## Called by ActionResolver (face/fire/combat) only.
 	var state := get_soldier(soldier_id)
 	if state == null or state.is_dead:
 		return false
-	if target_cell == state.grid_position:
+	var new_facing := FacingDirection.toward_world_point(
+		state.grid_position, target_cell, aim_world
+	)
+	if new_facing == Vector2i.ZERO:
 		return false
-	var new_facing := FacingDirection.toward_cell(state.grid_position, target_cell)
 	if state.facing_direction == new_facing:
-		return false
+		return true
 	state.facing_direction = new_facing
 	return true
 
