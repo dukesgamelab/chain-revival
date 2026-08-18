@@ -103,7 +103,7 @@
 					"loop": true
 				},
 				"aim_standing": {
-					"comment": "Stage 1: GSAPA ragged frame counts by direction — do not pad.",
+					"comment": "Stage 1: GSAPA ragged frame counts by direction \u2014 do not pad.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -325,7 +325,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GLCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GLCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -383,7 +383,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GRCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GRCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -457,10 +457,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "GLCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -531,10 +531,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "GRCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -589,7 +589,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GLCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GLCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -647,7 +647,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source GRCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "GRCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -722,10 +722,10 @@
 						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"notes": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "GLCPA",
-						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"verification": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -797,10 +797,10 @@
 						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"notes": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "GRCPA",
-						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"verification": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -872,10 +872,10 @@
 						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"notes": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "GLCPA",
-						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"verification": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -947,10 +947,10 @@
 						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"notes": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "GRCPA",
-						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"verification": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -1125,7 +1125,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GLPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered. GLPKA8P missing from import — NW last frame uses GLCIS8A (P≈CIS).",
+						"notes": "Source GLPKA frames A\u2013P (16). One-shot lean-out/observe/return; last frame P \u2248 corner idle (CIS). ## TUNED fps 12.0 \u2014 no OG timing recovered. GLPKA8P missing from import \u2014 NW last frame uses GLCIS8A (P\u2248CIS).",
 						"sound_effect": "",
 						"source_family": "GLPKA",
 						"verification": "Replaced duplicate CPA peek with dedicated GLPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
@@ -1303,7 +1303,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source GRPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered.",
+						"notes": "Source GRPKA frames A\u2013P (16). One-shot lean-out/observe/return; last frame P \u2248 corner idle (CIS). ## TUNED fps 12.0 \u2014 no OG timing recovered.",
 						"sound_effect": "",
 						"source_family": "GRPKA",
 						"verification": "Replaced duplicate CPA peek with dedicated GRPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
@@ -2364,9 +2364,32 @@
 					}
 				},
 				"idle_breathing": {
-					"comment": "UM_ImageBreathing — full ABRLA/GBRLA one-shot A–T (excludes U).",
+					"comment": "UM_ImageBreathing \u2014 full ABRLA/GBRLA one-shot A\u2013T (excludes U).",
 					"directions": {
-						"e": {
+						"n": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7A.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7D.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7E.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7F.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7S.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA7Q.png"
+							]
+						},
+						"ne": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA6A.png",
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA6B.png",
@@ -2390,76 +2413,30 @@
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA6T.png"
 							]
 						},
-						"n": {
+						"e": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA8S.png"
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5A.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5D.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5E.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5F.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA5S.png"
 							]
 						},
-						"ne": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7S.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA7Q.png"
-							]
-						},
-						"nw": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA1S.png"
-							]
-						},
-						"s": {
+						"se": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA4A.png",
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA4B.png",
@@ -2483,30 +2460,7 @@
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA4T.png"
 							]
 						},
-						"se": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5A.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5B.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5C.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5D.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5E.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5F.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5G.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5H.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5I.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5J.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5K.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5L.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5M.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5N.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5O.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5P.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5Q.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5R.png",
-								"res://assets/sprites/german_soldier/idle_standing/GBRLA5S.png"
-							]
-						},
-						"sw": {
+						"s": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA3A.png",
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA3B.png",
@@ -2530,7 +2484,7 @@
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA3T.png"
 							]
 						},
-						"w": {
+						"sw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA2A.png",
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA2B.png",
@@ -2551,6 +2505,52 @@
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA2Q.png",
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA2R.png",
 								"res://assets/sprites/german_soldier/idle_standing/GBRLA2S.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1A.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1D.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1E.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1F.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA1S.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8A.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8B.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8C.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8D.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8E.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8F.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8G.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8H.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8I.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8J.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8K.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8L.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8M.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8N.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8O.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8P.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8Q.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8R.png",
+								"res://assets/sprites/german_soldier/idle_standing/GBRLA8S.png"
 							]
 						}
 					},
@@ -2690,55 +2690,9 @@
 					}
 				},
 				"idle_rest_1": {
-					"comment": "Original StRest1 — GSRWA one-shot.",
+					"comment": "Original StRest1 \u2014 GSRWA one-shot.",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6K.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6L.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6M.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6N.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6O.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6P.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6Q.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6R.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA6S.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8K.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8L.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8M.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8N.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8O.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8P.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8Q.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8R.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA8S.png"
-							]
-						},
-						"ne": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA7A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA7B.png",
@@ -2761,53 +2715,30 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA7S.png"
 							]
 						},
-						"nw": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1K.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1L.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1M.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1N.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1O.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1P.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1Q.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1R.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA1S.png"
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6K.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6L.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6M.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6N.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6O.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6P.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6Q.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6R.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA6S.png"
 							]
 						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4K.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4L.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4M.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4N.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4O.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4P.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4Q.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4R.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSRWA4S.png"
-							]
-						},
-						"se": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA5A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA5B.png",
@@ -2830,7 +2761,30 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA5S.png"
 							]
 						},
-						"sw": {
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4K.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4L.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4M.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4N.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4O.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4P.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4Q.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4R.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA4S.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA3A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA3B.png",
@@ -2853,7 +2807,7 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA3S.png"
 							]
 						},
-						"w": {
+						"sw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA2A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA2B.png",
@@ -2875,6 +2829,52 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA2S.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSRWA2R.png"
 							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1K.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1L.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1M.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1N.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1O.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1P.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1Q.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1R.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA1S.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8K.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8L.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8M.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8N.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8O.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8P.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8Q.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8R.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSRWA8S.png"
+							]
 						}
 					},
 					"fps": 8.0,
@@ -2895,55 +2895,9 @@
 					}
 				},
 				"idle_rest_2": {
-					"comment": "Original StRest2 — GSSSA one-shot.",
+					"comment": "Original StRest2 \u2014 GSSSA one-shot.",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6K.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6L.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6M.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6N.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6O.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6P.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6Q.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6R.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA6S.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8K.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8L.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8M.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8N.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8O.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8P.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8Q.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8R.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA8S.png"
-							]
-						},
-						"ne": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA7A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA7B.png",
@@ -2966,53 +2920,30 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA7S.png"
 							]
 						},
-						"nw": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1K.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1L.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1M.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1N.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1O.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1P.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1Q.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1R.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA1S.png"
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6K.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6L.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6M.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6N.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6O.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6P.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6Q.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6R.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA6S.png"
 							]
 						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4K.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4L.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4M.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4N.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4O.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4P.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4Q.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4R.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSSSA4S.png"
-							]
-						},
-						"se": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA5A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA5B.png",
@@ -3035,7 +2966,30 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA5S.png"
 							]
 						},
-						"sw": {
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4K.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4L.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4M.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4N.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4O.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4P.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4Q.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4R.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA4S.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA3A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA3B.png",
@@ -3058,7 +3012,7 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA3S.png"
 							]
 						},
-						"w": {
+						"sw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA2A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA2B.png",
@@ -3080,6 +3034,52 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA2R.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSSSA2S.png"
 							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1K.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1L.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1M.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1N.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1O.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1P.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1Q.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1R.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA1S.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8K.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8L.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8M.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8N.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8O.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8P.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8Q.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8R.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSSSA8S.png"
+							]
 						}
 					},
 					"fps": 8.0,
@@ -3100,39 +3100,9 @@
 					}
 				},
 				"idle_rest_3": {
-					"comment": "Original StRest3 — GSFBA one-shot.",
+					"comment": "Original StRest3 \u2014 GSFBA one-shot.",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA6K.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA8K.png"
-							]
-						},
-						"ne": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA7A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA7B.png",
@@ -3147,37 +3117,22 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA7K.png"
 							]
 						},
-						"nw": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA1K.png"
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA6K.png"
 							]
 						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4A.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4B.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4C.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4D.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4E.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4F.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4G.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4H.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4I.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4J.png",
-								"res://assets/sprites/german_soldier/idle_rest/GSFBA4K.png"
-							]
-						},
-						"se": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA5A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA5B.png",
@@ -3192,7 +3147,22 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA5K.png"
 							]
 						},
-						"sw": {
+						"se": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA4K.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA3A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA3B.png",
@@ -3207,7 +3177,7 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA3J.png"
 							]
 						},
-						"w": {
+						"sw": {
 							"frames": [
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA2A.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA2B.png",
@@ -3220,6 +3190,36 @@
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA2I.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA2J.png",
 								"res://assets/sprites/german_soldier/idle_rest/GSFBA2K.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA1K.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8A.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8B.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8C.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8D.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8E.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8F.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8G.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8H.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8I.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8J.png",
+								"res://assets/sprites/german_soldier/idle_rest/GSFBA8K.png"
 							]
 						}
 					},
@@ -3291,7 +3291,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Held standing pose — frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
+						"notes": "Held standing pose \u2014 frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
 						"sound_effect": "",
 						"source_family": "GBRLA",
 						"stance": "standing",
@@ -3300,7 +3300,7 @@
 					}
 				},
 				"stun_idle": {
-					"comment": "Stage 2 lying stunned. GDHPA A–B loop ~2 fps.",
+					"comment": "Stage 2 lying stunned. GDHPA A\u2013B loop ~2 fps.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -3355,7 +3355,7 @@
 					"loop": true
 				},
 				"stun_knockdown": {
-					"comment": "Stage 2 grenade stun fall. GFALA A–Q (trimmed before corpse-settle R–W).",
+					"comment": "Stage 2 grenade stun fall. GFALA A\u2013Q (trimmed before corpse-settle R\u2013W).",
 					"directions": {
 						"e": {
 							"frames": [
@@ -3530,7 +3530,7 @@
 					"loop": false
 				},
 				"stun_recover": {
-					"comment": "Stage 2 get-up after stun. GHTBA A–T from coc_soldiers pack.",
+					"comment": "Stage 2 get-up after stun. GHTBA A\u2013T from coc_soldiers pack.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -4311,7 +4311,7 @@
 					"loop": true
 				},
 				"aim_standing": {
-					"comment": "Stage 1: ASAPA ragged 9–11 frames by direction — do not pad.",
+					"comment": "Stage 1: ASAPA ragged 9\u201311 frames by direction \u2014 do not pad.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -4527,7 +4527,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ALCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ALCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -4585,7 +4585,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ARCAS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ARCAS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ARCAS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -4659,10 +4659,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "ALCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -4733,10 +4733,10 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": 0.0,
-						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"notes": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"sound_effect": "",
 						"source_family": "ARCFA",
-						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash — verified. B recoil / post-shot; C recovered aim (matches CAS).",
+						"verification": "Source CFA frames A-B-C. Frame A (index 0) contains muzzle flash \u2014 verified. B recoil / post-shot; C recovered aim (matches CAS).",
 						"verified": true
 					}
 				},
@@ -4791,7 +4791,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ALCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ALCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -4849,7 +4849,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ARCIS frames A. Static tucked/aim hold — tune in editor.",
+						"notes": "Source ARCIS frames A. Static tucked/aim hold \u2014 tune in editor.",
 						"sound_effect": "",
 						"source_family": "ARCIS",
 						"verification": "C** corner families CIS/CAS/CFA/CPA (not ALPK)",
@@ -4924,10 +4924,10 @@
 						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"notes": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "ALCPA",
-						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"verification": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -4999,10 +4999,10 @@
 						"frame_order": "CAB",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"notes": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"sound_effect": "",
 						"source_family": "ARCPA",
-						"verification": "Enter corner idle→aim: C≈CIS, A mid, B≈CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
+						"verification": "Enter corner idle\u2192aim: C\u2248CIS, A mid, B\u2248CAS. Order C-A-B (was C-B-A ending on A, which snaps into CAS).",
 						"verified": true
 					}
 				},
@@ -5074,10 +5074,10 @@
 						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"notes": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "ALCPA",
-						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"verification": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -5149,10 +5149,10 @@
 						"frame_order": "BAC",
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"notes": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"sound_effect": "",
 						"source_family": "ARCPA",
-						"verification": "Exit aim→corner idle: B≈CAS, A mid, C≈CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
+						"verification": "Exit aim\u2192corner idle: B\u2248CAS, A mid, C\u2248CIS. Order B-A-C (explicit reverse of enter C-A-B; do not reverse at runtime).",
 						"verified": true
 					}
 				},
@@ -5327,7 +5327,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ALPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered.",
+						"notes": "Source ALPKA frames A\u2013P (16). One-shot lean-out/observe/return; last frame P \u2248 corner idle (CIS). ## TUNED fps 12.0 \u2014 no OG timing recovered.",
 						"sound_effect": "",
 						"source_family": "ALPKA",
 						"verification": "Replaced duplicate CPA peek with dedicated ALPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
@@ -5505,7 +5505,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Source ARPKA frames A–P (16). One-shot lean-out/observe/return; last frame P ≈ corner idle (CIS). ## TUNED fps 12.0 — no OG timing recovered.",
+						"notes": "Source ARPKA frames A\u2013P (16). One-shot lean-out/observe/return; last frame P \u2248 corner idle (CIS). ## TUNED fps 12.0 \u2014 no OG timing recovered.",
 						"sound_effect": "",
 						"source_family": "ARPKA",
 						"verification": "Replaced duplicate CPA peek with dedicated ARPKA. Distinct from ALCPA/ARCPA enter-exit (pixel-verified).",
@@ -7137,56 +7137,9 @@
 					}
 				},
 				"idle_breathing": {
-					"comment": "UM_ImageBreathing — full ABRLA/GBRLA one-shot A–T (excludes U).",
+					"comment": "UM_ImageBreathing \u2014 full ABRLA/GBRLA one-shot A\u2013T (excludes U).",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA6T.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA8S.png"
-							]
-						},
-						"ne": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA7A.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA7B.png",
@@ -7210,52 +7163,31 @@
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA7T.png"
 							]
 						},
-						"nw": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA1T.png"
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6A.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6D.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6E.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6F.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6S.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA6T.png"
 							]
 						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4A.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4B.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4C.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4D.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4E.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4F.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4G.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4H.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4I.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4J.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4K.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4L.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4M.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4N.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4O.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4P.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4Q.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4R.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4S.png",
-								"res://assets/sprites/us_soldier/idle_standing/ABRLA4T.png"
-							]
-						},
-						"se": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA5A.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA5B.png",
@@ -7279,7 +7211,31 @@
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA5T.png"
 							]
 						},
-						"sw": {
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4A.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4D.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4E.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4F.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4S.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA4T.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA3A.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA3B.png",
@@ -7303,7 +7259,7 @@
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA3T.png"
 							]
 						},
-						"w": {
+						"sw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA2A.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA2B.png",
@@ -7325,6 +7281,50 @@
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA2R.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA2S.png",
 								"res://assets/sprites/us_soldier/idle_standing/ABRLA2T.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1A.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1S.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA1T.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8A.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8B.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8C.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8D.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8E.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8F.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8G.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8H.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8I.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8J.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8K.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8L.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8M.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8N.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8O.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8P.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8Q.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8R.png",
+								"res://assets/sprites/us_soldier/idle_standing/ABRLA8S.png"
 							]
 						}
 					},
@@ -7396,7 +7396,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "ADHPA kneel aim A-B loop. Held crouch/stress pose — loops like stun_idle.",
+						"notes": "ADHPA kneel aim A-B loop. Held crouch/stress pose \u2014 loops like stun_idle.",
 						"sound_effect": "",
 						"source_family": "ADHPA",
 						"stance": "kneeling",
@@ -7464,55 +7464,9 @@
 					}
 				},
 				"idle_rest_1": {
-					"comment": "Original StRest1 — ASRWA one-shot.",
+					"comment": "Original StRest1 \u2014 ASRWA one-shot.",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6K.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6L.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6M.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6N.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6O.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6P.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6Q.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6R.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA6S.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8K.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8L.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8M.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8N.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8O.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8P.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8Q.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8R.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA8S.png"
-							]
-						},
-						"ne": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA7A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA7B.png",
@@ -7535,53 +7489,30 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA7S.png"
 							]
 						},
-						"nw": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1K.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1L.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1M.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1N.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1O.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1P.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1Q.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1R.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA1S.png"
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6K.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6L.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6M.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6N.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6O.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6P.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6Q.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6R.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA6S.png"
 							]
 						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4K.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4L.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4M.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4N.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4O.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4P.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4Q.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4R.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASRWA4S.png"
-							]
-						},
-						"se": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA5A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA5B.png",
@@ -7604,7 +7535,30 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA5S.png"
 							]
 						},
-						"sw": {
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4K.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4L.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4M.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4N.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4O.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4P.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4Q.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4R.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA4S.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA3B.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA3C.png",
@@ -7627,7 +7581,7 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA3S.png"
 							]
 						},
-						"w": {
+						"sw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA2A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA2B.png",
@@ -7649,6 +7603,52 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA2R.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASRWA2S.png"
 							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1K.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1L.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1M.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1N.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1O.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1P.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1Q.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1R.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA1S.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8K.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8L.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8M.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8N.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8O.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8P.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8Q.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8R.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASRWA8S.png"
+							]
 						}
 					},
 					"fps": 8.0,
@@ -7669,55 +7669,9 @@
 					}
 				},
 				"idle_rest_2": {
-					"comment": "Original StRest2 — ASSSA one-shot.",
+					"comment": "Original StRest2 \u2014 ASSSA one-shot.",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6K.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6L.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6M.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6N.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6O.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6P.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6Q.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6R.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA6S.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8K.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8L.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8M.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8N.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8O.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8P.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8Q.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8R.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA8S.png"
-							]
-						},
-						"ne": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA7A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA7B.png",
@@ -7740,53 +7694,30 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA7S.png"
 							]
 						},
-						"nw": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1K.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1L.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1M.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1N.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1O.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1P.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1Q.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1R.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA1S.png"
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6K.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6L.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6M.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6N.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6O.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6P.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6Q.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6R.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA6S.png"
 							]
 						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4K.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4L.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4M.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4N.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4O.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4P.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4Q.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4R.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASSSA4S.png"
-							]
-						},
-						"se": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA5A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA5B.png",
@@ -7809,7 +7740,30 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA5S.png"
 							]
 						},
-						"sw": {
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4K.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4L.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4M.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4N.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4O.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4P.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4Q.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4R.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA4S.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA3A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA3B.png",
@@ -7832,7 +7786,7 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA3S.png"
 							]
 						},
-						"w": {
+						"sw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA2A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA2B.png",
@@ -7854,6 +7808,52 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA2R.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASSSA2S.png"
 							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1K.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1L.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1M.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1N.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1O.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1P.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1Q.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1R.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA1S.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8K.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8L.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8M.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8N.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8O.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8P.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8Q.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8R.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASSSA8S.png"
+							]
 						}
 					},
 					"fps": 8.0,
@@ -7874,39 +7874,9 @@
 					}
 				},
 				"idle_rest_3": {
-					"comment": "Original StRest3 — ASFBA one-shot.",
+					"comment": "Original StRest3 \u2014 ASFBA one-shot.",
 					"directions": {
-						"e": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA6K.png"
-							]
-						},
 						"n": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA8K.png"
-							]
-						},
-						"ne": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA7A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA7B.png",
@@ -7921,37 +7891,22 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA7K.png"
 							]
 						},
-						"nw": {
+						"ne": {
 							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA1K.png"
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA6K.png"
 							]
 						},
-						"s": {
-							"frames": [
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4A.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4B.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4C.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4D.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4E.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4F.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4G.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4H.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4I.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4J.png",
-								"res://assets/sprites/us_soldier/idle_rest/ASFBA4K.png"
-							]
-						},
-						"se": {
+						"e": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA5A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA5B.png",
@@ -7966,7 +7921,22 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA5I.png"
 							]
 						},
-						"sw": {
+						"se": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA4K.png"
+							]
+						},
+						"s": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA3A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA3B.png",
@@ -7981,7 +7951,7 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA3I.png"
 							]
 						},
-						"w": {
+						"sw": {
 							"frames": [
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA2A.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA2B.png",
@@ -7994,6 +7964,36 @@
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA2J.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA2K.png",
 								"res://assets/sprites/us_soldier/idle_rest/ASFBA2L.png"
+							]
+						},
+						"w": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA1K.png"
+							]
+						},
+						"nw": {
+							"frames": [
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8A.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8B.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8C.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8D.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8E.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8F.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8G.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8H.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8I.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8J.png",
+								"res://assets/sprites/us_soldier/idle_rest/ASFBA8K.png"
 							]
 						}
 					},
@@ -8065,7 +8065,7 @@
 						"footstep_frame": -1.0,
 						"movement_per_cycle": 0.0,
 						"muzzle_flash_frame": -1.0,
-						"notes": "Held standing pose — frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
+						"notes": "Held standing pose \u2014 frame A only. Not a looping idle. Fidgets are separate oneshots. Excludes D/E/F/T/U.",
 						"sound_effect": "",
 						"source_family": "ABRLA",
 						"stance": "standing",
@@ -8074,7 +8074,7 @@
 					}
 				},
 				"stun_idle": {
-					"comment": "Stage 2 lying stunned. ADHPA A–B loop ~2 fps.",
+					"comment": "Stage 2 lying stunned. ADHPA A\u2013B loop ~2 fps.",
 					"directions": {
 						"e": {
 							"frames": [
@@ -8129,7 +8129,7 @@
 					"loop": true
 				},
 				"stun_knockdown": {
-					"comment": "Stage 2 grenade stun fall. AFALA A–Q (trimmed before corpse-settle R–W).",
+					"comment": "Stage 2 grenade stun fall. AFALA A\u2013Q (trimmed before corpse-settle R\u2013W).",
 					"directions": {
 						"e": {
 							"frames": [
@@ -8304,7 +8304,7 @@
 					"loop": false
 				},
 				"stun_recover": {
-					"comment": "Stage 2 get-up after stun. AHTBA A–T (20 frames).",
+					"comment": "Stage 2 get-up after stun. AHTBA A\u2013T (20 frames).",
 					"directions": {
 						"e": {
 							"frames": [
