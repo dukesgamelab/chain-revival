@@ -731,7 +731,7 @@ func _process(delta: float) -> void:
 	## Standing fidget wait is presentation-only and must tick even when not translating.
 	_tick_standing_idle_wait(delta)
 	_tick_post_shot_crouch(delta)
-	## Interpolates Node2D.position only — never mutates SoldierState or emits gameplay steps.
+	_maybe_arm_standing_idle_timer()
 	if not _is_moving or _is_dead or _blocks_action_override():
 		if (
 			_idle_wait_remaining_sec < 0.0
@@ -912,15 +912,13 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		return
 	## Presentation-only: prone locomotion uses crawl_* (APMOA/GPMOA). No root motion.
 	## `direction` is world letter; sprites use camera-remapped display letter.
-	## Aim owns the pose across facing changes — must run before the direction-match
-	## early-out. Otherwise face_toward_tile → idle_standing while hold stayed latched.
-	if (_fire_aim_hold_active or _fire_aim_enter_active) and not walking:
+	if _fire_active and not walking:
 		_locomotion_direction = direction
 		_locomotion_walking = false
-		if _fire_aim_enter_active:
-			return
-		_begin_fire_aim_hold(_applied_position_state)
 		return
+	if (_fire_aim_hold_active or _fire_aim_enter_active) and not walking:
+		_clear_fire_aim_hold(false, "locomotion_stale_hold")
+	_clear_stale_open_fire_pose()
 	if DEBUG_AIM_HOLD and (_fire_aim_hold_active or _fire_aim_enter_active) and walking:
 		GameLog.log_system(
 			(
@@ -1166,6 +1164,7 @@ func _play_idle_standing(world_direction: String) -> void:
 		_played_idle_peek_side = _idle_peek_side
 		## Facing/camera remaps must not reset an already-running wait.
 		_ensure_standing_idle_timer()
+		set_process(true)
 		_log_idle_standing(anim_name, "HOLD_POSE")
 		return
 	if semantic == "idle_crouch":
@@ -1826,16 +1825,10 @@ func _clear_corner_presentation(_resume_idle: bool) -> void:
 
 
 func _sync_fire_aim_hold(state: SoldierState) -> void:
-	## Engaged open fire: hold aim_* until the shot oneshot starts (_fire_active).
-	## Combat clears/re-acquires the engaged target every cycle; keep the pose across
-	## that flicker while still in a firing posture and (grace or HUD "Aiming").
-	##
-	## Do NOT clear on idle_peek alone. Own-team soldiers are always REVEALED so every
-	## shot's full roster sync runs corner_idle_at_cell; enemy GHOST skips it. Clearing
-	## here made aim work only for the uncontrolled side.
-	##
-	## Stage 1: CIS/CAS between shots yield to open ASAIS/APAIS. Active peek enter/exit
-	## and the fire oneshot still own the pose (Stage 10 polishes corner holds).
+	## Clear stale open aim-hold latch only. Idle / engagement never drive ASAPA/ASAIS —
+	## those belong to fire and corner peek pipelines, not the standing idle family.
+	if _idle_fidget_active:
+		return
 	if state == null or _fire_active or _is_dead or _presentation_stunned:
 		if _fire_aim_hold_active and (
 			_fire_active or _is_dead or _presentation_stunned
@@ -1851,7 +1844,6 @@ func _sync_fire_aim_hold(state: SoldierState) -> void:
 		if _fire_aim_hold_active:
 			_clear_fire_aim_hold(false, "sync_blocked_moving")
 		return
-	## Mid peek enter/exit / CFA: do not stomp the oneshot. CAS between shots → open aim.
 	if (
 		_corner_phase == CornerPresPhase.PEEKING_OUT
 		or _corner_phase == CornerPresPhase.PEEKING_IN
@@ -1866,18 +1858,11 @@ func _sync_fire_aim_hold(state: SoldierState) -> void:
 		_aim_hold_disengage_msec = -1
 	elif _aim_hold_disengage_msec < 0:
 		_aim_hold_disengage_msec = SimulationClock.get_ticks_msec()
-	if state.is_engaged() or _aim_hold_should_persist(state):
-		## Drop CIS/CAS so open aim owns the between-shot pose at every camera.
-		if (
-			_corner_phase == CornerPresPhase.IDLE
-			or _corner_phase == CornerPresPhase.AIMING
-		):
-			_clear_corner_presentation(false)
-		_begin_fire_aim_hold(state.position_state)
-		return
 	if _fire_aim_hold_active or _fire_aim_enter_active:
-		_clear_fire_aim_hold(true, "sync_disengage_no_grace")
-	_fire_target_cell = Vector2i(-999, -999)
+		_clear_fire_aim_hold(true, "sync_idle_no_aim")
+	if not state.is_engaged():
+		_fire_target_cell = Vector2i(-999, -999)
+	_clear_stale_open_fire_pose()
 
 
 func _aim_hold_firing_posture(state: SoldierState) -> bool:
@@ -2074,12 +2059,10 @@ func _aim_hold_semantic(position_state: int) -> String:
 
 
 func _fire_aim_hold_frame(anim_name: String) -> int:
-	## Dedicated aim holds are single-frame (ASAIS/APAIS). Legacy fire-clip hold used last frame.
+	## Dedicated aim holds are single-frame (ASAIS/APAIS). Fire clips are not idle holds.
 	if anim_name.begins_with("aim_standing_hold_") or anim_name.begins_with("aim_prone_hold_"):
 		return 0
-	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
-		return 0
-	return maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
+	return 0
 
 
 func _resolve_fire_facing_step(
@@ -2100,6 +2083,9 @@ func _resolve_fire_facing_step(
 func _begin_fire_aim_hold(position_state: int) -> void:
 	## Engaged + aiming: ASAPA enter (standing), then ASAIS/APAIS hold.
 	## Uses the same step → _locomotion_direction → display suffix path as walk/crawl.
+	## Let standing idle one-shots finish — sync must not clear the fidget latch mid-play.
+	if _idle_fidget_active:
+		return
 	_cancel_standing_idle()
 	_post_shot_crouch_remaining = 0.0
 	if (
@@ -2124,20 +2110,12 @@ func _begin_fire_aim_hold(position_state: int) -> void:
 			position_state, hold_facing, display_dir, hold_anim, enter_anim, false, false, "NULL_SF"
 		)
 		return
-	## Fallback: freeze last fire-clip frame if aim holds are missing from SpriteFrames.
 	if not has_hold:
-		var fire_semantic := GameplayPolicies.fire_anim.semantic_for(
-			position_state, CoverSystem.PeekSide.NONE
+		_log_aim_hold_diag(
+			position_state, hold_facing, display_dir, hold_anim, enter_anim, false, has_enter,
+			"MISSING_HOLD"
 		)
-		hold_anim = "%s_%s" % [fire_semantic, display_dir]
-		hold_semantic = fire_semantic
-		has_hold = _anim.sprite_frames.has_animation(hold_anim)
-		if not has_hold:
-			_log_aim_hold_diag(
-				position_state, hold_facing, display_dir, hold_anim, enter_anim, false, has_enter,
-				"MISSING_HOLD"
-			)
-			return
+		return
 	var current := str(_anim.animation)
 	var current_is_hold := (
 		current.begins_with("aim_standing_hold_") or current.begins_with("aim_prone_hold_")
@@ -2545,6 +2523,9 @@ func _on_anim_frame_changed() -> void:
 		_refresh_corner_lean_offset()
 	if _fire_aim_hold_active and not _fire_active and not _fire_aim_enter_active:
 		var hold_name := str(_anim.animation)
+		## Only latch ASAIS/APAIS (or fire-clip fallback) — never idle fidgets / locomotion.
+		if not _is_fire_aim_hold_anim_name(hold_name):
+			return
 		var aim_frame := _fire_aim_hold_frame(hold_name)
 		if _anim.frame != aim_frame:
 			_anim.pause()
@@ -2655,6 +2636,11 @@ func _on_anim_animation_finished() -> void:
 		_finish_corner_peek_exit()
 		return
 
+	if not _death_sequence_active and _is_idle_fidget_anim_name(anim_name):
+		## Finish before fire_active — a cleared fidget latch must not run _finish_fire.
+		_finish_standing_idle_fidget(anim_name)
+		return
+
 	if _fire_active and not _death_sequence_active:
 		_finish_fire(anim_name)
 		return
@@ -2673,10 +2659,6 @@ func _on_anim_animation_finished() -> void:
 
 	if _stance_transition_active and not _death_sequence_active:
 		_finish_stance_transition(anim_name)
-		return
-
-	if _idle_fidget_active and not _death_sequence_active:
-		_finish_standing_idle_fidget(anim_name)
 		return
 
 	if not _death_sequence_active:
@@ -2733,27 +2715,7 @@ func _finish_fire(anim_name: String) -> void:
 			)
 		_clear_corner_presentation(false)
 	_fire_peek_side = CoverSystem.PeekSide.NONE
-	## Between shots: hand off to ASAIS/APAIS (C ≡ ASAIS). Sync clears if not aiming.
-	if not _is_moving:
-		_begin_fire_aim_hold(
-			PositionState.DOWN if _fire_return_prone else PositionState.UP
-		)
-		return
-	if DEBUG_AIM_HOLD:
-		GameLog.log_system(
-			(
-				"[AIM_HOLD] phase=FINISH_SKIP_MOVING soldier=%d rot_idx=%d facet_deg=%d "
-				+ "anim=%s"
-			)
-			% [
-				soldier_id,
-				IsometricGrid.current_view_rotation,
-				IsometricGrid.facet_camera_direction_degrees(),
-				anim_name,
-			]
-		)
-	## Open standing shots duck briefly into ADHPA/GDHPA kneel-aim when not holding aim.
-	if not _fire_return_prone:
+	if not _fire_return_prone and not _is_moving:
 		_begin_post_shot_crouch()
 	_finish_fire_idle()
 
@@ -2788,6 +2750,9 @@ func _tick_post_shot_crouch(delta: float) -> void:
 
 
 func _finish_fire_idle() -> void:
+	## Fire/aim oneshots must not linger — idle family owns the stationary pose.
+	_clear_fire_aim_hold(false, "finish_fire_idle")
+	_clear_stale_open_fire_pose()
 	## Never resume a run loop unless we still have a chase cell to cover.
 	## Settling (empty path) or waiting at a cell must stay idle — not run-in-place.
 	if _is_moving and _has_active_chase() and position.distance_to(_move_target_world) > 0.5:
@@ -2978,7 +2943,7 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return _fire_source_family()
 		"idle_standing", "corner_idle_left", "corner_idle_right":
 			return _idle_source_family()
-		"idle_fidget_1", "idle_fidget_2", "idle_fidget_3", "idle_fidget_4":
+		"idle_breathing", "idle_rest_1", "idle_rest_2", "idle_rest_3":
 			return _idle_source_family()
 		"corner_aim_left":
 			return "GLCAS" if team_id == Team.GERMANY else "ALCAS"
@@ -3111,7 +3076,10 @@ func _can_standing_fidget() -> bool:
 	if _blocks_action_override():
 		return false
 	if _fire_aim_hold_active or _fire_aim_enter_active:
-		return false
+		if not _fire_active:
+			_clear_fire_aim_hold(false, "fidget_stale_hold")
+		else:
+			return false
 	## Allow unset (-1) during first sync: facing can run before position visual.
 	if _applied_position_state == PositionState.DOWN:
 		return false
@@ -3120,6 +3088,19 @@ func _can_standing_fidget() -> bool:
 	if _idle_fidget_active:
 		return false
 	return true
+
+
+func _maybe_arm_standing_idle_timer() -> void:
+	## Open standing idle only — corner CIS / crouch use their own loops, no fidgets.
+	if _idle_fidget_active or _idle_wait_remaining_sec > 0.0:
+		return
+	if _post_shot_crouch_remaining > 0.0:
+		return
+	if not _can_standing_fidget():
+		return
+	if _idle_standing_semantic() != "idle_standing":
+		return
+	_arm_standing_idle_timer(true)
 
 
 func _ensure_standing_idle_timer() -> void:
@@ -3152,7 +3133,12 @@ func _tick_standing_idle_wait(delta: float) -> void:
 	if _idle_wait_remaining_sec < 0.0:
 		return
 	if not _can_standing_fidget():
-		## Don't burn the wait while temporarily blocked; pause countdown.
+		## Permanent blocks — release wait; open idle will re-arm via _maybe_arm_standing_idle_timer.
+		if (
+			_idle_peek_side != CoverSystem.PeekSide.NONE
+			or _applied_position_state == PositionState.DOWN
+		):
+			_idle_wait_remaining_sec = -1.0
 		return
 	_idle_wait_remaining_sec -= delta
 	if _idle_wait_remaining_sec > 0.0:
@@ -3171,15 +3157,83 @@ func _tick_standing_idle_wait(delta: float) -> void:
 
 func _cancel_standing_idle() -> void:
 	_idle_wait_remaining_sec = -1.0
-	if not _idle_fidget_active:
-		_idle_fidget_semantic = ""
-		return
+	var was_fidget := _idle_fidget_active
 	_idle_fidget_active = false
 	_idle_fidget_semantic = ""
+	if not was_fidget:
+		return
 	if DEBUG_IDLE_STANDING:
 		GameLog.log_system(
 			"[IdleFidget] cancelled team=%d soldier=%d" % [team_id, soldier_id]
 		)
+	## Mid-fidget interrupt: snap ABRLA/GBRLA pose A — do not leave the last rest frame.
+	if (
+		_is_dead
+		or _presentation_stunned
+		or _stun_phase != StunPresPhase.NONE
+		or _blocks_action_override()
+		or _is_moving
+		or _applied_position_state == PositionState.DOWN
+		or _fire_active
+		or _fire_aim_hold_active
+		or _fire_aim_enter_active
+	):
+		return
+	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	_play_idle_standing(world_dir)
+
+
+func _is_idle_fidget_anim_name(anim_name: String) -> bool:
+	for semantic in GameplayPolicies.idle_anim.FIDGET_SEMANTICS:
+		if anim_name.begins_with("%s_" % semantic):
+			return true
+	return false
+
+
+func _is_fire_aim_hold_anim_name(anim_name: String) -> bool:
+	return (
+		anim_name.begins_with("aim_standing_hold_")
+		or anim_name.begins_with("aim_prone_hold_")
+	)
+
+
+func _is_open_fire_anim_name(anim_name: String) -> bool:
+	return (
+		anim_name.begins_with("fire_standing_")
+		or anim_name.begins_with("fire_prone_")
+		or anim_name.begins_with("corner_fire_")
+	)
+
+
+func _is_stale_combat_oneshot_anim_name(anim_name: String) -> bool:
+	if _is_open_fire_anim_name(anim_name):
+		return true
+	if anim_name.begins_with("aim_standing_") and not anim_name.begins_with("aim_standing_hold_"):
+		return true
+	if anim_name.begins_with("aim_prone_") and not anim_name.begins_with("aim_prone_hold_"):
+		return true
+	return false
+
+
+func _clear_stale_open_fire_pose() -> void:
+	## Fire/aim oneshots (ASFIA, ASAPA, CFA, …) are play_fire / peek only — never idle.
+	if _fire_active or _corner_phase == CornerPresPhase.FIRING:
+		return
+	var anim_name := str(_anim.animation)
+	if not _is_stale_combat_oneshot_anim_name(anim_name):
+		return
+	if _anim.is_playing():
+		return
+	if DEBUG_IDLE_STANDING:
+		GameLog.log_system(
+			"[IdleFidget] clear stale fire pose team=%d soldier=%d anim=%s"
+			% [team_id, soldier_id, anim_name]
+		)
+	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	if _applied_position_state == PositionState.DOWN:
+		_play_idle_prone(world_dir)
+	else:
+		_play_idle_standing(world_dir)
 
 
 func _play_standing_idle_fidget() -> void:

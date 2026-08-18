@@ -1,16 +1,21 @@
 extends Node
-## Headless validation for held ABRLA/GBRLA standing pose + explicit idle fidgets.
+## Headless validation for held ABRLA/GBRLA standing pose + OG idle one-shots.
 ## Run: Godot --headless --path <project> res://scripts/tests/idle_standing_frame_check.tscn
 
 
 const DIRS: Array[String] = ["n", "ne", "e", "se", "s", "sw", "w", "nw"]
 const CAM_ROTATIONS: Array[int] = [0, 90, 180, 270]
-const FORBIDDEN_LETTERS := ["D", "E", "F", "T", "U"]
-const FIDGETS := {
-	"idle_fidget_1": "BCB",
-	"idle_fidget_2": "GHIJIHG",
-	"idle_fidget_3": "KLMNMLK",
-	"idle_fidget_4": "OPQRQPO",
+const USA_FIDGETS := {
+	"idle_breathing": {"source": "ABRLA", "letters": "ABCDEFGHIJKLMNOPQRST"},
+	"idle_rest_1": {"source": "ASRWA", "letters": "ABCDEFGHIJKLMNOPQRST"},
+	"idle_rest_2": {"source": "ASSSA", "letters": "ABCDEFGHIJKLMNOPQRST"},
+	"idle_rest_3": {"source": "ASFBA", "letters": "ABCDEFGHIJKL"},
+}
+const GER_FIDGETS := {
+	"idle_breathing": {"source": "GBRLA", "letters": "ABCDEFGHIJKLMNOPQRST"},
+	"idle_rest_1": {"source": "GSRWA", "letters": "ABCDEFGHIJKLMNOPQRST"},
+	"idle_rest_2": {"source": "GSSSA", "letters": "ABCDEFGHIJKLMNOPQRST"},
+	"idle_rest_3": {"source": "GSFBA", "letters": "ABCDEFGHIJKL"},
 }
 
 
@@ -20,8 +25,10 @@ func _ready() -> void:
 
 	failures.append_array(_validate_held_pose("usa", "ABRLA", "USA"))
 	failures.append_array(_validate_held_pose("germany", "GBRLA", "Germany"))
-	failures.append_array(_validate_fidgets("usa", "ABRLA", "USA"))
-	failures.append_array(_validate_fidgets("germany", "GBRLA", "Germany"))
+	failures.append_array(_validate_idle_oneshots("usa", USA_FIDGETS, "USA"))
+	failures.append_array(_validate_idle_oneshots("germany", GER_FIDGETS, "Germany"))
+	failures.append_array(_validate_idle_crouch_loop("usa", "USA"))
+	failures.append_array(_validate_idle_crouch_loop("germany", "Germany"))
 	failures.append_array(
 		_validate_corner_idle_db("usa", "corner_idle_left", "ALCIS", "USA corner L")
 	)
@@ -34,8 +41,10 @@ func _ready() -> void:
 	failures.append_array(
 		_validate_corner_idle_db("germany", "corner_idle_right", "GRCIS", "Germany corner R")
 	)
-	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
-	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_germany_sprite_frames(), "Germany"))
+	failures.append_array(_validate_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), USA_FIDGETS, "USA"))
+	failures.append_array(
+		_validate_runtime(UsSoldierSpriteFrames.get_germany_sprite_frames(), GER_FIDGETS, "Germany")
+	)
 	failures.append_array(_validate_corner_runtime(UsSoldierSpriteFrames.get_usa_sprite_frames(), "USA"))
 	failures.append_array(_validate_corner_runtime(UsSoldierSpriteFrames.get_germany_sprite_frames(), "Germany"))
 	failures.append_array(_validate_camera_maps())
@@ -44,7 +53,7 @@ func _ready() -> void:
 
 	print("=== idle_standing_frame_check ===")
 	if failures.is_empty():
-		print("PASS: held standing pose + explicit fidgets OK")
+		print("PASS: held standing pose + OG idle one-shots OK")
 		get_tree().quit(0)
 	else:
 		print("FAIL count=%d" % failures.size())
@@ -71,7 +80,7 @@ func _validate_held_pose(family_id: String, expected_source: String, label: Stri
 		if frames.size() != 1:
 			fails.append("%s %s: frame count %d expected 1 (pose A)" % [label, direction, frames.size()])
 			continue
-		var digit := _digit_for_direction(direction)
+		var digit := AnimationDatabase.source_direction_digit(direction)
 		var expected_name := "%s%dA.png" % [expected_source, digit]
 		if str(frames[0]).get_file() != expected_name:
 			fails.append(
@@ -82,16 +91,28 @@ func _validate_held_pose(family_id: String, expected_source: String, label: Stri
 	return fails
 
 
-func _validate_fidgets(family_id: String, expected_source: String, label: String) -> Array[String]:
+func _validate_idle_oneshots(
+	family_id: String,
+	fidgets: Dictionary,
+	label: String,
+) -> Array[String]:
 	var fails: Array[String] = []
-	for fidget_id in FIDGETS.keys():
-		var expected_letters: String = FIDGETS[fidget_id]
+	for fidget_id in fidgets.keys():
+		var spec: Dictionary = fidgets[fidget_id]
+		var expected_source := str(spec.get("source", ""))
+		var expected_letters := str(spec.get("letters", ""))
 		var anim := AnimationDatabase.get_animation(family_id, fidget_id)
 		if anim.is_empty():
 			fails.append("%s: %s missing" % [label, fidget_id])
 			continue
 		if bool(anim.get("loop", true)):
 			fails.append("%s: %s must not loop" % [label, fidget_id])
+		var meta: Dictionary = anim.get("metadata", {}) if anim.get("metadata", {}) is Dictionary else {}
+		if str(meta.get("source_family", "")) != expected_source:
+			fails.append(
+				"%s %s source_family=%s expected %s"
+				% [label, fidget_id, meta.get("source_family", ""), expected_source]
+			)
 		for direction in DIRS:
 			var frames := AnimationDatabase.get_direction_frames(family_id, fidget_id, direction)
 			if frames.size() != expected_letters.length():
@@ -100,7 +121,7 @@ func _validate_fidgets(family_id: String, expected_source: String, label: String
 					% [label, fidget_id, direction, frames.size(), expected_letters.length()]
 				)
 				continue
-			var digit := _digit_for_direction(direction)
+			var digit := AnimationDatabase.source_direction_digit(direction)
 			for i in frames.size():
 				var path := str(frames[i])
 				var letter := expected_letters[i]
@@ -110,9 +131,19 @@ func _validate_fidgets(family_id: String, expected_source: String, label: String
 						"%s %s %s[%d]: got %s expected %s"
 						% [label, fidget_id, direction, i, path.get_file(), expected_name]
 					)
-				var stem_letter := path.get_file().get_basename().right(1)
-				if FORBIDDEN_LETTERS.has(stem_letter):
-					fails.append("%s %s uses forbidden letter %s" % [label, fidget_id, stem_letter])
+				if letter == "U":
+					fails.append("%s %s uses excluded letter U" % [label, fidget_id])
+	return fails
+
+
+func _validate_idle_crouch_loop(family_id: String, label: String) -> Array[String]:
+	var fails: Array[String] = []
+	var anim := AnimationDatabase.get_animation(family_id, "idle_crouch")
+	if anim.is_empty():
+		fails.append("%s: idle_crouch missing" % label)
+		return fails
+	if not bool(anim.get("loop", false)):
+		fails.append("%s: idle_crouch should loop (held kneel aim, same asset as stun_idle)" % label)
 	return fails
 
 
@@ -135,7 +166,7 @@ func _validate_corner_idle_db(
 	return fails
 
 
-func _validate_runtime(sf: SpriteFrames, label: String) -> Array[String]:
+func _validate_runtime(sf: SpriteFrames, fidgets: Dictionary, label: String) -> Array[String]:
 	var fails: Array[String] = []
 	if sf == null:
 		fails.append("%s: SpriteFrames null" % label)
@@ -152,14 +183,14 @@ func _validate_runtime(sf: SpriteFrames, label: String) -> Array[String]:
 				"%s %s runtime frames %d expected 1"
 				% [label, anim_name, sf.get_frame_count(anim_name)]
 			)
-		for fidget_id in FIDGETS.keys():
+		for fidget_id in fidgets.keys():
 			var fidget_name := "%s_%s" % [fidget_id, direction]
 			if not sf.has_animation(fidget_name):
 				fails.append("%s missing runtime %s" % [label, fidget_name])
 				continue
 			if sf.get_animation_loop(fidget_name):
 				fails.append("%s %s must not loop" % [label, fidget_name])
-			var expected_len: int = str(FIDGETS[fidget_id]).length()
+			var expected_len: int = str(fidgets[fidget_id].letters).length()
 			if sf.get_frame_count(fidget_name) != expected_len:
 				fails.append(
 					"%s %s frames %d expected %d"
@@ -209,31 +240,14 @@ func _validate_idle_policy() -> Array[String]:
 		fails.append("idle policy open semantic drift")
 	if policy.FIDGET_SEMANTICS.size() != 4:
 		fails.append("idle policy fidget count drift")
+	for semantic in ["idle_breathing", "idle_rest_1", "idle_rest_2", "idle_rest_3"]:
+		if not policy.is_fidget_semantic(semantic):
+			fails.append("idle policy missing fidget semantic %s" % semantic)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1
 	var delay := policy.random_fidget_delay_sec(rng)
 	if delay < IdleAnimPolicy.FIDGET_DELAY_MIN_SEC or delay > IdleAnimPolicy.FIDGET_DELAY_MAX_SEC:
 		fails.append("idle policy delay out of range: %s" % delay)
+	if policy.FIDGET_PLAY_CHANCE != 0.20:
+		fails.append("idle policy play chance drift")
 	return fails
-
-
-func _digit_for_direction(direction: String) -> int:
-	match direction:
-		"w":
-			return 1
-		"sw":
-			return 2
-		"s":
-			return 3
-		"se":
-			return 4
-		"e":
-			return 5
-		"ne":
-			return 6
-		"n":
-			return 7
-		"nw":
-			return 8
-		_:
-			return 5

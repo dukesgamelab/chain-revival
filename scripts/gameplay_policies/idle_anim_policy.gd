@@ -6,11 +6,10 @@ extends RefCounted
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
 
 ## Independent per-soldier wait before a fidget roll (seconds).
-## TEMP debug tuning: fixed 7s / 50%. Restore OG 7–18s / 20% later.
 const FIDGET_DELAY_MIN_SEC := 7.0
-const FIDGET_DELAY_MAX_SEC := 7.0
+const FIDGET_DELAY_MAX_SEC := 18.0
 ## Chance to actually play a fidget when the wait expires.
-const FIDGET_PLAY_CHANCE := 0.50
+const FIDGET_PLAY_CHANCE := 0.20
 const FIDGET_FPS := 8.0
 
 ## TUNED — crouch when stress reaches suppressed band (matches Stage 3 testing needs).
@@ -19,10 +18,10 @@ const DEFAULT_CROUCH_STRESS_THRESHOLD := 25.0
 const DEFAULT_POST_SHOT_CROUCH_SEC := 0.85
 
 const FIDGET_SEMANTICS: PackedStringArray = [
-	"idle_fidget_1",
-	"idle_fidget_2",
-	"idle_fidget_3",
-	"idle_fidget_4",
+	"idle_breathing",
+	"idle_rest_1",
+	"idle_rest_2",
+	"idle_rest_3",
 ]
 
 var crouch_stress_threshold: float = DEFAULT_CROUCH_STRESS_THRESHOLD
