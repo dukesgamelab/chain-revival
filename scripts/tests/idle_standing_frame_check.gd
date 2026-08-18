@@ -261,6 +261,6 @@ func _validate_idle_policy() -> Array[String]:
 	for i in 100:
 		var picked := policy.pick_fidget_semantic(rng)
 		picks[picked] = int(picks.get(picked, 0)) + 1
-	if int(picks.get("idle_breathing", 0)) < 30:
+	if int(picks.get("idle_rest_3", 0)) < 30:
 		fails.append("idle policy weighted pick skew: %s" % str(picks))
 	return fails

@@ -123,7 +123,7 @@ const DEBUG_HIT_REACTION := false
 const DEBUG_THROW_GRENADE := false
 const DEBUG_FIRE_ANIM := false
 ## TEMP: log arm/play/cancel so fidget timing is visible in the console.
-const DEBUG_IDLE_STANDING := true
+const DEBUG_IDLE_STANDING := false
 const DEBUG_STANCE_TRANSITION := false
 const DEBUG_FACING := false
 const DEBUG_DEAD_STATIC := false
@@ -735,12 +735,12 @@ func _process(delta: float) -> void:
 	_tick_post_shot_crouch(delta)
 	_maybe_arm_standing_idle_timer()
 	if not _is_moving or _is_dead or _blocks_action_override():
-		if (
-			_idle_wait_remaining_sec < 0.0
-			and not _idle_fidget_active
-			and _post_shot_crouch_remaining <= 0.0
-			and not _is_moving
-		):
+		var idle_work_active := (
+			_idle_wait_remaining_sec > 0.0
+			or _idle_fidget_active
+			or _post_shot_crouch_remaining > 0.0
+		)
+		if not idle_work_active and not _is_moving:
 			set_process(false)
 		return
 
@@ -981,21 +981,20 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 				elif idle_semantic == "idle_crouch":
 					_cancel_standing_idle(false)
 				return
-		if (
+		elif (
 			not _presentation_stunned
 			and _applied_position_state == PositionState.DOWN
-			and (
-				str(_anim.animation).begins_with("idle_prone_")
-				or (
-					not _anim.sprite_frames.has_animation("idle_prone_%s" % display_dir)
-					and (
-						str(_anim.animation).begins_with("walk_")
-						or str(_anim.animation).begins_with("crawl_")
-					)
-				)
-			)
 		):
-			return
+			var prone_anim_name := "idle_prone_%s" % display_dir
+			if (
+				_anim.sprite_frames.has_animation(prone_anim_name)
+				and str(_anim.animation) == prone_anim_name
+			):
+				return
+			if not _anim.sprite_frames.has_animation(prone_anim_name):
+				var crawl_name := "%s_%s" % [_locomotion_move_prefix(), display_dir]
+				if str(_anim.animation) == crawl_name:
+					return
 
 	if walking:
 		_interrupt_standing_idle_for_action()
@@ -1045,7 +1044,15 @@ func _world_direction_from_step(step: Vector2i) -> String:
 
 
 func _body_world_direction() -> String:
+	var from_facing := _world_direction_from_step(_last_applied_facing)
+	if not from_facing.is_empty():
+		return from_facing
 	return _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+
+
+## Authoritative world letter for open standing idle + fidgets (matches held ABRLA pose).
+func _standing_idle_world_direction() -> String:
+	return _world_direction_from_step(_last_applied_facing)
 
 
 func _display_direction_for_world(world_direction: String) -> String:
@@ -1401,17 +1408,15 @@ func _remap_idle_standing_for_camera() -> void:
 func _remap_standing_idle_fidget_for_camera() -> void:
 	if _idle_fidget_semantic.is_empty():
 		return
-	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
-	var saved_frame := _anim.frame
-	var display_dir := _idle_display_direction(world_dir)
-	var anim_name := "%s_%s" % [_idle_fidget_semantic, display_dir]
-	if not _anim.sprite_frames.has_animation(anim_name):
+	var world_dir := _standing_idle_world_direction()
+	var anim_name := "%s_%s" % [_idle_fidget_semantic, _idle_display_direction(world_dir)]
+	if not _remap_animation_preserving_progress(anim_name):
+		if DEBUG_IDLE_STANDING:
+			GameLog.log_system(
+				"[IdleFidget] fidget camera remap missing team=%d soldier=%d anim=%s"
+				% [team_id, soldier_id, anim_name]
+			)
 		return
-	if str(_anim.animation) == anim_name:
-		return
-	var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
-	_anim.play(anim_name)
-	_anim.frame = mini(saved_frame, max_frame)
 	_log_idle_standing(anim_name, "FIDGET_CAMERA_REMAP frame=%d" % _anim.frame)
 
 
@@ -3081,6 +3086,64 @@ func _log_fire_anim(anim_name: String, status: String) -> void:
 
 ## --- Presentation-only standing idle fidgets (OG: static pose + rare oneshots) ---
 
+func _standing_fidget_block_reason() -> String:
+	if not _uses_og_frames():
+		return "no_og_frames"
+	if _is_dead:
+		return "dead"
+	if _is_moving:
+		return "moving"
+	if _presentation_stunned:
+		return "stunned"
+	if _stun_phase != StunPresPhase.NONE:
+		return "stun_phase"
+	if _blocks_action_override():
+		return "action_override"
+	if _fire_aim_hold_active or _fire_aim_enter_active:
+		if _fire_active:
+			return "fire_active_with_aim_hold"
+		return ""  ## stale hold — caller clears before re-check
+	if _applied_position_state == PositionState.DOWN:
+		return "prone"
+	if _idle_peek_side != CoverSystem.PeekSide.NONE:
+		return "corner_peek"
+	if _idle_fidget_active:
+		return "fidget_active"
+	return ""
+
+
+func _log_idle_fidget_state(tag: String, anim_name: String = "") -> void:
+	if not DEBUG_IDLE_STANDING:
+		return
+	var world_dir := _standing_idle_world_direction()
+	var display_dir := _idle_display_direction(world_dir)
+	var block := _standing_fidget_block_reason()
+	var speed := _anim.speed_scale if _anim != null else 1.0
+	var active_anim := str(_anim.animation) if _anim != null else ""
+	GameLog.log_system(
+		(
+			"[IdleFidget] %s team=%d soldier=%d processing=%s wait=%.2f fidget=%s "
+			+ "block=%s locomotion_dir=%s standing_dir=%s display_dir=%s "
+			+ "anim=%s active=%s speed_scale=%.2f"
+		)
+		% [
+			tag,
+			team_id,
+			soldier_id,
+			is_processing(),
+			_idle_wait_remaining_sec,
+			_idle_fidget_active,
+			block if block.is_empty() else block,
+			_locomotion_direction,
+			world_dir,
+			display_dir,
+			anim_name,
+			active_anim,
+			speed,
+		]
+	)
+
+
 func _can_standing_fidget() -> bool:
 	if (
 		not _uses_og_frames()
@@ -3130,18 +3193,18 @@ func _ensure_standing_idle_timer() -> void:
 
 
 func _arm_standing_idle_timer(force_restart: bool = true) -> void:
+	if _fire_aim_hold_active or _fire_aim_enter_active:
+		if not _fire_active:
+			_clear_fire_aim_hold(false, "fidget_rearm_stale_hold")
 	if not _can_standing_fidget():
 		_idle_wait_remaining_sec = -1.0
+		_log_idle_fidget_state("arm_blocked")
 		return
 	if not force_restart and _idle_wait_remaining_sec > 0.0:
 		return
 	_idle_wait_remaining_sec = GameplayPolicies.idle_anim.random_fidget_delay_sec(_idle_rng)
 	set_process(true)
-	if DEBUG_IDLE_STANDING:
-		GameLog.log_system(
-			"[IdleFidget] arm wait team=%d soldier=%d delay=%.1fs"
-			% [team_id, soldier_id, _idle_wait_remaining_sec]
-		)
+	_log_idle_fidget_state("arm")
 
 
 func _tick_standing_idle_wait(delta: float) -> void:
@@ -3156,17 +3219,16 @@ func _tick_standing_idle_wait(delta: float) -> void:
 			or _applied_position_state == PositionState.DOWN
 		):
 			_idle_wait_remaining_sec = -1.0
+			_log_idle_fidget_state("tick_blocked_permanent")
+		else:
+			_log_idle_fidget_state("tick_blocked_transient")
 		return
 	_idle_wait_remaining_sec -= delta
 	if _idle_wait_remaining_sec > 0.0:
 		return
 	_idle_wait_remaining_sec = -1.0
 	if not GameplayPolicies.idle_anim.should_play_fidget(_idle_rng):
-		if DEBUG_IDLE_STANDING:
-			GameLog.log_system(
-				"[IdleFidget] skip (chance miss) team=%d soldier=%d — re-arm"
-				% [team_id, soldier_id]
-			)
+		_log_idle_fidget_state("tick_chance_miss")
 		_arm_standing_idle_timer(true)
 		return
 	_play_standing_idle_fidget()
@@ -3184,10 +3246,7 @@ func _cancel_standing_idle(resume_hold_pose: bool = true) -> void:
 		return
 	if not was_fidget:
 		return
-	if DEBUG_IDLE_STANDING:
-		GameLog.log_system(
-			"[IdleFidget] cancelled team=%d soldier=%d" % [team_id, soldier_id]
-		)
+	_log_idle_fidget_state("cancel_fidget_resume_hold")
 	## Mid-fidget interrupt returning to idle: snap ABRLA/GBRLA pose A.
 	if (
 		_is_dead
@@ -3201,7 +3260,7 @@ func _cancel_standing_idle(resume_hold_pose: bool = true) -> void:
 		or _fire_aim_enter_active
 	):
 		return
-	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	var world_dir := _standing_idle_world_direction()
 	_play_idle_standing(world_dir)
 
 
@@ -3256,7 +3315,7 @@ func _clear_stale_open_fire_pose() -> void:
 			"[IdleFidget] clear stale fire pose team=%d soldier=%d anim=%s"
 			% [team_id, soldier_id, anim_name]
 		)
-	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	var world_dir := _standing_idle_world_direction()
 	if _applied_position_state == PositionState.DOWN:
 		_play_idle_prone(world_dir)
 	else:
@@ -3268,7 +3327,7 @@ func _play_standing_idle_fidget() -> void:
 		_arm_standing_idle_timer(true)
 		return
 	var semantic := GameplayPolicies.idle_anim.pick_fidget_semantic(_idle_rng)
-	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	var world_dir := _standing_idle_world_direction()
 	var display_dir := _idle_display_direction(world_dir)
 	var anim_name := "%s_%s" % [semantic, display_dir]
 	if not _anim.sprite_frames.has_animation(anim_name):
@@ -3286,6 +3345,7 @@ func _play_standing_idle_fidget() -> void:
 	_apply_idle_fidget_play_speed(anim_name)
 	_anim.play(anim_name)
 	_log_idle_standing(anim_name, "FIDGET_PLAY")
+	_log_idle_fidget_state("play", anim_name)
 
 
 func _apply_idle_fidget_play_speed(anim_name: String) -> void:
@@ -3310,17 +3370,18 @@ func _finish_standing_idle_fidget(anim_name: String) -> void:
 	_idle_fidget_semantic = ""
 	_reset_idle_fidget_play_speed()
 	_log_idle_standing(anim_name, "FIDGET_COMPLETE → HOLD_POSE")
-	## Return to the held standing pose and start a new independent delay.
-	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
-	_play_idle_standing(world_dir)
+	## Re-arm before returning to hold pose so _process stays enabled for the next tick.
 	_arm_standing_idle_timer(true)
+	var world_dir := _standing_idle_world_direction()
+	_play_idle_standing(world_dir)
+	_log_idle_fidget_state("finish", anim_name)
 
 
 func _log_idle_standing(anim_name: String, status: String) -> void:
 	if not DEBUG_IDLE_STANDING:
 		return
 	var cam_rot := IsometricGrid.facet_camera_direction_degrees()
-	var world_dir := _locomotion_direction if not _locomotion_direction.is_empty() else "n"
+	var world_dir := _standing_idle_world_direction()
 	var display_dir := _idle_display_direction(world_dir)
 	var family_id := (
 		UsSoldierSpriteFrames.DB_FAMILY_USA

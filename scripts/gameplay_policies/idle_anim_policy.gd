@@ -5,13 +5,14 @@ extends RefCounted
 
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
 
-## RECOVERED — measured from original footage: median 6.1s between idle animations,
-## range 2.3–24s across 24 observed episodes.
-const DEFAULT_FIDGET_DELAY_MIN_SEC := 4.0
-const DEFAULT_FIDGET_DELAY_MAX_SEC := 8.0
-## The interval itself provides the variation; a low play chance suppresses idles entirely.
-const DEFAULT_FIDGET_PLAY_CHANCE := 1.0
-const DEFAULT_FIDGET_FPS := 12.0
+## RECOVERED — original rolls on a fixed ~5.5s tick, not a random delay.
+## Measured standing-idle.mp4: all inter-animation gaps are multiples of 5.5s.
+const DEFAULT_FIDGET_DELAY_MIN_SEC := 5.5
+const DEFAULT_FIDGET_DELAY_MAX_SEC := 5.5
+## RECOVERED — one animation per ~10.9 soldier-seconds ≈ 50% per tick.
+const DEFAULT_FIDGET_PLAY_CHANCE := 0.5
+## RECOVERED — measured durations match clip lengths at ~8 fps (DB clips are 8 fps).
+const DEFAULT_FIDGET_FPS := 8.0
 
 ## TUNED — crouch when stress reaches suppressed band (matches Stage 3 testing needs).
 const DEFAULT_CROUCH_STRESS_THRESHOLD := 25.0
@@ -25,12 +26,12 @@ const FIDGET_SEMANTICS: PackedStringArray = [
 	"idle_rest_3",
 ]
 
-## TUNED — episode-count distribution from original footage (short : medium : long).
+## TUNED — measured split short : medium : long ≈ 11 : 7 : 2 (ASFB most common).
 const DEFAULT_FIDGET_WEIGHTS: Dictionary = {
-	"idle_breathing": 0.5,
+	"idle_breathing": 0.1,
 	"idle_rest_1": 0.2,
 	"idle_rest_2": 0.2,
-	"idle_rest_3": 0.1,
+	"idle_rest_3": 0.5,
 }
 
 var crouch_stress_threshold: float = DEFAULT_CROUCH_STRESS_THRESHOLD

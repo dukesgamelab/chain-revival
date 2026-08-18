@@ -94,6 +94,7 @@ var _face_manual_aim_cell: Vector2i = Vector2i(-999999, -999999)
 var _face_manual_aim_world: Vector2 = Vector2(-99999, -99999)
 var _face_manual_override_until_msec: int = 0
 var _face_revert_keys: Array[String] = []
+var _face_committed_keys: Array[String] = []
 const _FACE_REVERT_DELAY_MSEC := 3000
 ## Fog lookup rebuilt once per need (move/combat), not per soldier per sync.
 var _fog_spotted_cache: Dictionary = {} ## Team.soldier_key -> bool
@@ -900,6 +901,15 @@ func _clear_face_manual_override() -> void:
 	_face_manual_aim_world = Vector2(-99999, -99999)
 	_face_manual_override_until_msec = 0
 	_face_revert_keys.clear()
+	_face_committed_keys.clear()
+
+
+func _mark_face_committed(soldiers: Array[SoldierState]) -> void:
+	_face_committed_keys.clear()
+	for soldier_state in soldiers:
+		_face_committed_keys.append(
+			Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)
+		)
 
 
 func _tick_face_manual_revert() -> void:
@@ -936,6 +946,7 @@ func _apply_face_revert_to_engaged() -> void:
 		if fireteam.face_toward_tile(soldier_id, engaged_target.grid_position):
 			reverted = true
 	_face_revert_keys.clear()
+	_face_committed_keys.clear()
 	if reverted:
 		if _face_mode:
 			_sync_face_soldier_views()
@@ -2080,12 +2091,14 @@ func _corner_aim_cell_for_soldier(soldier_state: SoldierState) -> Vector2i:
 	if soldier_state == null:
 		return Vector2i(-999, -999)
 	var soldier_key := Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)
-	if (
-		_face_manual_override_until_msec > Time.get_ticks_msec()
-		and _face_revert_keys.has(soldier_key)
-		and _face_manual_aim_cell.x > -99999
-	):
-		return _face_manual_aim_cell
+	if _face_manual_aim_cell.x > -99999:
+		if _face_committed_keys.has(soldier_key):
+			return _face_manual_aim_cell
+		if (
+			_face_manual_override_until_msec > Time.get_ticks_msec()
+			and _face_revert_keys.has(soldier_key)
+		):
+			return _face_manual_aim_cell
 	if soldier_state.is_engaged() and _game_state != null:
 		var engaged: SoldierState = _game_state.get_soldier(
 			soldier_state.engaged_target_team_id,
@@ -2849,6 +2862,7 @@ func _apply_face_at_tile(target_cell: Vector2i, aim_world: Vector2) -> void:
 
 	var result: ActionResultClass = CommandRouter.submit_command(_game_state, face_cmd)
 	if result.success:
+		_mark_face_committed(soldiers)
 		_face_manual_aim_cell = face_cell
 		_face_manual_aim_world = aim_world
 		if not _face_revert_keys.is_empty():
@@ -2881,6 +2895,9 @@ func _apply_face_enemy_fire(aim_world: Vector2, clicked_soldier: SoldierState) -
 
 	var face_result: ActionResultClass = CommandRouter.submit_command(_game_state, face_cmd)
 	if face_result.success:
+		_mark_face_committed(soldiers)
+		_face_manual_aim_cell = clicked_soldier.grid_position
+		_face_manual_aim_world = aim_world
 		_sync_face_soldier_views()
 
 	var fire_shooters: Array[SoldierState] = []
