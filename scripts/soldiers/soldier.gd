@@ -66,6 +66,9 @@ var _throw_grenade_active: bool = false
 var _throw_world_direction: String = "n"
 var _throw_release_fired: bool = false
 var _throw_return_prone: bool = false
+## Grenade presentation: enter kneel → throw → exit kneel (authoritative stance unchanged).
+enum ThrowPresPhase { NONE, ENTER_KNEEL, THROW, EXIT_KNEEL }
+var _throw_pres_phase: int = ThrowPresPhase.NONE
 var _fire_active: bool = false
 var _fire_return_prone: bool = false
 var _fire_semantic: String = "fire_standing"
@@ -1564,28 +1567,10 @@ func play_throw_grenade(
 	_apply_hit_reaction_scale(position_state)
 	stop_movement()
 
-	var display_dir := _throw_display_direction()
-	var anim_name := "throw_grenade_%s" % display_dir
-	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
-		push_error(
-			"Soldier: missing throw_grenade animation %s (team=%d soldier=%d family=%s)"
-			% [anim_name, team_id, soldier_id, _throw_source_family()]
-		)
-		_log_throw_grenade(anim_name, "MISSING_ANIMATION")
+	_throw_pres_phase = ThrowPresPhase.ENTER_KNEEL
+	if not _begin_throw_grenade_enter_phase():
 		_throw_grenade_active = false
-		return
-	var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
-	if frame_count <= 0:
-		push_error("Soldier: throw_grenade animation %s has zero frames" % anim_name)
-		_log_throw_grenade(anim_name, "EMPTY_FRAMES")
-		_throw_grenade_active = false
-		return
-
-	_anim.play(anim_name)
-	_log_throw_grenade(anim_name, "PLAY")
-	## If release is disabled (-1), gameplay already armed the fuse on command accept.
-	if not GameplayPolicies.grenade.is_throw_release_enabled_for_team(team_id):
-		_throw_release_fired = true
+		_throw_pres_phase = ThrowPresPhase.NONE
 
 
 ## Presentation-only rifle fire (standing / prone / corner peek). One sequence per accepted shot.
@@ -2353,17 +2338,22 @@ func _begin_fire_sequence(
 
 func _remap_throw_for_camera() -> void:
 	var saved_frame := _anim.frame
+	var semantic := _throw_pres_semantic_for_phase()
 	var display_dir := _throw_display_direction()
-	var anim_name := "throw_grenade_%s" % display_dir
+	var anim_name := (
+		"throw_grenade_%s" % display_dir
+		if semantic == "throw_grenade"
+		else "%s_%s" % [semantic, display_dir]
+	)
 	if not _anim.sprite_frames.has_animation(anim_name):
-		push_error("Soldier: missing throw_grenade animation on camera rotate: %s" % anim_name)
+		push_error("Soldier: missing grenade presentation animation on camera rotate: %s" % anim_name)
 		return
 	if str(_anim.animation) == anim_name:
 		return
 	var max_frame := maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
 	_anim.play(anim_name)
 	_anim.frame = mini(saved_frame, max_frame)
-	_log_throw_grenade(anim_name, "CAMERA_REMAP frame=%d" % _anim.frame)
+	_log_throw_grenade(anim_name, "CAMERA_REMAP phase=%d frame=%d" % [_throw_pres_phase, _anim.frame])
 
 
 func _remap_fire_for_camera() -> void:
@@ -2424,6 +2414,7 @@ func dump_throw_grenade_validation() -> Dictionary:
 		"ordered_frames": frame_paths,
 		"release_callback_fired": _throw_release_fired,
 		"throw_active": _throw_grenade_active,
+		"throw_pres_phase": _throw_pres_phase,
 		"release_frame": GameplayPolicies.grenade.throw_release_frame_for_team(team_id),
 	}
 
@@ -2443,8 +2434,124 @@ func _cancel_throw_grenade_visual(resume_idle: bool) -> void:
 	if not _throw_grenade_active:
 		return
 	_throw_grenade_active = false
+	_throw_pres_phase = ThrowPresPhase.NONE
 	if resume_idle and not _is_dead and not _death_sequence_active:
 		_finish_throw_grenade_idle()
+	else:
+		_restore_throw_authoritative_visual_scale()
+
+
+func _throw_enter_semantic() -> String:
+	return "transition_prone_to_kneel" if _throw_return_prone else "transition_standing_to_kneel"
+
+
+func _throw_exit_semantic() -> String:
+	return "transition_kneel_to_prone" if _throw_return_prone else "transition_kneel_to_stand"
+
+
+func _throw_pres_semantic_for_phase() -> String:
+	match _throw_pres_phase:
+		ThrowPresPhase.ENTER_KNEEL:
+			return _throw_enter_semantic()
+		ThrowPresPhase.THROW:
+			return "throw_grenade"
+		ThrowPresPhase.EXIT_KNEEL:
+			return _throw_exit_semantic()
+		_:
+			return "throw_grenade"
+
+
+func _apply_throw_kneel_visual_scale() -> void:
+	_anim.scale = _standing_sprite_scale()
+	_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
+
+
+func _restore_throw_authoritative_visual_scale() -> void:
+	if _throw_return_prone:
+		_anim.scale = _prone_sprite_scale()
+		_anim.offset = TileSizeConfig.soldier_prone_sprite_offset()
+		_prone_marker.visible = false
+	else:
+		_anim.scale = _standing_sprite_scale()
+		_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
+		_prone_marker.visible = false
+
+
+func _play_throw_pres_anim(semantic: String) -> bool:
+	var display_dir := _throw_display_direction()
+	var anim_name := (
+		"throw_grenade_%s" % display_dir
+		if semantic == "throw_grenade"
+		else "%s_%s" % [semantic, display_dir]
+	)
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+		push_error(
+			"Soldier: missing grenade presentation animation %s (team=%d soldier=%d semantic=%s)"
+			% [anim_name, team_id, soldier_id, semantic]
+		)
+		_log_throw_grenade(anim_name, "MISSING_ANIMATION phase=%d" % _throw_pres_phase)
+		return false
+	var frame_count := _anim.sprite_frames.get_frame_count(anim_name)
+	if frame_count <= 0:
+		push_error("Soldier: grenade presentation animation %s has zero frames" % anim_name)
+		_log_throw_grenade(anim_name, "EMPTY_FRAMES phase=%d" % _throw_pres_phase)
+		return false
+	_anim.play(anim_name)
+	_log_throw_grenade(anim_name, "PLAY phase=%d semantic=%s" % [_throw_pres_phase, semantic])
+	return true
+
+
+func _begin_throw_grenade_enter_phase() -> bool:
+	_throw_pres_phase = ThrowPresPhase.ENTER_KNEEL
+	return _play_throw_pres_anim(_throw_enter_semantic())
+
+
+func _begin_throw_grenade_throw_phase() -> bool:
+	_throw_pres_phase = ThrowPresPhase.THROW
+	if not _play_throw_pres_anim("throw_grenade"):
+		return false
+	## If release is disabled (-1), gameplay already armed the fuse on command accept.
+	if not GameplayPolicies.grenade.is_throw_release_enabled_for_team(team_id):
+		_throw_release_fired = true
+	return true
+
+
+func _begin_throw_grenade_exit_phase() -> bool:
+	_throw_pres_phase = ThrowPresPhase.EXIT_KNEEL
+	return _play_throw_pres_anim(_throw_exit_semantic())
+
+
+func _on_throw_pres_anim_finished(anim_name: String) -> void:
+	if not _throw_grenade_active:
+		return
+	match _throw_pres_phase:
+		ThrowPresPhase.ENTER_KNEEL:
+			if not anim_name.begins_with(_throw_enter_semantic() + "_"):
+				return
+			if _throw_return_prone:
+				_apply_throw_kneel_visual_scale()
+			if not _begin_throw_grenade_throw_phase():
+				_finish_throw_grenade(anim_name)
+		ThrowPresPhase.THROW:
+			if not anim_name.begins_with("throw_grenade_"):
+				return
+			if not _begin_throw_grenade_exit_phase():
+				_finish_throw_grenade(anim_name)
+		ThrowPresPhase.EXIT_KNEEL:
+			if not anim_name.begins_with(_throw_exit_semantic() + "_"):
+				return
+			_finish_throw_grenade(anim_name)
+
+
+## Test hook: advance grenade presentation as if the current animation finished.
+func debug_simulate_throw_anim_finished() -> void:
+	if not _throw_grenade_active:
+		return
+	_on_throw_pres_anim_finished(str(_anim.animation))
+
+
+func debug_throw_pres_phase() -> int:
+	return _throw_pres_phase
 
 
 func _fire_display_direction() -> String:
@@ -2592,6 +2699,10 @@ func _on_anim_frame_changed() -> void:
 			_log_fire_anim(str(_anim.animation), "VISUAL_SHOT_FRAME frame=%d" % _anim.frame)
 	if not _throw_grenade_active or _throw_release_fired:
 		return
+	if _throw_pres_phase != ThrowPresPhase.THROW:
+		return
+	if not str(_anim.animation).begins_with("throw_grenade_"):
+		return
 	if not GameplayPolicies.grenade.is_throw_release_enabled_for_team(team_id):
 		return
 	var release_frame := GameplayPolicies.grenade.throw_release_frame_for_team(team_id)
@@ -2666,7 +2777,7 @@ func _on_anim_animation_finished() -> void:
 		return
 
 	if _throw_grenade_active and not _death_sequence_active:
-		_finish_throw_grenade(anim_name)
+		_on_throw_pres_anim_finished(anim_name)
 		return
 
 	if _hit_reaction_active and not _death_sequence_active:
@@ -2716,6 +2827,7 @@ func _on_anim_animation_finished() -> void:
 
 func _finish_throw_grenade(anim_name: String) -> void:
 	_throw_grenade_active = false
+	_throw_pres_phase = ThrowPresPhase.NONE
 	_log_throw_grenade(anim_name, "COMPLETE → idle")
 	_finish_throw_grenade_idle()
 
@@ -3000,6 +3112,12 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return _prone_idle_source_family()
 		"transition_standing_to_prone", "transition_prone_to_standing":
 			return "APRNA" if team_id == Team.USA else "GPRNA"
+		"transition_standing_to_kneel":
+			return "ASKNA" if team_id == Team.USA else "GSKNA"
+		"transition_kneel_to_stand":
+			return "AKUPA" if team_id == Team.USA else "GKUPA"
+		"transition_prone_to_kneel", "transition_kneel_to_prone":
+			return "APKNA" if team_id == Team.USA else "GPKNA"
 		"crawl":
 			return "APMOA" if team_id == Team.USA else "GPMOA"
 		_:
