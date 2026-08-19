@@ -26,6 +26,9 @@ func _ready() -> void:
 	await _test_exposed_prone_signal_after_threshold()
 	await _test_covered_standing_does_not_signal_prone()
 	await _test_stance_finish_returns_prone_aim_when_engaged()
+	await _test_stance_transition_blocks_aim_hold_mid_drop()
+	await _test_prone_play_fire_uses_fire_prone_semantic()
+	await _test_prone_aim_hold_faces_target_cell()
 	await _test_hold_fire_clears_aim()
 	await _test_fire_at_will_idle_not_aiming()
 	print("")
@@ -189,15 +192,85 @@ func _test_stance_finish_returns_prone_aim_when_engaged() -> void:
 	soldier._presentation_engaged = true
 	soldier._aim_hold_last_target_team_id = Team.GERMANY
 	soldier._aim_hold_last_target_soldier_id = 1
+	soldier._facing_from_cell = Vector2i(20, 20)
+	soldier._fire_target_cell = Vector2i(30, 20)
 	soldier._stance_transition_active = true
 	soldier._stance_transition_target = PositionState.DOWN
 	soldier._exposed_prone_pending = true
+	soldier._applied_position_state = PositionState.DOWN
 	soldier._finish_stance_transition("transition_standing_to_prone_e")
 	var after := str(soldier._anim.animation)
 	_assert(
 		"stance finish → prone aim hold",
 		_is_aim_hold_anim(after) or after.begins_with("aim_prone_"),
 		after,
+	)
+	soldier.queue_free()
+	await get_tree().process_frame
+
+
+func _test_stance_transition_blocks_aim_hold_mid_drop() -> void:
+	var soldier := _new_soldier()
+	await get_tree().process_frame
+	var state := _engaged_state(Vector2i(20, 20), Vector2i(30, 20))
+	soldier._fire_target_cell = Vector2i(30, 20)
+	soldier._presentation_engaged = true
+	soldier._aim_hold_last_target_team_id = Team.GERMANY
+	soldier._aim_hold_last_target_soldier_id = 1
+	soldier._facing_from_cell = Vector2i(20, 20)
+	soldier.play_stance_transition(PositionState.DOWN, FacingDirection.EAST)
+	var during := str(soldier._anim.animation)
+	soldier._sync_fire_aim_hold(state)
+	var after := str(soldier._anim.animation)
+	_assert(
+		"stance transition not replaced by aim hold",
+		during.begins_with("transition_standing_to_prone_") and after == during,
+		"during=%s after=%s" % [during, after],
+	)
+	soldier.queue_free()
+	await get_tree().process_frame
+
+
+func _test_prone_play_fire_uses_fire_prone_semantic() -> void:
+	var from_cell := Vector2i(20, 20)
+	var target_cell := Vector2i(30, 20)
+	var soldier := _new_soldier()
+	await get_tree().process_frame
+	soldier._facing_from_cell = from_cell
+	soldier._applied_position_state = PositionState.DOWN
+	soldier._fire_target_cell = target_cell
+	soldier.play_fire(
+		PositionState.DOWN,
+		FacingDirection.EAST,
+		CoverSystem.PeekSide.NONE,
+		target_cell,
+	)
+	var anim := str(soldier._anim.animation)
+	_assert("prone play_fire → fire_prone", anim.begins_with("fire_prone_"), anim)
+	soldier.queue_free()
+	await get_tree().process_frame
+
+
+func _test_prone_aim_hold_faces_target_cell() -> void:
+	var from_cell := Vector2i(20, 20)
+	var target_cell := Vector2i(20, 30)
+	var soldier := _new_soldier()
+	await get_tree().process_frame
+	soldier._facing_from_cell = from_cell
+	soldier._last_applied_facing = FacingDirection.EAST
+	soldier._applied_position_state = PositionState.DOWN
+	soldier._fire_target_cell = target_cell
+	soldier._presentation_engaged = true
+	soldier._aim_hold_last_target_team_id = Team.GERMANY
+	soldier._aim_hold_last_target_soldier_id = 1
+	soldier._begin_fire_aim_hold(PositionState.DOWN)
+	var expected_step := UsSoldierSpriteFrames.snap_step_to_eight_way(target_cell - from_cell)
+	var anim := str(soldier._anim.animation)
+	_assert(
+		"prone aim hold faces target bearing",
+		_is_aim_hold_anim(anim) and soldier._last_applied_facing == expected_step,
+		"anim=%s facing=%s expected=%s"
+		% [anim, soldier._last_applied_facing, expected_step],
 	)
 	soldier.queue_free()
 	await get_tree().process_frame

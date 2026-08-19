@@ -441,6 +441,15 @@ func sync_from_state(
 			and not _presentation_stunned
 		):
 			_sync_fire_aim_hold(state)
+		## Stance transition owns the drop/stand clip — only refresh combat bearing.
+		elif (
+			_stance_transition_active
+			and not _fire_active
+			and not _is_dead
+			and not _presentation_stunned
+			and _should_maintain_fire_aim_hold_from_state(state)
+		):
+			_sync_combat_facing_toward_fire_target()
 		return
 
 	_dead_marker.visible = false
@@ -645,6 +654,8 @@ func apply_idle_pose_inputs(
 	_presentation_fire_control = fire_control_state
 	if fire_aim_cell.x > -900:
 		_fire_target_cell = fire_aim_cell
+	if state != null:
+		_facing_from_cell = state.grid_position
 	## Combat-tick light refresh must re-assert aim — full sync_from_state is rare.
 	if state != null and not _is_dead and not _presentation_stunned:
 		_sync_fire_aim_hold(state)
@@ -930,7 +941,12 @@ func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> voi
 	):
 		_interrupt_standing_idle_for_action()
 	_commit_sprite_facing_from_step(step, from_cell)
-	if not _is_moving and not _blocks_action_override():
+	if (
+		not _is_moving
+		and not _blocks_action_override()
+		and not _fire_aim_hold_active
+		and not _fire_aim_enter_active
+	):
 		_update_locomotion_visual(step, false)
 	if _facing_arrow != null and _show_facing_arrow():
 		_facing_arrow.rotation_degrees = IsometricGrid.grid_facing_to_degrees(_last_applied_facing, from_cell)
@@ -1935,13 +1951,30 @@ func _clear_corner_presentation(_resume_idle: bool) -> void:
 	_refresh_corner_lean_offset()
 
 
+func _aim_hold_position_state(state: SoldierState) -> int:
+	## Presentation stance can lead authoritative during stance transition / drop anim.
+	if _stance_transition_active:
+		return _stance_transition_target
+	if _applied_position_state == PositionState.DOWN:
+		return PositionState.DOWN
+	if state != null and state.position_state == PositionState.DOWN:
+		return PositionState.DOWN
+	return PositionState.UP
+
+
 func _sync_fire_aim_hold(state: SoldierState) -> void:
 	## Establish or clear open aim-hold while engaged / between shots.
 	if state != null:
+		_facing_from_cell = state.grid_position
 		_presentation_engaged = state.is_engaged()
 		if not _presentation_engaged:
 			_exposed_standing_shots_completed = 0
 			_exposed_prone_pending = false
+	if _stance_transition_active:
+		## Never replace the drop/stand clip — finish_stance_transition starts prone aim.
+		if state != null and _should_maintain_fire_aim_hold_from_state(state):
+			_sync_combat_facing_toward_fire_target()
+		return
 	if _idle_fidget_active and (_presentation_engaged or _should_maintain_fire_aim_hold_from_state(state)):
 		_interrupt_standing_idle_for_action()
 	if state == null or _fire_active or _is_dead or _presentation_stunned:
@@ -1979,7 +2012,7 @@ func _sync_fire_aim_hold(state: SoldierState) -> void:
 		_aim_hold_disengage_msec = SimulationClock.get_ticks_msec()
 	if _should_maintain_fire_aim_hold_from_state(state):
 		_sync_combat_facing_toward_fire_target()
-		_begin_fire_aim_hold(state.position_state)
+		_begin_fire_aim_hold(_aim_hold_position_state(state))
 	elif _fire_aim_hold_active or _fire_aim_enter_active:
 		_clear_fire_aim_hold(true, "sync_not_aiming")
 		if not state.is_engaged():
@@ -2421,7 +2454,7 @@ func _begin_fire_sequence(
 		_corner_phase = CornerPresPhase.FIRING
 		_corner_peek_side = peek_side
 	_fire_semantic = GameplayPolicies.fire_anim.semantic_for(position_state, peek_side)
-	_commit_combat_facing(facing_direction, _fire_target_cell)
+	_commit_combat_facing(facing_direction, _fire_target_cell, _facing_from_cell)
 	_apply_hit_reaction_scale(position_state)
 
 	var world_dir := _body_world_direction()
@@ -2720,13 +2753,6 @@ func _sync_combat_facing_toward_fire_target() -> void:
 
 func _finish_stance_transition(anim_name: String) -> void:
 	var target := _stance_transition_target
-	var world_dir := (
-		_stance_transition_world_direction
-		if not _stance_transition_world_direction.is_empty()
-		else _locomotion_direction
-	)
-	if world_dir.is_empty():
-		world_dir = "n"
 	_stance_transition_active = false
 	_log_stance_transition(anim_name, "COMPLETE → clear pending gate")
 	## Destination stance visuals (go-down already applied at PLAY).
@@ -2740,8 +2766,6 @@ func _finish_stance_transition(anim_name: String) -> void:
 		_anim.scale = _standing_sprite_scale()
 		_anim.offset = TileSizeConfig.soldier_standing_sprite_offset()
 		_prone_marker.visible = false
-	_locomotion_direction = world_dir
-	_locomotion_walking = true
 	if _exposed_prone_pending:
 		_exposed_prone_pending = false
 	if _should_maintain_fire_aim_hold():
@@ -2749,7 +2773,10 @@ func _finish_stance_transition(anim_name: String) -> void:
 		_fire_return_prone = _applied_position_state == PositionState.DOWN
 		_begin_fire_aim_hold(_applied_position_state)
 	else:
-		_play_locomotion(world_dir, false)
+		_sync_combat_facing_toward_fire_target()
+		_locomotion_walking = true
+		var idle_dir := _body_world_direction()
+		_play_locomotion(idle_dir if not idle_dir.is_empty() else "n", false)
 	_sync_facing_arrow_visibility()
 	stance_transition_finished.emit(team_id, soldier_id, target)
 
