@@ -1912,6 +1912,7 @@ func _spawn_all_soldier_views() -> void:
 			view.movement_finished.connect(_on_soldier_movement_finished)
 			view.stance_transition_finished.connect(_on_soldier_stance_transition_finished)
 			view.stance_transition_cancelled.connect(_on_soldier_stance_transition_cancelled)
+			view.exposed_engagement_prone_requested.connect(_on_soldier_exposed_engagement_prone_requested)
 			movers_root.add_child(view)
 			_soldier_views[Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)] = view
 			spawned += 1
@@ -2003,6 +2004,7 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 	var view: Soldier = _get_view(team_id, soldier_id)
 	if view == null:
 		return
+	view.set_presentation_map_data(_map_data)
 	var fog_visual: int = Soldier.FogVisual.REVEALED
 	if soldier_state.team_id != _session.active_team_id and soldier_state.is_alive():
 		fog_visual = _fog_visual_for_enemy(soldier_state)
@@ -3205,6 +3207,21 @@ func _on_soldier_stance_transition_cancelled(team_id: int, soldier_id: int) -> v
 	var soldier: SoldierState = _game_state.get_soldier(team_id, soldier_id)
 	if soldier != null:
 		soldier.clear_pending_position()
+
+
+func _on_soldier_exposed_engagement_prone_requested(team_id: int, soldier_id: int) -> void:
+	var soldier_state: SoldierState = _game_state.get_soldier(team_id, soldier_id)
+	if soldier_state == null or soldier_state.is_dead:
+		return
+	if soldier_state.position_state == PositionStateClass.DOWN:
+		return
+	if soldier_state.pending_position_state >= 0:
+		return
+	var cmd := PositionCommand.new()
+	cmd.team_id = team_id
+	cmd.soldier_id = soldier_id
+	cmd.position_state = PositionStateClass.DOWN
+	_apply_position_command(cmd)
 
 
 func _log_move_order(clicked_tile: Vector2i, path: Array[Vector2i], state: SoldierState) -> void:

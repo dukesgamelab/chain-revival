@@ -45,6 +45,17 @@ func _is_idle_family_anim(anim: String) -> bool:
 	)
 
 
+func _is_aim_family_anim(anim: String) -> bool:
+	return (
+		anim.begins_with("aim_standing_hold_")
+		or anim.begins_with("aim_prone_hold_")
+		or (
+			anim.begins_with("aim_standing_")
+			and not anim.begins_with("aim_standing_hold_")
+		)
+	)
+
+
 func _test_engaged_sync_stays_idle_all_cameras() -> void:
 	var from_cell := Vector2i(20, 20)
 	var target_cell := Vector2i(30, 20)
@@ -78,8 +89,8 @@ func _test_engaged_sync_stays_idle_all_cameras() -> void:
 		soldier.sync_from_state(state, true, Soldier.FogVisual.REVEALED, true)
 		var after := str(soldier._anim.animation)
 		_assert(
-			"engaged sync stays idle rot=%d → %s" % [rot, after],
-			_is_idle_family_anim(after) and not after.begins_with("aim_") and not after.begins_with("fire_"),
+			"engaged sync → aim hold rot=%d → %s" % [rot, after],
+			_is_aim_family_anim(after) and not after.begins_with("fire_"),
 			"hold=%s enter=%s" % [soldier._fire_aim_hold_active, soldier._fire_aim_enter_active],
 		)
 		soldier.queue_free()
@@ -116,7 +127,7 @@ func _test_post_fire_returns_idle_all_cameras() -> void:
 		soldier._finish_fire(fire_anim)
 		var after_finish := str(soldier._anim.animation)
 		_assert(
-			"post-fire idle rot=%d → %s" % [rot, after_finish],
+			"post-fire idle when not engaged rot=%d → %s" % [rot, after_finish],
 			_is_idle_family_anim(after_finish),
 			"hold=%s" % soldier._fire_aim_hold_active,
 		)
@@ -132,8 +143,8 @@ func _test_post_fire_returns_idle_all_cameras() -> void:
 		soldier.sync_from_state(state, true, Soldier.FogVisual.REVEALED, true)
 		var after_sync := str(soldier._anim.animation)
 		_assert(
-			"post-fire sync stays idle rot=%d → %s" % [rot, after_sync],
-			_is_idle_family_anim(after_sync),
+			"post-fire sync engaged → aim hold rot=%d → %s" % [rot, after_sync],
+			_is_aim_family_anim(after_sync),
 			"got %s" % after_sync,
 		)
 		soldier.queue_free()

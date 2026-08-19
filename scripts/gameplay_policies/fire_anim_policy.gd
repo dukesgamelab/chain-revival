@@ -15,6 +15,8 @@ const DEFAULT_CORNER_OFFSET_RIGHT_TILES := 0.25
 const DEFAULT_CORNER_OFFSET_RUN_FACTOR := 0.7
 ## TUNED — survive CombatSystem clear→re-acquire flicker without dropping aim pose.
 const DEFAULT_AIM_HOLD_DISENGAGE_GRACE_SEC := 1.0
+## TUNED — exposed standing soldiers drop prone after this many completed standing shots (OG video).
+const DEFAULT_EXPOSED_STANDING_SHOTS_BEFORE_PRONE := 1
 
 ## Per-family visual shot markers (presentation sync only; gameplay shots stay authoritative).
 var visual_shot_frame_asfia: int = DEFAULT_VISUAL_SHOT_FRAME
@@ -31,6 +33,8 @@ var corner_offset_right_tiles: float = DEFAULT_CORNER_OFFSET_RIGHT_TILES
 var corner_offset_run_factor: float = DEFAULT_CORNER_OFFSET_RUN_FACTOR
 ## TUNED — presentation-only; does not change combat engage/clear timing.
 var aim_hold_disengage_grace_sec: float = DEFAULT_AIM_HOLD_DISENGAGE_GRACE_SEC
+## TUNED — presentation-only; first implementation from OG firing video (not recovered constant).
+var exposed_standing_shots_before_prone: int = DEFAULT_EXPOSED_STANDING_SHOTS_BEFORE_PRONE
 
 ## Dev counters: authoritative shot events vs visual fire triggers.
 var authoritative_shot_event_count: int = 0
@@ -51,6 +55,7 @@ func reset_to_defaults() -> void:
 	corner_offset_right_tiles = DEFAULT_CORNER_OFFSET_RIGHT_TILES
 	corner_offset_run_factor = DEFAULT_CORNER_OFFSET_RUN_FACTOR
 	aim_hold_disengage_grace_sec = DEFAULT_AIM_HOLD_DISENGAGE_GRACE_SEC
+	exposed_standing_shots_before_prone = DEFAULT_EXPOSED_STANDING_SHOTS_BEFORE_PRONE
 	authoritative_shot_event_count = 0
 	visual_firing_trigger_count = 0
 
@@ -72,6 +77,8 @@ func apply_config(section: Dictionary) -> void:
 		corner_offset_run_factor = float(section.corner_offset_run_factor)
 	if section.has("aim_hold_disengage_grace_sec"):
 		aim_hold_disengage_grace_sec = float(section.aim_hold_disengage_grace_sec)
+	if section.has("exposed_standing_shots_before_prone"):
+		exposed_standing_shots_before_prone = int(section.exposed_standing_shots_before_prone)
 
 
 func source_family_for(

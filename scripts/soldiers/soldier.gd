@@ -6,6 +6,7 @@ extends Node2D
 ## this node only lerps toward the current sim cell / next path cell.
 
 const UsSoldierSpriteFrames := preload("res://scripts/soldiers/us_soldier_sprite_frames.gd")
+const AiSectorObjectivesClass := preload("res://scripts/ai/ai_sector_objectives.gd")
 
 ## Fog-of-war presentation. Gameplay spotting is separate — this is display only.
 enum FogVisual {
@@ -31,6 +32,8 @@ signal grenade_release_reached(team_id: int, soldier_id: int)
 signal stance_transition_finished(team_id: int, soldier_id: int, target_position_state: int)
 ## Fired when a transition is interrupted; gameplay should drop pending_position_state.
 signal stance_transition_cancelled(team_id: int, soldier_id: int)
+## Exposed standing engagement: presentation requests authoritative go-prone via PositionCommand.
+signal exposed_engagement_prone_requested(team_id: int, soldier_id: int)
 
 var soldier_id: int = 1
 var team_id: int = Team.USA
@@ -112,6 +115,14 @@ var _idle_wait_remaining_sec: float = -1.0
 ## Mirrored from SoldierState for idle pose selection (stress / hold-fire / post-shot).
 var _presentation_stress: float = 0.0
 var _presentation_fire_control: int = FireControlState.FIRE_AT_WILL
+## Mirrored from SoldierState.is_engaged() for presentation between sync ticks.
+var _presentation_engaged: bool = false
+## Map ref for threat-relative standing cover queries (set by main on sync).
+var _presentation_map_data: MapData = null
+## Completed standing shots while exposed and engaged (resets when engagement ends).
+var _exposed_standing_shots_completed: int = 0
+## True while waiting for stance transition after exposed-prone request.
+var _exposed_prone_pending: bool = false
 ## Mirrored from SoldierState.is_stunned() — true while sim stun is active.
 var _presentation_stunned: bool = false
 ## Stage 2 stun chain: knockdown → normal idle hold → recover.
@@ -230,6 +241,82 @@ func _blocks_action_override() -> bool:
 	)
 
 
+func set_presentation_map_data(map_data: MapData) -> void:
+	_presentation_map_data = map_data
+
+
+func _threat_cell_for_cover() -> Vector2i:
+	if _fire_target_cell.x > -900:
+		return _fire_target_cell
+	return Vector2i(-999, -999)
+
+
+func _is_standing_covered_vs_threat() -> bool:
+	var threat_cell := _threat_cell_for_cover()
+	if _presentation_map_data == null or threat_cell.x <= -900:
+		return false
+	return AiSectorObjectivesClass.stand_covered_vs_threat(
+		_facing_from_cell,
+		threat_cell,
+		_presentation_map_data,
+	)
+
+
+func _should_maintain_fire_aim_hold() -> bool:
+	if _fire_active or _corner_phase_blocks_locomotion():
+		return false
+	if _presentation_engaged:
+		return true
+	if _aim_hold_last_target_team_id < 0 or _aim_hold_last_target_soldier_id <= 0:
+		return false
+	return _aim_hold_should_persist_without_state()
+
+
+func _aim_hold_should_persist_without_state() -> bool:
+	if _presentation_fire_control != FireControlState.FIRE_AT_WILL:
+		return false
+	if _aim_hold_disengage_msec < 0:
+		return false
+	var grace_sec := GameplayPolicies.fire_anim.aim_hold_disengage_grace_sec
+	if grace_sec <= 0.0:
+		return false
+	var elapsed_msec := SimulationClock.get_ticks_msec() - _aim_hold_disengage_msec
+	return elapsed_msec < int(grace_sec * 1000.0)
+
+
+func _should_maintain_fire_aim_hold_from_state(state: SoldierState) -> bool:
+	if state != null and state.is_engaged():
+		return true
+	if _aim_hold_last_target_team_id < 0 or _aim_hold_last_target_soldier_id <= 0:
+		return false
+	return _aim_hold_should_persist(state)
+
+
+func _maybe_request_exposed_prone_after_shot() -> bool:
+	if _exposed_prone_pending or _stance_transition_active:
+		return false
+	if not _presentation_engaged:
+		return false
+	if _applied_position_state == PositionState.DOWN or _fire_return_prone:
+		return false
+	if _fire_peek_side != CoverSystem.PeekSide.NONE or _corner_peek_side != CoverSystem.PeekSide.NONE:
+		return false
+	if _is_standing_covered_vs_threat():
+		return false
+	_exposed_standing_shots_completed += 1
+	var threshold := maxi(GameplayPolicies.fire_anim.exposed_standing_shots_before_prone, 1)
+	if _exposed_standing_shots_completed < threshold:
+		return false
+	_exposed_prone_pending = true
+	exposed_engagement_prone_requested.emit(team_id, soldier_id)
+	return true
+
+
+## Test hook: exposed standing shot count for current engagement.
+func debug_exposed_standing_shots_completed() -> int:
+	return _exposed_standing_shots_completed
+
+
 func _corner_phase_blocks_locomotion() -> bool:
 	return (
 		_corner_phase == CornerPresPhase.PEEKING_OUT
@@ -262,6 +349,10 @@ func sync_from_state(
 		_fire_target_cell = fire_aim_cell
 	_presentation_stress = state.stress
 	_presentation_fire_control = state.fire_control_state
+	_presentation_engaged = state.is_engaged()
+	if not _presentation_engaged:
+		_exposed_standing_shots_completed = 0
+		_exposed_prone_pending = false
 	_presentation_movement_mode = state.movement_mode
 	if previous_team != team_id or _anim.sprite_frames == null:
 		_configure_team_visual()
@@ -339,6 +430,7 @@ func sync_from_state(
 		soldier_id = state.soldier_id
 		team_id = state.team_id
 		_set_world_position_from_cell(state.grid_position)
+		_last_applied_facing = FacingDirection.normalize(state.facing_direction)
 		_apply_fog_visual(fog_visual, is_selected)
 		_refresh_id_marker(state)
 		## Corner CAS between shots must not block Stage 1 open aim hold.
@@ -1844,9 +1936,13 @@ func _clear_corner_presentation(_resume_idle: bool) -> void:
 
 
 func _sync_fire_aim_hold(state: SoldierState) -> void:
-	## Clear stale open aim-hold latch only. Idle / engagement never drive ASAPA/ASAIS —
-	## those belong to fire and corner peek pipelines, not the standing idle family.
-	if _idle_fidget_active:
+	## Establish or clear open aim-hold while engaged / between shots.
+	if state != null:
+		_presentation_engaged = state.is_engaged()
+		if not _presentation_engaged:
+			_exposed_standing_shots_completed = 0
+			_exposed_prone_pending = false
+	if _idle_fidget_active and (_presentation_engaged or _should_maintain_fire_aim_hold_from_state(state)):
 		_interrupt_standing_idle_for_action()
 	if state == null or _fire_active or _is_dead or _presentation_stunned:
 		if _fire_aim_hold_active and (
@@ -1875,13 +1971,23 @@ func _sync_fire_aim_hold(state: SoldierState) -> void:
 		_aim_hold_last_target_team_id = state.engaged_target_team_id
 		_aim_hold_last_target_soldier_id = state.engaged_target_soldier_id
 		_aim_hold_disengage_msec = -1
-	elif _aim_hold_disengage_msec < 0:
+	elif (
+		_aim_hold_last_target_team_id >= 0
+		and _aim_hold_last_target_soldier_id > 0
+		and _aim_hold_disengage_msec < 0
+	):
 		_aim_hold_disengage_msec = SimulationClock.get_ticks_msec()
-	if _fire_aim_hold_active or _fire_aim_enter_active:
-		_clear_fire_aim_hold(true, "sync_idle_no_aim")
-	if not state.is_engaged():
+	if _should_maintain_fire_aim_hold_from_state(state):
+		_sync_combat_facing_toward_fire_target()
+		_begin_fire_aim_hold(state.position_state)
+	elif _fire_aim_hold_active or _fire_aim_enter_active:
+		_clear_fire_aim_hold(true, "sync_not_aiming")
+		if not state.is_engaged():
+			_fire_target_cell = Vector2i(-999, -999)
+		_clear_stale_open_fire_pose()
+	elif not state.is_engaged():
 		_fire_target_cell = Vector2i(-999, -999)
-	_clear_stale_open_fire_pose()
+		_clear_stale_open_fire_pose()
 
 
 func _aim_hold_firing_posture(state: SoldierState) -> bool:
@@ -1898,6 +2004,10 @@ func _aim_hold_should_persist(state: SoldierState) -> bool:
 	## Survive clear→re-acquire: short grace, or whole HUD Aiming cycle (fire_ready).
 	if not _aim_hold_firing_posture(state):
 		return false
+	if _aim_hold_last_target_team_id < 0 or _aim_hold_last_target_soldier_id <= 0:
+		return false
+	if state.is_engaged():
+		return true
 	if state.fire_ready_after_msec > SimulationClock.get_ticks_msec():
 		return true
 	if _aim_hold_disengage_msec < 0:
@@ -2086,6 +2196,8 @@ func _clear_fire_aim_hold(resume_idle: bool = false, reason: String = "") -> voi
 		and not _is_dead
 	):
 		_play_locomotion(_body_world_direction(), false)
+		_idle_wait_remaining_sec = -1.0
+		_maybe_arm_standing_idle_timer()
 
 
 func _aim_hold_semantic(position_state: int) -> String:
@@ -2127,7 +2239,11 @@ func _begin_fire_aim_hold(position_state: int) -> void:
 		or _corner_phase == CornerPresPhase.AIMING
 	):
 		_clear_corner_presentation(false)
-	var hold_facing := _commit_combat_facing(_last_applied_facing, _fire_target_cell)
+	var hold_facing := _commit_combat_facing(
+		_last_applied_facing,
+		_fire_target_cell,
+		_facing_from_cell,
+	)
 	var world_dir := _body_world_direction()
 	var hold_semantic := _aim_hold_semantic(position_state)
 	var hold_anim := _sprite_anim_name(hold_semantic, world_dir)
@@ -2593,6 +2709,15 @@ func _cancel_stance_transition_visual(resume_idle: bool) -> void:
 		_play_locomotion(idle_dir if not idle_dir.is_empty() else "n", false)
 
 
+func _sync_combat_facing_toward_fire_target() -> void:
+	## Authoritative facing may advance during stance transition — latch presentation to target.
+	var aim_step := _resolve_fire_facing_step(Vector2i.ZERO, _fire_target_cell)
+	if aim_step == Vector2i.ZERO:
+		aim_step = FacingDirection.normalize(_last_applied_facing)
+	if aim_step != Vector2i.ZERO:
+		_commit_sprite_facing_from_step(aim_step, _facing_from_cell)
+
+
 func _finish_stance_transition(anim_name: String) -> void:
 	var target := _stance_transition_target
 	var world_dir := (
@@ -2617,7 +2742,14 @@ func _finish_stance_transition(anim_name: String) -> void:
 		_prone_marker.visible = false
 	_locomotion_direction = world_dir
 	_locomotion_walking = true
-	_play_locomotion(world_dir, false)
+	if _exposed_prone_pending:
+		_exposed_prone_pending = false
+	if _should_maintain_fire_aim_hold():
+		_sync_combat_facing_toward_fire_target()
+		_fire_return_prone = _applied_position_state == PositionState.DOWN
+		_begin_fire_aim_hold(_applied_position_state)
+	else:
+		_play_locomotion(world_dir, false)
 	_sync_facing_arrow_visibility()
 	stance_transition_finished.emit(team_id, soldier_id, target)
 
@@ -2868,8 +3000,11 @@ func _finish_fire(anim_name: String) -> void:
 			)
 		_clear_corner_presentation(false)
 	_fire_peek_side = CoverSystem.PeekSide.NONE
-	if not _fire_return_prone and not _is_moving:
+	if not _fire_return_prone and not _is_moving and not _should_maintain_fire_aim_hold():
 		_begin_post_shot_crouch()
+	if _maybe_request_exposed_prone_after_shot():
+		_finish_fire_idle()
+		return
 	_finish_fire_idle()
 
 
@@ -2903,6 +3038,17 @@ func _tick_post_shot_crouch(delta: float) -> void:
 
 
 func _finish_fire_idle() -> void:
+	if _exposed_prone_pending or _stance_transition_active:
+		_clear_stale_open_fire_pose()
+		_sync_facing_arrow_visibility()
+		return
+	if _should_maintain_fire_aim_hold():
+		_sync_combat_facing_toward_fire_target()
+		_begin_fire_aim_hold(
+			PositionState.DOWN if _applied_position_state == PositionState.DOWN else PositionState.UP
+		)
+		_sync_facing_arrow_visibility()
+		return
 	## Fire/aim oneshots must not linger — idle family owns the stationary pose.
 	_clear_fire_aim_hold(false, "finish_fire_idle")
 	_clear_stale_open_fire_pose()
@@ -3290,11 +3436,10 @@ func _can_standing_fidget() -> bool:
 		return false
 	if _blocks_action_override():
 		return false
+	if _presentation_engaged or _should_maintain_fire_aim_hold():
+		return false
 	if _fire_aim_hold_active or _fire_aim_enter_active:
-		if not _fire_active:
-			_clear_fire_aim_hold(false, "fidget_stale_hold")
-		else:
-			return false
+		return false
 	## Allow unset (-1) during first sync: facing can run before position visual.
 	if _applied_position_state == PositionState.DOWN:
 		return false
@@ -3328,9 +3473,12 @@ func _ensure_standing_idle_timer() -> void:
 
 
 func _arm_standing_idle_timer(force_restart: bool = true) -> void:
+	if _presentation_engaged or _should_maintain_fire_aim_hold():
+		_idle_wait_remaining_sec = -1.0
+		return
 	if _fire_aim_hold_active or _fire_aim_enter_active:
-		if not _fire_active:
-			_clear_fire_aim_hold(false, "fidget_rearm_stale_hold")
+		_idle_wait_remaining_sec = -1.0
+		return
 	if not _can_standing_fidget():
 		_idle_wait_remaining_sec = -1.0
 		_log_idle_fidget_state("arm_blocked")
