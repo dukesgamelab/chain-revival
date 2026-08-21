@@ -122,6 +122,12 @@ const _FRAME_SPIKE_LOG_MSEC := 50.0
 var _boot_complete: bool = false
 var _loading_overlay: CanvasLayer = null
 var _loading_label: Label = null
+var _loading_blurb_label: Label = null
+
+const SURVIVAL_LOADING_BLURB := (
+	"The U.S. holds ground deep in German lines — but the counterattack never stops. "
+	+ "Hold the objective against wave after wave of reinforcements. Do you have what it takes?"
+)
 
 
 func _ready() -> void:
@@ -172,7 +178,7 @@ func _ready() -> void:
 		_on_timed_deployment_finished()
 		_refresh_survival_hud()
 		_command_bar.show_status(
-			"Survival Mode: hold the objective. German reinforcements every 60s."
+			"Survival Mode: hold the objective. German reinforcements every 30s."
 		)
 	else:
 		_ensure_command_dialog()
@@ -350,6 +356,7 @@ func _show_loading_overlay(message: String) -> void:
 	_loading_overlay.add_child(center)
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 10)
 	center.add_child(col)
 	var title := Label.new()
 	title.text = "Chain Revival"
@@ -357,6 +364,21 @@ func _show_loading_overlay(message: String) -> void:
 	title.add_theme_font_size_override("font_size", 28)
 	title.add_theme_color_override("font_color", Color(0.9, 0.93, 0.85, 1.0))
 	col.add_child(title)
+	if _is_survival_pending():
+		var mode_title := Label.new()
+		mode_title.text = "Survival Mode: 1 v All"
+		mode_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		mode_title.add_theme_font_size_override("font_size", 20)
+		mode_title.add_theme_color_override("font_color", Color(0.82, 0.88, 0.72, 1.0))
+		col.add_child(mode_title)
+		_loading_blurb_label = Label.new()
+		_loading_blurb_label.text = SURVIVAL_LOADING_BLURB
+		_loading_blurb_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_loading_blurb_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_loading_blurb_label.custom_minimum_size = Vector2(520, 0)
+		_loading_blurb_label.add_theme_font_size_override("font_size", 14)
+		_loading_blurb_label.add_theme_color_override("font_color", Color(0.72, 0.76, 0.66, 1.0))
+		col.add_child(_loading_blurb_label)
 	_loading_label = Label.new()
 	_loading_label.text = message
 	_loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -364,6 +386,11 @@ func _show_loading_overlay(message: String) -> void:
 	_loading_label.add_theme_color_override("font_color", Color(0.75, 0.8, 0.68, 1.0))
 	col.add_child(_loading_label)
 	add_child(_loading_overlay)
+
+
+func _is_survival_pending() -> bool:
+	var cfg = MatchConfigStoreClass.peek_pending()
+	return cfg != null and cfg.is_survival_1v_all()
 
 
 func _set_loading_status(message: String) -> void:
@@ -376,12 +403,13 @@ func _hide_loading_overlay() -> void:
 		_loading_overlay.queue_free()
 		_loading_overlay = null
 		_loading_label = null
+		_loading_blurb_label = null
 
 
 func _show_startup_status() -> void:
 	if _is_survival_mode():
 		_command_bar.show_status(
-			"Survival Mode: 1 v All — defend the US objective. Next GE wave in 60s."
+			"Survival Mode: 1 v All — defend the US objective. Next GE wave in 30s."
 		)
 		return
 	if _map_data != null and _map_data.is_original_visual_map():

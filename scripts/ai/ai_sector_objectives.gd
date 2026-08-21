@@ -21,6 +21,14 @@ static func objectives_for_plan(
 	var enemy_team: int = Team.GERMANY if team_id == Team.USA else Team.USA
 	var own_anchor := _team_anchor(game_state, team_id)
 	var enemy_anchor := _team_anchor(game_state, enemy_team)
+	## Survival GE waves always press the US victory point — not mid-map sector markers.
+	if game_state.survival_mode and team_id == Team.GERMANY:
+		var us_vp := _nearest_victory_point(game_state.map_data, enemy_anchor)
+		if us_vp.x > -900:
+			out.append(
+				AiObjectiveClass.make("survival_us_vp", "US Objective", us_vp, "sector", 20)
+			)
+		return out
 	var sectors := _sector_cells(game_state.map_data, own_anchor, enemy_anchor)
 	var plan := AiPlanClass.normalize_id(plan_id)
 

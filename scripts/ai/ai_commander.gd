@@ -399,7 +399,7 @@ func _run_state(
 				state_id = AiCommanderStateClass.CONTACT
 				_clear_cover_settlement()
 				_engage_contact(game_state, find_path, submit_command, reaction, visible)
-			elif _under_suppression(game_state):
+			elif _under_suppression(game_state) and not _is_survival_germany_attacker(game_state):
 				## Under fire — RUN to cover facing the nearest known enemy (not spawn anchor).
 				var approach := _threat_cell_or_approach(game_state, known)
 				var center := _formation_center(game_state)
@@ -455,6 +455,10 @@ func _run_state(
 			else:
 				## Fight from cover — do not push the objective while threats are in react range.
 				_engage_contact(game_state, find_path, submit_command, reaction, visible)
+				if _is_survival_germany_attacker(game_state) and not _objective_reached(game_state):
+					_try_survival_advance_while_fighting(
+						game_state, find_path, submit_command, reaction
+					)
 		AiCommanderStateClass.OBJECTIVE_COMPLETE:
 			if _is_hold_objective():
 				state_id = AiCommanderStateClass.FIGHT
@@ -599,8 +603,9 @@ func _engage_contact(
 	_try_grenade(game_state, submit_command, fire_pool if not fire_pool.is_empty() else threats)
 
 	## 5) Optional short cover-to-cover crawl if objective remains and threat is not point-blank.
+	var may_bound := _settled_in_cover or _is_survival_germany_attacker(game_state)
 	if (
-		_settled_in_cover
+		may_bound
 		and not _fireteam_is_moving(game_state)
 		and not _objective_reached(game_state)
 		and threat_dist >= CLOSE_RANGE_DIST
@@ -888,7 +893,7 @@ func _move_toward_objective(game_state, find_path: Callable, submit_command: Cal
 	if _is_hold_objective() and _defensive_posts_reached(game_state):
 		return
 	## High stress — do not push; prefer holding / looking for cover.
-	if _under_suppression(game_state):
+	if _under_suppression(game_state) and not _is_survival_germany_attacker(game_state):
 		return
 	var lead = _lead_soldier(game_state)
 	if lead == null:
@@ -1126,6 +1131,32 @@ func _under_suppression(game_state) -> bool:
 	if retreat_threshold > 0.0 and avg >= retreat_threshold:
 		return true
 	return avg >= STRESS_COVER_PRIORITY
+
+
+## Survival Mode GE waves always press the US objective marker.
+func _is_survival_germany_attacker(game_state) -> bool:
+	if game_state == null or not game_state.survival_mode:
+		return false
+	if game_state.command_hierarchy == null:
+		return false
+	return game_state.command_hierarchy.get_team_id(player_id) == Team.GERMANY
+
+
+## Cover-to-cover bound toward the US VP while engaged — survival only.
+func _try_survival_advance_while_fighting(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+	threats: Array,
+) -> void:
+	if _fireteam_is_moving(game_state) or not _has_command_budget():
+		return
+	if not threats.is_empty() and _try_contact_bound_forward(
+		game_state, find_path, submit_command, threats
+	):
+		return
+	if not _under_heavy_fire(game_state):
+		_move_toward_objective(game_state, find_path, submit_command)
 
 
 ## Heavy fire → crawl into cover; otherwise dash. Distinct from soft suppression.

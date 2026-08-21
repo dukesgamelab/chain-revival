@@ -6,7 +6,7 @@ const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 
-const WAVE_INTERVAL_SEC := 60.0
+const WAVE_INTERVAL_SEC := 30.0
 const SOLDIERS_PER_WAVE := 4
 
 var wave_count: int = 1
@@ -37,8 +37,7 @@ static func us_objective_cell(map_data) -> Vector2i:
 		if entry is Dictionary:
 			return Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
 	if not map_data.team_1_spawn_points.is_empty():
-		var anchor := map_data.team_1_spawn_points[0]
-		return anchor
+		return map_data.team_1_spawn_points[0] as Vector2i
 	return Vector2i(21, 16)
 
 
@@ -104,7 +103,7 @@ func spawn_reinforcement_wave(
 		soldier_ids.append(next_ge_soldier_id_base + i)
 	next_ge_soldier_id_base += SOLDIERS_PER_WAVE
 
-	var next_ft_id := session.owned_fireteams.size() + 1
+	var next_ft_id: int = session.owned_fireteams.size() + 1
 	var ft := Fireteam.create_owned(
 		next_ft_id,
 		next_player_id,
