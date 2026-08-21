@@ -112,6 +112,8 @@ var _watchdog_logged: bool = false
 ## Per-soldier defensive posts for hold/cover objectives (soldier_id -> cell).
 var _defensive_posts: Dictionary = {}
 var _last_open_prone_msec: int = -999999
+## Survival GE: rotate which soldier bounds forward under fire.
+var _survival_bound_soldier_idx: int = 0
 
 
 func _init(p_player_id: int = -1) -> void:
@@ -243,7 +245,12 @@ func tick(
 	## visible = LOS (firing); known = omniscient (contact / cover / facing).
 	var visible: Array = _snapshot.visible_for(player_id)
 	var known: Array = _snapshot.known_for(player_id)
-	var reaction: Array = _threats_for_reaction(game_state, visible, known)
+	var survival_ge := _is_survival_germany_attacker(game_state)
+	var reaction: Array = (
+		_survival_reaction_threats(game_state, visible, known)
+		if survival_ge
+		else _threats_for_reaction(game_state, visible, known)
+	)
 	if reaction.is_empty():
 		current_target_key = ""
 	else:
@@ -262,7 +269,12 @@ func tick(
 		needs_replan = false
 
 	var state_t0 := Time.get_ticks_usec()
-	_run_state(game_state, find_path, submit_command, visible, known, reaction)
+	if survival_ge:
+		_run_survival_germany_state(
+			game_state, find_path, submit_command, visible, known, reaction
+		)
+	else:
+		_run_state(game_state, find_path, submit_command, visible, known, reaction)
 	var state_usec := Time.get_ticks_usec() - state_t0
 	## Surface brain hot spots when a single think exceeds 50ms (pathfind is timed separately).
 	var brain_msec := float(replan_usec + state_usec) / 1000.0
@@ -348,6 +360,11 @@ func _replan(game_state, claimed: Array[Vector2i], visible: Array) -> void:
 	## Prefer high-priority, least-claimed option (DEFEND center first for a lone FT).
 	var selected = AiSectorObjectivesClass.select_for_claims(options, claimed)
 	current_objective = selected if selected != null else options[0]
+	if _is_survival_germany_attacker(game_state):
+		current_objective = AiSectorObjectivesClass.survival_ge_lines_objective(game_state)
+		_defensive_posts.clear()
+		state_id = AiCommanderStateClass.MOVE
+		return
 	if _is_hold_objective():
 		_assign_defensive_posts(game_state, options)
 	else:
@@ -399,7 +416,7 @@ func _run_state(
 				state_id = AiCommanderStateClass.CONTACT
 				_clear_cover_settlement()
 				_engage_contact(game_state, find_path, submit_command, reaction, visible)
-			elif _under_suppression(game_state) and not _is_survival_germany_attacker(game_state):
+			elif _under_suppression(game_state):
 				## Under fire — RUN to cover facing the nearest known enemy (not spawn anchor).
 				var approach := _threat_cell_or_approach(game_state, known)
 				var center := _formation_center(game_state)
@@ -455,10 +472,6 @@ func _run_state(
 			else:
 				## Fight from cover — do not push the objective while threats are in react range.
 				_engage_contact(game_state, find_path, submit_command, reaction, visible)
-				if _is_survival_germany_attacker(game_state) and not _objective_reached(game_state):
-					_try_survival_advance_while_fighting(
-						game_state, find_path, submit_command, reaction
-					)
 		AiCommanderStateClass.OBJECTIVE_COMPLETE:
 			if _is_hold_objective():
 				state_id = AiCommanderStateClass.FIGHT
@@ -603,9 +616,8 @@ func _engage_contact(
 	_try_grenade(game_state, submit_command, fire_pool if not fire_pool.is_empty() else threats)
 
 	## 5) Optional short cover-to-cover crawl if objective remains and threat is not point-blank.
-	var may_bound := _settled_in_cover or _is_survival_germany_attacker(game_state)
 	if (
-		may_bound
+		_settled_in_cover
 		and not _fireteam_is_moving(game_state)
 		and not _objective_reached(game_state)
 		and threat_dist >= CLOSE_RANGE_DIST
@@ -893,7 +905,7 @@ func _move_toward_objective(game_state, find_path: Callable, submit_command: Cal
 	if _is_hold_objective() and _defensive_posts_reached(game_state):
 		return
 	## High stress — do not push; prefer holding / looking for cover.
-	if _under_suppression(game_state) and not _is_survival_germany_attacker(game_state):
+	if _under_suppression(game_state):
 		return
 	var lead = _lead_soldier(game_state)
 	if lead == null:
@@ -1133,7 +1145,7 @@ func _under_suppression(game_state) -> bool:
 	return avg >= STRESS_COVER_PRIORITY
 
 
-## Survival Mode GE waves always press the US objective marker.
+## Survival Mode GE waves always press the GE Lines (US-held victory point).
 func _is_survival_germany_attacker(game_state) -> bool:
 	if game_state == null or not game_state.survival_mode:
 		return false
@@ -1142,21 +1154,206 @@ func _is_survival_germany_attacker(game_state) -> bool:
 	return game_state.command_hierarchy.get_team_id(player_id) == Team.GERMANY
 
 
-## Cover-to-cover bound toward the US VP while engaged — survival only.
-func _try_survival_advance_while_fighting(
+## Only treat incoming fire as "contact" — not omniscient proximity to the US squad.
+func _survival_reaction_threats(game_state, visible: Array, known: Array) -> Array:
+	if not _under_suppression(game_state):
+		return []
+	var out: Array = []
+	var seen: Dictionary = {}
+	for enemy in visible:
+		if enemy == null or enemy.is_dead:
+			continue
+		var key := "%d:%d" % [enemy.team_id, enemy.soldier_id]
+		seen[key] = true
+		out.append(enemy)
+	if not out.is_empty():
+		return out
+	var threat = _select_best_threat(game_state, known)
+	if threat != null:
+		out.append(threat)
+	return out
+
+
+## Dedicated survival brain: march on GE Lines unless suppressed; then bound one soldier at a time.
+func _run_survival_germany_state(
 	game_state,
 	find_path: Callable,
 	submit_command: Callable,
-	threats: Array,
+	visible: Array,
+	known: Array,
+	reaction: Array,
 ) -> void:
-	if _fireteam_is_moving(game_state) or not _has_command_budget():
+	_ensure_survival_ge_lines_objective(game_state)
+	if current_objective == null or not current_objective.is_valid():
 		return
-	if not threats.is_empty() and _try_contact_bound_forward(
-		game_state, find_path, submit_command, threats
+	if not visible.is_empty():
+		_face_threat(game_state, submit_command, visible)
+		_try_fire(game_state, submit_command, visible)
+	if _fireteam_is_moving(game_state):
+		return
+	if not _under_suppression(game_state):
+		_survival_march_toward_lines(game_state, find_path, submit_command)
+		return
+	_survival_advance_one_under_fire(
+		game_state, find_path, submit_command, reaction, visible, known
+	)
+
+
+func _ensure_survival_ge_lines_objective(game_state) -> void:
+	var obj := AiSectorObjectivesClass.survival_ge_lines_objective(game_state)
+	if obj.is_valid():
+		current_objective = obj
+
+
+func _survival_march_toward_lines(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+) -> void:
+	if not _has_command_budget():
+		return
+	if _has_stragglers(game_state):
+		_rally_stragglers(game_state, find_path, submit_command)
+		return
+	var lead = _lead_soldier(game_state)
+	if lead == null:
+		return
+	var objective_cell := current_objective.cell
+	if not game_state.map_data.is_walkable(objective_cell):
+		return
+	var center := _formation_center(game_state)
+	var target := objective_cell
+	var enemy_anchor := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
+	var cover := _next_advance_cover_stand(game_state, center, objective_cell, enemy_anchor)
+	if cover.x > -900:
+		target = cover
+	if _move_dedup_blocks(target, lead.grid_position):
+		return
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = lead.team_id
+	cmd.soldier_id = lead.soldier_id
+	cmd.target_cell = target
+	cmd.scope = MoveCommandClass.Scope.SQUAD
+	cmd.movement_mode = MovementModeClass.RUN
+	var ctx := _make_context(find_path)
+	_last_path_request_msec = SimulationClock.get_ticks_msec()
+	var label := "survival-march→%s" % target
+	if _submit_ai(game_state, submit_command, cmd, ctx, label):
+		_note_move_dedup(target)
+		_settled_in_cover = false
+		_contact_bound_active = false
+		PerceptionCacheClass.move_commands += 1
+
+
+func _survival_advance_one_under_fire(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+	reaction: Array,
+	visible: Array,
+	known: Array,
+) -> void:
+	if not _has_command_budget():
+		return
+	var soldiers := _living_soldiers(game_state)
+	if soldiers.is_empty():
+		return
+	soldiers.sort_custom(func(a, b) -> bool:
+		if a.soldier_id != b.soldier_id:
+			return a.soldier_id < b.soldier_id
+		return a.grid_position.x < b.grid_position.x
+	)
+	var idx := _survival_bound_soldier_idx % soldiers.size()
+	_survival_bound_soldier_idx += 1
+	var soldier = soldiers[idx]
+	var objective_cell := current_objective.cell
+	var threat_cell := _survival_threat_cell(game_state, reaction, visible, known)
+	var from_cell: Vector2i = soldier.grid_position
+	var target := objective_cell
+	if threat_cell.x > -900:
+		var cover := AiSectorObjectivesClass.nearest_cover_within(
+			game_state,
+			from_cell,
+			threat_cell,
+			CONTACT_BOUND_MAX_DIST,
+			[],
+			false,
+			true,
+		)
+		if cover.x > -900:
+			var old_dist := absi(from_cell.x - objective_cell.x) + absi(from_cell.y - objective_cell.y)
+			var new_dist := absi(cover.x - objective_cell.x) + absi(cover.y - objective_cell.y)
+			if (
+				new_dist < old_dist
+				and _cover_is_short_of_threat(from_cell, cover, threat_cell)
+			):
+				target = cover
+	if target == from_cell:
+		target = _survival_step_toward_objective(game_state, from_cell, objective_cell)
+	if target.x <= -900 or target == from_cell:
+		return
+	if _move_dedup_blocks(target, from_cell):
+		return
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = soldier.team_id
+	cmd.soldier_id = soldier.soldier_id
+	cmd.target_cell = target
+	cmd.scope = MoveCommandClass.Scope.SINGLE
+	cmd.movement_mode = _cover_approach_mode(game_state)
+	var ctx := _make_context(find_path)
+	_last_path_request_msec = SimulationClock.get_ticks_msec()
+	if _submit_ai(
+		game_state,
+		submit_command,
+		cmd,
+		ctx,
+		"survival-bound→%s" % target,
 	):
-		return
-	if not _under_heavy_fire(game_state):
-		_move_toward_objective(game_state, find_path, submit_command)
+		_note_move_dedup(target)
+		_contact_bound_active = true
+		PerceptionCacheClass.move_commands += 1
+
+
+func _survival_threat_cell(
+	game_state,
+	reaction: Array,
+	visible: Array,
+	known: Array,
+) -> Vector2i:
+	var threat = _select_best_threat(game_state, reaction)
+	if threat != null:
+		return threat.grid_position
+	threat = _select_best_threat(game_state, visible)
+	if threat != null:
+		return threat.grid_position
+	threat = _select_best_threat(game_state, known)
+	if threat != null:
+		return threat.grid_position
+	return Vector2i(-999, -999)
+
+
+func _survival_step_toward_objective(
+	game_state,
+	from_cell: Vector2i,
+	objective_cell: Vector2i,
+) -> Vector2i:
+	var map_data = game_state.map_data
+	if map_data == null:
+		return Vector2i(-999, -999)
+	var step := from_cell + Vector2i(
+		signi(objective_cell.x - from_cell.x),
+		signi(objective_cell.y - from_cell.y),
+	)
+	if map_data.is_walkable(step):
+		return step
+	for offset in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+		var alt: Vector2i = from_cell + offset
+		if map_data.is_walkable(alt):
+			var old_d := absi(from_cell.x - objective_cell.x) + absi(from_cell.y - objective_cell.y)
+			var new_d := absi(alt.x - objective_cell.x) + absi(alt.y - objective_cell.y)
+			if new_d < old_d:
+				return alt
+	return Vector2i(-999, -999)
 
 
 ## Heavy fire → crawl into cover; otherwise dash. Distinct from soft suppression.

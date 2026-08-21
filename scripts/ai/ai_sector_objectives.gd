@@ -21,13 +21,9 @@ static func objectives_for_plan(
 	var enemy_team: int = Team.GERMANY if team_id == Team.USA else Team.USA
 	var own_anchor := _team_anchor(game_state, team_id)
 	var enemy_anchor := _team_anchor(game_state, enemy_team)
-	## Survival GE waves always press the US victory point — not mid-map sector markers.
+	## Survival GE waves always press the GE Lines victory point — not mid-map sectors.
 	if game_state.survival_mode and team_id == Team.GERMANY:
-		var us_vp := _nearest_victory_point(game_state.map_data, enemy_anchor)
-		if us_vp.x > -900:
-			out.append(
-				AiObjectiveClass.make("survival_us_vp", "US Objective", us_vp, "sector", 20)
-			)
+		out.append(survival_ge_lines_objective(game_state))
 		return out
 	var sectors := _sector_cells(game_state.map_data, own_anchor, enemy_anchor)
 	var plan := AiPlanClass.normalize_id(plan_id)
@@ -63,6 +59,20 @@ static func objectives_for_plan(
 		if vp.x > -900:
 			out.append(AiObjectiveClass.make("victory_point", "Victory Point", vp, "sector", 8))
 	return out
+
+
+## Survival Mode: the map victory point (GE Lines marker) is the only objective.
+static func survival_ge_lines_objective(game_state) -> AiObjectiveClass:
+	if game_state == null or game_state.map_data == null:
+		return AiObjectiveClass.make("survival_ge_lines", "GE Lines", Vector2i(-999, -999), "sector", 20)
+	var us_anchor := _team_anchor(game_state, Team.USA)
+	var vp := _nearest_victory_point(game_state.map_data, us_anchor)
+	if vp.x <= -900 and not game_state.map_data.victory_points.is_empty():
+		var entry = game_state.map_data.victory_points[0]
+		if entry is Dictionary:
+			vp = Vector2i(int(entry.get("x", -999)), int(entry.get("y", -999)))
+			vp = _clamp_walkable(game_state.map_data, vp)
+	return AiObjectiveClass.make("survival_ge_lines", "GE Lines", vp, "sector", 20)
 
 
 ## Pick the best option for this fireteam.
