@@ -58,6 +58,23 @@ static func pick_wave_spawn_cells(map_data, wave_index: int) -> Array[Vector2i]:
 	return out
 
 
+static func count_deployed_enemy_fireteams(session) -> int:
+	## Fireteams with at least one living German soldier on the field.
+	if session == null:
+		return 0
+	var count := 0
+	for ft in session.owned_fireteams_for_team(Team.GERMANY):
+		for state in ft.soldiers:
+			if state != null and not state.is_dead:
+				count += 1
+				break
+	return count
+
+
+func time_until_next_wave() -> float:
+	return maxf(0.0, WAVE_INTERVAL_SEC - wave_timer_sec)
+
+
 func process_tick(
 	game_state,
 	session,

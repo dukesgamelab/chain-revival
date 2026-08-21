@@ -112,6 +112,11 @@ func _setup_dev_tools() -> void:
 	var score := %ScoreHud as Control
 	if score != null:
 		score.mouse_filter = Control.MOUSE_FILTER_STOP
+		score.add_theme_stylebox_override("panel", CocUiTheme.panel_style())
+	var survival := %SurvivalHud as Control
+	if survival != null:
+		survival.mouse_filter = Control.MOUSE_FILTER_STOP
+		survival.add_theme_stylebox_override("panel", CocUiTheme.panel_style())
 	var dev := %DevTools as Control
 	if dev == null:
 		return
@@ -134,13 +139,23 @@ func _fit_dev_tools_now() -> void:
 	const GAP := 4.0
 	var y := PAD
 	var score := %ScoreHud as Control
+	var survival := %SurvivalHud as Control
+	var score_bottom := PAD
 	if score != null and is_instance_valid(score):
 		var score_min := score.get_combined_minimum_size()
 		score.offset_left = PAD
 		score.offset_top = y
 		score.offset_right = PAD + maxf(score_min.x, 1.0)
 		score.offset_bottom = y + maxf(score_min.y, 1.0)
-		y = score.offset_bottom + GAP
+		score_bottom = score.offset_bottom
+		if survival != null and is_instance_valid(survival) and survival.visible:
+			var surv_min := survival.get_combined_minimum_size()
+			survival.offset_left = score.offset_right + GAP
+			survival.offset_top = PAD
+			survival.offset_right = survival.offset_left + maxf(surv_min.x, 1.0)
+			survival.offset_bottom = PAD + maxf(surv_min.y, 1.0)
+			score_bottom = maxf(score_bottom, survival.offset_bottom)
+		y = score_bottom + GAP
 	var dev := %DevTools as Control
 	if dev == null or not is_instance_valid(dev):
 		return
@@ -393,6 +408,32 @@ func set_scenario_scores(
 			"USA %d (kills %d + terrain %d)\nGermany %d (kills %d + terrain %d)\nVP: %s"
 			% [usa_total, uk, ut, ger_total, gk, gt, vp_summary if not vp_summary.is_empty() else "—"]
 		)
+
+
+func set_survival_hud_visible(is_visible: bool) -> void:
+	var survival := %SurvivalHud as Control
+	if survival == null:
+		return
+	survival.visible = is_visible
+	_fit_dev_tools()
+
+
+func set_survival_stats(
+	enemy_fireteams: int,
+	next_deploy_sec: float,
+	enemies_killed: int,
+) -> void:
+	var fireteams := %SurvivalFireteamsLabel as Label
+	var next_deploy := %SurvivalNextDeployLabel as Label
+	var kills := %SurvivalKillsLabel as Label
+	if fireteams != null:
+		fireteams.text = "Enemy fireteams: %d" % enemy_fireteams
+	if next_deploy != null:
+		var total := int(maxi(0, int(ceil(next_deploy_sec))))
+		next_deploy.text = "Next deployment: %d:%02d" % [total / 60, total % 60]
+	if kills != null:
+		kills.text = "Enemies killed: %d" % enemies_killed
+	_fit_dev_tools()
 
 
 func _setup_chat_panel() -> void:

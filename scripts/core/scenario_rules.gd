@@ -117,6 +117,8 @@ static func on_soldier_killed(
 		_award_killer_player_pp(game_state, killer_team_id, victim, KILL_POINTS * GPP_TO_PP)
 	## Victim team loses PP_LOST_PER_SOLDIER from team score (RECOVERED).
 	_add_kill_points(game_state, victim.team_id, -PP_LOST_PER_SOLDIER)
+	if game_state.survival_mode and victim.team_id == Team.GERMANY:
+		game_state.survival_enemies_killed += 1
 	## TODO(multiplayer): apply PP_LOST_ON_KILLED_BY_RANK + MC distribution to career PP
 	## when full multiplayer career persistence is wired. Model constants live on CommandHierarchy.
 

@@ -54,6 +54,7 @@ const MissionDebriefDialogClass := preload("res://scripts/ui/mission_debrief_dia
 @onready var _camera: MapCamera = $Camera2D
 @onready var _command_bar: CommandBar = $UI/CommandBar
 @onready var _ai_plan_hud = $UI/AiPlanHud
+@onready var _survival_announcement: SurvivalAnnouncementOverlay = $UI/SurvivalAnnouncementOverlay
 var _return_to_editor_on_exit: bool = false
 var _command_dialog: CommandDialog = null
 var _assign_weapons_dialog: AssignWeaponsDialog = null
@@ -158,6 +159,7 @@ func _ready() -> void:
 	_apply_team_default_camera(_session.active_team_id)
 	if _is_survival_mode():
 		_apply_survival_camera_rotation()
+		_command_bar.set_survival_hud_visible(true)
 	_sync_deployment_hud()
 	_refresh_ai_plan_hud()
 	_refresh_all_views()
@@ -168,6 +170,7 @@ func _ready() -> void:
 		_survival_mode.reset()
 		_game_state.begin_running_phase()
 		_on_timed_deployment_finished()
+		_refresh_survival_hud()
 		_command_bar.show_status(
 			"Survival Mode: hold the objective. German reinforcements every 60s."
 		)
@@ -1537,6 +1540,18 @@ func _refresh_scenario_hud() -> void:
 		_game_state.team_terrain_points,
 		_vp_holder_summary(),
 	)
+	_refresh_survival_hud()
+
+
+func _refresh_survival_hud() -> void:
+	if _command_bar == null or _game_state == null or not _is_survival_mode():
+		return
+	if _survival_mode == null:
+		return
+	var fireteams := SurvivalModeControllerClass.count_deployed_enemy_fireteams(_session)
+	var next_sec := _survival_mode.time_until_next_wave()
+	var kills := _game_state.survival_enemies_killed
+	_command_bar.set_survival_stats(fireteams, next_sec, kills)
 
 
 func _vp_holder_summary() -> String:
@@ -2002,13 +2017,15 @@ func _tick_survival_mode() -> void:
 		_session,
 		Callable(self, "_enable_survival_ai_commander"),
 	)
-	if wave_line.is_empty():
-		return
-	if _survival_mode.last_spawned_fireteam != null:
-		_spawn_soldier_views_for_fireteam(_survival_mode.last_spawned_fireteam)
-	_refresh_ai_plan_hud()
-	GameLog.log_system("[Survival] %s" % wave_line)
-	_command_bar.show_status(wave_line)
+	if not wave_line.is_empty():
+		if _survival_mode.last_spawned_fireteam != null:
+			_spawn_soldier_views_for_fireteam(_survival_mode.last_spawned_fireteam)
+		_refresh_ai_plan_hud()
+		if _survival_announcement != null:
+			_survival_announcement.show_deployment_announcement()
+		GameLog.log_system("[Survival] %s" % wave_line)
+		_command_bar.show_status(wave_line)
+	_refresh_survival_hud()
 
 
 func _enable_survival_ai_commander(player_id: int) -> void:

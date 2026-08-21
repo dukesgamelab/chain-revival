@@ -41,6 +41,8 @@ var scenario_elapsed_sec: float = 0.0
 var scenario_ended: bool = false
 ## Survival Mode: 1 v All — no time limit; GE reinforcements continue after wipes.
 var survival_mode: bool = false
+## Survival: German soldiers eliminated (authoritative kill count).
+var survival_enemies_killed: int = 0
 ## ScenarioEndCause / ScenarioWinner enums (kept separate like OG ScEnd Cause / Winner).
 var end_cause: int = 0
 var winner: int = 0

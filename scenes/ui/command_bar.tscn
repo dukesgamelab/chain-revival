@@ -40,6 +40,49 @@ theme_override_font_sizes/font_size = 10
 text = "USA  0|0"
 vertical_alignment = 1
 
+[node name="SurvivalHud" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+anchors_preset = 0
+offset_left = 128.0
+offset_top = 8.0
+offset_right = 300.0
+offset_bottom = 58.0
+mouse_filter = 0
+
+[node name="SurvivalMargin" type="MarginContainer" parent="SurvivalHud"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 2
+
+[node name="SurvivalVBox" type="VBoxContainer" parent="SurvivalHud/SurvivalMargin"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="SurvivalFireteamsLabel" type="Label" parent="SurvivalHud/SurvivalMargin/SurvivalVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 10
+text = "Enemy fireteams: 0"
+
+[node name="SurvivalNextDeployLabel" type="Label" parent="SurvivalHud/SurvivalMargin/SurvivalVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 10
+text = "Next deployment: 1:00"
+
+[node name="SurvivalKillsLabel" type="Label" parent="SurvivalHud/SurvivalMargin/SurvivalVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 10
+text = "Enemies killed: 0"
+
 [node name="DevTools" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 layout_mode = 0
