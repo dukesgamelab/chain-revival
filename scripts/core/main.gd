@@ -176,6 +176,7 @@ func _ready() -> void:
 		_survival_mode.reset()
 		_game_state.begin_running_phase()
 		_on_timed_deployment_finished()
+		_configure_survival_ge_commanders()
 		_refresh_survival_hud()
 		_command_bar.show_status(
 			"Survival Mode: hold the objective. German reinforcements every 30s."
@@ -2059,7 +2060,25 @@ func _tick_survival_mode() -> void:
 func _enable_survival_ai_commander(player_id: int) -> void:
 	if _ai_framework == null or player_id <= 0:
 		return
+	if _game_state != null:
+		_ai_framework.sync_from_hierarchy(_game_state)
 	_ai_framework.enable_commander(player_id)
+	var commander = _ai_framework.get_commander(player_id)
+	if commander != null:
+		commander.aggression = 2.0
+		commander.request_replan("survival_wave")
+
+
+func _configure_survival_ge_commanders() -> void:
+	if _ai_framework == null or _game_state == null or _game_state.command_hierarchy == null:
+		return
+	for pid in _game_state.command_hierarchy.all_player_ids():
+		var player_id := int(pid)
+		if not _game_state.command_hierarchy.is_ai_player(player_id):
+			continue
+		if _game_state.command_hierarchy.get_team_id(player_id) != Team.GERMANY:
+			continue
+		_enable_survival_ai_commander(player_id)
 
 
 func _refresh_all_views() -> void:

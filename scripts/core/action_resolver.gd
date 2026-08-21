@@ -473,7 +473,8 @@ static func execute_move(
 		var anchor: SoldierState = orderable[0]
 		var anchor_pos: Vector2i = formation_refs[anchor.soldier_id]
 		var squad_target := cmd.target_cell
-		if _acting_is_ai(game_state, context):
+		var survival_rush := context != null and context.survival_ge_advance
+		if _acting_is_ai(game_state, context) and not survival_rush:
 			squad_target = _clamp_cell_to_fireteam_cohesion(
 				squad_target, _living_fireteam_positions(fireteam, -1)
 			)
@@ -496,7 +497,7 @@ static func execute_move(
 				squad_target,
 				offset,
 			)
-			if acting_ai:
+			if acting_ai and not survival_rush:
 				var peers := _living_fireteam_positions(fireteam, squad_soldier.soldier_id)
 				member_target = _clamp_cell_to_fireteam_cohesion(member_target, peers)
 			if (
@@ -552,7 +553,7 @@ static func execute_move(
 				return ActionResult.fail(notices[0])
 			return ActionResult.fail("No soldiers could %s to that tile." % squad_mode_label)
 		## Planned ends must keep the fireteam within cohesion (incl. soldiers left behind).
-		if not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
+		if not survival_rush and not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
 			_rollback_move_orders(fireteam, result)
 			if _acting_is_ai(game_state, context):
 				var quiet := ActionResult.new()
@@ -593,7 +594,8 @@ static func execute_move(
 
 	var single_target := cmd.target_cell
 	var peer_positions := _living_fireteam_positions(fireteam, soldier_state.soldier_id)
-	if _acting_is_ai(game_state, context):
+	var survival_rush := context != null and context.survival_ge_advance
+	if _acting_is_ai(game_state, context) and not survival_rush:
 		single_target = _clamp_cell_to_fireteam_cohesion(single_target, peer_positions)
 	elif (
 		_cell_within_fireteam_cohesion(soldier_state.grid_position, peer_positions)
@@ -612,7 +614,7 @@ static func execute_move(
 			return result
 		return ActionResult.fail("No path to that tile.")
 
-	if not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
+	if not survival_rush and not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
 		_rollback_move_orders(fireteam, result)
 		if _acting_is_ai(game_state, context):
 			var quiet := ActionResult.new()

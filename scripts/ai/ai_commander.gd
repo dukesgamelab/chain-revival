@@ -71,6 +71,10 @@ const OPEN_PRONE_COOLDOWN_MSEC := 8000
 const DEDUP_EXPIRE_MSEC := 2000
 ## No successful command + idle + no contact → clear dedup and replan.
 const WATCHDOG_IDLE_MSEC := 5000
+## Survival GE: switch to cover/assault when this close to US (Manhattan).
+const SURVIVAL_ASSAULT_RANGE := 8
+## Survival GE: cover search radius during assault bounds.
+const SURVIVAL_ASSAULT_COVER_SEEK := 10
 
 ## Personality / difficulty hooks — aggression scales grenade; retreat_threshold gates stress.
 var aggression: float = 1.0
@@ -293,6 +297,9 @@ func tick(
 		)
 
 	if current_objective != null and current_objective.is_valid():
+		if _is_survival_germany_attacker(game_state):
+			## Each wave claims its formation center — not the shared VP cell.
+			return _formation_center(game_state)
 		return current_objective.cell
 	return Vector2i(-999, -999)
 
@@ -1154,18 +1161,11 @@ func _is_survival_germany_attacker(game_state) -> bool:
 	return game_state.command_hierarchy.get_team_id(player_id) == Team.GERMANY
 
 
-## Only treat incoming fire as "contact" — not omniscient proximity to the US squad.
+## Only treat incoming fire as "contact" for non-survival brains.
 func _survival_reaction_threats(game_state, visible: Array, known: Array) -> Array:
-	if not _under_suppression(game_state):
+	if not _survival_in_assault_range(game_state, visible, known):
 		return []
-	var out: Array = []
-	var seen: Dictionary = {}
-	for enemy in visible:
-		if enemy == null or enemy.is_dead:
-			continue
-		var key := "%d:%d" % [enemy.team_id, enemy.soldier_id]
-		seen[key] = true
-		out.append(enemy)
+	var out: Array = visible.duplicate()
 	if not out.is_empty():
 		return out
 	var threat = _select_best_threat(game_state, known)
@@ -1174,7 +1174,43 @@ func _survival_reaction_threats(game_state, visible: Array, known: Array) -> Arr
 	return out
 
 
-## Dedicated survival brain: march on GE Lines unless suppressed; then bound one soldier at a time.
+func _survival_in_assault_range(game_state, visible: Array, known: Array) -> bool:
+	return _survival_nearest_us_dist(game_state, visible, known) <= SURVIVAL_ASSAULT_RANGE
+
+
+func _survival_nearest_us_dist(game_state, visible: Array, known: Array) -> int:
+	var center := _formation_center(game_state)
+	var best := 999999
+	for enemy in visible:
+		if enemy == null or enemy.is_dead:
+			continue
+		var d := absi(center.x - enemy.grid_position.x) + absi(center.y - enemy.grid_position.y)
+		best = mini(best, d)
+	for enemy in known:
+		if enemy == null or enemy.is_dead:
+			continue
+		var d := absi(center.x - enemy.grid_position.x) + absi(center.y - enemy.grid_position.y)
+		best = mini(best, d)
+	if best < 999999:
+		return best
+	if current_objective != null and current_objective.is_valid():
+		var obj: Vector2i = current_objective.cell
+		return absi(center.x - obj.x) + absi(center.y - obj.y)
+	return 999999
+
+
+func _survival_push_cell(game_state, visible: Array, known: Array) -> Vector2i:
+	if current_objective == null or not current_objective.is_valid():
+		return Vector2i(-999, -999)
+	var threat = _select_best_threat(game_state, visible)
+	if threat == null:
+		threat = _select_best_threat(game_state, known)
+	if threat != null:
+		return threat.grid_position
+	return current_objective.cell
+
+
+## Dedicated survival brain: run to GE Lines, assault within 8 tiles, bound one-by-one.
 func _run_survival_germany_state(
 	game_state,
 	find_path: Callable,
@@ -1186,17 +1222,88 @@ func _run_survival_germany_state(
 	_ensure_survival_ge_lines_objective(game_state)
 	if current_objective == null or not current_objective.is_valid():
 		return
-	if not visible.is_empty():
+	var in_assault := _survival_in_assault_range(game_state, visible, known)
+	if in_assault:
+		if not visible.is_empty():
+			_face_threat(game_state, submit_command, visible)
+			_try_fire(game_state, submit_command, visible)
+		_try_survival_grenade(game_state, submit_command, visible, known)
+	elif not visible.is_empty():
 		_face_threat(game_state, submit_command, visible)
 		_try_fire(game_state, submit_command, visible)
 	if _fireteam_is_moving(game_state):
 		return
-	if not _under_suppression(game_state):
-		_survival_march_toward_lines(game_state, find_path, submit_command)
+	if not in_assault:
+		_survival_issue_squad_run(game_state, find_path, submit_command, current_objective.cell)
 		return
-	_survival_advance_one_under_fire(
-		game_state, find_path, submit_command, reaction, visible, known
+	_survival_assault_one_soldier(
+		game_state, find_path, submit_command, visible, known
 	)
+
+
+func _survival_issue_squad_run(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+	target_cell: Vector2i,
+) -> void:
+	if not _has_command_budget() or target_cell.x <= -900:
+		return
+	var lead = _lead_soldier(game_state)
+	if lead == null:
+		return
+	_clear_move_dedup()
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = lead.team_id
+	cmd.soldier_id = lead.soldier_id
+	cmd.target_cell = target_cell
+	cmd.scope = MoveCommandClass.Scope.SQUAD
+	cmd.movement_mode = MovementModeClass.RUN
+	var ctx := _make_survival_context(find_path)
+	_last_path_request_msec = SimulationClock.get_ticks_msec()
+	if _submit_ai(
+		game_state,
+		submit_command,
+		cmd,
+		ctx,
+		"survival-run→%s" % target_cell,
+	):
+		_note_move_dedup(target_cell)
+		_settled_in_cover = false
+		_contact_bound_active = false
+		PerceptionCacheClass.move_commands += 1
+		return
+	_survival_issue_single_steps(game_state, find_path, submit_command, target_cell)
+
+
+func _survival_issue_single_steps(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+	goal_cell: Vector2i,
+) -> void:
+	for soldier in _living_soldiers(game_state):
+		if not _has_command_budget():
+			break
+		if soldier.is_moving:
+			continue
+		var step := _survival_step_toward_cell(game_state, soldier.grid_position, goal_cell)
+		if step.x <= -900 or step == soldier.grid_position:
+			continue
+		var cmd := MoveCommandClass.new()
+		cmd.team_id = soldier.team_id
+		cmd.soldier_id = soldier.soldier_id
+		cmd.target_cell = step
+		cmd.scope = MoveCommandClass.Scope.SINGLE
+		cmd.movement_mode = MovementModeClass.RUN
+		if _submit_ai(
+			game_state,
+			submit_command,
+			cmd,
+			_make_survival_context(find_path),
+			"survival-step %d→%s" % [soldier.soldier_id, step],
+		):
+			PerceptionCacheClass.move_commands += 1
 
 
 func _ensure_survival_ge_lines_objective(game_state) -> void:
@@ -1205,51 +1312,10 @@ func _ensure_survival_ge_lines_objective(game_state) -> void:
 		current_objective = obj
 
 
-func _survival_march_toward_lines(
+func _survival_assault_one_soldier(
 	game_state,
 	find_path: Callable,
 	submit_command: Callable,
-) -> void:
-	if not _has_command_budget():
-		return
-	if _has_stragglers(game_state):
-		_rally_stragglers(game_state, find_path, submit_command)
-		return
-	var lead = _lead_soldier(game_state)
-	if lead == null:
-		return
-	var objective_cell := current_objective.cell
-	if not game_state.map_data.is_walkable(objective_cell):
-		return
-	var center := _formation_center(game_state)
-	var target := objective_cell
-	var enemy_anchor := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
-	var cover := _next_advance_cover_stand(game_state, center, objective_cell, enemy_anchor)
-	if cover.x > -900:
-		target = cover
-	if _move_dedup_blocks(target, lead.grid_position):
-		return
-	var cmd := MoveCommandClass.new()
-	cmd.team_id = lead.team_id
-	cmd.soldier_id = lead.soldier_id
-	cmd.target_cell = target
-	cmd.scope = MoveCommandClass.Scope.SQUAD
-	cmd.movement_mode = MovementModeClass.RUN
-	var ctx := _make_context(find_path)
-	_last_path_request_msec = SimulationClock.get_ticks_msec()
-	var label := "survival-march→%s" % target
-	if _submit_ai(game_state, submit_command, cmd, ctx, label):
-		_note_move_dedup(target)
-		_settled_in_cover = false
-		_contact_bound_active = false
-		PerceptionCacheClass.move_commands += 1
-
-
-func _survival_advance_one_under_fire(
-	game_state,
-	find_path: Callable,
-	submit_command: Callable,
-	reaction: Array,
 	visible: Array,
 	known: Array,
 ) -> void:
@@ -1266,51 +1332,31 @@ func _survival_advance_one_under_fire(
 	var idx := _survival_bound_soldier_idx % soldiers.size()
 	_survival_bound_soldier_idx += 1
 	var soldier = soldiers[idx]
-	var objective_cell := current_objective.cell
-	var threat_cell := _survival_threat_cell(game_state, reaction, visible, known)
+	var push_cell := _survival_push_cell(game_state, visible, known)
+	if push_cell.x <= -900:
+		return
 	var from_cell: Vector2i = soldier.grid_position
-	var target := objective_cell
-	if threat_cell.x > -900:
-		var cover := AiSectorObjectivesClass.nearest_cover_within(
-			game_state,
-			from_cell,
-			threat_cell,
-			CONTACT_BOUND_MAX_DIST,
-			[],
-			false,
-			true,
-		)
-		if cover.x > -900:
-			var old_dist := absi(from_cell.x - objective_cell.x) + absi(from_cell.y - objective_cell.y)
-			var new_dist := absi(cover.x - objective_cell.x) + absi(cover.y - objective_cell.y)
-			if (
-				new_dist < old_dist
-				and _cover_is_short_of_threat(from_cell, cover, threat_cell)
-			):
-				target = cover
-	if target == from_cell:
-		target = _survival_step_toward_objective(game_state, from_cell, objective_cell)
+	var dist := absi(from_cell.x - push_cell.x) + absi(from_cell.y - push_cell.y)
+	var target: Vector2i = push_cell
+	if dist > 1:
+		target = _survival_step_toward_cell(game_state, from_cell, push_cell)
 	if target.x <= -900 or target == from_cell:
 		return
-	if _move_dedup_blocks(target, from_cell):
-		return
+	_clear_move_dedup()
 	var cmd := MoveCommandClass.new()
 	cmd.team_id = soldier.team_id
 	cmd.soldier_id = soldier.soldier_id
 	cmd.target_cell = target
 	cmd.scope = MoveCommandClass.Scope.SINGLE
-	cmd.movement_mode = _cover_approach_mode(game_state)
-	var ctx := _make_context(find_path)
-	_last_path_request_msec = SimulationClock.get_ticks_msec()
+	cmd.movement_mode = MovementModeClass.RUN
 	if _submit_ai(
 		game_state,
 		submit_command,
 		cmd,
-		ctx,
-		"survival-bound→%s" % target,
+		_make_survival_context(find_path),
+		"survival-assault %d→%s" % [soldier.soldier_id, target],
 	):
 		_note_move_dedup(target)
-		_contact_bound_active = true
 		PerceptionCacheClass.move_commands += 1
 
 
@@ -1332,28 +1378,78 @@ func _survival_threat_cell(
 	return Vector2i(-999, -999)
 
 
-func _survival_step_toward_objective(
+func _survival_step_toward_cell(
 	game_state,
 	from_cell: Vector2i,
-	objective_cell: Vector2i,
+	goal_cell: Vector2i,
 ) -> Vector2i:
 	var map_data = game_state.map_data
 	if map_data == null:
 		return Vector2i(-999, -999)
 	var step := from_cell + Vector2i(
-		signi(objective_cell.x - from_cell.x),
-		signi(objective_cell.y - from_cell.y),
+		signi(goal_cell.x - from_cell.x),
+		signi(goal_cell.y - from_cell.y),
 	)
-	if map_data.is_walkable(step):
+	if map_data.is_walkable(step) and step != from_cell:
 		return step
+	var best := Vector2i(-999, -999)
+	var best_d := 999999
 	for offset in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 		var alt: Vector2i = from_cell + offset
-		if map_data.is_walkable(alt):
-			var old_d := absi(from_cell.x - objective_cell.x) + absi(from_cell.y - objective_cell.y)
-			var new_d := absi(alt.x - objective_cell.x) + absi(alt.y - objective_cell.y)
-			if new_d < old_d:
-				return alt
-	return Vector2i(-999, -999)
+		if not map_data.is_walkable(alt):
+			continue
+		var d := absi(alt.x - goal_cell.x) + absi(alt.y - goal_cell.y)
+		if d < best_d:
+			best_d = d
+			best = alt
+	return best
+
+
+func _survival_step_toward_objective(
+	game_state,
+	from_cell: Vector2i,
+	objective_cell: Vector2i,
+) -> Vector2i:
+	return _survival_step_toward_cell(game_state, from_cell, objective_cell)
+
+
+func _try_survival_grenade(
+	game_state,
+	submit_command: Callable,
+	visible: Array,
+	known: Array,
+) -> bool:
+	var pool: Array = visible if not visible.is_empty() else known
+	if pool.is_empty() or not _has_command_budget():
+		return false
+	var threat = _select_best_threat(game_state, pool)
+	if threat == null:
+		return false
+	var impact: Vector2i = threat.grid_position
+	var team_id: int = game_state.command_hierarchy.get_team_id(player_id)
+	if CombatSystem.grenade_would_hit_friendly(game_state, team_id, impact):
+		return false
+	for soldier in _living_soldiers(game_state):
+		if soldier.grenade_count <= 0 or soldier.has_pending_grenade():
+			continue
+		if (
+			CombatSystem.grenade_throw_distance(soldier.grid_position, impact)
+			> GameplayPolicies.grenade.throw_range
+		):
+			continue
+		var cmd := GrenadeCommandClass.new()
+		cmd.team_id = soldier.team_id
+		cmd.soldier_id = soldier.soldier_id
+		cmd.target_cell = impact
+		if _submit_ai(
+			game_state,
+			submit_command,
+			cmd,
+			_make_context(Callable()),
+			"survival-grenade %d→%s" % [soldier.soldier_id, impact],
+		):
+			return true
+	return false
 
 
 ## Heavy fire → crawl into cover; otherwise dash. Distinct from soft suppression.
@@ -1955,4 +2051,10 @@ func _make_context(find_path: Callable) -> CommandContextClass:
 	ctx.acting_player_id = player_id
 	if find_path.is_valid():
 		ctx.find_path = find_path
+	return ctx
+
+
+func _make_survival_context(find_path: Callable) -> CommandContextClass:
+	var ctx := _make_context(find_path)
+	ctx.survival_ge_advance = true
 	return ctx

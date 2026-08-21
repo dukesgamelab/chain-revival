@@ -199,6 +199,8 @@ func tick(game_state, skip_think: bool = false) -> Array:
 
 	## Shared A* budget for this tick (all MoveCommands from these thinkers).
 	_pathfinds_remaining = MAX_AI_PATHFINDS_PER_TICK
+	if game_state.survival_mode:
+		_pathfinds_remaining = 32
 	var path_usec_before := pathfind_usec
 	var path_calls_before := pathfind_calls
 	var budgeted_find := func(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:

@@ -18,3 +18,5 @@ var shooter_ids: Array[int] = []
 ## When > 0, authorize Move/Face/etc. for this player's owned soldiers (AI / MP).
 ## When <= 0, fall back to local human ownership checks.
 var acting_player_id: int = -1
+## Survival GE: skip fireteam cohesion clamp so waves can run to the VP.
+var survival_ge_advance: bool = false
