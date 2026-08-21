@@ -34,7 +34,10 @@ const VP_DECAY_FLOOR := 0.25
 static func begin_scenario(game_state) -> void:
 	if game_state == null:
 		return
-	game_state.scenario_time_remaining_sec = float(SCENARIO_TIME_SEC)
+	if game_state.survival_mode:
+		game_state.scenario_time_remaining_sec = 999999.0
+	else:
+		game_state.scenario_time_remaining_sec = float(SCENARIO_TIME_SEC)
 	game_state.scenario_elapsed_sec = 0.0
 	game_state.team_kill_points.clear()
 	game_state.team_terrain_points.clear()
@@ -91,11 +94,11 @@ static func process_tick(game_state, tick_sec: float) -> bool:
 	if living_soldier_count(game_state, Team.USA) <= 0:
 		_award_held_victory_points(game_state)
 		return end_scenario(game_state, ScenarioEndCauseClass.EXTERMINATION, ScenarioWinnerClass.GERMANY)
-	if living_soldier_count(game_state, Team.GERMANY) <= 0:
+	if not game_state.survival_mode and living_soldier_count(game_state, Team.GERMANY) <= 0:
 		_award_held_victory_points(game_state)
 		return end_scenario(game_state, ScenarioEndCauseClass.EXTERMINATION, ScenarioWinnerClass.USA)
 
-	if game_state.scenario_time_remaining_sec <= 0.0:
+	if not game_state.survival_mode and game_state.scenario_time_remaining_sec <= 0.0:
 		return _end_by_score(game_state, ScenarioEndCauseClass.TIME_GONE)
 
 	return false

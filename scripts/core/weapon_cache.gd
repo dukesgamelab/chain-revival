@@ -44,12 +44,12 @@ func ensure_player(player_id: int) -> void:
 func bootstrap_default_caches(player_ids: Array[int], team_for_player: Callable) -> void:
 	clear()
 	for pid in player_ids:
-		var team_id := int(team_for_player.call(pid))
-		ensure_player(pid)
-		_set_cache(
-			pid,
-			_default_pool_for_team(team_id),
-		)
+		bootstrap_player_cache(pid, int(team_for_player.call(pid)))
+
+
+func bootstrap_player_cache(player_id: int, team_id: int) -> void:
+	ensure_player(player_id)
+	_set_cache(player_id, _default_pool_for_team(team_id))
 
 
 func _default_pool_for_team(team_id: int) -> Array:

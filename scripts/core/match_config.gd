@@ -7,16 +7,21 @@ const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 
 enum GameModeKind { SINGLE_PLAYER, MULTIPLAYER }
 enum MatchType { ONE_V_ONE, TWO_V_TWO }
+enum MatchScenario { STANDARD, SURVIVAL_1V_ALL }
 enum ControllerType { HUMAN, AI, OPEN }
 
 const MAP_FARM_FIGHT := "ff_farm"
 const MAP_FARM_FIGHT_PATH := "res://maps/ff_farm.json"
+const MAP_FARM_FIGHT_SURVIVAL := "ff_farm_survival"
+const MAP_FARM_FIGHT_SURVIVAL_PATH := "res://maps/ff_farm_survival.json"
 
 ## GameModeKind
 var game_mode: int = GameModeKind.SINGLE_PLAYER
 ## MatchType
 var match_type: int = MatchType.ONE_V_ONE
 var map_id: String = MAP_FARM_FIGHT
+## MatchScenario — only SURVIVAL_1V_ALL selects ff_farm_survival + wave rules.
+var scenario: int = MatchScenario.STANDARD
 ## Local controlling player (human). Slot player_id.
 var local_player_id: int = 1
 ## SP/MP: 15s deploy countdown + zone lock. Offline Quick Start sets false.
@@ -59,6 +64,31 @@ static func default_single_player_1v1() -> RefCounted:
 	cfg.local_player_id = 1
 	cfg.timed_deployment = true
 	return cfg
+
+
+static func default_survival_1v_all() -> RefCounted:
+	## Survival: one US human vs recurring GE AI waves on ff_farm_survival.
+	var cfg = new(GameModeKind.SINGLE_PLAYER, MatchType.ONE_V_ONE)
+	cfg.scenario = MatchScenario.SURVIVAL_1V_ALL
+	cfg.map_id = MAP_FARM_FIGHT_SURVIVAL
+	cfg.local_player_id = 1
+	cfg.timed_deployment = false
+	for i in cfg.slots.size():
+		var slot: Dictionary = cfg.slots[i]
+		var team_id := int(slot.get("team_id", Team.USA))
+		if team_id == Team.USA:
+			slot["controller"] = ControllerType.HUMAN
+			slot["selected_ai_plan"] = ""
+		else:
+			slot["controller"] = ControllerType.AI
+			slot["selected_ai_plan"] = AiPlanClass.ID_ATTACK_CENTER
+		cfg.slots[i] = slot
+	cfg._refresh_slot_display_names()
+	return cfg
+
+
+func is_survival_1v_all() -> bool:
+	return scenario == MatchScenario.SURVIVAL_1V_ALL
 
 
 func rebuild_default_slots() -> void:
@@ -326,9 +356,11 @@ func fireteam_count() -> int:
 
 
 func map_path() -> String:
+	if map_id == MAP_FARM_FIGHT_SURVIVAL:
+		return MAP_FARM_FIGHT_SURVIVAL_PATH
 	if map_id == MAP_FARM_FIGHT or map_id.is_empty():
 		return MAP_FARM_FIGHT_PATH
-	## IDs only â€” no MapData / scene refs. Convention: res://maps/<id>.json
+	## IDs only — no MapData / scene refs. Convention: res://maps/<id>.json
 	return "res://maps/%s.json" % map_id
 
 
@@ -430,6 +462,7 @@ func to_dict() -> Dictionary:
 	return {
 		"game_mode": game_mode,
 		"match_type": match_type,
+		"scenario": scenario,
 		"map_id": map_id,
 		"local_player_id": local_player_id,
 		"timed_deployment": timed_deployment,
@@ -442,6 +475,7 @@ static func from_dict(data: Dictionary) -> RefCounted:
 	var cfg = new()
 	cfg.game_mode = int(data.get("game_mode", GameModeKind.SINGLE_PLAYER))
 	cfg.match_type = int(data.get("match_type", MatchType.ONE_V_ONE))
+	cfg.scenario = int(data.get("scenario", MatchScenario.STANDARD))
 	cfg.map_id = str(data.get("map_id", MAP_FARM_FIGHT))
 	cfg.local_player_id = int(data.get("local_player_id", 1))
 	cfg.timed_deployment = bool(data.get("timed_deployment", true))

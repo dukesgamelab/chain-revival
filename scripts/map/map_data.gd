@@ -12,6 +12,7 @@ const FORTRESS_MAP_FILE := "res://maps/TheFortress.json"
 ## Stable map ids → res:// paths for game + editor.
 const AVAILABLE_MAPS := {
 	"ff_farm": DEV_MAP_FILE,
+	"ff_farm_survival": "res://maps/ff_farm_survival.json",
 	"the_fortress": FORTRESS_MAP_FILE,
 	"test_map": DEFAULT_FILE,
 }

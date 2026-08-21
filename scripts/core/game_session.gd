@@ -193,6 +193,17 @@ func owned_fireteams_for_team(team_id: int) -> Array[Fireteam]:
 	return out
 
 
+## Append a reinforcement fireteam and rebuild the side aggregate roster.
+func append_owned_fireteam(ft: Fireteam) -> void:
+	if ft == null:
+		return
+	owned_fireteams.append(ft)
+	if ft.team_id == Team.USA:
+		blue_team = Fireteam.create_aggregate(Team.USA, owned_fireteams_for_team(Team.USA))
+	else:
+		red_team = Fireteam.create_aggregate(Team.GERMANY, owned_fireteams_for_team(Team.GERMANY))
+
+
 func local_owned_fireteams() -> Array[Fireteam]:
 	var out: Array[Fireteam] = []
 	for ft in owned_fireteams:

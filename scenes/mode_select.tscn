@@ -88,6 +88,11 @@ custom_minimum_size = Vector2(320, 40)
 layout_mode = 2
 text = "Dev: Offline Quick Start (1v1)"
 
+[node name="SurvivalModeButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
+custom_minimum_size = Vector2(320, 40)
+layout_mode = 2
+text = "Survival Mode: 1 v All"
+
 [node name="EditorButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
 custom_minimum_size = Vector2(320, 40)
 layout_mode = 2

@@ -34,6 +34,7 @@ const AiCommanderFrameworkClass := preload("res://scripts/ai/ai_commander_framew
 const IssueAiOrderCommandClass := preload("res://scripts/commands/issue_ai_order_command.gd")
 const PlayerSlotOwnershipClass := preload("res://scripts/core/player_slot_ownership.gd")
 const ScenarioRulesClass := preload("res://scripts/core/scenario_rules.gd")
+const SurvivalModeControllerClass := preload("res://scripts/core/survival_mode_controller.gd")
 const ScenarioEndCauseClass := preload("res://scripts/enums/scenario_end_cause.gd")
 const ScenarioWinnerClass := preload("res://scripts/enums/scenario_winner.gd")
 const MissionDebriefDialogClass := preload("res://scripts/ui/mission_debrief_dialog.gd")
@@ -85,6 +86,7 @@ var _combat_scan_accum_msec: int = 0
 var _last_scenario_hud_sec: int = -1
 var _grass_layer_visible: bool = true
 var _ai_framework: AiCommanderFrameworkClass = null
+var _survival_mode: SurvivalModeControllerClass = null
 var _fire_at_preview_accum_sec: float = 0.0
 var _fire_at_hit_accum_sec: float = 0.0
 var _last_fire_at_preview_cell: Vector2i = Vector2i(-999999, -999999)
@@ -154,19 +156,31 @@ func _ready() -> void:
 	_command_bar.set_active_team(_session.active_team_id)
 	## Side default camera (FF: USA 90° / GE 270°) + center on that fireteam.
 	_apply_team_default_camera(_session.active_team_id)
+	if _is_survival_mode():
+		_apply_survival_camera_rotation()
 	_sync_deployment_hud()
 	_refresh_ai_plan_hud()
 	_refresh_all_views()
 	_show_startup_status()
 	_start_ai_framework()
-	_ensure_command_dialog()
+	if _is_survival_mode():
+		_survival_mode = SurvivalModeControllerClass.new()
+		_survival_mode.reset()
+		_game_state.begin_running_phase()
+		_on_timed_deployment_finished()
+		_command_bar.show_status(
+			"Survival Mode: hold the objective. German reinforcements every 60s."
+		)
+	else:
+		_ensure_command_dialog()
 	## Let the first heavy draw frames finish while the overlay still covers them.
 	_set_loading_status("Almost ready…")
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_boot_complete = true
 	_hide_loading_overlay()
-	call_deferred("_open_command_dialog_for_deployment")
+	if not _is_survival_mode():
+		call_deferred("_open_command_dialog_for_deployment")
 
 
 ## Yieldable map boot: pathfinding → ground prewarm → chunked object sprites → first draw.
@@ -362,6 +376,11 @@ func _hide_loading_overlay() -> void:
 
 
 func _show_startup_status() -> void:
+	if _is_survival_mode():
+		_command_bar.show_status(
+			"Survival Mode: 1 v All — defend the US objective. Next GE wave in 60s."
+		)
+		return
 	if _map_data != null and _map_data.is_original_visual_map():
 		_command_bar.show_status(
 			"%s loaded. Rotate Q/E. --test-map switches maps."
@@ -524,6 +543,7 @@ func _step_simulation_tick(skip_ai: bool = false) -> void:
 			if rem_i != _last_scenario_hud_sec:
 				_last_scenario_hud_sec = rem_i
 				_refresh_scenario_hud()
+			_tick_survival_mode()
 
 	## Warm dirty perception pairs every sim tick (budgeted; combat scan flushes).
 	if _game_state != null and not _game_state.is_deployment_phase() and not _game_state.is_ended_phase():
@@ -1347,15 +1367,23 @@ func _init_session_from_spawns() -> void:
 			gx += s.x
 			gy += s.y
 		germany_anchor = Vector2i(gx / red_spawns.size(), gy / red_spawns.size())
-	blue_spawns = MapDataClass.offset_spawns_behind_enemy(
-		blue_spawns,
-		germany_anchor,
-		_map_data,
-		MapDataClass.USA_DEPLOY_BEHIND_CELLS,
-	)
 	var match_cfg = MatchConfigStoreClass.consume_pending()
 	if match_cfg == null:
 		match_cfg = MatchConfigClass.default_offline_1v1()
+	if match_cfg.is_survival_1v_all():
+		blue_spawns = _map_data.team_1_spawn_points.duplicate()
+		if blue_spawns.is_empty():
+			blue_spawns = MapDataClass.default_usa_spawn_points()
+		red_spawns = _map_data.team_2_spawn_points.duplicate()
+		if red_spawns.is_empty():
+			red_spawns = MapDataClass.default_germany_spawn_points()
+	else:
+		blue_spawns = MapDataClass.offset_spawns_behind_enemy(
+			blue_spawns,
+			germany_anchor,
+			_map_data,
+			MapDataClass.USA_DEPLOY_BEHIND_CELLS,
+		)
 	var validation: Dictionary = match_cfg.validate()
 	if not bool(validation.get("ok", false)):
 		push_warning(
@@ -1365,8 +1393,18 @@ func _init_session_from_spawns() -> void:
 		match_cfg = MatchConfigClass.default_offline_1v1()
 	_session = GameSessionClass.from_match_config(match_cfg, blue_spawns, red_spawns)
 	_game_state = _session.create_game_state(_map_data)
+	if match_cfg.is_survival_1v_all():
+		_game_state.survival_mode = true
 	VictoryPointSystem.ensure_holders_initialized(_map_data)
 	ActionResolverClass.apply_match_start_setup(_game_state)
+	if match_cfg.is_survival_1v_all():
+		var objective := SurvivalModeControllerClass.us_objective_cell(_map_data)
+		for state in _session.red_team.soldiers:
+			if objective.x > -900:
+				state.facing_direction = FacingDirection.toward_cell(
+					state.grid_position,
+					objective,
+				)
 	## SP/MP: 15s deploy countdown + zone lock. Offline Quick Start skips (dialog → start).
 	if match_cfg != null and bool(match_cfg.timed_deployment):
 		_game_state.begin_timed_deployment(ScenarioRulesClass.DEPLOYMENT_TIME_SEC)
@@ -1904,22 +1942,79 @@ func _spawn_all_soldier_views() -> void:
 		movers_root = _depth_sorted.get_movers_root()
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
-			var soldier_state: SoldierState = state
-			var view: Soldier = SoldierScene.instantiate()
-			view.soldier_id = soldier_state.soldier_id
-			view.team_id = soldier_state.team_id
-			view.movement_step_reached.connect(_on_soldier_step_reached)
-			view.movement_finished.connect(_on_soldier_movement_finished)
-			view.stance_transition_finished.connect(_on_soldier_stance_transition_finished)
-			view.stance_transition_cancelled.connect(_on_soldier_stance_transition_cancelled)
-			view.exposed_engagement_prone_requested.connect(_on_soldier_exposed_engagement_prone_requested)
-			movers_root.add_child(view)
-			_soldier_views[Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)] = view
-			spawned += 1
+			spawned += _spawn_soldier_view(state, movers_root)
 	GameLog.log_system(
 		"[Load] spawned %d soldier views in %.0fms"
 		% [spawned, float(Time.get_ticks_usec() - t0) / 1000.0]
 	)
+
+
+func _spawn_soldier_view(soldier_state: SoldierState, movers_root: Node2D) -> int:
+	if soldier_state == null or movers_root == null:
+		return 0
+	var key := Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)
+	if _soldier_views.has(key):
+		return 0
+	var view: Soldier = SoldierScene.instantiate()
+	view.soldier_id = soldier_state.soldier_id
+	view.team_id = soldier_state.team_id
+	view.movement_step_reached.connect(_on_soldier_step_reached)
+	view.movement_finished.connect(_on_soldier_movement_finished)
+	view.stance_transition_finished.connect(_on_soldier_stance_transition_finished)
+	view.stance_transition_cancelled.connect(_on_soldier_stance_transition_cancelled)
+	view.exposed_engagement_prone_requested.connect(_on_soldier_exposed_engagement_prone_requested)
+	movers_root.add_child(view)
+	_soldier_views[key] = view
+	return 1
+
+
+func _spawn_soldier_views_for_fireteam(fireteam: Fireteam) -> void:
+	if fireteam == null:
+		return
+	var movers_root: Node2D = _depth_sorted
+	if _depth_sorted != null and _depth_sorted.has_method("get_movers_root"):
+		movers_root = _depth_sorted.get_movers_root()
+	var spawned := 0
+	for state in fireteam.soldiers:
+		spawned += _spawn_soldier_view(state, movers_root)
+	if spawned > 0:
+		_refresh_all_views()
+
+
+func _is_survival_mode() -> bool:
+	return _game_state != null and _game_state.survival_mode
+
+
+func _apply_survival_camera_rotation() -> void:
+	## Survival uses the map default, then two extra quarter-turns vs other modes.
+	IsometricGrid.rotate_view_right()
+	IsometricGrid.rotate_view_right()
+	_refresh_view_rotation()
+
+
+func _tick_survival_mode() -> void:
+	if _survival_mode == null or _game_state == null or _session == null:
+		return
+	if _game_state.scenario_ended or _game_state.is_deployment_phase():
+		return
+	var wave_line := _survival_mode.process_tick(
+		_game_state,
+		_session,
+		Callable(self, "_enable_survival_ai_commander"),
+	)
+	if wave_line.is_empty():
+		return
+	if _survival_mode.last_spawned_fireteam != null:
+		_spawn_soldier_views_for_fireteam(_survival_mode.last_spawned_fireteam)
+	_refresh_ai_plan_hud()
+	GameLog.log_system("[Survival] %s" % wave_line)
+	_command_bar.show_status(wave_line)
+
+
+func _enable_survival_ai_commander(player_id: int) -> void:
+	if _ai_framework == null or player_id <= 0:
+		return
+	_ai_framework.enable_commander(player_id)
 
 
 func _refresh_all_views() -> void:

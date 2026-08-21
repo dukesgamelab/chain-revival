@@ -39,6 +39,8 @@ var _occupancy_generation: int = -1
 var scenario_time_remaining_sec: float = 0.0
 var scenario_elapsed_sec: float = 0.0
 var scenario_ended: bool = false
+## Survival Mode: 1 v All — no time limit; GE reinforcements continue after wipes.
+var survival_mode: bool = false
 ## ScenarioEndCause / ScenarioWinner enums (kept separate like OG ScEnd Cause / Winner).
 var end_cause: int = 0
 var winner: int = 0
