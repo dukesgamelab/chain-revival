@@ -5,7 +5,6 @@ const MAIN_SCENE := "res://scenes/main.tscn"
 const MATCH_SETUP_SCENE := "res://scenes/match_setup.tscn"
 const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
 const ASSET_ANIM_EDITOR_SCENE := "res://scenes/editor/asset_animation_editor.tscn"
-const SOLDIER_PARITY_SCENE := "res://scenes/debug/soldier_faction_parity_validation.tscn"
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 
@@ -29,7 +28,6 @@ const _HINT_CONNECT_FAILED := (
 @onready var _survival_mode_button: Button = $Center/Panel/Margin/VBox/DevBox/SurvivalModeButton
 @onready var _editor_button: Button = $Center/Panel/Margin/VBox/DevBox/EditorButton
 @onready var _asset_anim_button: Button = $Center/Panel/Margin/VBox/DevBox/AssetAnimEditorButton
-@onready var _soldier_parity_button: Button = $Center/Panel/Margin/VBox/DevBox/SoldierParityButton
 @onready var _hint: Label = $Center/Panel/Margin/VBox/Hint
 
 
@@ -42,7 +40,6 @@ func _ready() -> void:
 	_survival_mode_button.pressed.connect(_on_survival_mode_pressed)
 	_editor_button.pressed.connect(_on_editor_pressed)
 	_asset_anim_button.pressed.connect(_on_asset_anim_editor_pressed)
-	_soldier_parity_button.pressed.connect(_on_soldier_parity_pressed)
 	_hint.text = _HINT_DEFAULT
 
 
@@ -98,10 +95,6 @@ func _on_asset_anim_editor_pressed() -> void:
 	get_tree().change_scene_to_file(ASSET_ANIM_EDITOR_SCENE)
 
 
-func _on_soldier_parity_pressed() -> void:
-	get_tree().change_scene_to_file(SOLDIER_PARITY_SCENE)
-
-
 func _set_buttons_enabled(enabled: bool) -> void:
 	_single_player_button.disabled = not enabled
 	_multiplayer_button.disabled = not enabled
@@ -110,4 +103,3 @@ func _set_buttons_enabled(enabled: bool) -> void:
 	_survival_mode_button.disabled = not enabled
 	_editor_button.disabled = not enabled
 	_asset_anim_button.disabled = not enabled
-	_soldier_parity_button.disabled = not enabled
