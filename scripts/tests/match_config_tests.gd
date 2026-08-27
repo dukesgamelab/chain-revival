@@ -13,6 +13,7 @@ var _passed: int = 0
 
 func _ready() -> void:
 	_test_default_offline_1v1()
+	_test_default_offline_1v1_vs_ai()
 	_test_sp_2v2_slots_and_ownership()
 	_test_switch_sides()
 	_test_round_trip_serialize()
@@ -30,6 +31,32 @@ func _pass(name: String) -> void:
 func _fail(name: String, detail: String) -> void:
 	_failed += 1
 	print("[FAIL] %s — %s" % [name, detail])
+
+
+func _test_default_offline_1v1_vs_ai() -> void:
+	var cfg = MatchConfigClass.default_offline_1v1_vs_ai()
+	var v: Dictionary = cfg.validate()
+	_assert("quick-vs-AI valid", bool(v.get("ok", false)), str(v.get("errors", [])))
+	_assert("quick-vs-AI two slots", cfg.slots.size() == 2)
+	_assert("quick-vs-AI skips timed deployment", not cfg.timed_deployment)
+	## The whole point of this config: an AI slot exists, unlike the hotseat quick start.
+	_assert(
+		"quick-vs-AI has exactly one AI slot",
+		cfg.ai_slots().size() == 1,
+		"ai_slots=%d" % cfg.ai_slots().size(),
+	)
+	var human_slots := 0
+	var ai_team := -1
+	var ai_plan := ""
+	for slot in cfg.slots:
+		if int(slot.get("controller", -1)) == MatchConfigClass.ControllerType.HUMAN:
+			human_slots += 1
+		else:
+			ai_team = int(slot.get("team_id", -1))
+			ai_plan = str(slot.get("selected_ai_plan", ""))
+	_assert("quick-vs-AI has one human slot", human_slots == 1, "humans=%d" % human_slots)
+	_assert("quick-vs-AI puts the AI on Germany", ai_team == Team.GERMANY, "team=%d" % ai_team)
+	_assert("quick-vs-AI gives the AI a plan", not ai_plan.is_empty(), "plan=%s" % ai_plan)
 
 
 func _assert(name: String, condition: bool, detail: String = "") -> void:

@@ -58,6 +58,23 @@ static func default_offline_1v1() -> RefCounted:
 	return cfg
 
 
+static func default_offline_1v1_vs_ai() -> RefCounted:
+	## Dev Offline Quick Start vs AI: Farm Fight 1v1, USA human vs Germany AI, straight into
+	## the match with no timed deployment.
+	##
+	## The plain Offline Quick Start is a hotseat with BOTH sides human, so nothing drives
+	## the German side at all — they return fire, auto-prone when exposed, and then never
+	## move, which reads exactly like a broken AI. This is the one-click way to exercise the
+	## AI commander without walking through Match Setup.
+	##
+	## Slot defaults already do the work: _default_controller gives USA slot 0 to the human
+	## and everything else to AI, and _apply_default_ai_plans gives Germany the Defend plan.
+	var cfg = new(GameModeKind.SINGLE_PLAYER, MatchType.ONE_V_ONE)
+	cfg.local_player_id = 1
+	cfg.timed_deployment = false
+	return cfg
+
+
 static func default_single_player_1v1() -> RefCounted:
 	## Single Player Match Setup default: USA Human vs Germany AI.
 	var cfg = new(GameModeKind.SINGLE_PLAYER, MatchType.ONE_V_ONE)

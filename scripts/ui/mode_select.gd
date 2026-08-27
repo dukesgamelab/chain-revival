@@ -11,6 +11,7 @@ const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd
 @onready var _single_player_button: Button = $Center/Panel/Margin/VBox/SinglePlayerButton
 @onready var _multiplayer_button: Button = $Center/Panel/Margin/VBox/MultiplayerButton
 @onready var _offline_quick_button: Button = $Center/Panel/Margin/VBox/DevBox/OfflineQuickButton
+@onready var _offline_quick_ai_button: Button = $Center/Panel/Margin/VBox/DevBox/OfflineQuickAiButton
 @onready var _survival_mode_button: Button = $Center/Panel/Margin/VBox/SurvivalModeButton
 @onready var _editor_button: Button = $Center/Panel/Margin/VBox/DevBox/EditorButton
 @onready var _asset_anim_button: Button = $Center/Panel/Margin/VBox/DevBox/AssetAnimEditorButton
@@ -21,6 +22,7 @@ func _ready() -> void:
 	_single_player_button.pressed.connect(_on_single_player_pressed)
 	_multiplayer_button.pressed.connect(_on_multiplayer_pressed)
 	_offline_quick_button.pressed.connect(_on_offline_quick_pressed)
+	_offline_quick_ai_button.pressed.connect(_on_offline_quick_ai_pressed)
 	_survival_mode_button.pressed.connect(_on_survival_mode_pressed)
 	_editor_button.pressed.connect(_on_editor_pressed)
 	_asset_anim_button.pressed.connect(_on_asset_anim_editor_pressed)
@@ -54,6 +56,15 @@ func _on_offline_quick_pressed() -> void:
 	get_tree().change_scene_to_file(MAIN_SCENE)
 
 
+func _on_offline_quick_ai_pressed() -> void:
+	## Dev: same one-click start as above, but Germany is AI — the hotseat version has no
+	## AI on either side, so use this one when testing commander behaviour.
+	PlayerSides.clear()
+	GameModeManager.set_mode(GameMode.OFFLINE_DEV)
+	MatchConfigStoreClass.set_pending(MatchConfigClass.default_offline_1v1_vs_ai())
+	get_tree().change_scene_to_file(MAIN_SCENE)
+
+
 func _on_survival_mode_pressed() -> void:
 	## Survival: US human vs recurring GE AI waves on ff_farm_survival.
 	PlayerSides.clear()
@@ -79,6 +90,7 @@ func _set_buttons_enabled(enabled: bool) -> void:
 	_single_player_button.disabled = not enabled
 	_multiplayer_button.disabled = not enabled
 	_offline_quick_button.disabled = not enabled
+	_offline_quick_ai_button.disabled = not enabled
 	_survival_mode_button.disabled = not enabled
 	_editor_button.disabled = not enabled
 	_asset_anim_button.disabled = not enabled
