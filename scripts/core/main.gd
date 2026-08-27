@@ -24,7 +24,6 @@ const ConeOfFireClass := preload("res://scripts/combat/cone_of_fire.gd")
 const ActionResolverClass := preload("res://scripts/core/action_resolver.gd")
 const ActionResultClass := preload("res://scripts/core/action_result.gd")
 const CommandContextClass := preload("res://scripts/core/command_context.gd")
-const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 const CommandDialogScene := preload("res://scenes/ui/command_dialog.tscn")
 const AssignWeaponsDialogScene := preload("res://scenes/ui/assign_weapons_dialog.tscn")
 const AdjustAmmoCommandClass := preload("res://scripts/commands/adjust_ammo_command.gd")
@@ -77,10 +76,8 @@ var _face_mode: bool = false
 var _face_soldier_id: int = 1
 var _grenade_mode: bool = false
 var _grenade_soldier_id: int = 1
-var _map_edit_mode: bool = false
 ## Test-only: yellow run path, aim line, and LOS cone. Off by default; toggle with T.
 var _debug_targeting_overlays: bool = false
-var _map_edit_palette: int = MapEditorClass.Palette.WALL
 var _sim_accum_sec: float = 0.0
 var _combat_scan_accum_msec: int = 0
 ## Last whole-second remaining shown on the scenario HUD (avoids per-tick label churn).
@@ -466,20 +463,19 @@ func _process(delta: float) -> void:
 	var frame_t0 := Time.get_ticks_usec()
 	_step_fixed_simulation(delta)
 
-	if not _map_edit_mode:
-		_update_los_preview_throttled(delta)
-		_tick_face_manual_revert()
-		## Hit % columns: throttle while aiming; combat-scan path covers Fire At Will.
-		if _fire_at_mode:
-			_fire_at_hit_accum_sec += delta
-			if _fire_at_hit_accum_sec >= _FIRE_AT_PREVIEW_INTERVAL_SEC:
-				_fire_at_hit_accum_sec = 0.0
-				_update_command_bar_hit_columns()
-		_debug_perf_accum_sec += delta
-		if _debug_perf_accum_sec >= _DEBUG_PERF_INTERVAL_SEC:
-			_debug_perf_accum_sec = 0.0
-			_log_perception_profiler()
-			_scan_stuck_movement_mismatches()
+	_update_los_preview_throttled(delta)
+	_tick_face_manual_revert()
+	## Hit % columns: throttle while aiming; combat-scan path covers Fire At Will.
+	if _fire_at_mode:
+		_fire_at_hit_accum_sec += delta
+		if _fire_at_hit_accum_sec >= _FIRE_AT_PREVIEW_INTERVAL_SEC:
+			_fire_at_hit_accum_sec = 0.0
+			_update_command_bar_hit_columns()
+	_debug_perf_accum_sec += delta
+	if _debug_perf_accum_sec >= _DEBUG_PERF_INTERVAL_SEC:
+		_debug_perf_accum_sec = 0.0
+		_log_perception_profiler()
+		_scan_stuck_movement_mismatches()
 	var frame_msec := float(Time.get_ticks_usec() - frame_t0) / 1000.0
 	if frame_msec > _perf_max_frame_msec:
 		_perf_max_frame_msec = frame_msec
@@ -541,8 +537,6 @@ func _step_fixed_simulation(frame_delta: float) -> void:
 
 func _step_simulation_tick(skip_ai: bool = false) -> void:
 	var stepped := SimulationClock.advance_tick()
-	if _map_edit_mode:
-		return
 
 	var move_t0 := Time.get_ticks_usec()
 	var move_result: ActionResultClass = ActionResolverClass.process_movement_tick(_game_state)
@@ -877,13 +871,6 @@ func _clear_stuck_overlay(view: Soldier) -> void:
 
 func _combat_scan_interval_msec() -> int:
 	return maxi(int(round(GameplayPolicies.hit.auto_fire_scan_interval * 1000.0)), 1)
-
-
-func _input(event: InputEvent) -> void:
-	if not _map_edit_mode:
-		return
-	if event is InputEventMouseMotion:
-		_update_map_edit_hover()
 
 
 func _get_manual_fire_at_shooters() -> Array[SoldierState]:
@@ -1458,8 +1445,6 @@ func _connect_command_bar() -> void:
 	_command_bar.center_camera_requested.connect(_on_center_camera_requested)
 	_command_bar.rotate_view_left_requested.connect(_on_rotate_view_left_requested)
 	_command_bar.rotate_view_right_requested.connect(_on_rotate_view_right_requested)
-	_command_bar.map_edit_mode_changed.connect(_on_map_edit_mode_changed)
-	_command_bar.map_edit_palette_changed.connect(_on_map_edit_palette_changed)
 	_command_bar.set_commanders_requested.connect(_on_set_commanders_requested)
 	_command_bar.assign_weapons_requested.connect(_on_assign_weapons_requested)
 	_command_bar.ammo_adjust_requested.connect(_on_ammo_adjust_requested)
@@ -1675,13 +1660,6 @@ func _on_ammo_adjust_requested(soldier_id: int, delta: int) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_M or event.is_action_pressed("map_edit"):
-			_toggle_map_edit_mode()
-			get_viewport().set_input_as_handled()
-			return
-		if _map_edit_mode:
-			get_viewport().set_input_as_handled()
-			return
 		if event.keycode == KEY_1:
 			_switch_active_team(Team.USA)
 			get_viewport().set_input_as_handled()
@@ -1744,14 +1722,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	var target_cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
-
-	if _map_edit_mode:
-		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
-			_apply_map_edit_cell(target_cell, false)
-		elif mouse_event.button_index == MOUSE_BUTTON_RIGHT:
-			_apply_map_edit_cell(target_cell, true)
-		get_viewport().set_input_as_handled()
-		return
 
 	if mouse_event.button_index == MOUSE_BUTTON_RIGHT:
 		if _fire_at_mode:
@@ -1862,8 +1832,6 @@ func _switch_active_team(team_id: int) -> void:
 	_fire_at_engaged = false
 	_face_mode = false
 	_grenade_mode = false
-	_map_edit_mode = false
-	_command_bar.clear_map_edit_mode()
 	_command_bar.set_active_team(team_id)
 	var fireteam: Fireteam = _control_fireteam()
 	_repair_fireteam_selection(fireteam)
@@ -1909,50 +1877,6 @@ func _offline_dev_take_team_control(team_id: int) -> bool:
 	if _game_state != null:
 		_game_state.local_player_id = target_pid
 	return true
-
-
-func _toggle_map_edit_mode() -> void:
-	_command_bar.set_map_edit_active(not _map_edit_mode)
-
-
-func _on_map_edit_mode_changed(is_active: bool) -> void:
-	_map_edit_mode = is_active
-	if is_active:
-		_move_targeting = false
-		_squad_move_targeting = false
-		_fire_at_mode = false
-		_squad_fire_at_mode = false
-		_fire_at_engaged = false
-		_face_mode = false
-		_grenade_mode = false
-		_los_visualizer.hide_preview()
-		_update_map_edit_hover()
-	else:
-		_iso_map.clear_map_edit_hover()
-		_command_bar.show_status("Map Edit OFF.")
-
-
-func _on_map_edit_palette_changed(palette: int) -> void:
-	_map_edit_palette = palette
-
-
-func _update_map_edit_hover() -> void:
-	var cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
-	if not _map_data.is_in_bounds(cell):
-		_iso_map.clear_map_edit_hover()
-		return
-	_iso_map.set_map_edit_hover(cell)
-
-
-func _apply_map_edit_cell(cell: Vector2i, erase: bool) -> void:
-	var result: ActionResultClass = CommandRouter.apply_map_edit(
-		_game_state,
-		cell,
-		_map_edit_palette,
-		erase,
-	)
-	_map_data = _game_state.map_data
-	_present_action_result(result)
 
 
 func _apply_map_presentation() -> void:
@@ -3460,8 +3384,6 @@ func _on_move_targeting_changed(is_active: bool, soldier_id: int, movement_mode:
 	_active_movement_mode = movement_mode
 	_move_soldier_id = soldier_id if soldier_id > 0 else _control_fireteam().selected_soldier_id
 	if is_active:
-		_map_edit_mode = false
-		_command_bar.clear_map_edit_mode()
 		_fire_at_mode = false
 		_squad_fire_at_mode = false
 		_fire_at_engaged = false
@@ -3487,8 +3409,6 @@ func _on_fire_at_mode_changed(is_active: bool, soldier_id: int) -> void:
 	_squad_fire_at_mode = is_active and soldier_id == CommandBar.SQUAD_ID
 	_fire_at_soldier_id = soldier_id if is_active else 1
 	if is_active:
-		_map_edit_mode = false
-		_command_bar.clear_map_edit_mode()
 		_move_targeting = false
 		_squad_move_targeting = false
 		_face_mode = false
@@ -3505,8 +3425,6 @@ func _on_grenade_mode_changed(is_active: bool, soldier_id: int) -> void:
 	_grenade_mode = is_active
 	_grenade_soldier_id = soldier_id if is_active else 1
 	if is_active:
-		_map_edit_mode = false
-		_command_bar.clear_map_edit_mode()
 		_move_targeting = false
 		_squad_move_targeting = false
 		_fire_at_mode = false
@@ -3523,8 +3441,6 @@ func _on_face_mode_changed(is_active: bool, soldier_id: int) -> void:
 	_face_soldier_id = soldier_id if is_active else 1
 	if is_active:
 		_clear_face_manual_override()
-		_map_edit_mode = false
-		_command_bar.clear_map_edit_mode()
 		_move_targeting = false
 		_squad_move_targeting = false
 		_fire_at_mode = false
@@ -3561,8 +3477,6 @@ func _on_map_save_requested() -> void:
 func _on_map_load_requested() -> void:
 	var result: ActionResultClass = CommandRouter.reload_map_from_file(_game_state)
 	_map_data = _game_state.map_data
-	_map_edit_mode = false
-	_command_bar.clear_map_edit_mode()
 	IsometricGrid.reset_view_rotation()
 	_apply_map_presentation()
 	_camera.set_map_size(_map_data.width, _map_data.height)

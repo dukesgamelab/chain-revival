@@ -53,19 +53,6 @@ func arm_movement_mode(
 	)
 
 
-func apply_map_edit(
-	game_state: GameStateClass,
-	cell: Vector2i,
-	palette: int,
-	erase: bool,
-) -> ActionResultClass:
-	return _route(
-		"map_edit cell=%s erase=%s" % [cell, erase],
-		func() -> ActionResultClass:
-			return ActionResolverClass.apply_map_edit(game_state, cell, palette, erase),
-	)
-
-
 func reload_map_from_file(game_state: GameStateClass) -> ActionResultClass:
 	return _route(
 		"reload_map_from_file",

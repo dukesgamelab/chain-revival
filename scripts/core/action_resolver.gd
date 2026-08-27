@@ -28,7 +28,6 @@ const WeaponCacheClass := preload("res://scripts/core/weapon_cache.gd")
 const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 const AiOrderClass := preload("res://scripts/ai/ai_order.gd")
 const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
-const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 const MapDataClass := preload("res://scripts/map/map_data.gd")
 const GameSaveClass := preload("res://scripts/core/game_save.gd")
 const MovementModeClass := preload("res://scripts/enums/movement_mode.gd")
@@ -128,36 +127,6 @@ static func toggle_map_block(game_state: GameStateClass, cell: Vector2i) -> Acti
 	if is_now_blocked:
 		return result.set_status("Blocked tile %s." % cell)
 	return result.set_status("Unblocked tile %s." % cell)
-
-
-## Dev map editor: place or erase a map object on authoritative map_data.
-static func apply_map_edit(
-	game_state: GameStateClass,
-	cell: Vector2i,
-	palette: int,
-	erase: bool,
-) -> ActionResult:
-	if not game_state.map_data.is_in_bounds(cell):
-		return ActionResult.fail("That tile is outside the map.")
-
-	var result := ActionResult.new()
-	result.refresh_map_data = true
-	result.refresh_views = false
-
-	if erase or palette == MapEditorClass.Palette.ERASE:
-		game_state.map_data.clear_object(cell)
-		game_state.objects.unregister_map_object(cell)
-		_log_action("map edit erase %s" % cell)
-		return result.set_status("Erased tile %s." % cell)
-
-	var type_id := MapEditorClass.palette_type_id(palette)
-	if type_id.is_empty():
-		return ActionResult.fail("Unknown map edit palette.")
-
-	game_state.map_data.set_object(cell, type_id)
-	game_state.objects.register_map_object(cell, type_id)
-	_log_action("map edit place %s=%s" % [cell, type_id])
-	return result.set_status("Placed %s at %s." % [type_id, cell])
 
 
 ## Replace authoritative map_data from the default map file (dev tool).

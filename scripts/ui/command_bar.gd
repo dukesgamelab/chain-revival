@@ -18,14 +18,10 @@ signal map_load_requested
 signal center_camera_requested
 signal rotate_view_left_requested
 signal rotate_view_right_requested
-signal map_edit_mode_changed(is_active: bool)
-signal map_edit_palette_changed(palette: int)
 signal set_commanders_requested
 signal assign_weapons_requested
 signal ammo_adjust_requested(soldier_id: int, delta: int)
 signal retreat_requested
-
-const MapEditorClass := preload("res://scripts/map/map_editor.gd")
 
 @onready var _squad_row: SquadCommandRow = %SquadRow
 @onready var _rows: Array[SoldierCommandRow] = [
@@ -47,8 +43,6 @@ var _grenade_soldier_id: int = -1
 var _active_team_id: int = Team.USA
 var _soldier_weapon_names: Array[String] = ["", "", "", ""]
 var _fire_at_engaged: bool = false
-var _map_edit_active: bool = false
-var _map_edit_palette: int = MapEditorClass.Palette.WALL
 var _usa_score_total: int = 0
 var _ger_score_total: int = 0
 
@@ -92,11 +86,6 @@ func _ready() -> void:
 	%RotateRightButton.pressed.connect(func() -> void: rotate_view_right_requested.emit())
 	%SetCommandersButton.pressed.connect(func() -> void: set_commanders_requested.emit())
 	%AssignWeaponsButton.pressed.connect(func() -> void: assign_weapons_requested.emit())
-	%MapEditButton.toggled.connect(_on_map_edit_toggled)
-	%TreeButton.pressed.connect(func() -> void: _select_map_edit_palette(MapEditorClass.Palette.TREE))
-	%HaybailButton.pressed.connect(func() -> void: _select_map_edit_palette(MapEditorClass.Palette.HAYBAIL))
-	%WallButton.pressed.connect(func() -> void: _select_map_edit_palette(MapEditorClass.Palette.WALL))
-	%EraseButton.pressed.connect(func() -> void: _select_map_edit_palette(MapEditorClass.Palette.ERASE))
 	var retreat := %RetreatButton as Button
 	if retreat != null:
 		retreat.disabled = false
@@ -108,7 +97,7 @@ func _ready() -> void:
 
 
 func _setup_dev_tools() -> void:
-	## Test-only strip (Save / Map Edit / …) — top-left, not part of the OG toolbar.
+	## Test-only strip (Save / Map Save / …) — top-left, not part of the OG toolbar.
 	var score := %ScoreHud as Control
 	if score != null:
 		score.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -125,12 +114,10 @@ func _setup_dev_tools() -> void:
 	%LoadButton.tooltip_text = "DEV: load game state"
 	%MapSaveButton.tooltip_text = "DEV: save map objects"
 	%MapLoadButton.tooltip_text = "DEV: load map objects"
-	%MapEditButton.tooltip_text = "DEV: place/erase map objects"
 	_fit_dev_tools()
 
 
 func _fit_dev_tools() -> void:
-	## Defer so MapEditPanel show/hide has laid out before we measure.
 	call_deferred("_fit_dev_tools_now")
 
 
@@ -206,7 +193,6 @@ func set_active_team(team_id: int) -> void:
 	clear_fire_at_mode()
 	clear_face_mode()
 	clear_grenade_mode()
-	clear_map_edit_mode()
 	_update_status()
 
 
@@ -330,40 +316,6 @@ func sync_squad_position_state(position_state: int) -> void:
 	_squad_row.set_position_state(position_state)
 
 
-func clear_map_edit_mode() -> void:
-	_map_edit_active = false
-	%MapEditButton.set_pressed_no_signal(false)
-	%MapEditPanel.visible = false
-	_fit_dev_tools()
-	map_edit_mode_changed.emit(false)
-	_update_status()
-
-
-func set_map_edit_active(is_active: bool) -> void:
-	if _map_edit_active == is_active:
-		%MapEditButton.set_pressed_no_signal(is_active)
-		%MapEditPanel.visible = is_active
-		_fit_dev_tools()
-		return
-	_map_edit_active = is_active
-	%MapEditButton.set_pressed_no_signal(is_active)
-	%MapEditPanel.visible = is_active
-	_fit_dev_tools()
-	if is_active:
-		clear_move_targeting()
-		clear_fire_at_mode()
-		clear_face_mode()
-		clear_grenade_mode()
-	map_edit_mode_changed.emit(is_active)
-	_update_map_edit_status()
-
-
-func set_map_edit_palette(palette: int) -> void:
-	_map_edit_palette = palette
-	_sync_map_edit_palette_buttons()
-	_update_map_edit_status()
-
-
 func show_status(text: String) -> void:
 	if _status_hud != null:
 		_status_hud.show_status(text)
@@ -484,7 +436,6 @@ func _on_squad_move_mode_toggled(movement_mode: int, is_pressed: bool) -> void:
 	## Action buttons are click-flash only; mode stays until another action clears it.
 	if not is_pressed:
 		return
-	clear_map_edit_mode()
 	clear_fire_at_mode()
 	clear_face_mode()
 	clear_grenade_mode()
@@ -502,7 +453,6 @@ func _on_squad_move_mode_toggled(movement_mode: int, is_pressed: bool) -> void:
 func _on_squad_fire_at_toggled(is_pressed: bool) -> void:
 	if not is_pressed:
 		return
-	clear_map_edit_mode()
 	clear_move_targeting()
 	clear_face_mode()
 	clear_grenade_mode()
@@ -517,7 +467,6 @@ func _on_squad_fire_at_toggled(is_pressed: bool) -> void:
 func _on_squad_face_toggled(is_pressed: bool) -> void:
 	if not is_pressed:
 		return
-	clear_map_edit_mode()
 	clear_move_targeting()
 	clear_fire_at_mode()
 	clear_grenade_mode()
@@ -532,7 +481,6 @@ func _on_squad_face_toggled(is_pressed: bool) -> void:
 func _on_squad_grenade_toggled(is_pressed: bool) -> void:
 	if not is_pressed:
 		return
-	clear_map_edit_mode()
 	clear_move_targeting()
 	clear_fire_at_mode()
 	clear_face_mode()
@@ -545,7 +493,6 @@ func _on_squad_grenade_toggled(is_pressed: bool) -> void:
 
 
 func _on_squad_position_toggled(is_down: bool) -> void:
-	clear_map_edit_mode()
 	clear_move_targeting()
 	clear_fire_at_mode()
 	clear_face_mode()
@@ -564,7 +511,6 @@ func _on_row_move_mode_toggled(soldier_id: int, movement_mode: int, is_pressed: 
 	## Action buttons are click-flash only; mode stays until another action clears it.
 	if not is_pressed:
 		return
-	clear_map_edit_mode()
 	clear_fire_at_mode()
 	clear_face_mode()
 	clear_grenade_mode()
@@ -589,7 +535,6 @@ func _on_row_move_mode_toggled(soldier_id: int, movement_mode: int, is_pressed: 
 func _on_row_fire_at_toggled(soldier_id: int, is_pressed: bool) -> void:
 	if not is_pressed:
 		return
-	clear_map_edit_mode()
 	clear_move_targeting()
 	clear_face_mode()
 	clear_grenade_mode()
@@ -611,7 +556,6 @@ func _on_row_fire_at_toggled(soldier_id: int, is_pressed: bool) -> void:
 func _on_row_face_toggled(soldier_id: int, is_pressed: bool) -> void:
 	if not is_pressed:
 		return
-	clear_map_edit_mode()
 	clear_move_targeting()
 	clear_fire_at_mode()
 	clear_grenade_mode()
@@ -633,7 +577,6 @@ func _on_row_face_toggled(soldier_id: int, is_pressed: bool) -> void:
 func _on_row_grenade_toggled(soldier_id: int, is_pressed: bool) -> void:
 	if not is_pressed:
 		return
-	clear_map_edit_mode()
 	clear_move_targeting()
 	clear_fire_at_mode()
 	clear_face_mode()
@@ -658,7 +601,6 @@ func _on_row_fire_control_selected(soldier_id: int, fire_control_state: int) -> 
 
 
 func _on_row_position_toggled(soldier_id: int, is_down: bool) -> void:
-	clear_map_edit_mode()
 	clear_move_targeting()
 	clear_fire_at_mode()
 	clear_face_mode()
@@ -694,9 +636,6 @@ func _movement_label(mode: int) -> String:
 
 
 func _update_status() -> void:
-	if _map_edit_active:
-		_update_map_edit_status()
-		return
 	var team_name := Team.display_name(_active_team_id)
 	if _fire_at_soldier_id == SQUAD_ID:
 		show_status(
@@ -751,31 +690,3 @@ func _get_selected_weapon_name() -> String:
 	if row_index < 0 or row_index >= _soldier_weapon_names.size():
 		return ""
 	return _soldier_weapon_names[row_index]
-
-
-func _on_map_edit_toggled(is_pressed: bool) -> void:
-	set_map_edit_active(is_pressed)
-
-
-func _select_map_edit_palette(palette: int) -> void:
-	_map_edit_palette = palette
-	_sync_map_edit_palette_buttons()
-	map_edit_palette_changed.emit(palette)
-	_update_map_edit_status()
-
-
-func _sync_map_edit_palette_buttons() -> void:
-	%TreeButton.set_pressed_no_signal(_map_edit_palette == MapEditorClass.Palette.TREE)
-	%HaybailButton.set_pressed_no_signal(_map_edit_palette == MapEditorClass.Palette.HAYBAIL)
-	%WallButton.set_pressed_no_signal(_map_edit_palette == MapEditorClass.Palette.WALL)
-	%EraseButton.set_pressed_no_signal(_map_edit_palette == MapEditorClass.Palette.ERASE)
-
-
-func _update_map_edit_status() -> void:
-	if not _map_edit_active:
-		return
-	var palette_name := MapEditorClass.palette_label(_map_edit_palette)
-	show_status(
-		"Map Edit ON — %s selected. Left-click place, right-click erase. M or Map Edit to exit. Map Save/Load persists objects."
-		% palette_name
-	)
