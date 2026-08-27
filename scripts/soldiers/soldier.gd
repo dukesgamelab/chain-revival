@@ -1683,8 +1683,10 @@ func play_throw_grenade(
 
 	_throw_pres_phase = ThrowPresPhase.ENTER_KNEEL
 	if not _begin_throw_grenade_enter_phase():
-		_throw_grenade_active = false
-		_throw_pres_phase = ThrowPresPhase.NONE
+		## Missing kneel-enter clip (or empty frames) — still play the throw.
+		if not _begin_throw_grenade_throw_phase():
+			_throw_grenade_active = false
+			_throw_pres_phase = ThrowPresPhase.NONE
 
 
 ## Presentation-only rifle fire (standing / prone / corner peek). One sequence per accepted shot.
