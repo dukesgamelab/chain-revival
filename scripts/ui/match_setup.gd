@@ -15,7 +15,6 @@ var _ger_list: ItemList
 var _type_1v1: Button
 var _type_2v2: Button
 var _switch_side: Button
-var _cycle_controller: Button
 var _ai_plans_root: VBoxContainer
 ## player_id -> OptionButton
 var _plan_option_by_player: Dictionary = {}
@@ -107,7 +106,6 @@ func _build_layout() -> void:
 	usa_col.add_child(usa_hdr)
 	_usa_list = ItemList.new()
 	_usa_list.custom_minimum_size = Vector2(220, 100)
-	_usa_list.select_mode = ItemList.SELECT_SINGLE
 	usa_col.add_child(_usa_list)
 
 	var ger_col := VBoxContainer.new()
@@ -118,7 +116,6 @@ func _build_layout() -> void:
 	ger_col.add_child(ger_hdr)
 	_ger_list = ItemList.new()
 	_ger_list.custom_minimum_size = Vector2(220, 100)
-	_ger_list.select_mode = ItemList.SELECT_SINGLE
 	ger_col.add_child(_ger_list)
 
 	var tools := HBoxContainer.new()
@@ -129,10 +126,6 @@ func _build_layout() -> void:
 	_switch_side.text = "Switch Sides"
 	_switch_side.pressed.connect(_on_switch_sides)
 	tools.add_child(_switch_side)
-	_cycle_controller = Button.new()
-	_cycle_controller.text = "Cycle Selected Controller"
-	_cycle_controller.pressed.connect(_on_cycle_controller)
-	tools.add_child(_cycle_controller)
 
 	var plans_hdr := Label.new()
 	plans_hdr.text = "AI Plans (pre-game)"
@@ -170,39 +163,6 @@ func _set_match_type(match_type: int) -> void:
 
 func _on_switch_sides() -> void:
 	_config.switch_human_side()
-	_refresh()
-
-
-func _selected_player_id() -> int:
-	for list in [_usa_list, _ger_list]:
-		var selected: PackedInt32Array = list.get_selected_items()
-		if selected.is_empty():
-			continue
-		return int(list.get_item_metadata(selected[0]))
-	return -1
-
-
-func _on_cycle_controller() -> void:
-	var pid := _selected_player_id()
-	if pid <= 0:
-		_status.text = "Select a player slot first."
-		return
-	var current := MatchConfigClass.ControllerType.AI
-	for slot in _config.slots:
-		if int(slot.get("player_id", -1)) == pid:
-			current = int(slot.get("controller", MatchConfigClass.ControllerType.AI))
-			break
-	var next := current
-	## SP and MP: Human ↔ AI. Unused seats stay AI; joining humans replace AI at runtime.
-	## OPEN remains valid for legacy lobbies and is filled to AI on Start.
-	if current == MatchConfigClass.ControllerType.HUMAN:
-		next = MatchConfigClass.ControllerType.AI
-	elif current == MatchConfigClass.ControllerType.OPEN:
-		next = MatchConfigClass.ControllerType.HUMAN
-	else:
-		next = MatchConfigClass.ControllerType.HUMAN
-	## SP enforces a single Human via set_slot_controller demotion.
-	_config.set_slot_controller(pid, next)
 	_refresh()
 
 
@@ -255,7 +215,7 @@ func _fill_team_list(list: ItemList, team_id: int) -> void:
 			MatchConfigClass.controller_label(int(slot.get("controller", 0))),
 		]
 		list.add_item(label)
-		list.set_item_metadata(list.item_count - 1, int(slot.get("player_id", -1)))
+		list.set_item_selectable(list.item_count - 1, false)
 
 
 func _rebuild_ai_plan_selectors() -> void:
