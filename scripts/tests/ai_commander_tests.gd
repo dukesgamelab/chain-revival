@@ -52,6 +52,9 @@ func _ready() -> void:
 	_test_close_range_seeks_nearby_cover()
 	_test_cover_approach_crawls_under_heavy_fire()
 	_test_prone_when_settled_in_cover()
+	_test_stands_up_when_prone_in_open()
+	_test_cover_resettles_after_timeout()
+	_test_survival_bound_prefers_cover()
 	_test_contact_halts_objective_move()
 	_test_high_stress_blocks_advance()
 	_test_defend_holds_near_own_lines()
@@ -668,6 +671,141 @@ func _test_prone_when_settled_in_cover() -> void:
 			saw_prone = true
 			break
 	_assert("AI goes prone when settled in cover", saw_prone, "submitted=%d" % _submitted.size())
+
+
+## Prone in the open with no cover anywhere must not be a terminal state: the brain has
+## to issue an explicit UP so the next think can RUN somewhere. Regression for squads
+## that lay down and stayed down for the rest of the match.
+func _test_stands_up_when_prone_in_open() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	## No cover at all — every cover query must come back empty.
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = Vector2i(21, 20)
+		ger.clear_path()
+		ger.is_moving = false
+		ger.position_state = PositionStateClass.DOWN
+		ger.clear_pending_position()
+		ger.facing_direction = FacingDirectionClass.WEST
+	for sid in range(1, 5):
+		var usa = gs.get_soldier(Team.USA, sid)
+		if usa == null:
+			continue
+		usa.grid_position = Vector2i(16, 20)
+		usa.facing_direction = FacingDirectionClass.EAST
+	CombatSystem.clear_player_visibility_cache()
+	CombatSystem.notify_command_hierarchy_changed(gs)
+	CombatSystem.update_spotting(gs)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander.state_id = AiCommanderStateClass.CONTACT
+	commander._settled_in_cover = false
+	_submitted.clear()
+	_think_cycle(fw, gs)
+	var saw_stand := false
+	for cmd in _submitted:
+		if cmd is PositionCommandClass and cmd.position_state == PositionStateClass.UP:
+			saw_stand = true
+			break
+	_assert(
+		"prone in the open with no cover stands back up",
+		saw_stand,
+		"submitted=%d" % _submitted.size(),
+	)
+
+
+## Settled behind cover against a stationary threat must still re-evaluate eventually.
+## Before the timeout the squad holds; after it, the brain looks again.
+func _test_cover_resettles_after_timeout() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	map_data.set_object(Vector2i(20, 20), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = Vector2i(21, 20)
+		ger.clear_path()
+		ger.is_moving = false
+		ger.position_state = PositionStateClass.UP
+		ger.facing_direction = FacingDirectionClass.WEST
+	var threat_cell := Vector2i(16, 20)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander._settled_in_cover = true
+	commander._cover_threat_cell = threat_cell
+	## Sanity: this fixture really is in directional cover, else the assert below is vacuous.
+	_assert(
+		"resettle fixture starts in directional cover",
+		commander._formation_in_directional_cover(gs, threat_cell),
+		"center=%s" % commander._formation_center(gs),
+	)
+	var now := SimulationClock.get_ticks_msec()
+	commander._cover_bound_msec = now
+	_assert(
+		"freshly settled squad holds its cover",
+		not commander._should_rebound_cover(gs, threat_cell),
+		"expected no rebound immediately after settling",
+	)
+	commander._cover_bound_msec = now - AiCommanderClass.COVER_RESETTLE_MSEC - 1
+	_assert(
+		"settled squad re-evaluates cover after the timeout",
+		commander._should_rebound_cover(gs, threat_cell),
+		"threat never moved, so only the timeout can trigger this",
+	)
+
+
+## Survival assault bounds must route through a covered stand instead of stepping
+## straight at the enemy — and must still close the distance on the push target.
+func _test_survival_bound_prefers_cover() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var wall := Vector2i(25, 20)
+	map_data.set_object(wall, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var from_cell := Vector2i(30, 20)
+	var threat_cell := Vector2i(23, 20)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	var cover: Vector2i = commander._survival_cover_bound_cell(
+		gs, from_cell, threat_cell, threat_cell
+	)
+	_assert(
+		"survival assault picks a cover stand instead of a straight step",
+		cover.x > -900,
+		"no cover chosen between %s and %s" % [from_cell, threat_cell],
+	)
+	if cover.x <= -900:
+		return
+	_assert(
+		"survival bound target is actually covered vs the threat",
+		AiSectorObjectivesClass.stand_covered_vs_threat(cover, threat_cell, map_data),
+		"cover=%s threat=%s" % [cover, threat_cell],
+	)
+	var old_dist := absi(from_cell.x - threat_cell.x) + absi(from_cell.y - threat_cell.y)
+	var new_dist := absi(cover.x - threat_cell.x) + absi(cover.y - threat_cell.y)
+	_assert(
+		"survival bound still closes on the objective",
+		new_dist < old_dist,
+		"old=%d new=%d cover=%s" % [old_dist, new_dist, cover],
+	)
+	## Already behind cover — hold and shoot rather than re-bounding on the spot.
+	var settled: Vector2i = commander._survival_cover_bound_cell(
+		gs, cover, threat_cell, threat_cell
+	)
+	_assert(
+		"survival bound declines when already in cover",
+		settled.x <= -900,
+		"expected decline, got %s" % settled,
+	)
 
 
 func _test_high_stress_blocks_advance() -> void:

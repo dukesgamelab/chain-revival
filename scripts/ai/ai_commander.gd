@@ -59,6 +59,11 @@ const CONTACT_REACT_DIST := 32
 const CONTACT_THREAT_STANDOFF := 3
 ## TUNED — re-bound if threat cell moves at least this Chebyshev from last bound axis.
 const COVER_THREAT_SHIFT_CHEBYSHEV := 3
+## TUNED — force a cover re-evaluation this long after settling, even when the threat
+## has not shifted. Without it a settled squad holds one stand (prone) for the whole match.
+const COVER_RESETTLE_MSEC := 6000
+## Cooldown between explicit stand-up orders (msec) — keeps stand/prone from ping-ponging.
+const STAND_UP_COOLDOWN_MSEC := 1500
 ## TUNED — avg fireteam stress at/above this → favor cover over pushing.
 const STRESS_COVER_PRIORITY := 35.0
 ## TUNED — crawl to cover only at/above this; below it, RUN into cover.
@@ -116,6 +121,7 @@ var _watchdog_logged: bool = false
 ## Per-soldier defensive posts for hold/cover objectives (soldier_id -> cell).
 var _defensive_posts: Dictionary = {}
 var _last_open_prone_msec: int = -999999
+var _last_stand_up_msec: int = -999999
 ## Survival GE: rotate which soldier bounds forward under fire.
 var _survival_bound_soldier_idx: int = 0
 
@@ -587,6 +593,13 @@ func _engage_contact(
 			var nearby_cover := AiSectorObjectivesClass.nearest_cover_within(
 				game_state, center, threat_cell, seek_max, [], false, true
 			)
+			## Cover-quality re-evaluation: the close-range radius is deliberately tight, but
+			## finding nothing inside it must not mean lying still — widen once before giving
+			## up so a squad caught in the open still has somewhere to bound.
+			if nearby_cover.x <= -900 and seek_max < COVER_SEEK_MAX_DIST:
+				nearby_cover = AiSectorObjectivesClass.nearest_cover_within(
+					game_state, center, threat_cell, COVER_SEEK_MAX_DIST, [], false, true
+				)
 			var cover_reachable := (
 				nearby_cover.x > -900
 				and absi(nearby_cover.x - center.x) + absi(nearby_cover.y - center.y) > 1
@@ -604,6 +617,9 @@ func _engage_contact(
 				return
 			## No cover this tick — keep seeking next think; do NOT mark settled (avoids open prone).
 			_contact_bound_active = false
+			## Prone in the open with nothing to bound to is the stuck state — stand so the
+			## next think can RUN to cover instead of crawling there (or never moving at all).
+			_try_stand_up_off_cover(game_state, submit_command, threat_cell)
 			_face_threat(game_state, submit_command, threats)
 			_try_fire(game_state, submit_command, fire_pool)
 			return
@@ -645,6 +661,10 @@ func _should_rebound_cover(game_state, threat_cell: Vector2i) -> bool:
 	if now - _cover_bound_msec < DEFAULT_REPLAN_INTERVAL_MSEC:
 		return false
 	if not _formation_in_directional_cover(game_state, threat_cell):
+		return true
+	## Time-based re-evaluation — a squad that settled once must periodically look for
+	## better cover or a forward bound instead of lying on the same stand all match.
+	if now - _cover_bound_msec >= COVER_RESETTLE_MSEC:
 		return true
 	if _cover_threat_cell.x <= -900:
 		return false
@@ -1085,6 +1105,51 @@ func _cover_is_short_of_threat(
 	return true
 
 
+## Stand a soldier back up when it is prone WITHOUT directional cover vs the threat.
+## Nothing else in the brain issues an UP order — ActionResolver only auto-stands as a
+## side effect of a RUN — so an open-ground prone squad otherwise stays down for good.
+## One soldier per think on a cooldown: the command budget is 2, and starving Face/Fire
+## to stand the whole fireteam at once is worse than un-proning over a few thinks.
+func _try_stand_up_off_cover(
+	game_state,
+	submit_command: Callable,
+	threat_cell: Vector2i,
+) -> bool:
+	if not _has_command_budget() or threat_cell.x <= -900:
+		return false
+	var map_data = game_state.map_data if game_state != null else null
+	if map_data == null:
+		return false
+	var now := SimulationClock.get_ticks_msec()
+	if now - _last_stand_up_msec < STAND_UP_COOLDOWN_MSEC:
+		return false
+	for soldier in _living_soldiers(game_state):
+		if soldier.position_state != PositionStateClass.DOWN:
+			continue
+		if soldier.pending_position_state >= 0 or soldier.is_moving:
+			continue
+		## Actually behind something vs this threat — hunkering there is correct.
+		if AiSectorObjectivesClass.stand_covered_vs_threat(
+			soldier.grid_position, threat_cell, map_data
+		):
+			continue
+		var cmd := PositionCommandClass.new()
+		cmd.team_id = soldier.team_id
+		cmd.soldier_id = soldier.soldier_id
+		cmd.position_state = PositionStateClass.UP
+		if _submit_ai(
+			game_state,
+			submit_command,
+			cmd,
+			_make_context(Callable()),
+			"stand %d" % soldier.soldier_id,
+		):
+			_last_stand_up_msec = now
+			return true
+		return false
+	return false
+
+
 ## Go prone when the soldier's stand has directional cover vs the approach.
 ## Open ground: almost never — rare under heavy fire only (prefer RUN to cover).
 func _try_go_prone_on_posts(
@@ -1234,6 +1299,13 @@ func _run_survival_germany_state(
 	if _fireteam_is_moving(game_state):
 		return
 	if not in_assault:
+		## Once the wave can actually be shot, close cover-to-cover toward GE Lines instead
+		## of running the whole way in the open. Same bound machinery as normal contact.
+		if (
+			not visible.is_empty()
+			and _try_contact_bound_forward(game_state, find_path, submit_command, visible)
+		):
+			return
 		_survival_issue_squad_run(game_state, find_path, submit_command, current_objective.cell)
 		return
 	_survival_assault_one_soldier(
@@ -1336,10 +1408,22 @@ func _survival_assault_one_soldier(
 	if push_cell.x <= -900:
 		return
 	var from_cell: Vector2i = soldier.grid_position
-	var dist := absi(from_cell.x - push_cell.x) + absi(from_cell.y - push_cell.y)
+	var threat_cell := _survival_threat_cell(game_state, [], visible, known)
 	var target: Vector2i = push_cell
-	if dist > 1:
-		target = _survival_step_toward_cell(game_state, from_cell, push_cell)
+	var mode := MovementModeClass.RUN
+	var label := "survival-assault"
+	## Bound to a covered stand when one lies between us and the enemy; only rush the last
+	## open stretch. Declining falls through to the direct step — the wave never stops
+	## attacking, it just stops crossing open ground in a straight line.
+	var cover := _survival_cover_bound_cell(game_state, from_cell, threat_cell, push_cell)
+	if cover.x > -900:
+		target = cover
+		mode = _cover_approach_mode(game_state)
+		label = "survival-bound"
+	else:
+		var dist := absi(from_cell.x - push_cell.x) + absi(from_cell.y - push_cell.y)
+		if dist > 1:
+			target = _survival_step_toward_cell(game_state, from_cell, push_cell)
 	if target.x <= -900 or target == from_cell:
 		return
 	_clear_move_dedup()
@@ -1348,16 +1432,56 @@ func _survival_assault_one_soldier(
 	cmd.soldier_id = soldier.soldier_id
 	cmd.target_cell = target
 	cmd.scope = MoveCommandClass.Scope.SINGLE
-	cmd.movement_mode = MovementModeClass.RUN
+	cmd.movement_mode = mode
 	if _submit_ai(
 		game_state,
 		submit_command,
 		cmd,
 		_make_survival_context(find_path),
-		"survival-assault %d→%s" % [soldier.soldier_id, target],
+		"%s %d→%s" % [label, soldier.soldier_id, target],
 	):
 		_note_move_dedup(target)
 		PerceptionCacheClass.move_commands += 1
+
+
+## Cover stand for one survival assault bound. Reuses the contact-bound rules:
+## directional cover vs the threat, short of the threat, and strictly closer to the push
+## target — no sideways or backward bounds, so the wave still closes on the objective.
+## Returns (-999, -999) to decline, which leaves the caller on its direct step.
+func _survival_cover_bound_cell(
+	game_state,
+	from_cell: Vector2i,
+	threat_cell: Vector2i,
+	push_cell: Vector2i,
+) -> Vector2i:
+	var none := Vector2i(-999, -999)
+	if threat_cell.x <= -900 or push_cell.x <= -900:
+		return none
+	if game_state == null or game_state.map_data == null:
+		return none
+	## Already behind something vs this threat — fire from here rather than re-bounding.
+	if AiSectorObjectivesClass.stand_covered_vs_threat(
+		from_cell, threat_cell, game_state.map_data
+	):
+		return none
+	var cover := AiSectorObjectivesClass.nearest_cover_within(
+		game_state,
+		from_cell,
+		threat_cell,
+		SURVIVAL_ASSAULT_COVER_SEEK,
+		[],
+		false,
+		true,
+	)
+	if cover.x <= -900 or cover == from_cell:
+		return none
+	if not _cover_is_short_of_threat(from_cell, cover, threat_cell):
+		return none
+	var old_dist := absi(from_cell.x - push_cell.x) + absi(from_cell.y - push_cell.y)
+	var new_dist := absi(cover.x - push_cell.x) + absi(cover.y - push_cell.y)
+	if new_dist >= old_dist:
+		return none
+	return cover
 
 
 func _survival_threat_cell(
