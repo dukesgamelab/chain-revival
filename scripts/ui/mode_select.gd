@@ -11,7 +11,7 @@ const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd
 @onready var _single_player_button: Button = $Center/Panel/Margin/VBox/SinglePlayerButton
 @onready var _multiplayer_button: Button = $Center/Panel/Margin/VBox/MultiplayerButton
 @onready var _offline_quick_button: Button = $Center/Panel/Margin/VBox/DevBox/OfflineQuickButton
-@onready var _survival_mode_button: Button = $Center/Panel/Margin/VBox/DevBox/SurvivalModeButton
+@onready var _survival_mode_button: Button = $Center/Panel/Margin/VBox/SurvivalModeButton
 @onready var _editor_button: Button = $Center/Panel/Margin/VBox/DevBox/EditorButton
 @onready var _asset_anim_button: Button = $Center/Panel/Margin/VBox/DevBox/AssetAnimEditorButton
 
