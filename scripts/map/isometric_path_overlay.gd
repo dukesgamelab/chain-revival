@@ -5,10 +5,10 @@ extends Node2D
 ## Red destination markers always draw when targets are set (flashing, with roster DOT icons).
 
 const DOT_TEXTURE_PATHS := [
-	"res://assets/sprites/coc_soldiers/id_markers/DOT1.png",
-	"res://assets/sprites/coc_soldiers/id_markers/DOT2.png",
-	"res://assets/sprites/coc_soldiers/id_markers/DOT3.png",
-	"res://assets/sprites/coc_soldiers/id_markers/DOT4.png",
+	"res://assets/sprites/id_markers/DOT1.png",
+	"res://assets/sprites/id_markers/DOT2.png",
+	"res://assets/sprites/id_markers/DOT3.png",
+	"res://assets/sprites/id_markers/DOT4.png",
 ]
 
 @export var path_color := Color(0.95, 0.85, 0.20, 0.55)

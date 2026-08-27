@@ -147,16 +147,16 @@ const DEBUG_AIM_HOLD := true
 
 ## Cropped roster icons — index 0 = soldier 1 (1 mark), …, index 3 = soldier 4 (4 marks).
 const DOT_TEXTURE_PATHS := [
-	"res://assets/sprites/coc_soldiers/id_markers/DOT1.png",
-	"res://assets/sprites/coc_soldiers/id_markers/DOT2.png",
-	"res://assets/sprites/coc_soldiers/id_markers/DOT3.png",
-	"res://assets/sprites/coc_soldiers/id_markers/DOT4.png",
+	"res://assets/sprites/id_markers/DOT1.png",
+	"res://assets/sprites/id_markers/DOT2.png",
+	"res://assets/sprites/id_markers/DOT3.png",
+	"res://assets/sprites/id_markers/DOT4.png",
 ]
 const DTT_TEXTURE_PATHS := [
-	"res://assets/sprites/coc_soldiers/id_markers/DTT1.png",
-	"res://assets/sprites/coc_soldiers/id_markers/DTT2.png",
-	"res://assets/sprites/coc_soldiers/id_markers/DTT3.png",
-	"res://assets/sprites/coc_soldiers/id_markers/DTT4.png",
+	"res://assets/sprites/id_markers/DTT1.png",
+	"res://assets/sprites/id_markers/DTT2.png",
+	"res://assets/sprites/id_markers/DTT3.png",
+	"res://assets/sprites/id_markers/DTT4.png",
 ]
 const ID_MARKER_SCALE := Vector2(2.0, 2.0)
 
