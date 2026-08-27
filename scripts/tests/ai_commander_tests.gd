@@ -55,6 +55,14 @@ func _ready() -> void:
 	_test_stands_up_when_prone_in_open()
 	_test_cover_resettles_after_timeout()
 	_test_survival_bound_prefers_cover()
+	_test_takes_adjacent_cover()
+	_test_post_requires_standing_on_cover()
+	_test_bounding_overwatch_moves_one_soldier()
+	_test_pinned_prone_soldier_can_still_move()
+	_test_defensive_post_crawls_when_pinned()
+	_test_exposed_squad_is_not_in_cover()
+	_test_defender_holds_from_cover_not_beside_it()
+	_test_pending_stance_does_not_block_movement()
 	_test_contact_halts_objective_move()
 	_test_high_stress_blocks_advance()
 	_test_defend_holds_near_own_lines()
@@ -805,6 +813,515 @@ func _test_survival_bound_prefers_cover() -> void:
 		"survival bound declines when already in cover",
 		settled.x <= -900,
 		"expected decline, got %s" % settled,
+	)
+
+
+## Cover one tile away is still cover. Regression for the `> 1` guard that made a squad
+## halt a tile short of a wall and lie down in the open beside it.
+func _test_takes_adjacent_cover() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	map_data.set_object(Vector2i(25, 20), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var cover_stand := Vector2i(26, 20)
+	var threat_cell := Vector2i(23, 20)
+	## Whole fireteam one tile off the stand — the exact case the old guard rejected.
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = Vector2i(27, 20)
+		ger.clear_path()
+		ger.is_moving = false
+		ger.position_state = PositionStateClass.UP
+		ger.facing_direction = FacingDirectionClass.WEST
+	for sid in range(1, 5):
+		var usa = gs.get_soldier(Team.USA, sid)
+		if usa == null:
+			continue
+		usa.grid_position = threat_cell
+		usa.facing_direction = FacingDirectionClass.EAST
+	CombatSystem.clear_player_visibility_cache()
+	CombatSystem.notify_command_hierarchy_changed(gs)
+	CombatSystem.update_spotting(gs)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander.state_id = AiCommanderStateClass.CONTACT
+	commander._settled_in_cover = false
+	_submitted.clear()
+	_think_cycle(fw, gs)
+	var took_cover := false
+	for cmd in _submitted:
+		if cmd is MoveCommandClass and cmd.target_cell == cover_stand:
+			took_cover = true
+			break
+	_assert(
+		"squad takes cover one tile away",
+		took_cover,
+		"submitted=%d expected move to %s" % [_submitted.size(), cover_stand],
+	)
+
+
+## A soldier two tiles from its assigned stand is standing in the open, not posted.
+func _test_post_requires_standing_on_cover() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	map_data.set_object(Vector2i(25, 20), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var post := Vector2i(26, 20)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander._defensive_posts.clear()
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		## Two tiles short of the stand — inside the old OBJECTIVE_ARRIVE_DIST tolerance.
+		ger.grid_position = Vector2i(28, 20)
+		ger.clear_path()
+		ger.is_moving = false
+		commander._defensive_posts[ger.soldier_id] = post
+	_assert(
+		"two tiles from the stand is not posted",
+		not commander._defensive_posts_reached(gs),
+		"soldiers at (28, 20) are in the open, not behind %s" % post,
+	)
+	for sid in gs.command_hierarchy.get_soldier_ids(2):
+		var ger2 = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger2 == null:
+			continue
+		ger2.grid_position = post
+	_assert(
+		"standing on the stand counts as posted",
+		commander._defensive_posts_reached(gs),
+		"soldiers are on %s" % post,
+	)
+
+
+## Fire and maneuver: exactly one soldier bounds to the next stand; the rest hold cover.
+func _test_bounding_overwatch_moves_one_soldier() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	## Near wall the team is holding, far wall to bound onto, threat beyond both.
+	map_data.set_object(Vector2i(25, 20), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	map_data.set_object(Vector2i(20, 20), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var held := Vector2i(26, 20)
+	var next_stand := Vector2i(21, 20)
+	var threat_cell := Vector2i(12, 20)
+	var ids: Array = gs.command_hierarchy.get_soldier_ids(2)
+	var spread: Array[Vector2i] = [held, Vector2i(26, 21), Vector2i(26, 22), Vector2i(27, 20)]
+	var i := 0
+	for sid in ids:
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = spread[i % spread.size()]
+		ger.clear_path()
+		ger.is_moving = false
+		ger.position_state = PositionStateClass.UP
+		ger.facing_direction = FacingDirectionClass.WEST
+		i += 1
+	var threat = gs.get_soldier(Team.USA, 1)
+	if threat == null:
+		_fail("bounding overwatch fixture", "no USA soldier 1")
+		return
+	for sid in range(1, 5):
+		var usa = gs.get_soldier(Team.USA, sid)
+		if usa == null:
+			continue
+		usa.grid_position = threat_cell
+		usa.facing_direction = FacingDirectionClass.EAST
+	CombatSystem.clear_player_visibility_cache()
+	CombatSystem.notify_command_hierarchy_changed(gs)
+	CombatSystem.update_spotting(gs)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander.current_objective = AiObjectiveClass.make(
+		"test_push", "Test Push", Vector2i(10, 20), "sector", 10
+	)
+	var find_path := func(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
+		return _bfs_path(map_data, from_cell, to_cell)
+	_submitted.clear()
+	var submit := func(command: RefCounted, context: CommandContextClass):
+		_submitted.append(command)
+		return ActionResolverClass.execute(gs, command, context)
+	var bounded: bool = commander._try_bounding_overwatch(gs, find_path, submit, [threat])
+	_assert(
+		"bounding overwatch issues a bound",
+		bounded,
+		"expected one soldier to bound from %s toward %s" % [held, next_stand],
+	)
+	var moves: Array = []
+	for cmd in _submitted:
+		if cmd is MoveCommandClass:
+			moves.append(cmd)
+	_assert(
+		"exactly one soldier bounds",
+		moves.size() == 1,
+		"moves=%d (the rest must stay as the base of fire)" % moves.size(),
+	)
+	if moves.is_empty():
+		return
+	_assert(
+		"bound is single-scoped, not a fireteam move",
+		moves[0].scope == MoveCommandClass.Scope.SINGLE,
+		"scope=%d" % moves[0].scope,
+	)
+	_assert(
+		"bound target is the next covered stand",
+		AiSectorObjectivesClass.stand_covered_vs_threat(
+			moves[0].target_cell, threat_cell, map_data
+		),
+		"target=%s" % moves[0].target_cell,
+	)
+
+
+## The engine rule that stranded prone squads: once stress passes the pinned threshold,
+## ActionResolver downgrades RUN to WALK, and WALK is illegal while DOWN — so every move
+## order is rejected and the soldier lies there permanently. CRAWL is the only way out,
+## and the AI has to pick it rather than ordering a RUN that can never execute.
+func _test_pinned_prone_soldier_can_still_move() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	var ids: Array = gs.command_hierarchy.get_soldier_ids(2)
+	if ids.is_empty():
+		_fail("pinned prone fixture", "no German soldiers")
+		return
+	var soldier = gs.get_soldier(Team.GERMANY, int(ids[0]))
+	if soldier == null:
+		_fail("pinned prone fixture", "no German soldier %s" % ids[0])
+		return
+	soldier.position_state = PositionStateClass.DOWN
+	soldier.clear_pending_position()
+	soldier.stress = 50.0
+	_assert(
+		"pinned prone soldier is above the pin threshold",
+		CombatSystem.is_stress_pinned(soldier.stress),
+		"stress=%.1f" % soldier.stress,
+	)
+	## WALK is what a pinned RUN used to become, and WALK is what gets rejected while DOWN.
+	_assert(
+		"prone soldier cannot WALK (the rejection that stranded them)",
+		not ActionResolverClass.validate_move(soldier, MovementModeClass.WALK).is_empty(),
+		"expected a rejection message",
+	)
+	_assert(
+		"prone soldier can still CRAWL",
+		ActionResolverClass.validate_move(soldier, MovementModeClass.CRAWL).is_empty(),
+		"crawl must stay legal while DOWN",
+	)
+	var pinned_prone = ActionResolverClass._resolve_move_order(soldier, MovementModeClass.RUN)
+	_assert(
+		"pinned prone RUN resolves to CRAWL, not WALK",
+		pinned_prone.mode == MovementModeClass.CRAWL,
+		"mode=%d" % pinned_prone.mode,
+	)
+	_assert(
+		"pinned prone move is not rejected",
+		not pinned_prone.rejected,
+		pinned_prone.message,
+	)
+	## The whole point: whatever the order resolves to has to actually validate.
+	_assert(
+		"resolved mode is legal for a prone soldier",
+		ActionResolverClass.validate_move(soldier, pinned_prone.mode).is_empty(),
+		"resolved mode %d is still rejected" % pinned_prone.mode,
+	)
+	## Control: a pinned soldier on their feet still downgrades to WALK, as before.
+	soldier.position_state = PositionStateClass.UP
+	var pinned_standing = ActionResolverClass._resolve_move_order(soldier, MovementModeClass.RUN)
+	_assert(
+		"pinned standing soldier still downgrades to WALK",
+		pinned_standing.mode == MovementModeClass.WALK,
+		"mode=%d" % pinned_standing.mode,
+	)
+
+
+## End to end on the DEFEND path: the brain asks for a plain RUN to the post, and the
+## pinned prone defender still ends up moving — crawling — while an unpinned team mate runs.
+func _test_defensive_post_crawls_when_pinned() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	map_data.set_object(Vector2i(25, 20), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var post := Vector2i(26, 20)
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander._defensive_posts.clear()
+	var ids: Array = gs.command_hierarchy.get_soldier_ids(2)
+	ids.sort()
+	var pinned_id := -1
+	var calm_id := -1
+	var i := 0
+	for sid in ids:
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = Vector2i(29 + i, 22)
+		ger.clear_path()
+		ger.is_moving = false
+		ger.clear_pending_position()
+		commander._defensive_posts[ger.soldier_id] = post
+		if i == 0:
+			ger.position_state = PositionStateClass.DOWN
+			ger.stress = 50.0
+			pinned_id = ger.soldier_id
+		else:
+			ger.position_state = PositionStateClass.UP
+			ger.stress = 0.0
+			if calm_id < 0:
+				calm_id = ger.soldier_id
+		i += 1
+	var find_path := func(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
+		return _bfs_path(map_data, from_cell, to_cell)
+	_submitted.clear()
+	var submit := func(command: RefCounted, context: CommandContextClass):
+		_submitted.append(command)
+		return ActionResolverClass.execute(gs, command, context)
+	commander._move_to_defensive_posts(gs, find_path, submit)
+	var ordered: Dictionary = {}
+	for cmd in _submitted:
+		if cmd is MoveCommandClass:
+			ordered[cmd.soldier_id] = cmd.movement_mode
+	_assert(
+		"brain asks for a plain RUN to the post",
+		int(ordered.get(pinned_id, -1)) == MovementModeClass.RUN,
+		"ordered=%s" % ordered,
+	)
+	var pinned_soldier = gs.get_soldier(Team.GERMANY, pinned_id)
+	var calm_soldier = gs.get_soldier(Team.GERMANY, calm_id)
+	_assert(
+		"pinned prone defender actually starts moving",
+		pinned_soldier != null and pinned_soldier.is_moving,
+		"this RUN used to be rejected outright, leaving the soldier where they lay",
+	)
+	_assert(
+		"pinned prone defender crawls to its post",
+		pinned_soldier != null and pinned_soldier.movement_mode == MovementModeClass.CRAWL,
+		"mode=%d" % (pinned_soldier.movement_mode if pinned_soldier != null else -1),
+	)
+	_assert(
+		"unpinned defender still runs to its post",
+		calm_soldier != null and calm_soldier.movement_mode == MovementModeClass.RUN,
+		"mode=%d" % (calm_soldier.movement_mode if calm_soldier != null else -1),
+	)
+
+
+## The false positive that froze squads: four soldiers strung out beside a wall, none of
+## them behind it, but their averaged centre lands on the covered stand. The old check
+## tested that centre, so the brain marked itself settled, went prone and never moved
+## anyone again. Cover belongs to a soldier's tile, not to an average.
+func _test_exposed_squad_is_not_in_cover() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	map_data.set_object(Vector2i(25, 20), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var covered_stand := Vector2i(26, 20)
+	var threat_cell := Vector2i(23, 20)
+	## Strung out along the wall face, nobody actually behind it — average lands on (26, 20).
+	var exposed: Array[Vector2i] = [
+		Vector2i(26, 18), Vector2i(26, 19), Vector2i(26, 21), Vector2i(26, 22),
+	]
+	var ids: Array = gs.command_hierarchy.get_soldier_ids(2)
+	ids.sort()
+	var i := 0
+	for sid in ids:
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		ger.grid_position = exposed[i % exposed.size()]
+		ger.clear_path()
+		ger.is_moving = false
+		ger.position_state = PositionStateClass.UP
+		ger.stress = 0.0
+		ger.facing_direction = FacingDirectionClass.WEST
+		i += 1
+	for sid in range(1, 5):
+		var usa = gs.get_soldier(Team.USA, sid)
+		if usa == null:
+			continue
+		usa.grid_position = threat_cell
+		usa.facing_direction = FacingDirectionClass.EAST
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	var center: Vector2i = commander._formation_center(gs)
+	_assert(
+		"fixture: formation centre lands on the covered stand",
+		center == covered_stand,
+		"center=%s expected=%s" % [center, covered_stand],
+	)
+	_assert(
+		"fixture: that centre cell really is covered (the old false positive)",
+		AiSectorObjectivesClass.stand_covered_vs_threat(center, threat_cell, map_data),
+		"the old check would have reported this squad as in cover",
+	)
+	_assert(
+		"a squad standing in the open is not in cover",
+		not commander._formation_in_directional_cover(gs, threat_cell),
+		"nobody is behind the wall, so this must be false",
+	)
+	var find_path := func(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
+		return _bfs_path(map_data, from_cell, to_cell)
+	_submitted.clear()
+	var submit := func(command: RefCounted, context: CommandContextClass):
+		_submitted.append(command)
+		return ActionResolverClass.execute(gs, command, context)
+	var moved: bool = commander._take_cover_individually(
+		gs, find_path, submit, threat_cell, 14
+	)
+	_assert(
+		"exposed soldiers are ordered into cover",
+		moved,
+		"expected at least one soldier sent to a stand",
+	)
+	var moves: Array = []
+	for cmd in _submitted:
+		if cmd is MoveCommandClass:
+			moves.append(cmd)
+	_assert(
+		"cover orders are per soldier, not one fireteam move",
+		not moves.is_empty() and moves[0].scope == MoveCommandClass.Scope.SINGLE,
+		"moves=%d" % moves.size(),
+	)
+	var all_covered := true
+	for cmd in moves:
+		if not AiSectorObjectivesClass.stand_covered_vs_threat(
+			cmd.target_cell, threat_cell, map_data
+		):
+			all_covered = false
+			break
+	_assert(
+		"every cover order targets a genuinely covered stand",
+		all_covered,
+		"one of %d orders pointed at open ground" % moves.size(),
+	)
+
+
+## Defending means holding the stand, not loitering next to it. A fireteam one tile off
+## its posts used to pass the old two-tile arrival tolerance, so it settled there, faced
+## the approach and went prone in the open beside the wall.
+func _test_defender_holds_from_cover_not_beside_it() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var map_data: MapDataClass = gs.map_data
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	## A wall face with one stand per defender. The enemy approach on this map runs from
+	## the south, so the wall has to sit on the southern side of each stand.
+	var posts: Array[Vector2i] = []
+	for x in range(24, 28):
+		map_data.set_object(Vector2i(x, 21), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+		posts.append(Vector2i(x, 20))
+	var fw := _make_framework(gs)
+	var commander: AiCommanderClass = fw.get_commander(2)
+	commander.current_objective = AiSectorObjectivesClass.hold_objective_at(posts[0])
+	commander._defensive_posts.clear()
+	var approach := AiSectorObjectivesClass.enemy_approach_cell(gs, 2)
+	_assert(
+		"fixture: the stands really do cover the approach",
+		AiSectorObjectivesClass.stand_covered_vs_threat(posts[0], approach, map_data),
+		"approach=%s stand=%s" % [approach, posts[0]],
+	)
+	var ids: Array = gs.command_hierarchy.get_soldier_ids(2)
+	ids.sort()
+	var i := 0
+	for sid in ids:
+		var ger = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger == null:
+			continue
+		## One tile behind the stand: inside the old tolerance, out in the open in reality.
+		ger.grid_position = Vector2i(24 + (i % posts.size()), 19)
+		ger.clear_path()
+		ger.is_moving = false
+		ger.position_state = PositionStateClass.UP
+		ger.stress = 0.0
+		commander._defensive_posts[ger.soldier_id] = posts[i % posts.size()]
+		i += 1
+	_assert(
+		"a defender one tile off its stand is not posted",
+		not commander._defensive_posts_reached(gs),
+		"one tile from cover is not cover",
+	)
+	var find_path := func(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
+		return _bfs_path(map_data, from_cell, to_cell)
+	_submitted.clear()
+	var submit := func(command: RefCounted, context: CommandContextClass):
+		_submitted.append(command)
+		return ActionResolverClass.execute(gs, command, context)
+	commander._move_to_defensive_posts(gs, find_path, submit)
+	var moves: Array = []
+	for cmd in _submitted:
+		if cmd is MoveCommandClass:
+			moves.append(cmd)
+	_assert(
+		"defenders are ordered onto their stands",
+		not moves.is_empty(),
+		"expected moves closing the last tile into cover",
+	)
+	var all_on_stands := true
+	for cmd in moves:
+		if not posts.has(cmd.target_cell):
+			all_on_stands = false
+			break
+	_assert(
+		"every order targets a stand, not a tile beside one",
+		all_on_stands,
+		"targets must be the assigned cover cells",
+	)
+	## Standing on the stands is what finally counts as holding.
+	for sid in ids:
+		var ger2 = gs.get_soldier(Team.GERMANY, int(sid))
+		if ger2 == null:
+			continue
+		ger2.grid_position = commander._defensive_posts[ger2.soldier_id]
+		ger2.clear_path()
+		ger2.is_moving = false
+	_assert(
+		"defenders standing on their stands are posted",
+		commander._defensive_posts_reached(gs),
+		"everyone is in cover now",
+	)
+
+
+## A stance animation must never stop a soldier moving. pending_position_state is
+## presentation-only — execute_position sets it to the same value as position_state — but
+## it used to reject every non-RUN move. Only the presentation layer clears it, so one
+## missed anim-completion froze a soldier permanently: a prone squad under heavy fire is
+## ordered to CRAWL, so it could never move again and lay in the open until it died.
+func _test_pending_stance_does_not_block_movement() -> void:
+	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
+	var ids: Array = gs.command_hierarchy.get_soldier_ids(2)
+	if ids.is_empty():
+		_fail("pending stance fixture", "no German soldiers")
+		return
+	var soldier = gs.get_soldier(Team.GERMANY, int(ids[0]))
+	if soldier == null:
+		_fail("pending stance fixture", "no German soldier %s" % ids[0])
+		return
+	soldier.position_state = PositionStateClass.DOWN
+	soldier.pending_position_state = PositionStateClass.DOWN
+	_assert(
+		"a pending stance animation does not block a crawl",
+		ActionResolverClass.validate_move(soldier, MovementModeClass.CRAWL).is_empty(),
+		"a prone soldier under fire is ordered to CRAWL — this must not be rejected",
+	)
+	_assert(
+		"the move drops the presentation-only pending flag",
+		soldier.pending_position_state < 0,
+		"pending=%d" % soldier.pending_position_state,
+	)
+	## The real stance rule is unchanged: prone still cannot walk.
+	soldier.pending_position_state = PositionStateClass.DOWN
+	_assert(
+		"prone still cannot WALK even with the gate removed",
+		not ActionResolverClass.validate_move(soldier, MovementModeClass.WALK).is_empty(),
+		"expected a rejection message",
 	)
 
 

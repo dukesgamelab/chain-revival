@@ -1498,8 +1498,16 @@ static func _resolve_move_order(soldier: SoldierState, requested_mode: int) -> M
 		resolved.message = "Soldier is stunned and cannot move."
 		return resolved
 	if requested_mode == MovementModeClass.RUN and CombatSystem.is_stress_pinned(soldier.stress):
-		resolved.mode = MovementModeClass.WALK
-		resolved.message = "Soldier is pinned and cannot run."
+		## Pinned soldiers cannot run. A prone one cannot walk either — WALK is illegal while
+		## DOWN, so downgrading to WALK rejected the order outright ("Cannot Walk while DOWN.")
+		## and stranded the soldier where they lay. Crawl is the only mode a pinned prone
+		## soldier can actually execute, so resolve to that instead of to an impossible order.
+		if soldier.position_state == PositionStateClass.DOWN:
+			resolved.mode = MovementModeClass.CRAWL
+			resolved.message = "Soldier is pinned and can only crawl."
+		else:
+			resolved.mode = MovementModeClass.WALK
+			resolved.message = "Soldier is pinned and cannot run."
 	return resolved
 
 
@@ -1510,10 +1518,16 @@ static func validate_move(soldier: SoldierState, mode: int) -> String:
 static func _validate_move(soldier: SoldierState, mode: int) -> String:
 	if soldier == null or soldier.is_dead:
 		return "Soldier unavailable."
-	## Run may cancel an in-flight stance anim (force stand). Other moves wait for it.
-	## pending_* is presentation-only; position_state is already authoritative.
-	if soldier.pending_position_state >= 0 and mode != MovementModeClass.RUN:
-		return "Soldier is changing stance."
+	## Any move cancels an in-flight stance anim — it does not wait for one.
+	##
+	## pending_* is presentation-only: execute_position sets position_state and
+	## pending_position_state to the SAME value, so pending is purely an animation gate and
+	## dropping it cannot desync gameplay. Only the presentation layer clears it, so a
+	## missed or late anim-completion signal used to reject every non-RUN order for the rest
+	## of the match. A prone squad under heavy fire is ordered to CRAWL, so that squad could
+	## never move again — it lay in the open taking fire until it died.
+	if soldier.pending_position_state >= 0:
+		soldier.clear_pending_position()
 	_stand_up_for_run(soldier, mode)
 	if not MovementModeClass.is_allowed(soldier.position_state, mode):
 		return "Cannot %s while DOWN." % MovementModeClass.display_name(mode)

@@ -29,6 +29,7 @@ func _ready() -> void:
 	_test_cone_cardinal_and_diagonal()
 	_test_cone_covers_full_facing_sector()
 	_test_animation_direction_mapping()
+	_test_walk_clip_switches_on_path_turn()
 	print("")
 	print("Facing eight-way tests: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -324,3 +325,39 @@ func _test_animation_direction_mapping() -> void:
 				resolved in ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
 				"got %s" % resolved,
 			)
+
+
+func _test_walk_clip_switches_on_path_turn() -> void:
+	## _process calls _apply_facing then _update_locomotion_visual. Facing commit
+	## updates _locomotion_direction before play; the walk skip must still switch clips.
+	const SoldierScene := preload("res://scenes/soldier.tscn")
+	AnimationDatabase.ensure_loaded()
+	UsSoldierSpriteFrames.reload_cached_frames()
+	IsometricGrid.set_original_projection_enabled(true)
+	IsometricGrid.current_view_rotation = 0
+	var soldier: Soldier = SoldierScene.instantiate() as Soldier
+	add_child(soldier)
+	soldier.team_id = Team.USA
+	soldier.soldier_id = 1
+	soldier._configure_team_visual()
+	soldier._applied_position_state = PositionState.UP
+	soldier._locomotion_walking = true
+	soldier._locomotion_direction = "e"
+	soldier._last_applied_facing = FacingDirection.EAST
+	if soldier._anim.sprite_frames.has_animation("walk_e"):
+		soldier._anim.play("walk_e")
+	var step_south := Vector2i(0, 1)
+	soldier._apply_facing(FacingDirection.from_step(step_south), Vector2i(20, 20))
+	soldier._update_locomotion_visual(step_south, true)
+	var after := str(soldier._anim.animation)
+	var south_letter := UsSoldierSpriteFrames.direction_from_step(step_south)
+	var expected := "walk_%s" % AnimationDatabase.display_direction(
+		south_letter,
+		IsometricGrid.facet_camera_direction_degrees(),
+	)
+	_assert(
+		"path corner switches walk clip (not leftover profile)",
+		after == expected,
+		"got %s expected %s" % [after, expected],
+	)
+	soldier.queue_free()

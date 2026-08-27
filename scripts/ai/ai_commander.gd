@@ -64,6 +64,10 @@ const COVER_THREAT_SHIFT_CHEBYSHEV := 3
 const COVER_RESETTLE_MSEC := 6000
 ## Cooldown between explicit stand-up orders (msec) — keeps stand/prone from ping-ponging.
 const STAND_UP_COOLDOWN_MSEC := 1500
+## TUNED — a cover post is only reached by standing ON the stand. Cover two tiles away is
+## not cover: the old OBJECTIVE_ARRIVE_DIST tolerance is what left squads lying in the
+## open a tile short of a wall, declaring themselves posted.
+const COVER_POST_ARRIVE_DIST := 0
 ## TUNED — avg fireteam stress at/above this → favor cover over pushing.
 const STRESS_COVER_PRIORITY := 35.0
 ## TUNED — crawl to cover only at/above this; below it, RUN into cover.
@@ -124,6 +128,8 @@ var _last_open_prone_msec: int = -999999
 var _last_stand_up_msec: int = -999999
 ## Survival GE: rotate which soldier bounds forward under fire.
 var _survival_bound_soldier_idx: int = 0
+## Rotate which soldier takes the next overwatch bound, so one man does not lead every one.
+var _bound_soldier_idx: int = 0
 
 
 func _init(p_player_id: int = -1) -> void:
@@ -585,10 +591,21 @@ func _engage_contact(
 	if not _settled_in_cover:
 		if _formation_in_directional_cover(game_state, threat_cell):
 			_mark_cover_settled(threat_cell)
-		elif _contact_bound_active and _fireteam_is_moving(game_state):
-			## Already moving to cover — wait; do not re-issue objective moves.
-			return
 		else:
+			## Cover is per soldier: move whoever is actually exposed onto their own stand.
+			##
+			## This deliberately runs BEFORE the "already bounding" gate below. That gate used
+			## to swallow the entire think as soon as ONE soldier was en route to a stand, so
+			## the other three stood in the open receiving no orders at all — and under heavy
+			## fire the mover is crawling, so "wait for him" meant waiting most of the match.
+			## _take_cover_individually already skips anyone mid-move, so it is safe here.
+			if _take_cover_individually(
+				game_state, find_path, submit_command, threat_cell, seek_max
+			):
+				return
+			if _contact_bound_active and _fireteam_is_moving(game_state):
+				## Everyone still exposed is already en route — wait, do not re-issue.
+				return
 			## One cover query — reuse for both “move there” and “exists but order failed”.
 			var nearby_cover := AiSectorObjectivesClass.nearest_cover_within(
 				game_state, center, threat_cell, seek_max, [], false, true
@@ -600,9 +617,11 @@ func _engage_contact(
 				nearby_cover = AiSectorObjectivesClass.nearest_cover_within(
 					game_state, center, threat_cell, COVER_SEEK_MAX_DIST, [], false, true
 				)
+			## A stand one tile away is still cover worth taking. The old `> 1` guard is why a
+			## squad would halt a tile short of a wall and lie down in the open next to it.
 			var cover_reachable := (
 				nearby_cover.x > -900
-				and absi(nearby_cover.x - center.x) + absi(nearby_cover.y - center.y) > 1
+				and nearby_cover != center
 			)
 			if cover_reachable and _try_take_cover(
 				game_state,
@@ -646,7 +665,10 @@ func _engage_contact(
 		and threat_dist >= CLOSE_RANGE_DIST
 		and _has_command_budget()
 	):
-		_try_contact_bound_forward(game_state, find_path, submit_command, [threat])
+		## Fire and maneuver first: one soldier bounds while the rest shoot from cover.
+		## Only move the whole fireteam when no single bound qualifies.
+		if not _try_bounding_overwatch(game_state, find_path, submit_command, [threat]):
+			_try_contact_bound_forward(game_state, find_path, submit_command, [threat])
 
 
 func _mark_cover_settled(threat_cell: Vector2i) -> void:
@@ -676,13 +698,25 @@ func _should_rebound_cover(game_state, threat_cell: Vector2i) -> bool:
 
 
 ## Formation center is covered vs threat (CoverPolicy: threat shoots at center).
+## EVERY living soldier individually behind cover vs the threat.
+##
+## This used to test the formation centre — a single averaged cell that is usually not
+## where anybody is standing. A squad strung out beside a wall averages to a cell that
+## reads as covered, so the brain marked itself settled, went prone and never repositioned
+## anyone: the "fires one shot, lies down, stays there forever" bug. Cover is a property
+## of a soldier's tile, so it has to be checked per soldier.
 func _formation_in_directional_cover(game_state, threat_cell: Vector2i) -> bool:
 	if game_state == null or game_state.map_data == null or threat_cell.x <= -900:
 		return false
-	var center := _formation_center(game_state)
-	return AiSectorObjectivesClass.stand_covered_vs_threat(
-		center, threat_cell, game_state.map_data
-	)
+	var soldiers := _living_soldiers(game_state)
+	if soldiers.is_empty():
+		return false
+	for soldier in soldiers:
+		if not AiSectorObjectivesClass.stand_covered_vs_threat(
+			soldier.grid_position, threat_cell, game_state.map_data
+		):
+			return false
+	return true
 
 
 func _update_current_target(visible: Array) -> void:
@@ -1004,7 +1038,8 @@ func _try_take_cover(
 		)
 	if cover.x <= -900:
 		return false
-	if absi(cover.x - center.x) + absi(cover.y - center.y) <= 1:
+	## Adjacent cover still counts — only decline when the fireteam is already on it.
+	if cover == center:
 		return false
 	if (
 		require_short_of_threat
@@ -1039,6 +1074,163 @@ func _try_take_cover(
 		if threat_cell.x > -900:
 			_cover_threat_cell = threat_cell
 		return true
+	return false
+
+
+## Move every soldier that is NOT behind cover onto its own stand. One squad-scoped move
+## to a single cell cannot fix a fireteam that is half exposed — cover belongs to a tile,
+## so each exposed man needs his own. Stands already held (or just ordered) are claimed so
+## two soldiers do not pile onto the same one. Returns true if any order was issued.
+func _take_cover_individually(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+	threat_cell: Vector2i,
+	seek_max: int,
+) -> bool:
+	var map_data = game_state.map_data if game_state != null else null
+	if map_data == null or threat_cell.x <= -900:
+		return false
+	var soldiers := _living_soldiers(game_state)
+	if soldiers.is_empty():
+		return false
+	var sorted: Array = soldiers.duplicate()
+	sorted.sort_custom(func(a, b) -> bool: return a.soldier_id < b.soldier_id)
+	var claimed: Array[Vector2i] = []
+	for holder in sorted:
+		if AiSectorObjectivesClass.stand_covered_vs_threat(
+			holder.grid_position, threat_cell, map_data
+		):
+			claimed.append(holder.grid_position)
+	var issued := false
+	for soldier in sorted:
+		if not _has_command_budget():
+			break
+		if soldier.is_moving:
+			continue
+		## Already behind something — that man stays and shoots.
+		if AiSectorObjectivesClass.stand_covered_vs_threat(
+			soldier.grid_position, threat_cell, map_data
+		):
+			continue
+		var cover := AiSectorObjectivesClass.nearest_cover_within(
+			game_state,
+			soldier.grid_position,
+			threat_cell,
+			seek_max,
+			claimed,
+			true,
+			true,
+		)
+		if cover.x <= -900 or cover == soldier.grid_position:
+			continue
+		if not map_data.is_walkable(cover):
+			continue
+		var cmd := MoveCommandClass.new()
+		cmd.team_id = soldier.team_id
+		cmd.soldier_id = soldier.soldier_id
+		cmd.target_cell = cover
+		cmd.scope = MoveCommandClass.Scope.SINGLE
+		cmd.movement_mode = _cover_approach_mode(game_state)
+		_last_path_request_msec = SimulationClock.get_ticks_msec()
+		if _submit_ai(
+			game_state,
+			submit_command,
+			cmd,
+			_make_context(find_path),
+			"cover %d→%s" % [soldier.soldier_id, cover],
+		):
+			claimed.append(cover)
+			_contact_bound_active = true
+			_cover_bound_msec = SimulationClock.get_ticks_msec()
+			PerceptionCacheClass.move_commands += 1
+			issued = true
+	return issued
+
+
+## Fire and maneuver: hold the fireteam's cover as a base of fire and push ONE soldier to
+## the next stand. Fire is squad-scoped and the movement branch above keeps the static
+## soldiers shooting, so the bound is covered instead of the whole team standing up at once.
+## Declines when there is nobody left to cover the move, when the mover is not already in
+## cover, or when no forward stand improves on where it stands — caller then falls back to
+## the fireteam bound.
+func _try_bounding_overwatch(
+	game_state,
+	find_path: Callable,
+	submit_command: Callable,
+	threats: Array,
+) -> bool:
+	if not _has_command_budget() or _is_hold_objective():
+		return false
+	if current_objective == null or not current_objective.is_valid():
+		return false
+	if threats.is_empty() or _fireteam_is_moving(game_state):
+		return false
+	var map_data = game_state.map_data if game_state != null else null
+	if map_data == null:
+		return false
+	var threat = _select_best_threat(game_state, threats)
+	if threat == null:
+		return false
+	var threat_cell: Vector2i = threat.grid_position
+	var soldiers := _living_soldiers(game_state)
+	## Someone has to stay in cover and shoot, otherwise this is just a squad move.
+	if soldiers.size() < 2:
+		return false
+	var sorted: Array = soldiers.duplicate()
+	sorted.sort_custom(func(a, b) -> bool: return a.soldier_id < b.soldier_id)
+	var obj: Vector2i = current_objective.cell
+	for offset in sorted.size():
+		var idx: int = (_bound_soldier_idx + offset) % sorted.size()
+		var mover = sorted[idx]
+		if mover.is_moving:
+			continue
+		var from_cell: Vector2i = mover.grid_position
+		## Only bound FROM cover — leaving good cover to cross open ground is the bug.
+		if not AiSectorObjectivesClass.stand_covered_vs_threat(from_cell, threat_cell, map_data):
+			continue
+		## Do not bound onto a stand a teammate is already holding.
+		var claimed: Array[Vector2i] = []
+		for other in sorted:
+			if other.soldier_id != mover.soldier_id:
+				claimed.append(other.grid_position)
+		var cover := AiSectorObjectivesClass.nearest_cover_within(
+			game_state,
+			from_cell,
+			threat_cell,
+			ADVANCE_BOUND_MAX_DIST,
+			claimed,
+			true,
+			true,
+		)
+		if cover.x <= -900 or cover == from_cell or not map_data.is_walkable(cover):
+			continue
+		if not _cover_is_short_of_threat(from_cell, cover, threat_cell):
+			continue
+		## The bound has to buy ground on the objective, not just shuffle sideways.
+		var old_d := absi(from_cell.x - obj.x) + absi(from_cell.y - obj.y)
+		var new_d := absi(cover.x - obj.x) + absi(cover.y - obj.y)
+		if new_d >= old_d:
+			continue
+		var cmd := MoveCommandClass.new()
+		cmd.team_id = mover.team_id
+		cmd.soldier_id = mover.soldier_id
+		cmd.target_cell = cover
+		cmd.scope = MoveCommandClass.Scope.SINGLE
+		cmd.movement_mode = _cover_approach_mode(game_state)
+		_last_path_request_msec = SimulationClock.get_ticks_msec()
+		if _submit_ai(
+			game_state,
+			submit_command,
+			cmd,
+			_make_context(find_path),
+			"bound-ovw %d→%s" % [mover.soldier_id, cover],
+		):
+			_bound_soldier_idx = idx + 1
+			_contact_bound_active = true
+			_cover_bound_msec = SimulationClock.get_ticks_msec()
+			PerceptionCacheClass.move_commands += 1
+			return true
 	return false
 
 
@@ -1103,6 +1295,14 @@ func _cover_is_short_of_threat(
 	if dot > 0:
 		return false
 	return true
+
+
+## In real cover vs the approach. This is the test that matters for "am I posted?" —
+## as opposed to merely being near an assigned tile.
+func _in_cover_vs_approach(cell: Vector2i, approach: Vector2i, map_data) -> bool:
+	if map_data == null or approach.x <= -900:
+		return false
+	return AiSectorObjectivesClass.stand_covered_vs_threat(cell, approach, map_data)
 
 
 ## Stand a soldier back up when it is prone WITHOUT directional cover vs the threat.
@@ -1581,6 +1781,9 @@ func _under_heavy_fire(game_state) -> bool:
 	return _fireteam_avg_stress(game_state) >= STRESS_HEAVY_FIRE
 
 
+## Tactical choice only. Whether a given soldier can physically execute the mode is
+## ActionResolver's call — it resolves a pinned prone RUN down to a CRAWL per soldier,
+## so the brain asks for the movement it wants and lets the engine make it legal.
 func _cover_approach_mode(game_state) -> int:
 	if _under_heavy_fire(game_state):
 		return MovementModeClass.CRAWL
@@ -1985,16 +2188,47 @@ func _post_fits_cluster(cell: Vector2i, posts: Array[Vector2i], primary: Vector2
 	return true
 
 
+## Defending means holding COVER, so every soldier has to be standing in some.
+##
+## The old version had three ways to call a squad "posted" while it stood in the open: an
+## empty post table fell back to the formation centre being within two tiles of the
+## objective, a soldier with no assigned post was skipped outright, and arrival was
+## measured against a tile rather than against cover. All three ended the same way — the
+## fireteam stopping a square short of the wall and lying down there.
+## Stands have to exist before we can ask whether anybody is standing on one. Lazy so no
+## caller can forget: an unassigned table used to mean "posted", which is how a squad
+## claimed to be holding while stood in the open.
+##
+## When the map offers no cover at all, _assign_defensive_posts falls every soldier back to
+## the objective cell itself — so holding in the open stays possible, it just stops being
+## the answer whenever real cover was available and simply not taken.
+func _ensure_defensive_posts(game_state) -> void:
+	if not _defensive_posts.is_empty():
+		return
+	if current_objective == null or not current_objective.is_valid():
+		return
+	_assign_defensive_posts(game_state, [current_objective])
+
+
 func _defensive_posts_reached(game_state) -> bool:
+	var soldiers := _living_soldiers(game_state)
+	if soldiers.is_empty():
+		return true
+	## Nothing assigned yet (replan has not run) — fall back to the objective. Assignment is
+	## a mutation and belongs in _move_to_defensive_posts, not in a read-only query.
 	if _defensive_posts.is_empty():
 		return _objective_reached(game_state)
-	for soldier in _living_soldiers(game_state):
-		var post: Vector2i = _defensive_posts.get(soldier.soldier_id, Vector2i(-999, -999))
-		if post.x <= -900:
+	var map_data = game_state.map_data if game_state != null else null
+	var approach := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
+	for soldier in soldiers:
+		## Any stand that covers the approach counts — posts get swapped or blocked, and what
+		## matters is being in cover, not on one particular tile.
+		if _in_cover_vs_approach(soldier.grid_position, approach, map_data):
 			continue
-		var d := absi(soldier.grid_position.x - post.x) + absi(soldier.grid_position.y - post.y)
-		if d > OBJECTIVE_ARRIVE_DIST:
-			return false
+		var post: Vector2i = _defensive_posts.get(soldier.soldier_id, Vector2i(-999, -999))
+		if post.x > -900 and soldier.grid_position == post:
+			continue
+		return false
 	return true
 
 
@@ -2003,6 +2237,9 @@ func _move_to_defensive_posts(
 	find_path: Callable,
 	submit_command: Callable,
 ) -> void:
+	## Drifting to the objective cell only ever gets the fireteam *near* cover, which is the
+	## whole problem — work out the stands first.
+	_ensure_defensive_posts(game_state)
 	if _defensive_posts.is_empty():
 		_move_toward_objective(game_state, find_path, submit_command)
 		return
@@ -2010,6 +2247,8 @@ func _move_to_defensive_posts(
 		return
 	var sorted: Array = _living_soldiers(game_state)
 	sorted.sort_custom(func(a, b) -> bool: return a.soldier_id < b.soldier_id)
+	var post_map_data = game_state.map_data if game_state != null else null
+	var post_approach := AiSectorObjectivesClass.enemy_approach_cell(game_state, player_id)
 	for soldier in sorted:
 		if not _has_command_budget():
 			return
@@ -2017,9 +2256,25 @@ func _move_to_defensive_posts(
 			continue
 		var post: Vector2i = _defensive_posts.get(soldier.soldier_id, Vector2i(-999, -999))
 		if post.x <= -900:
-			continue
+			## Nothing assigned to this man — put him in the nearest stand facing the approach
+			## instead of leaving him standing in the open next to the fireteam.
+			post = AiSectorObjectivesClass.nearest_cover_within(
+				game_state,
+				soldier.grid_position,
+				post_approach,
+				COVER_SEEK_MAX_DIST,
+				[],
+				false,
+				true,
+			)
+			if post.x <= -900:
+				continue
+			_defensive_posts[soldier.soldier_id] = post
 		var d := absi(soldier.grid_position.x - post.x) + absi(soldier.grid_position.y - post.y)
-		if d <= OBJECTIVE_ARRIVE_DIST:
+		## Close the last tile — stopping short of the stand leaves the soldier in the open.
+		if d <= COVER_POST_ARRIVE_DIST:
+			continue
+		if _in_cover_vs_approach(soldier.grid_position, post_approach, post_map_data):
 			continue
 		if not game_state.map_data.is_walkable(post):
 			continue

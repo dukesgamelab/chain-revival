@@ -1068,11 +1068,14 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		)
 	var move_prefix := _locomotion_move_prefix()
 	var display_dir := _idle_display_direction(direction)
+	var expected_move := "%s_%s" % [move_prefix, display_dir]
 	if walking and _locomotion_direction == direction and _locomotion_walking:
-		## Do not restart crawl/walk while stance, logical anim, and facing are unchanged.
-		if str(_anim.animation).begins_with("%s_" % move_prefix):
+		## Skip restart only when the 8-way clip already matches. Prefix-only
+		## (walk_/crawl_) would keep walk_e after a path corner because
+		## _apply_facing updates _locomotion_direction before this play.
+		if str(_anim.animation) == expected_move:
 			if not _anim.is_playing():
-				_anim.play("%s_%s" % [move_prefix, display_dir])
+				_anim.play(expected_move)
 			return
 	if not walking and _locomotion_direction == direction and not _locomotion_walking:
 		## Stun owns the pose — never keep standing idle / fidget / aim hold.
@@ -1125,7 +1128,7 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 	_locomotion_walking = walking
 
 	if walking:
-		var move_name := "%s_%s" % [move_prefix, display_dir]
+		var move_name := expected_move
 		if not _anim.sprite_frames.has_animation(move_name) and move_prefix == "crawl":
 			## Fallback if a family still has an empty crawl stub.
 			move_name = "walk_%s" % display_dir
