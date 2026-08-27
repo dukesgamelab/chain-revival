@@ -1,5 +1,5 @@
 extends Control
-## Startup screen: Single Player / Multiplayer / Quit (+ optional Dev tools).
+## Startup screen: Single Player / Multiplayer (+ optional Dev tools).
 
 const MAIN_SCENE := "res://scenes/main.tscn"
 const MATCH_SETUP_SCENE := "res://scenes/match_setup.tscn"
@@ -8,39 +8,22 @@ const ASSET_ANIM_EDITOR_SCENE := "res://scenes/editor/asset_animation_editor.tsc
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 
-const _HINT_DEFAULT := (
-	"Single Player and Multiplayer open Match Setup (1v1 / 2v2).\n"
-	+ "Dev: Offline Quick Start = human hotseat 1v1 (press 1/2 to switch). AI is Single Player only.\n"
-	+ "Survival Mode: 1 v All = US vs recurring German waves on ff_farm_survival."
-)
-const _HINT_CONNECTING := "Connecting to ws://localhost:3000..."
-const _HINT_CONNECT_FAILED := (
-	"Could not connect to ws://localhost:3000.\n"
-	+ "Start the server in a terminal first:\n"
-	+ "  cd server\n"
-	+ "  npm run dev"
-)
-
 @onready var _single_player_button: Button = $Center/Panel/Margin/VBox/SinglePlayerButton
 @onready var _multiplayer_button: Button = $Center/Panel/Margin/VBox/MultiplayerButton
-@onready var _quit_button: Button = $Center/Panel/Margin/VBox/QuitButton
 @onready var _offline_quick_button: Button = $Center/Panel/Margin/VBox/DevBox/OfflineQuickButton
 @onready var _survival_mode_button: Button = $Center/Panel/Margin/VBox/DevBox/SurvivalModeButton
 @onready var _editor_button: Button = $Center/Panel/Margin/VBox/DevBox/EditorButton
 @onready var _asset_anim_button: Button = $Center/Panel/Margin/VBox/DevBox/AssetAnimEditorButton
-@onready var _hint: Label = $Center/Panel/Margin/VBox/Hint
 
 
 func _ready() -> void:
 	CocUiTheme.apply_to(self)
 	_single_player_button.pressed.connect(_on_single_player_pressed)
 	_multiplayer_button.pressed.connect(_on_multiplayer_pressed)
-	_quit_button.pressed.connect(func() -> void: get_tree().quit())
 	_offline_quick_button.pressed.connect(_on_offline_quick_pressed)
 	_survival_mode_button.pressed.connect(_on_survival_mode_pressed)
 	_editor_button.pressed.connect(_on_editor_pressed)
 	_asset_anim_button.pressed.connect(_on_asset_anim_editor_pressed)
-	_hint.text = _HINT_DEFAULT
 
 
 func _on_single_player_pressed() -> void:
@@ -49,13 +32,10 @@ func _on_single_player_pressed() -> void:
 
 func _on_multiplayer_pressed() -> void:
 	_set_buttons_enabled(false)
-	_hint.text = _HINT_CONNECTING
 	## Networking not required for Phase 1 config — still attempt connect for existing flow,
 	## then open Match Setup (Open slots). Failures fall back to setup anyway.
 	GameModeManager.set_mode(GameMode.LOCAL_MULTIPLAYER)
-	var connected := await NetworkClient.connect_and_wait()
-	if not connected:
-		_hint.text = _HINT_CONNECT_FAILED + "\nOpening Match Setup with Open slots anyway."
+	await NetworkClient.connect_and_wait()
 	_open_match_setup(MatchConfigClass.GameModeKind.MULTIPLAYER)
 	_set_buttons_enabled(true)
 
@@ -98,7 +78,6 @@ func _on_asset_anim_editor_pressed() -> void:
 func _set_buttons_enabled(enabled: bool) -> void:
 	_single_player_button.disabled = not enabled
 	_multiplayer_button.disabled = not enabled
-	_quit_button.disabled = not enabled
 	_offline_quick_button.disabled = not enabled
 	_survival_mode_button.disabled = not enabled
 	_editor_button.disabled = not enabled
