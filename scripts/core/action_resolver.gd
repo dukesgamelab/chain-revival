@@ -548,6 +548,16 @@ static func execute_move(
 				ordered_count += 1
 				if not squad_move_result.message.is_empty():
 					notices.append(squad_move_result.message)
+			else:
+				var failure := _validate_move(squad_soldier, squad_move_result.mode)
+				if failure.is_empty():
+					var member_start := squad_soldier.grid_position
+					if member_target == member_start:
+						failure = "Soldier %d is already at that tile." % squad_soldier.soldier_id
+					else:
+						failure = "No path for Soldier %d." % squad_soldier.soldier_id
+				if not failure.is_empty() and not notices.has(failure):
+					notices.append(failure)
 		if ordered_count == 0:
 			if not notices.is_empty():
 				return ActionResult.fail(notices[0])
@@ -610,8 +620,7 @@ static func execute_move(
 		single_target,
 	):
 		if single_target == _start_cell_for_soldier(context, soldier_state):
-			result.refresh_views = false
-			return result
+			return ActionResult.fail("Soldier is already at that tile.")
 		return ActionResult.fail("No path to that tile.")
 
 	if not survival_rush and not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
@@ -1012,7 +1021,10 @@ static func commit_stance_transition(
 	var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
 	if soldier == null or soldier.is_dead:
 		return ActionResult.fail("Soldier unavailable.")
-	if soldier.pending_position_state >= 0 and soldier.pending_position_state != target_position_state:
+	if soldier.pending_position_state < 0:
+		## Run/halt/cancel cleared pending before this anim finished — ignore stale completion.
+		return ActionResult.new()
+	if soldier.pending_position_state != target_position_state:
 		## Cancelled (e.g. Run forced stand) — do not clear a newer pending target.
 		return ActionResult.new().set_status(
 			"Soldier %d stance transition cancelled." % soldier_id

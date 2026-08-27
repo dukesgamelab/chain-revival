@@ -3,7 +3,6 @@ extends Node
 ## Run: Godot --headless --path <project> res://scripts/tests/throw_grenade_sequence_tests.tscn
 
 const SoldierScene := preload("res://scenes/soldier.tscn")
-const SoldierStateClass := preload("res://scripts/soldiers/soldier_state.gd")
 
 var _failed: int = 0
 var _passed: int = 0
@@ -205,18 +204,20 @@ func _test_prone_returns_prone_idle() -> void:
 func _test_release_exactly_once() -> void:
 	var soldier := _new_soldier(Team.USA, PositionState.UP, FacingDirection.EAST)
 	await get_tree().process_frame
-	var releases := 0
+	var releases := [0]
 	soldier.grenade_release_reached.connect(func(_t: int, _s: int) -> void:
-		releases += 1
+		releases[0] += 1
 	)
+	GameplayPolicies.grenade.throw_release_frame_usa = 10
 	soldier.play_throw_grenade(PositionState.UP, FacingDirection.EAST)
 	soldier.debug_simulate_throw_anim_finished()
-	var release_frame := GameplayPolicies.grenade.throw_release_frame_for_team(Team.USA)
+	var release_frame := GameplayPolicies.grenade.throw_release_frame_for_team(soldier.team_id)
 	soldier._anim.frame = maxi(release_frame, 0)
-	soldier._on_anim_frame_changed(soldier._anim.frame)
+	soldier._on_anim_frame_changed()
 	soldier._anim.frame = release_frame + 2
-	soldier._on_anim_frame_changed(soldier._anim.frame)
-	_assert("grenade release once", releases == 1, "releases=%d" % releases)
+	soldier._on_anim_frame_changed()
+	_assert("grenade release once", releases[0] == 1, "releases=%d" % releases[0])
+	GameplayPolicies.grenade.throw_release_frame_usa = -1
 	soldier.queue_free()
 	await get_tree().process_frame
 

@@ -165,6 +165,7 @@ func _ready() -> void:
 	_apply_team_default_camera(_session.active_team_id)
 	if _is_survival_mode():
 		_apply_survival_camera_rotation()
+		_center_camera_on_team_deployment(Team.USA)
 		_command_bar.set_survival_hud_visible(true)
 	_sync_deployment_hud()
 	_refresh_ai_plan_hud()
@@ -667,7 +668,7 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 			local_completion = true
 		_ensure_active_selection_alive()
 		_command_bar.show_status(
-			"%s Soldier %d move complete." % [Team.display_name(team_id), soldier_id]
+			"%s Soldier %d move complete." % [Team.display_name(team_id), soldier_id],
 		)
 
 	if local_completion:
@@ -2433,6 +2434,15 @@ func _is_soldier_in_fire_at_scope(soldier_state: SoldierState) -> bool:
 	return soldier_state.soldier_id == _fire_at_soldier_id
 
 
+func _center_camera_on_team_deployment(team_id: int) -> void:
+	if _map_data == null:
+		return
+	var center_cell := _deployment_zone_center_cell(team_id)
+	_world.set_center_cell(center_cell)
+	_map_background.set_center_cell(center_cell)
+	_camera.reset_to_default_view(IsometricGrid.grid_to_world(center_cell))
+
+
 func _on_center_camera_requested() -> void:
 	_center_camera_on_active_fireteam()
 
@@ -3412,16 +3422,23 @@ func _log_move_complete(soldier_id: int, state: SoldierState, view: Soldier) -> 
 	var world_pos := view.position if view != null else _soldier_world_pos(state)
 	call_deferred(
 		"_emit_move_complete_log",
+		state.team_id,
 		soldier_id,
 		state.grid_position,
 		world_pos,
 	)
 
 
-func _emit_move_complete_log(soldier_id: int, grid_pos: Vector2i, world_pos: Vector2) -> void:
+func _emit_move_complete_log(
+	team_id: int,
+	soldier_id: int,
+	grid_pos: Vector2i,
+	world_pos: Vector2,
+) -> void:
 	GameLog.log_system(
-		"Move complete: soldier=%d grid=%s world=%s cell_at_world=%s"
+		"Move complete: team=%s soldier=%d grid=%s world=%s cell_at_world=%s"
 		% [
+			Team.display_name(team_id),
 			soldier_id,
 			grid_pos,
 			world_pos,
@@ -3624,7 +3641,13 @@ func _center_camera_on_map() -> void:
 
 
 func _get_camera_focus_cell() -> Vector2i:
-	var spawns: Array[Vector2i] = _map_data.team_1_spawn_points
+	return _deployment_zone_center_cell(Team.USA)
+
+
+func _deployment_zone_center_cell(team_id: int) -> Vector2i:
+	var spawns: Array[Vector2i] = (
+		_map_data.team_1_spawn_points if team_id == Team.USA else _map_data.team_2_spawn_points
+	)
 	if spawns.is_empty():
 		return Vector2i(floori(_map_data.width / 2.0), floori(_map_data.height / 2.0))
 	var sum := Vector2i.ZERO

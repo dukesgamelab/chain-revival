@@ -888,11 +888,17 @@ func _process(delta: float) -> void:
 
 ## Align visual chase target with authoritative simulation state (presentation only).
 func sync_movement_chase_from_state(state: SoldierState) -> void:
-	if state == null or _is_dead or _blocks_action_override():
+	if state == null or _is_dead:
+		return
+	if state.is_moving and state.current_path.size() > state.path_index and state.path_index > 0:
+		_interrupt_standing_idle_for_action()
+		_cancel_stance_transition_visual(false)
+		_cancel_fire_visual(false)
+		_clear_corner_presentation(false)
+	if _blocks_action_override():
 		return
 	_speed_multiplier = state.move_speed_mult if state.move_speed_mult > 0.0 else _speed_multiplier
 	if state.is_moving and state.current_path.size() > state.path_index and state.path_index > 0:
-		_interrupt_standing_idle_for_action()
 		_path = state.current_path.duplicate()
 		_path_index = state.path_index
 		_previous_grid_pos = state.grid_position
@@ -1964,6 +1970,8 @@ func _aim_hold_position_state(state: SoldierState) -> int:
 
 func _sync_fire_aim_hold(state: SoldierState) -> void:
 	## Establish or clear open aim-hold while engaged / between shots.
+	if _throw_grenade_active:
+		return
 	if state != null:
 		_facing_from_cell = state.grid_position
 		_presentation_engaged = state.is_engaged()
