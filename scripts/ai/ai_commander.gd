@@ -84,6 +84,9 @@ const WATCHDOG_IDLE_MSEC := 5000
 const SURVIVAL_ASSAULT_RANGE := 8
 ## Survival GE: cover search radius during assault bounds.
 const SURVIVAL_ASSAULT_COVER_SEEK := 10
+## TUNED — lane staging cell counts as reached within this Manhattan distance. Loose on
+## purpose: the point is which side of the map they came down, not hitting an exact tile.
+const SURVIVAL_ROUTE_ARRIVE_DIST := 6
 
 ## Personality / difficulty hooks — aggression scales grenade; retreat_threshold gates stress.
 var aggression: float = 1.0
@@ -128,6 +131,9 @@ var _last_open_prone_msec: int = -999999
 var _last_stand_up_msec: int = -999999
 ## Survival GE: rotate which soldier bounds forward under fire.
 var _survival_bound_soldier_idx: int = 0
+## Survival GE: true once this wave has cleared its assigned approach lane and may press
+## GE Lines directly. One-way — a wave never goes back to staging.
+var _survival_route_done: bool = false
 ## Rotate which soldier takes the next overwatch bound, so one man does not lead every one.
 var _bound_soldier_idx: int = 0
 
@@ -380,7 +386,7 @@ func _replan(game_state, claimed: Array[Vector2i], visible: Array) -> void:
 	var selected = AiSectorObjectivesClass.select_for_claims(options, claimed)
 	current_objective = selected if selected != null else options[0]
 	if _is_survival_germany_attacker(game_state):
-		current_objective = AiSectorObjectivesClass.survival_ge_lines_objective(game_state)
+		current_objective = _survival_objective(game_state)
 		_defensive_posts.clear()
 		state_id = AiCommanderStateClass.MOVE
 		return
@@ -1579,9 +1585,29 @@ func _survival_issue_single_steps(
 
 
 func _ensure_survival_ge_lines_objective(game_state) -> void:
-	var obj := AiSectorObjectivesClass.survival_ge_lines_objective(game_state)
-	if obj.is_valid():
+	var obj := _survival_objective(game_state)
+	if obj != null and obj.is_valid():
 		current_objective = obj
+
+
+## Two-stage survival objective: this wave's approach lane first, GE Lines after.
+## Contact does not cancel the staging leg — the lane is the whole point of it — but the
+## assault/bounding behaviour still runs on top, so they fight their way along it.
+func _survival_objective(game_state):
+	if not _survival_route_done:
+		var wp := AiSectorObjectivesClass.survival_route_waypoint(game_state, player_id)
+		if wp.x > -900:
+			var c := _formation_center(game_state)
+			if absi(c.x - wp.x) + absi(c.y - wp.y) > SURVIVAL_ROUTE_ARRIVE_DIST:
+				return AiObjectiveClass.make(
+					"survival_route",
+					AiSectorObjectivesClass.survival_route_label(player_id),
+					wp,
+					"sector",
+					18,
+				)
+			_survival_route_done = true
+	return AiSectorObjectivesClass.survival_ge_lines_objective(game_state)
 
 
 func _survival_assault_one_soldier(

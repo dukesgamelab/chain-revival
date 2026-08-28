@@ -61,7 +61,60 @@ static func objectives_for_plan(
 	return out
 
 
-## Survival Mode: the map victory point (GE Lines marker) is the only objective.
+## Survival approach lanes, in deployment order. Every wave used to be handed the same
+## GE Lines cell, so every wave took the same shortest path down the left of the Big House.
+## Staging through a lane label first spreads them: west flank, straight through the Big
+## House, an eastern flank past the Stone House, Big House again, then repeat.
+const SURVIVAL_ROUTE_LABELS: Array[String] = [
+	"West Field",
+	"Big House",
+	"Stone House",
+	"Big House",
+]
+
+
+## Lane label for this wave. player_id 2 is the starting GE fireteam; waves are 3, 4, 5...
+static func survival_route_label(player_id: int) -> String:
+	var i: int = maxi(player_id - 2, 0) % SURVIVAL_ROUTE_LABELS.size()
+	return SURVIVAL_ROUTE_LABELS[i]
+
+
+## Staging cell for this wave's lane, from the map's own labels so it stays map-driven.
+## Returns (-999, -999) when the map has no such label — caller then presses GE Lines direct.
+static func survival_route_waypoint(game_state, player_id: int) -> Vector2i:
+	var none := Vector2i(-999, -999)
+	if game_state == null or game_state.map_data == null:
+		return none
+	var map_data = game_state.map_data
+	var want := survival_route_label(player_id)
+	for entry in map_data.labels:
+		if str(entry.get("text", "")) != want:
+			continue
+		var cell := Vector2i(int(entry.get("x", -999)), int(entry.get("y", -999)))
+		if cell.x <= -900:
+			return none
+		return _nearest_walkable_cell(map_data, cell)
+	return none
+
+
+## Labels sit on the visual centre of an area, which may be inside a wall — walk outward
+## to the closest cell a soldier can actually stand on.
+static func _nearest_walkable_cell(map_data, cell: Vector2i) -> Vector2i:
+	if map_data.is_walkable(cell):
+		return cell
+	for r in range(1, 9):
+		for dx in range(-r, r + 1):
+			for dy in range(-r, r + 1):
+				if maxi(absi(dx), absi(dy)) != r:
+					continue
+				var probe := cell + Vector2i(dx, dy)
+				if map_data.is_walkable(probe):
+					return probe
+	return Vector2i(-999, -999)
+
+
+## Survival Mode: the map victory point (GE Lines marker) is the final objective, reached
+## after the wave has cleared its approach lane.
 static func survival_ge_lines_objective(game_state) -> AiObjectiveClass:
 	if game_state == null or game_state.map_data == null:
 		return AiObjectiveClass.make("survival_ge_lines", "GE Lines", Vector2i(-999, -999), "sector", 20)
