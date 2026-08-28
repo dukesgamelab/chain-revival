@@ -2292,7 +2292,7 @@ func _refresh_command_bar() -> void:
 		)
 		_command_bar.set_soldier_row_interactive(
 			i,
-			owned and soldier_state.is_alive() and not soldier_state.is_stunned(),
+			owned and soldier_state.is_alive(),
 		)
 
 
@@ -2310,7 +2310,7 @@ func _refresh_command_bar_light() -> void:
 		)
 		_command_bar.set_soldier_row_interactive(
 			i,
-			owned and soldier_state.is_alive() and not soldier_state.is_stunned(),
+			owned and soldier_state.is_alive(),
 		)
 
 

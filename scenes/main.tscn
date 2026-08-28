@@ -28,6 +28,7 @@ script = ExtResource("4_camera")
 [node name="UI" type="CanvasLayer" parent="." unique_id=1631235992]
 
 [node name="NetworkStatusHud" type="PanelContainer" parent="UI" unique_id=423773021]
+visible = false
 offset_left = 8.0
 offset_top = 66.0
 offset_right = 280.0
@@ -45,7 +46,7 @@ theme_override_constants/margin_bottom = 6
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.95, 0.88, 1)
 theme_override_font_sizes/font_size = 14
-text = "Current Mode: OFFLINE_DEV"
+text = ""
 autowrap_mode = 3
 
 [node name="StatusHud" type="PanelContainer" parent="UI" unique_id=803078415]
@@ -89,15 +90,18 @@ mouse_filter = 2
 script = ExtResource("8_aiplan")
 
 [node name="SurvivalAnnouncementOverlay" type="Control" parent="UI"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+visible = false
+layout_mode = 0
+anchors_preset = 0
+offset_left = 8.0
+offset_top = 62.0
+offset_right = 280.0
+offset_bottom = 88.0
 mouse_filter = 2
 script = ExtResource("11_survival_ann")
 
-[node name="Center" type="CenterContainer" parent="UI/SurvivalAnnouncementOverlay"]
+[node name="AnnouncementPanel" type="PanelContainer" parent="UI/SurvivalAnnouncementOverlay"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -106,24 +110,20 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="AnnouncementPanel" type="PanelContainer" parent="UI/SurvivalAnnouncementOverlay/Center"]
-unique_name_in_owner = true
+[node name="Margin" type="MarginContainer" parent="UI/SurvivalAnnouncementOverlay/AnnouncementPanel"]
 layout_mode = 2
-mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
 
-[node name="Margin" type="MarginContainer" parent="UI/SurvivalAnnouncementOverlay/Center/AnnouncementPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 12
-
-[node name="AnnouncementLabel" type="Label" parent="UI/SurvivalAnnouncementOverlay/Center/AnnouncementPanel/Margin"]
+[node name="AnnouncementLabel" type="Label" parent="UI/SurvivalAnnouncementOverlay/AnnouncementPanel/Margin"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.05, 0.05, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 11
 text = "New enemy fireteam has been deployed"
-horizontal_alignment = 1
+horizontal_alignment = 0
+autowrap_mode = 3
 
 [node name="CommandBar" parent="UI" unique_id=1737796828 instance=ExtResource("3_cmdbar")]

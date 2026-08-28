@@ -151,6 +151,11 @@ func _fit_dev_tools_now() -> void:
 	dev.offset_top = y
 	dev.offset_right = PAD + maxf(min_size.x, 1.0)
 	dev.offset_bottom = y + maxf(min_size.y, 1.0)
+	var ui := get_parent()
+	if ui != null:
+		var ann := ui.get_node_or_null("SurvivalAnnouncementOverlay")
+		if ann != null and ann.has_method("place_under_map_tools"):
+			ann.place_under_map_tools()
 
 
 ## Pin bottom bar flush; left + chat share one height so their tops align.
@@ -221,9 +226,8 @@ func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0
 	row.set_ammo(state.ammo_current, state.ammo_max)
 	_soldier_weapon_names[row_index] = state.weapon_name
 	var alive := state.is_alive()
-	var stunned := alive and state.is_stunned()
-	## Stunned friendlies: show status, grey out orders (not just grenade).
-	row.set_row_enabled(alive and not stunned)
+	## Grey the row only on death — stun must not look like a kill.
+	row.set_row_enabled(alive)
 	row.set_position_state(state.position_state)
 	row.set_fire_control_state(state.fire_control_state)
 	row.set_activity_status(state.activity_status_label())
@@ -231,15 +235,15 @@ func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0
 	row.set_hit_pct(hit_pct)
 	row.set_grenade_count(
 		state.grenade_count,
-		stunned or state.has_pending_grenade(),
+		state.has_pending_grenade(),
 	)
 	row.set_move_button_enabled(
 		MovementMode.RUN,
-		(not stunned) and MovementMode.is_allowed(state.position_state, MovementMode.RUN),
+		MovementMode.is_allowed(state.position_state, MovementMode.RUN),
 	)
 	row.set_move_button_enabled(
 		MovementMode.CRAWL,
-		(not stunned) and MovementMode.is_allowed(state.position_state, MovementMode.CRAWL),
+		MovementMode.is_allowed(state.position_state, MovementMode.CRAWL),
 	)
 
 

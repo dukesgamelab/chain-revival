@@ -1704,28 +1704,32 @@ static func _final_hit_chance(
 	var dist := _combat_range(shooter.grid_position, target.grid_position)
 	var chance := base_chance
 	var cover_mult := 1.0
+	var open_ground_mult := 1.0
 	var move_type_mult := 1.0
 	var move_angle_mult := 1.0
 	var in_cover := (
 		los.cover_type == CoverSystemClass.CoverType.MODERATE
 		or los.cover_type == CoverSystemClass.CoverType.COMPLETE
 	)
-	## Cover curve when covered; open-ground movement/angle only when not.
+	## Cover curve when covered; open-ground bonus + movement/angle only when not.
 	if in_cover:
 		cover_mult = GameplayPolicies.cover.cover_multiplier_for_range(dist)
 		chance = base_chance * cover_mult
-	elif target != null and target.is_moving:
-		var move_pol := GameplayPolicies.movement
-		move_type_mult = move_pol.type_multiplier(target.movement_mode)
-		chance *= move_type_mult
-		## Sine crossing term only while running.
-		if target.movement_mode == MovementModeClass.RUN:
-			move_angle_mult = move_pol.angle_hit_multiplier(
-				shooter.facing_direction,
-				target.movement_heading(),
-				target.movement_mode,
-			)
-			chance *= move_angle_mult
+	else:
+		open_ground_mult = GameplayPolicies.hit.open_ground_hit_mult
+		chance = base_chance * open_ground_mult
+		if target != null and target.is_moving:
+			var move_pol := GameplayPolicies.movement
+			move_type_mult = move_pol.type_multiplier(target.movement_mode)
+			chance *= move_type_mult
+			## Sine crossing term only while running.
+			if target.movement_mode == MovementModeClass.RUN:
+				move_angle_mult = move_pol.angle_hit_multiplier(
+					shooter.facing_direction,
+					target.movement_heading(),
+					target.movement_mode,
+				)
+				chance *= move_angle_mult
 	var aim_factor := weapon.stress_aim_factor if weapon != null else 1.0
 	var stress_mult := GameplayPolicies.suppression.accuracy_modifier_for(
 		shooter.stress,
@@ -1745,6 +1749,7 @@ static func _final_hit_chance(
 	if out_breakdown is Dictionary:
 		out_breakdown["base"] = base_chance
 		out_breakdown["cover_mult"] = cover_mult
+		out_breakdown["open_ground_mult"] = open_ground_mult
 		out_breakdown["move_type_mult"] = move_type_mult
 		out_breakdown["move_angle_mult"] = move_angle_mult
 		out_breakdown["stress_mult"] = stress_mult
@@ -1937,16 +1942,28 @@ static func try_auto_engagement(
 
 
 ## Aim/fire cycle seconds: per-weapon fire_interval_sec override, else global base.
-static func effective_fire_cycle_sec(weapon: WeaponDataClass) -> float:
+## First shot after acquire uses the shorter first_fire_cycle_sec.
+static func effective_fire_cycle_sec(
+	weapon: WeaponDataClass,
+	first_shot: bool = false,
+) -> float:
+	var hit_policy := GameplayPolicies.hit
+	var cycle := hit_policy.base_fire_cycle_sec
 	if weapon != null and weapon.fire_interval_sec > 0.0:
-		return weapon.fire_interval_sec
-	return GameplayPolicies.hit.base_fire_cycle_sec
+		cycle = weapon.fire_interval_sec
+	if first_shot:
+		if weapon != null and weapon.fire_interval_sec > 0.0:
+			cycle *= hit_policy.first_fire_cycle_sec / maxf(hit_policy.base_fire_cycle_sec, 0.001)
+		else:
+			cycle = hit_policy.first_fire_cycle_sec
+	return cycle
 
 
 static func begin_fire_prep(shooter: SoldierStateClass) -> void:
 	## Single aim/fire cycle (not stacked aim + interval). Stress scales the cycle.
 	var weapon := shooter.get_weapon_data()
-	var delay_sec := effective_fire_cycle_sec(weapon)
+	var first_shot := shooter.last_shot_msec <= 0
+	var delay_sec := effective_fire_cycle_sec(weapon, first_shot)
 	delay_sec *= get_stress_fire_delay_modifier(shooter.stress)
 	shooter.fire_ready_after_msec = SimulationClock.get_ticks_msec() + int(delay_sec * 1000.0)
 
@@ -1954,7 +1971,8 @@ static func begin_fire_prep(shooter: SoldierStateClass) -> void:
 static func get_aim_delay_sec(shooter: SoldierStateClass) -> float:
 	## Alias of the fire cycle (UI "firing in Xs"); not a separate acquisition delay.
 	var weapon := shooter.get_weapon_data()
-	return effective_fire_cycle_sec(weapon) * get_stress_fire_delay_modifier(shooter.stress)
+	var first_shot := shooter.last_shot_msec <= 0
+	return effective_fire_cycle_sec(weapon, first_shot) * get_stress_fire_delay_modifier(shooter.stress)
 
 
 static func get_fire_cooldown_remaining(

@@ -32,6 +32,10 @@ const DEFAULT_AUTO_FIRE_SCAN_INTERVAL := 0.5
 ## RECOVERED from gameplay capture — 5.05s and 6.09s observed; midpoint used as default.
 ## Aim cycle and fire interval are the same thing in the original (continuous Aiming).
 const DEFAULT_BASE_FIRE_CYCLE_SEC := 5.5
+## TUNED — first shot after acquiring a target is a bit quicker than the repeat cycle.
+const DEFAULT_FIRST_FIRE_CYCLE_SEC := 4.0
+## TUNED — modest bump to Hit% / HitFinal when the target is not in cover.
+const DEFAULT_OPEN_GROUND_HIT_MULT := 1.15
 ## TUNED visual/audio spacing within a burst (6 rounds ≈ 0.2s). Does not affect hit rolls.
 const DEFAULT_BURST_ROUND_INTERVAL_SEC := 0.04
 ## Legacy alias of base_fire_cycle_sec (kept for older callers / tests).
@@ -78,6 +82,9 @@ var auto_target_engaged_bonus: float = DEFAULT_AUTO_TARGET_ENGAGED_BONUS
 var auto_fire_scan_interval: float = DEFAULT_AUTO_FIRE_SCAN_INTERVAL
 ## Global aim/fire cycle (seconds). Per-weapon fire_interval_sec overrides when > 0.
 var base_fire_cycle_sec: float = DEFAULT_BASE_FIRE_CYCLE_SEC
+var first_fire_cycle_sec: float = DEFAULT_FIRST_FIRE_CYCLE_SEC
+## Multiplies HitFinal when the target is not in cover. Cover curve is unchanged.
+var open_ground_hit_mult: float = DEFAULT_OPEN_GROUND_HIT_MULT
 var burst_round_interval_sec: float = DEFAULT_BURST_ROUND_INTERVAL_SEC
 ## Legacy alias — always kept equal to base_fire_cycle_sec.
 var fire_prep_delay_sec: float = DEFAULT_FIRE_PREP_DELAY_SEC
@@ -119,6 +126,8 @@ func reset_to_defaults() -> void:
 	auto_target_engaged_bonus = DEFAULT_AUTO_TARGET_ENGAGED_BONUS
 	auto_fire_scan_interval = DEFAULT_AUTO_FIRE_SCAN_INTERVAL
 	base_fire_cycle_sec = DEFAULT_BASE_FIRE_CYCLE_SEC
+	first_fire_cycle_sec = DEFAULT_FIRST_FIRE_CYCLE_SEC
+	open_ground_hit_mult = DEFAULT_OPEN_GROUND_HIT_MULT
 	burst_round_interval_sec = DEFAULT_BURST_ROUND_INTERVAL_SEC
 	fire_prep_delay_sec = base_fire_cycle_sec
 	recently_seen_sec = DEFAULT_RECENTLY_SEEN_SEC
@@ -158,6 +167,8 @@ func apply_config(section: Dictionary) -> void:
 	_set_float(section, "auto_target_engaged_bonus", "auto_target_engaged_bonus")
 	_set_float(section, "auto_fire_scan_interval", "auto_fire_scan_interval")
 	_set_float(section, "base_fire_cycle_sec", "base_fire_cycle_sec")
+	_set_float(section, "first_fire_cycle_sec", "first_fire_cycle_sec")
+	_set_float(section, "open_ground_hit_mult", "open_ground_hit_mult")
 	_set_float(section, "burst_round_interval_sec", "burst_round_interval_sec")
 	# Legacy key: prefer base_fire_cycle_sec when both are present.
 	if section.has("fire_prep_delay_sec") and not section.has("base_fire_cycle_sec"):

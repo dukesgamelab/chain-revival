@@ -1,6 +1,6 @@
 class_name SurvivalAnnouncementOverlay
 extends Control
-## Brief centered fade announcement for Survival Mode reinforcements.
+## Brief fade announcement for Survival Mode reinforcements, under the map tools.
 
 const MESSAGE := "New enemy fireteam has been deployed"
 const FADE_IN_SEC := 0.35
@@ -20,12 +20,38 @@ func _ready() -> void:
 	CocUiTheme.apply_to(self)
 	if _panel != null:
 		_panel.add_theme_stylebox_override("panel", CocUiTheme.panel_style())
+		_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _label != null:
 		_label.text = MESSAGE
 		_label.add_theme_color_override("font_color", CocUiTheme.TEXT_STATUS_RED)
+		_label.add_theme_font_size_override("font_size", CocUiTheme.FONT_SIZE)
+	call_deferred("place_under_map_tools")
+
+
+func place_under_map_tools() -> void:
+	var ui := get_parent()
+	if ui == null:
+		return
+	var cmd := ui.get_node_or_null("CommandBar") as Control
+	if cmd == null:
+		return
+	var dev := cmd.find_child("DevTools", false, false) as Control
+	if dev == null or not is_instance_valid(dev):
+		return
+	const PAD := 8.0
+	const GAP := 4.0
+	set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	var panel_min := Vector2(220, 22)
+	if _panel != null:
+		panel_min = _panel.get_combined_minimum_size()
+	offset_left = PAD
+	offset_top = dev.offset_bottom + GAP
+	offset_right = PAD + maxf(panel_min.x, 1.0)
+	offset_bottom = offset_top + maxf(panel_min.y, 1.0)
 
 
 func show_deployment_announcement() -> void:
+	place_under_map_tools()
 	if _label != null:
 		_label.text = MESSAGE
 	if _active_tween != null and _active_tween.is_valid():

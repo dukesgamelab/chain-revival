@@ -1,7 +1,7 @@
 {
 	"comment": "Gameplay tuning overrides. Loaded by GameplayPolicies on startup. Omit a key to keep the script default. Do not rebalance casually — these values match shipped CombatSystem behavior.",
 	"hit": {
-		"comment": "hit_scale TUNED for rifle≈9% at 11 tiles (OG HUD). lethality TUNED 0.90 so hits ≈ remove soldiers until wound state lands (revert to 0.20 then).",
+		"comment": "hit_scale TUNED for rifle≈9% at 11 tiles (OG HUD). open_ground_hit_mult TUNED +15% when not in cover. first_fire_cycle_sec TUNED 4.0s vs 5.5s repeat. lethality TUNED 0.90 so hits ≈ remove soldiers until wound state lands (revert to 0.20 then).",
 		"hit_scale": 0.060,
 		"aim_time": 1.0,
 		"range_epsilon": 0.25,
@@ -16,6 +16,8 @@
 		"auto_target_engaged_bonus": 10.0,
 		"auto_fire_scan_interval": 0.5,
 		"base_fire_cycle_sec": 5.5,
+		"first_fire_cycle_sec": 4.0,
+		"open_ground_hit_mult": 1.15,
 		"burst_round_interval_sec": 0.04,
 		"fire_prep_delay_sec": 5.5,
 		"recently_seen_sec": 2.0,

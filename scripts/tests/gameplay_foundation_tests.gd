@@ -1179,6 +1179,15 @@ func _test_policy_defaults_unchanged() -> void:
 		"cycle=%s" % GameplayPolicies.hit.base_fire_cycle_sec,
 	)
 	_assert(
+		"First fire cycle is tuned 4.0s",
+		is_equal_approx(GameplayPolicies.hit.first_fire_cycle_sec, 4.0),
+		"first=%s" % GameplayPolicies.hit.first_fire_cycle_sec,
+	)
+	_assert(
+		"Open-ground hit mult is tuned 1.15",
+		is_equal_approx(GameplayPolicies.hit.open_ground_hit_mult, 1.15),
+	)
+	_assert(
 		"Burst round interval default 0.04s",
 		is_equal_approx(GameplayPolicies.hit.burst_round_interval_sec, 0.04),
 	)
@@ -1472,19 +1481,20 @@ func _test_fire_cadence_cycle() -> void:
 	target.stress = 0.0
 	game_state.session.get_fireteam(Team.USA).face_toward_tile(1, target.grid_position)
 
+	var first_msec := int(GameplayPolicies.hit.first_fire_cycle_sec * 1000.0)
 	var cycle_msec := int(GameplayPolicies.hit.base_fire_cycle_sec * 1000.0)
 	CombatSystemClass.begin_fire_prep(shooter)
 	_assert(
 		"Aiming blocks fire until cycle elapses",
 		not CombatSystemClass._is_fire_prep_complete(shooter),
 	)
-	SimulationClock.advance_msec(cycle_msec - 100)
+	SimulationClock.advance_msec(first_msec - 100)
 	_assert(
-		"Still aiming just before cycle end",
+		"Still aiming just before first-shot cycle end",
 		not CombatSystemClass._is_fire_prep_complete(shooter),
 	)
 	SimulationClock.advance_msec(200)
-	_assert("Fire prep complete after ~5.5s", CombatSystemClass._is_fire_prep_complete(shooter))
+	_assert("Fire prep complete after first-shot cycle", CombatSystemClass._is_fire_prep_complete(shooter))
 
 	GameRandom.reseed(7)
 	var first := CombatSystemClass.resolve_shot(game_state, shooter, target, false)
