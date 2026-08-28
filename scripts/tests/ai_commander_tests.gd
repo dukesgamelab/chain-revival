@@ -980,10 +980,7 @@ func _test_bounding_overwatch_moves_one_soldier() -> void:
 	)
 
 
-## The engine rule that stranded prone squads: once stress passes the pinned threshold,
-## ActionResolver downgrades RUN to WALK, and WALK is illegal while DOWN — so every move
-## order is rejected and the soldier lies there permanently. CRAWL is the only way out,
-## and the AI has to pick it rather than ordering a RUN that can never execute.
+## Stress must not strand a soldier: a pinned prone RUN stays RUN (and stands them up).
 func _test_pinned_prone_soldier_can_still_move() -> void:
 	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
 	var fw := _make_framework(gs)
@@ -1017,8 +1014,8 @@ func _test_pinned_prone_soldier_can_still_move() -> void:
 	)
 	var pinned_prone = ActionResolverClass._resolve_move_order(soldier, MovementModeClass.RUN)
 	_assert(
-		"pinned prone RUN resolves to CRAWL, not WALK",
-		pinned_prone.mode == MovementModeClass.CRAWL,
+		"pinned prone RUN stays RUN",
+		pinned_prone.mode == MovementModeClass.RUN,
 		"mode=%d" % pinned_prone.mode,
 	)
 	_assert(
@@ -1026,24 +1023,21 @@ func _test_pinned_prone_soldier_can_still_move() -> void:
 		not pinned_prone.rejected,
 		pinned_prone.message,
 	)
-	## The whole point: whatever the order resolves to has to actually validate.
 	_assert(
-		"resolved mode is legal for a prone soldier",
+		"resolved RUN is legal (stands the soldier)",
 		ActionResolverClass.validate_move(soldier, pinned_prone.mode).is_empty(),
 		"resolved mode %d is still rejected" % pinned_prone.mode,
 	)
-	## Control: a pinned soldier on their feet still downgrades to WALK, as before.
 	soldier.position_state = PositionStateClass.UP
 	var pinned_standing = ActionResolverClass._resolve_move_order(soldier, MovementModeClass.RUN)
 	_assert(
-		"pinned standing soldier still downgrades to WALK",
-		pinned_standing.mode == MovementModeClass.WALK,
-		"mode=%d" % pinned_standing.mode,
+		"pinned standing soldier can still RUN",
+		pinned_standing.mode == MovementModeClass.RUN and not pinned_standing.rejected,
+		"mode=%d rejected=%s" % [pinned_standing.mode, pinned_standing.rejected],
 	)
 
 
-## End to end on the DEFEND path: the brain asks for a plain RUN to the post, and the
-## pinned prone defender still ends up moving — crawling — while an unpinned team mate runs.
+## End to end on the DEFEND path: a pinned prone defender still runs to the post.
 func _test_defensive_post_crawls_when_pinned() -> void:
 	var gs := _make_game_state(MatchConfigClass.MatchType.ONE_V_ONE)
 	var map_data: MapDataClass = gs.map_data
@@ -1102,8 +1096,8 @@ func _test_defensive_post_crawls_when_pinned() -> void:
 		"this RUN used to be rejected outright, leaving the soldier where they lay",
 	)
 	_assert(
-		"pinned prone defender crawls to its post",
-		pinned_soldier != null and pinned_soldier.movement_mode == MovementModeClass.CRAWL,
+		"pinned prone defender runs to its post",
+		pinned_soldier != null and pinned_soldier.movement_mode == MovementModeClass.RUN,
 		"mode=%d" % (pinned_soldier.movement_mode if pinned_soldier != null else -1),
 	)
 	_assert(

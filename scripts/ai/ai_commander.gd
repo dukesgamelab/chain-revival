@@ -50,7 +50,7 @@ const DEFENSIVE_POST_CLUSTER := 10
 ## TUNED — min Chebyshev gap between dig-in posts (spread along cover, not stacked).
 const DEFENSIVE_POST_MIN_SEP := 2
 ## Must match ActionResolver.FIRETEAM_COHESION_RADIUS — AI posts never exceed this span.
-const FIRETEAM_COHESION_RADIUS := 10
+const FIRETEAM_COHESION_RADIUS := 14
 ## TUNED — idle soldier this far (Chebyshev) from FT center is a straggler — rally first.
 const STRAGGLER_CHEBYSHEV := 4
 ## TUNED — react to omniscient enemies within this Manhattan (not just LOS).
@@ -1781,9 +1781,8 @@ func _under_heavy_fire(game_state) -> bool:
 	return _fireteam_avg_stress(game_state) >= STRESS_HEAVY_FIRE
 
 
-## Tactical choice only. Whether a given soldier can physically execute the mode is
-## ActionResolver's call — it resolves a pinned prone RUN down to a CRAWL per soldier,
-## so the brain asks for the movement it wants and lets the engine make it legal.
+## Tactical choice only. The engine will execute RUN even when pinned or panicked;
+## crawl here is the brain preferring a quieter approach under heavy fire.
 func _cover_approach_mode(game_state) -> int:
 	if _under_heavy_fire(game_state):
 		return MovementModeClass.CRAWL

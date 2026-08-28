@@ -38,8 +38,8 @@ const CombatShotResultClass := preload("res://scripts/combat/combat_shot_result.
 const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
 
 ## Max Chebyshev distance between any two living fireteam members after a move.
-## TUNED — OG fireteams stay tight (cluster of ~3–4 tiles). Was 25 (left wingmen behind).
-const FIRETEAM_COHESION_RADIUS := 10
+## TUNED — keep fireteams together without stranding a click just outside the bubble.
+const FIRETEAM_COHESION_RADIUS := 14
 const FIRETEAM_COHESION_FAIL_MSG := "Cannot move that far from fireteam"
 ## TUNED — AI squad offsets clamped so wide spawn spreads compact on the first bound.
 const AI_FORMATION_OFFSET_MAX := 2
@@ -443,7 +443,7 @@ static func execute_move(
 		var anchor_pos: Vector2i = formation_refs[anchor.soldier_id]
 		var squad_target := cmd.target_cell
 		var survival_rush := context != null and context.survival_ge_advance
-		if _acting_is_ai(game_state, context) and not survival_rush:
+		if not survival_rush:
 			squad_target = _clamp_cell_to_fireteam_cohesion(
 				squad_target, _living_fireteam_positions(fireteam, -1)
 			)
@@ -466,7 +466,7 @@ static func execute_move(
 				squad_target,
 				offset,
 			)
-			if acting_ai and not survival_rush:
+			if not survival_rush:
 				var peers := _living_fireteam_positions(fireteam, squad_soldier.soldier_id)
 				member_target = _clamp_cell_to_fireteam_cohesion(member_target, peers)
 			if (
@@ -574,14 +574,9 @@ static func execute_move(
 	var single_target := cmd.target_cell
 	var peer_positions := _living_fireteam_positions(fireteam, soldier_state.soldier_id)
 	var survival_rush := context != null and context.survival_ge_advance
-	if _acting_is_ai(game_state, context) and not survival_rush:
+	if not survival_rush:
+		## Run toward the click; stop at the cohesion edge instead of ignoring the order.
 		single_target = _clamp_cell_to_fireteam_cohesion(single_target, peer_positions)
-	elif (
-		_cell_within_fireteam_cohesion(soldier_state.grid_position, peer_positions)
-		and not _cell_within_fireteam_cohesion(single_target, peer_positions)
-	):
-		## Currently in cohesion — reject a destination that would leave the FT.
-		return ActionResult.fail(FIRETEAM_COHESION_FAIL_MSG)
 
 	if not _assign_move_path(
 		game_state, context, fireteam, soldier_state,
@@ -1140,9 +1135,6 @@ static func arm_movement_mode_for_soldier(
 	if soldier == null or soldier.is_dead:
 		return "Soldier unavailable."
 
-	if CombatSystem.is_stress_panicked(soldier.stress):
-		return "Soldier is panicked and ignores the order."
-
 	if soldier.is_stunned():
 		return "Soldier is stunned and cannot move."
 
@@ -1229,8 +1221,6 @@ static func _assign_move_path(
 		return false
 
 	var mode := resolved_mode if resolved_mode >= 0 else cmd.movement_mode
-	if CombatSystem.is_stress_panicked(state.stress):
-		return false
 	if state.is_stunned():
 		return false
 
@@ -1294,7 +1284,7 @@ static func _assign_translated_squad_path(
 	if state.is_dead or lead_path.is_empty():
 		return false
 	var mode := resolved_mode if resolved_mode >= 0 else cmd.movement_mode
-	if CombatSystem.is_stress_panicked(state.stress) or state.is_stunned():
+	if state.is_stunned():
 		return false
 	if not _validate_move(state, mode).is_empty():
 		return false
@@ -1489,25 +1479,11 @@ static func _resolve_move_order(soldier: SoldierState, requested_mode: int) -> M
 		resolved.rejected = true
 		resolved.message = "Soldier unavailable."
 		return resolved
-	if CombatSystem.is_stress_panicked(soldier.stress):
-		resolved.rejected = true
-		resolved.message = "Soldier is panicked and ignores the order."
-		return resolved
 	if soldier.is_stunned():
 		resolved.rejected = true
 		resolved.message = "Soldier is stunned and cannot move."
 		return resolved
-	if requested_mode == MovementModeClass.RUN and CombatSystem.is_stress_pinned(soldier.stress):
-		## Pinned soldiers cannot run. A prone one cannot walk either — WALK is illegal while
-		## DOWN, so downgrading to WALK rejected the order outright ("Cannot Walk while DOWN.")
-		## and stranded the soldier where they lay. Crawl is the only mode a pinned prone
-		## soldier can actually execute, so resolve to that instead of to an impossible order.
-		if soldier.position_state == PositionStateClass.DOWN:
-			resolved.mode = MovementModeClass.CRAWL
-			resolved.message = "Soldier is pinned and can only crawl."
-		else:
-			resolved.mode = MovementModeClass.WALK
-			resolved.message = "Soldier is pinned and cannot run."
+	## Stress (pin/panic) and firing do not block locomotion. RUN still stands a prone soldier.
 	return resolved
 
 

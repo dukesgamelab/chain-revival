@@ -241,6 +241,18 @@ func _blocks_action_override() -> bool:
 	)
 
 
+## Translation (Run To) only waits on stun/death/throw. Fire, stress hits, and stance clips
+## must not swallow a path the sim already accepted.
+func _blocks_locomotion() -> bool:
+	return (
+		_is_dead
+		or _death_sequence_active
+		or _presentation_stunned
+		or _stun_phase != StunPresPhase.NONE
+		or _throw_grenade_active
+	)
+
+
 func set_presentation_map_data(map_data: MapData) -> void:
 	_presentation_map_data = map_data
 
@@ -823,7 +835,7 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	## Movement cancels corner peek/aim/fire presentation immediately.
 	_cancel_fire_visual(false)
 	_clear_corner_presentation(false)
-	if _is_dead or _blocks_action_override() or path.size() <= 1:
+	if _is_dead or _blocks_locomotion() or path.size() <= 1:
 		return
 
 	_speed_multiplier = speed_multiplier
@@ -845,7 +857,7 @@ func _process(delta: float) -> void:
 	_tick_standing_idle_wait(delta)
 	_tick_post_shot_crouch(delta)
 	_maybe_arm_standing_idle_timer()
-	if not _is_moving or _is_dead or _blocks_action_override():
+	if not _is_moving or _blocks_locomotion():
 		var idle_work_active := (
 			_idle_wait_remaining_sec > 0.0
 			or _idle_fidget_active
@@ -895,7 +907,7 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 		_cancel_stance_transition_visual(false)
 		_cancel_fire_visual(false)
 		_clear_corner_presentation(false)
-	if _blocks_action_override():
+	if _blocks_locomotion():
 		return
 	_speed_multiplier = state.move_speed_mult if state.move_speed_mult > 0.0 else _speed_multiplier
 	if state.is_moving and state.current_path.size() > state.path_index and state.path_index > 0:
@@ -1034,7 +1046,7 @@ func _configure_team_visual() -> void:
 
 
 func _update_locomotion_visual(step: Vector2i, walking: bool) -> void:
-	if _anim == null or _blocks_action_override():
+	if _anim == null or _blocks_locomotion():
 		return
 	if _uses_og_frames():
 		_play_locomotion(_world_direction_from_step(step), walking)
