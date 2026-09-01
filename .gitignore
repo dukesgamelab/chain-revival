@@ -17,3 +17,6 @@ _tmp_fortress_v2/
 
 # Exported playtest / release binaries (preset writes here)
 /export/
+/ChainRevivalSurvivalPlaytest.exe
+/ChainRevivalSurvivalPlaytest.pck
+/*.pck*.tmp

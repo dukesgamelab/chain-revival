@@ -2361,4 +2361,3 @@ func _test_build_config_editor_is_development() -> void:
 	## Custom feature `survival_playtest` is only set on the playtest export preset.
 	_assert("Editor / F5 run is development", BuildConfig.is_development())
 	_assert("Editor / F5 run is not survival playtest", not BuildConfig.is_survival_playtest())
-
