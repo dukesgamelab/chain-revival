@@ -26,13 +26,33 @@ func _ready() -> void:
 	_survival_mode_button.pressed.connect(_on_survival_mode_pressed)
 	_editor_button.pressed.connect(_on_editor_pressed)
 	_asset_anim_button.pressed.connect(_on_asset_anim_editor_pressed)
+	if BuildConfig.is_survival_playtest():
+		_apply_survival_playtest_menu()
+		_on_survival_mode_pressed()
+
+
+func _apply_survival_playtest_menu() -> void:
+	## Survival is the only mode; editors and unfinished modes stay off the screen.
+	if _single_player_button != null:
+		_single_player_button.visible = false
+	if _multiplayer_button != null:
+		_multiplayer_button.visible = false
+	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
+	if dev_box != null:
+		dev_box.visible = false
+	if _survival_mode_button != null:
+		_survival_mode_button.text = "Play Survival"
 
 
 func _on_single_player_pressed() -> void:
+	if BuildConfig.is_survival_playtest():
+		return
 	_open_match_setup(MatchConfigClass.GameModeKind.SINGLE_PLAYER)
 
 
 func _on_multiplayer_pressed() -> void:
+	if BuildConfig.is_survival_playtest():
+		return
 	_set_buttons_enabled(false)
 	## Networking not required for Phase 1 config — still attempt connect for existing flow,
 	## then open Match Setup (Open slots). Failures fall back to setup anyway.
@@ -43,12 +63,16 @@ func _on_multiplayer_pressed() -> void:
 
 
 func _open_match_setup(game_mode_kind: int) -> void:
+	if BuildConfig.is_survival_playtest():
+		return
 	PlayerSides.clear()
 	MatchConfigStoreClass.set_setup_game_mode(game_mode_kind)
 	get_tree().change_scene_to_file(MATCH_SETUP_SCENE)
 
 
 func _on_offline_quick_pressed() -> void:
+	if BuildConfig.is_survival_playtest():
+		return
 	## Dev hotseat: Farm Fight 1v1, both sides human, no AI.
 	PlayerSides.clear()
 	GameModeManager.set_mode(GameMode.OFFLINE_DEV)
@@ -57,6 +81,8 @@ func _on_offline_quick_pressed() -> void:
 
 
 func _on_offline_quick_ai_pressed() -> void:
+	if BuildConfig.is_survival_playtest():
+		return
 	## Dev: same one-click start as above, but Germany is AI — the hotseat version has no
 	## AI on either side, so use this one when testing commander behaviour.
 	PlayerSides.clear()
@@ -74,6 +100,8 @@ func _on_survival_mode_pressed() -> void:
 
 
 func _on_editor_pressed() -> void:
+	if BuildConfig.is_survival_playtest():
+		return
 	PlayerSides.clear()
 	GameModeManager.set_mode(GameMode.OFFLINE_DEV)
 	MatchConfigStoreClass.clear_pending()
@@ -81,6 +109,8 @@ func _on_editor_pressed() -> void:
 
 
 func _on_asset_anim_editor_pressed() -> void:
+	if BuildConfig.is_survival_playtest():
+		return
 	PlayerSides.clear()
 	GameModeManager.set_mode(GameMode.OFFLINE_DEV)
 	get_tree().change_scene_to_file(ASSET_ANIM_EDITOR_SCENE)

@@ -68,6 +68,9 @@ var _pending_asset_filter: String = ""
 
 
 func _ready() -> void:
+	if BuildConfig.is_survival_playtest():
+		get_tree().change_scene_to_file(MODE_SELECT_SCENE)
+		return
 	MapCoordinateTransform.reset_candidate()
 	IsometricGrid.reset_view_rotation()
 	## Keep editor chrome inside the window — long inspector/status text must not expand side panels off-screen.

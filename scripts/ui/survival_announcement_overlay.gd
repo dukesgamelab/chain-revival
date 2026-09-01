@@ -25,6 +25,8 @@ func _ready() -> void:
 		_label.text = MESSAGE
 		_label.add_theme_color_override("font_color", CocUiTheme.TEXT_STATUS_RED)
 		_label.add_theme_font_size_override("font_size", CocUiTheme.FONT_SIZE)
+		_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	call_deferred("place_under_map_tools")
 
 
@@ -33,21 +35,18 @@ func place_under_map_tools() -> void:
 	if ui == null:
 		return
 	var cmd := ui.get_node_or_null("CommandBar") as Control
-	if cmd == null:
+	if cmd == null or not cmd.has_method("get_top_left_tools_rect"):
 		return
-	var dev := cmd.find_child("DevTools", false, false) as Control
-	if dev == null or not is_instance_valid(dev):
-		return
-	const PAD := 8.0
+	var tools: Rect2 = cmd.get_top_left_tools_rect()
 	const GAP := 4.0
 	set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	var panel_min := Vector2(220, 22)
+	var height := 24.0
 	if _panel != null:
-		panel_min = _panel.get_combined_minimum_size()
-	offset_left = PAD
-	offset_top = dev.offset_bottom + GAP
-	offset_right = PAD + maxf(panel_min.x, 1.0)
-	offset_bottom = offset_top + maxf(panel_min.y, 1.0)
+		height = maxf(_panel.get_combined_minimum_size().y, 22.0)
+	offset_left = tools.position.x
+	offset_top = tools.end.y + GAP
+	offset_right = tools.end.x
+	offset_bottom = offset_top + height
 
 
 func show_deployment_announcement() -> void:

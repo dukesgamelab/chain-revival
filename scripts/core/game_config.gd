@@ -24,16 +24,22 @@ static func startup_game_mode() -> int:
 ## Explicit `--hotseat` / project setting. Offline Quick Start is already all-human
 ## via MatchConfig.default_offline_1v1(); this flag forces the same for other configs.
 static func hotseat_enabled() -> bool:
+	if BuildConfig.is_survival_playtest():
+		return false
 	return _cmdline_or_setting_flag("--hotseat", PROJECT_SETTING_HOTSEAT)
 
 
 ## Log every successful AI command (pid, soldier, type, target). Off by default.
 static func ai_verbose_enabled() -> bool:
+	if BuildConfig.is_survival_playtest():
+		return false
 	return _cmdline_or_setting_flag("--ai-verbose", PROJECT_SETTING_AI_VERBOSE)
 
 
 ## Log per-shot hit breakdown (base/cover/move/stress/final/lethality). Off by default.
 static func combat_verbose_enabled() -> bool:
+	if BuildConfig.is_survival_playtest():
+		return false
 	return _cmdline_or_setting_flag("--combat-verbose", PROJECT_SETTING_COMBAT_VERBOSE)
 
 

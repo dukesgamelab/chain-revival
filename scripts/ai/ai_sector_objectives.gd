@@ -21,7 +21,9 @@ static func objectives_for_plan(
 	var enemy_team: int = Team.GERMANY if team_id == Team.USA else Team.USA
 	var own_anchor := _team_anchor(game_state, team_id)
 	var enemy_anchor := _team_anchor(game_state, enemy_team)
-	## Survival GE waves always press the GE Lines victory point — not mid-map sectors.
+	## Survival GE waves do not use plan sectors. AiCommander._survival_objective owns the
+	## real two-stage routing (approach lane, then GE Lines) and overwrites this on replan;
+	## the final objective is returned here so a direct caller still gets something valid.
 	if game_state.survival_mode and team_id == Team.GERMANY:
 		out.append(survival_ge_lines_objective(game_state))
 		return out

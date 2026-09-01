@@ -1585,7 +1585,7 @@ func _survival_issue_single_steps(
 
 
 func _ensure_survival_ge_lines_objective(game_state) -> void:
-	var obj := _survival_objective(game_state)
+	var obj: AiObjectiveClass = _survival_objective(game_state)
 	if obj != null and obj.is_valid():
 		current_objective = obj
 
@@ -1593,7 +1593,7 @@ func _ensure_survival_ge_lines_objective(game_state) -> void:
 ## Two-stage survival objective: this wave's approach lane first, GE Lines after.
 ## Contact does not cancel the staging leg — the lane is the whole point of it — but the
 ## assault/bounding behaviour still runs on top, so they fight their way along it.
-func _survival_objective(game_state):
+func _survival_objective(game_state) -> AiObjectiveClass:
 	if not _survival_route_done:
 		var wp := AiSectorObjectivesClass.survival_route_waypoint(game_state, player_id)
 		if wp.x > -900:

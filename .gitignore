@@ -14,3 +14,6 @@ _tmp_fable_extract/
 _tmp_fortress/
 _tmp_fortress_handoff/
 _tmp_fortress_v2/
+
+# Exported playtest / release binaries (preset writes here)
+/export/

@@ -52,6 +52,9 @@ var _map_assets_panel: Control = null
 
 
 func _ready() -> void:
+	if BuildConfig.is_survival_playtest():
+		get_tree().change_scene_to_file(MODE_SELECT_SCENE)
+		return
 	AnimationDatabase.reload()
 	_wire_signals()
 	_populate_world_facing()

@@ -37,6 +37,7 @@ const SurvivalModeControllerClass := preload("res://scripts/core/survival_mode_c
 const ScenarioEndCauseClass := preload("res://scripts/enums/scenario_end_cause.gd")
 const ScenarioWinnerClass := preload("res://scripts/enums/scenario_winner.gd")
 const MissionDebriefDialogClass := preload("res://scripts/ui/mission_debrief_dialog.gd")
+const SurvivalDifficultyDialogClass := preload("res://scripts/ui/survival_difficulty_dialog.gd")
 
 @onready var _world: MapWorldView = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -58,6 +59,7 @@ var _return_to_editor_on_exit: bool = false
 var _command_dialog: CommandDialog = null
 var _assign_weapons_dialog: AssignWeaponsDialog = null
 var _mission_debrief_dialog: MissionDebriefDialogClass = null
+var _survival_difficulty_dialog: SurvivalDifficultyDialogClass = null
 
 var _map_data = MapDataClass.create_default()
 var _session: GameSession = GameSessionClass.new([], [])
@@ -176,9 +178,7 @@ func _ready() -> void:
 		_on_timed_deployment_finished()
 		_configure_survival_ge_commanders()
 		_refresh_survival_hud()
-		_command_bar.show_status(
-			"Survival Mode: hold the objective. German reinforcements every 30s."
-		)
+		_command_bar.show_status("Survival Mode: choose a difficulty to begin waves.")
 	else:
 		_ensure_command_dialog()
 	## Let the first heavy draw frames finish while the overlay still covers them.
@@ -187,7 +187,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_boot_complete = true
 	_hide_loading_overlay()
-	if not _is_survival_mode():
+	if _is_survival_mode():
+		call_deferred("_open_survival_difficulty_dialog")
+	else:
 		call_deferred("_open_command_dialog_for_deployment")
 
 
@@ -407,9 +409,7 @@ func _hide_loading_overlay() -> void:
 
 func _show_startup_status() -> void:
 	if _is_survival_mode():
-		_command_bar.show_status(
-			"Survival Mode: 1 v All — defend the US objective. Next GE wave in 30s."
-		)
+		_command_bar.show_status("Survival Mode: 1 v All — choose a difficulty.")
 		return
 	if _map_data != null and _map_data.is_original_visual_map():
 		_command_bar.show_status(
@@ -1356,8 +1356,14 @@ func _get_fire_at_preview_shooter() -> SoldierState:
 func _load_map_data() -> void:
 	## Catalog already loaded from menus/editor — avoid full manifest reparse every match.
 	CocTileCatalog.ensure_loaded()
-	var pending := EditorPlaySession.consume_pending_map_path()
-	_return_to_editor_on_exit = EditorPlaySession.should_return_to_editor()
+	var pending := ""
+	if BuildConfig.is_survival_playtest():
+		EditorPlaySession.consume_pending_map_path()
+		EditorPlaySession.clear_return_flag()
+		_return_to_editor_on_exit = false
+	else:
+		pending = EditorPlaySession.consume_pending_map_path()
+		_return_to_editor_on_exit = EditorPlaySession.should_return_to_editor()
 	if not pending.is_empty():
 		_map_data = MapLoader.load_path(pending)
 	else:
@@ -1473,6 +1479,29 @@ func _open_command_dialog_for_deployment() -> void:
 	if _game_state == null or not _game_state.is_deployment_phase():
 		return
 	_open_command_dialog()
+
+
+func _open_survival_difficulty_dialog() -> void:
+	if not _is_survival_mode() or _survival_mode == null:
+		return
+	if _survival_difficulty_dialog == null:
+		_survival_difficulty_dialog = SurvivalDifficultyDialogClass.new()
+		$UI.add_child(_survival_difficulty_dialog)
+		_survival_difficulty_dialog.difficulty_chosen.connect(_on_survival_difficulty_chosen)
+	_survival_difficulty_dialog.popup_centered()
+
+
+func _on_survival_difficulty_chosen(difficulty: int) -> void:
+	if _survival_mode == null:
+		return
+	_survival_mode.apply_difficulty(difficulty)
+	_refresh_survival_hud()
+	var name := SurvivalModeControllerClass.difficulty_display_name(difficulty)
+	var interval := SurvivalModeControllerClass.difficulty_interval_label(difficulty)
+	_command_bar.show_status(
+		"Survival Mode: %s — new enemy fireteam every %s. Hold the objective."
+		% [name, interval]
+	)
 
 
 func _on_set_commanders_requested() -> void:
@@ -1615,7 +1644,7 @@ func _open_mission_debrief_dialog() -> void:
 
 func _on_mission_debrief_finished() -> void:
 	## End the match and leave the battlefield after debrief Close / countdown.
-	if _return_to_editor_on_exit:
+	if _return_to_editor_on_exit and BuildConfig.is_development():
 		EditorPlaySession.clear_return_flag()
 		get_tree().change_scene_to_file("res://scenes/editor/map_editor.tscn")
 		return
@@ -1632,6 +1661,9 @@ func _on_retreat_requested() -> void:
 
 func _refresh_ai_plan_hud() -> void:
 	if _ai_plan_hud == null:
+		return
+	if BuildConfig.is_survival_playtest():
+		_ai_plan_hud.visible = false
 		return
 	if _ai_plan_hud.has_method("bind_framework"):
 		_ai_plan_hud.bind_framework(_ai_framework, _game_state)
@@ -1660,52 +1692,53 @@ func _on_ammo_adjust_requested(soldier_id: int, delta: int) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_1:
-			_switch_active_team(Team.USA)
-			get_viewport().set_input_as_handled()
-			return
-		if event.keycode == KEY_2:
-			_switch_active_team(Team.GERMANY)
-			get_viewport().set_input_as_handled()
-			return
-		if event.keycode == KEY_B:
-			_toggle_grass_layer()
-			get_viewport().set_input_as_handled()
-			return
-		if event.keycode == KEY_T:
-			_toggle_debug_targeting_overlays()
-			get_viewport().set_input_as_handled()
-			return
-		if event.keycode == KEY_F3:
-			_world.toggle_debug_overlay()
-			_command_bar.show_status(
-				"CoC tile debug %s" % ("ON" if _coc_debug_overlay.enabled else "OFF")
-			)
-			get_viewport().set_input_as_handled()
-			return
-		if event.keycode == KEY_F4:
-			_world.toggle_handedness_overlay()
-			_command_bar.show_status("Handedness overlay toggled (F5 cycles candidates)")
-			get_viewport().set_input_as_handled()
-			return
-		if event.keycode == KEY_F5:
-			var cand := _world.cycle_handedness_candidate()
-			_command_bar.show_status("Handedness candidate: %s" % cand)
-			get_viewport().set_input_as_handled()
-			return
-		if event.keycode == KEY_F6:
-			_world.toggle_terrain_overlay()
-			_command_bar.show_status(
-				"Terrain overlay %s (green=Even yellow=Climb red=NoPass)"
-				% ("ON" if _world.is_terrain_overlay_enabled() else "OFF")
-			)
-			get_viewport().set_input_as_handled()
-			return
-		if event.keycode == KEY_ESCAPE and _return_to_editor_on_exit:
-			EditorPlaySession.clear_return_flag()
-			get_tree().change_scene_to_file("res://scenes/editor/map_editor.tscn")
-			get_viewport().set_input_as_handled()
-			return
+		if BuildConfig.is_development():
+			if event.keycode == KEY_1:
+				_switch_active_team(Team.USA)
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_2:
+				_switch_active_team(Team.GERMANY)
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_B:
+				_toggle_grass_layer()
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_T:
+				_toggle_debug_targeting_overlays()
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_F3:
+				_world.toggle_debug_overlay()
+				_command_bar.show_status(
+					"CoC tile debug %s" % ("ON" if _coc_debug_overlay.enabled else "OFF")
+				)
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_F4:
+				_world.toggle_handedness_overlay()
+				_command_bar.show_status("Handedness overlay toggled (F5 cycles candidates)")
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_F5:
+				var cand := _world.cycle_handedness_candidate()
+				_command_bar.show_status("Handedness candidate: %s" % cand)
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_F6:
+				_world.toggle_terrain_overlay()
+				_command_bar.show_status(
+					"Terrain overlay %s (green=Even yellow=Climb red=NoPass)"
+					% ("ON" if _world.is_terrain_overlay_enabled() else "OFF")
+				)
+				get_viewport().set_input_as_handled()
+				return
+			if event.keycode == KEY_ESCAPE and _return_to_editor_on_exit:
+				EditorPlaySession.clear_return_flag()
+				get_tree().change_scene_to_file("res://scenes/editor/map_editor.tscn")
+				get_viewport().set_input_as_handled()
+				return
 		if event.is_action_pressed("rotate_view_left"):
 			_apply_view_rotation_left()
 			get_viewport().set_input_as_handled()

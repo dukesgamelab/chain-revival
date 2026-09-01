@@ -6,11 +6,19 @@ const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 
-const WAVE_INTERVAL_SEC := 30.0
+const WAVE_INTERVAL_SEC := 30.0 ## Legacy alias of Hard; prefer wave_interval_sec.
+const INTERVAL_NORMAL_SEC := 60.0
+const INTERVAL_HARD_SEC := 30.0
+const INTERVAL_ATOWN_SEC := 15.0
 const SOLDIERS_PER_WAVE := 4
+
+enum Difficulty { NORMAL, HARD, A_TOWN }
 
 var wave_count: int = 1
 var wave_timer_sec: float = 0.0
+var wave_interval_sec: float = INTERVAL_NORMAL_SEC
+var difficulty: int = Difficulty.NORMAL
+var waves_armed: bool = false
 var next_player_id: int = 3
 var next_ge_soldier_id_base: int = 5
 var last_spawned_fireteam: Fireteam = null
@@ -19,9 +27,49 @@ var last_spawned_fireteam: Fireteam = null
 func reset() -> void:
 	wave_count = 1
 	wave_timer_sec = 0.0
+	wave_interval_sec = INTERVAL_NORMAL_SEC
+	difficulty = Difficulty.NORMAL
+	waves_armed = false
 	next_player_id = 3
 	next_ge_soldier_id_base = 5
 	last_spawned_fireteam = null
+
+
+static func interval_for_difficulty(diff: int) -> float:
+	match diff:
+		Difficulty.HARD:
+			return INTERVAL_HARD_SEC
+		Difficulty.A_TOWN:
+			return INTERVAL_ATOWN_SEC
+		_:
+			return INTERVAL_NORMAL_SEC
+
+
+static func difficulty_display_name(diff: int) -> String:
+	match diff:
+		Difficulty.HARD:
+			return "Hard"
+		Difficulty.A_TOWN:
+			return "A-town"
+		_:
+			return "Normal"
+
+
+static func difficulty_interval_label(diff: int) -> String:
+	match diff:
+		Difficulty.HARD:
+			return "30 seconds"
+		Difficulty.A_TOWN:
+			return "15 seconds"
+		_:
+			return "1 minute"
+
+
+func apply_difficulty(diff: int) -> void:
+	difficulty = diff
+	wave_interval_sec = interval_for_difficulty(diff)
+	wave_timer_sec = 0.0
+	waves_armed = true
 
 
 static func is_active(match_config) -> bool:
@@ -71,7 +119,9 @@ static func count_deployed_enemy_fireteams(session) -> int:
 
 
 func time_until_next_wave() -> float:
-	return maxf(0.0, WAVE_INTERVAL_SEC - wave_timer_sec)
+	if not waves_armed:
+		return -1.0
+	return maxf(0.0, wave_interval_sec - wave_timer_sec)
 
 
 func process_tick(
@@ -83,8 +133,10 @@ func process_tick(
 		return ""
 	if game_state.scenario_ended or game_state.is_deployment_phase():
 		return ""
+	if not waves_armed:
+		return ""
 	wave_timer_sec += SimulationClock.tick_sec()
-	if wave_timer_sec < WAVE_INTERVAL_SEC:
+	if wave_timer_sec < wave_interval_sec:
 		return ""
 	wave_timer_sec = 0.0
 	wave_count += 1

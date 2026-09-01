@@ -12,6 +12,9 @@ var _framework: AiCommanderFrameworkClass = null
 
 
 func _ready() -> void:
+	if BuildConfig.is_survival_playtest():
+		visible = false
+		return
 	CocUiTheme.apply_to(self)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _label == null:
@@ -33,6 +36,9 @@ func bind_framework(framework: AiCommanderFrameworkClass, game_state: GameStateC
 
 
 func refresh() -> void:
+	if BuildConfig.is_survival_playtest():
+		visible = false
+		return
 	_ensure_label()
 	if _framework != null and _framework.has_commanders():
 		var lines := _framework.debug_lines(_game_state)

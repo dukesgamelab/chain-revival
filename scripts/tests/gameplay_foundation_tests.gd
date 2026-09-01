@@ -68,6 +68,7 @@ func _ready() -> void:
 	_test_perception_cache_incremental()
 	_test_scenario_clock_and_scoring()
 	_test_timed_deployment_zone_lock()
+	_test_build_config_editor_is_development()
 
 	print("")
 	print("Gameplay foundation tests: %d passed, %d failed" % [_passed, _failed])
@@ -2354,3 +2355,10 @@ func _test_scenario_clock_and_scoring() -> void:
 		timed.end_cause == ScenarioEndCauseClass.TIME_GONE,
 		"cause=%s" % timed.end_cause,
 	)
+
+
+func _test_build_config_editor_is_development() -> void:
+	## Custom feature `survival_playtest` is only set on the playtest export preset.
+	_assert("Editor / F5 run is development", BuildConfig.is_development())
+	_assert("Editor / F5 run is not survival playtest", not BuildConfig.is_survival_playtest())
+

@@ -13,6 +13,9 @@ const _HINT_DENIED := "That side is already taken. Choose the other team."
 
 
 func _ready() -> void:
+	if BuildConfig.is_survival_playtest():
+		get_tree().change_scene_to_file("res://scenes/mode_select.tscn")
+		return
 	PlayerSides.clear()
 	_usa_button.pressed.connect(_on_usa_pressed)
 	_germany_button.pressed.connect(_on_germany_pressed)

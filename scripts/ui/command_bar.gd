@@ -109,6 +109,10 @@ func _setup_dev_tools() -> void:
 	var dev := %DevTools as Control
 	if dev == null:
 		return
+	if BuildConfig.is_survival_playtest():
+		dev.visible = false
+		_fit_dev_tools()
+		return
 	dev.mouse_filter = Control.MOUSE_FILTER_STOP
 	%SaveButton.tooltip_text = "DEV: save game state"
 	%LoadButton.tooltip_text = "DEV: load game state"
@@ -144,7 +148,12 @@ func _fit_dev_tools_now() -> void:
 			score_bottom = maxf(score_bottom, survival.offset_bottom)
 		y = score_bottom + GAP
 	var dev := %DevTools as Control
-	if dev == null or not is_instance_valid(dev):
+	if dev == null or not is_instance_valid(dev) or not dev.visible:
+		var ui_early := get_parent()
+		if ui_early != null:
+			var ann_early := ui_early.get_node_or_null("SurvivalAnnouncementOverlay")
+			if ann_early != null and ann_early.has_method("place_under_map_tools"):
+				ann_early.place_under_map_tools()
 		return
 	var min_size := dev.get_combined_minimum_size()
 	dev.offset_left = PAD
@@ -156,6 +165,34 @@ func _fit_dev_tools_now() -> void:
 		var ann := ui.get_node_or_null("SurvivalAnnouncementOverlay")
 		if ann != null and ann.has_method("place_under_map_tools"):
 			ann.place_under_map_tools()
+
+
+## Bounding box of score + survival HUD + map save/load strip (for aligned banners).
+func get_top_left_tools_rect() -> Rect2:
+	const PAD := 8.0
+	var left := PAD
+	var top := PAD
+	var right := PAD
+	var bottom := PAD
+	var score := %ScoreHud as Control
+	var survival := %SurvivalHud as Control
+	var dev := %DevTools as Control
+	if score != null and is_instance_valid(score):
+		left = minf(left, score.offset_left)
+		top = minf(top, score.offset_top)
+		right = maxf(right, score.offset_right)
+		bottom = maxf(bottom, score.offset_bottom)
+	if survival != null and is_instance_valid(survival) and survival.visible:
+		left = minf(left, survival.offset_left)
+		top = minf(top, survival.offset_top)
+		right = maxf(right, survival.offset_right)
+		bottom = maxf(bottom, survival.offset_bottom)
+	if dev != null and is_instance_valid(dev) and dev.visible:
+		left = minf(left, dev.offset_left)
+		top = minf(top, dev.offset_top)
+		right = maxf(right, dev.offset_right)
+		bottom = maxf(bottom, dev.offset_bottom)
+	return Rect2(left, top, maxf(right - left, 1.0), maxf(bottom - top, 1.0))
 
 
 ## Pin bottom bar flush; left + chat share one height so their tops align.
@@ -385,8 +422,11 @@ func set_survival_stats(
 	if fireteams != null:
 		fireteams.text = "Enemy fireteams: %d" % enemy_fireteams
 	if next_deploy != null:
-		var total := int(maxi(0, int(ceil(next_deploy_sec))))
-		next_deploy.text = "Next deployment: %d:%02d" % [total / 60, total % 60]
+		if next_deploy_sec < 0.0:
+			next_deploy.text = "Next deployment: —"
+		else:
+			var total := int(maxi(0, int(ceil(next_deploy_sec))))
+			next_deploy.text = "Next deployment: %d:%02d" % [total / 60, total % 60]
 	if kills != null:
 		kills.text = "Enemies killed: %d" % enemies_killed
 	_fit_dev_tools()

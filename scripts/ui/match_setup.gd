@@ -21,6 +21,9 @@ var _plan_option_by_player: Dictionary = {}
 
 
 func _ready() -> void:
+	if BuildConfig.is_survival_playtest():
+		get_tree().change_scene_to_file(MODE_SELECT_SCENE)
+		return
 	CocUiTheme.apply_to(self)
 	var pending_mode := MatchConfigStoreClass.consume_setup_game_mode(
 		MatchConfigClass.GameModeKind.SINGLE_PLAYER
