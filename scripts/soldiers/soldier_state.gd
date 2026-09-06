@@ -73,6 +73,8 @@ var last_fired_msec: int = 0
 var fire_ready_after_msec: int = 0
 var engaged_target_team_id: int = -1
 var engaged_target_soldier_id: int = -1
+## SimulationClock msec when the current engagement last failed validity; 0 = valid.
+var engaged_target_lost_msec: int = 0
 ## Manual Fire At order active — keep firing at priority target until cleared.
 var sustained_fire: bool = false
 ## Last known enemy positions keyed by CombatSystem.enemy_tracking_key().
@@ -328,6 +330,7 @@ func set_engaged_target(target_team_id: int, target_soldier_id: int) -> bool:
 	)
 	engaged_target_team_id = target_team_id
 	engaged_target_soldier_id = target_soldier_id
+	engaged_target_lost_msec = 0
 	if unchanged:
 		return false
 	fire_ready_after_msec = 0
@@ -338,6 +341,7 @@ func set_engaged_target(target_team_id: int, target_soldier_id: int) -> bool:
 func clear_engaged_target() -> void:
 	engaged_target_team_id = -1
 	engaged_target_soldier_id = -1
+	engaged_target_lost_msec = 0
 
 
 func is_engaged() -> bool:

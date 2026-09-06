@@ -38,6 +38,8 @@ const TARGET_PRONE_HIT_MULT := HitChancePolicyClass.DEFAULT_TARGET_PRONE_HIT_MUL
 const MODERATE_COVER_SUPPRESSION_MULT := SuppressionPolicyClass.DEFAULT_MODERATE_COVER_SUPPRESSION_MULT
 const PRONE_SUPPRESSION_MULT := SuppressionPolicyClass.DEFAULT_PRONE_SUPPRESSION_MULT
 const STRESS_PINNED_THRESHOLD := SuppressionPolicyClass.DEFAULT_PINNED_THRESHOLD
+## Brief hold before dropping an engagement that failed validity (LOS flicker, etc.).
+const TARGET_LOST_GRACE_MSEC := 1500
 const STRESS_PANIC_THRESHOLD := SuppressionPolicyClass.DEFAULT_PANIC_THRESHOLD
 const AUTO_TARGET_ENGAGED_BONUS := HitChancePolicyClass.DEFAULT_AUTO_TARGET_ENGAGED_BONUS
 const GRENADE_THROW_RANGE := GrenadePolicyClass.DEFAULT_THROW_RANGE
@@ -307,7 +309,8 @@ static func resolve_shot(
 	result.peek_side = los.peek_side
 	result.corner_cell = los.corner_cell
 
-	if not _can_fire_yet(shooter, weapon):
+	var shot_range := _cycle_range_between(shooter, target)
+	if not _can_fire_yet(shooter, weapon, shot_range):
 		result.on_cooldown = true
 		if not auto_engagement:
 			result.messages.append(
@@ -315,7 +318,7 @@ static func resolve_shot(
 				% [
 					Team.display_name(shooter.team_id),
 					weapon.weapon_name,
-					effective_fire_cycle_sec(weapon),
+					effective_fire_cycle_sec(weapon, false, shot_range),
 				],
 			)
 		return result
@@ -353,7 +356,7 @@ static func resolve_shot(
 	shooter.last_shot_msec = now_msec
 	shooter.last_fired_msec = now_msec
 	## Restart the single aim/fire cycle (OG Aiming state between shots).
-	begin_fire_prep(shooter)
+	begin_fire_prep(shooter, shot_range)
 	result.fired = true
 	result.tracer_count = weapon.tracer_count
 
@@ -389,19 +392,26 @@ static func resolve_shot(
 			% [int(round(base_chance * 100.0)), int(round(chance * 100.0))],
 		)
 
-	## P(death) = HitFinal × lethality. Hit curve stays untouched so WIA can split
-	## this back into a second roll later (set lethality_multiplier to 1.0 then).
-	var kill_chance := clampf(
+	## Per-round kill chance; UI reports 1 − (1 − p)^rounds (one roll per spent round).
+	var per_round_kill := clampf(
 		chance * GameplayPolicies.hit.lethality_multiplier,
 		0.0,
 		1.0,
 	)
-	result.kill_chance = kill_chance
+	var rounds := maxi(ammo_cost, 0)
+	var attack_kill := 0.0
+	if rounds > 0:
+		attack_kill = 1.0 - pow(1.0 - per_round_kill, float(rounds))
+	result.kill_chance = clampf(attack_kill, 0.0, 1.0)
 	if GameConfig.combat_verbose_enabled():
-		_log_combat_verbose(shooter, target, weapon, breakdown, kill_chance)
+		_log_combat_verbose(shooter, target, weapon, breakdown, result.kill_chance)
 
-	# V1: one hit roll per burst; future version can roll once per bullet in rounds_per_attack.
-	if GameRandom.chance(kill_chance):
+	var scored_hit := false
+	for _round_i in range(rounds):
+		if GameRandom.chance(per_round_kill):
+			scored_hit = true
+			break
+	if scored_hit:
 		result.hit = true
 		result.messages.append("%s hit" % weapon.weapon_name)
 		target.mark_killed()
@@ -428,7 +438,7 @@ static func _log_combat_verbose(
 	kill_chance: float,
 ) -> void:
 	GameLog.log_combat(
-		"[CombatVerbose] %s%d→%s%d %s range=%.1f base=%.4f cover×%.4f type×%.4f angle×%.4f stress×%.4f prone×%.2f/%.2f final=%.4f lethality×%.2f kill=%.4f"
+		"[CombatVerbose] %s%d→%s%d %s range=%.1f base=%.4f cover×%.4f type×%.4f angle×%.4f approach×%.4f stress×%.4f prone×%.2f/%.2f final=%.4f lethality×%.2f kill=%.4f"
 		% [
 			Team.display_name(shooter.team_id),
 			shooter.soldier_id,
@@ -440,6 +450,7 @@ static func _log_combat_verbose(
 			float(breakdown.get("cover_mult", 1.0)),
 			float(breakdown.get("move_type_mult", 1.0)),
 			float(breakdown.get("move_angle_mult", 1.0)),
+			float(breakdown.get("move_approach_mult", 1.0)),
 			float(breakdown.get("stress_mult", 1.0)),
 			float(breakdown.get("shooter_prone_mult", 1.0)),
 			float(breakdown.get("target_prone_mult", 1.0)),
@@ -1707,6 +1718,7 @@ static func _final_hit_chance(
 	var open_ground_mult := 1.0
 	var move_type_mult := 1.0
 	var move_angle_mult := 1.0
+	var move_approach_mult := 1.0
 	var in_cover := (
 		los.cover_type == CoverSystemClass.CoverType.MODERATE
 		or los.cover_type == CoverSystemClass.CoverType.COMPLETE
@@ -1722,14 +1734,23 @@ static func _final_hit_chance(
 			var move_pol := GameplayPolicies.movement
 			move_type_mult = move_pol.type_multiplier(target.movement_mode)
 			chance *= move_type_mult
-			## Sine crossing term only while running.
-			if target.movement_mode == MovementModeClass.RUN:
+			if (
+				target.movement_mode == MovementModeClass.RUN
+				or target.movement_mode == MovementModeClass.WALK
+			):
 				move_angle_mult = move_pol.angle_hit_multiplier(
 					shooter.facing_direction,
 					target.movement_heading(),
 					target.movement_mode,
 				)
 				chance *= move_angle_mult
+			move_approach_mult = move_pol.approach_hit_multiplier(
+				shooter.grid_position,
+				target.grid_position,
+				target.movement_heading(),
+				target.movement_mode,
+			)
+			chance *= move_approach_mult
 	var aim_factor := weapon.stress_aim_factor if weapon != null else 1.0
 	var stress_mult := GameplayPolicies.suppression.accuracy_modifier_for(
 		shooter.stress,
@@ -1746,15 +1767,22 @@ static func _final_hit_chance(
 		target_prone_mult = GameplayPolicies.hit.target_prone_hit_mult
 		chance *= target_prone_mult
 	var final_chance := clampf(chance, 0.0, 1.0)
+	var point_blank_floor := 0.0
+	var hit_policy := GameplayPolicies.hit
+	if dist <= hit_policy.point_blank_tiles:
+		point_blank_floor = hit_policy.point_blank_min_hit
+		final_chance = maxf(final_chance, point_blank_floor)
 	if out_breakdown is Dictionary:
 		out_breakdown["base"] = base_chance
 		out_breakdown["cover_mult"] = cover_mult
 		out_breakdown["open_ground_mult"] = open_ground_mult
 		out_breakdown["move_type_mult"] = move_type_mult
 		out_breakdown["move_angle_mult"] = move_angle_mult
+		out_breakdown["move_approach_mult"] = move_approach_mult
 		out_breakdown["stress_mult"] = stress_mult
 		out_breakdown["shooter_prone_mult"] = shooter_prone_mult
 		out_breakdown["target_prone_mult"] = target_prone_mult
+		out_breakdown["point_blank_floor"] = point_blank_floor
 		out_breakdown["final"] = final_chance
 		out_breakdown["range"] = dist
 		out_breakdown["lethality"] = GameplayPolicies.hit.lethality_multiplier
@@ -1811,11 +1839,15 @@ static func try_engaged_fire(
 		return empty
 	if not _is_fire_prep_complete(shooter):
 		return empty
-	if not _can_fire_yet(shooter, weapon):
+	var peek_target := _get_engaged_target(game_state, shooter)
+	var peek_range := _cycle_range_between(shooter, peek_target)
+	if not _can_fire_yet(shooter, weapon, peek_range):
 		return empty
 
 	var target := _resolve_engaged_target(game_state, shooter)
 	if target == null:
+		return empty
+	if shooter.engaged_target_lost_msec > 0:
 		return empty
 
 	if not is_facing_target(shooter, target):
@@ -1839,13 +1871,19 @@ static func _resolve_engaged_target(
 	if target != null:
 		if shooter.is_sustained_fire():
 			if is_priority_target_trackable(shooter, target, game_state):
+				shooter.engaged_target_lost_msec = 0
+				return target
+			if not _target_lost_grace_elapsed(shooter):
 				return target
 			shooter.clear_engaged_target()
 			return null
 		if shooter.fire_control_state == FireControlStateClass.FIRE_AT_WILL:
 			if _is_auto_target_valid(game_state, shooter, target):
+				shooter.engaged_target_lost_msec = 0
 				return target
-			shooter.clear_engaged_target()
+			if not _target_lost_grace_elapsed(shooter):
+				return target
+			## Keep prior IDs so set_engaged_target() can detect a same-soldier reacquire.
 			return _acquire_auto_target(game_state, shooter)
 		shooter.clear_engaged_target()
 		return null
@@ -1855,6 +1893,14 @@ static func _resolve_engaged_target(
 	if shooter.fire_control_state == FireControlStateClass.FIRE_AT_WILL:
 		return _acquire_auto_target(game_state, shooter)
 	return null
+
+
+static func _target_lost_grace_elapsed(shooter: SoldierStateClass) -> bool:
+	var now_msec := SimulationClock.get_ticks_msec()
+	if shooter.engaged_target_lost_msec <= 0:
+		shooter.engaged_target_lost_msec = now_msec
+		return false
+	return now_msec - shooter.engaged_target_lost_msec >= TARGET_LOST_GRACE_MSEC
 
 
 static func _acquire_sustained_target(
@@ -1872,8 +1918,8 @@ static func _acquire_sustained_target(
 	if target == null:
 		return null
 
-	shooter.set_engaged_target(target.team_id, target.soldier_id)
-	begin_fire_prep(shooter)
+	if shooter.set_engaged_target(target.team_id, target.soldier_id):
+		begin_fire_prep(shooter, _cycle_range_between(shooter, target))
 	var fireteam := game_state.session.get_fireteam(shooter.team_id)
 	fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
 	return target
@@ -1892,8 +1938,8 @@ static func _acquire_auto_target(
 		shooter.clear_engaged_target()
 		return null
 
-	shooter.set_engaged_target(target.team_id, target.soldier_id)
-	begin_fire_prep(shooter)
+	if shooter.set_engaged_target(target.team_id, target.soldier_id):
+		begin_fire_prep(shooter, _cycle_range_between(shooter, target))
 	var fireteam := game_state.session.get_fireteam(shooter.team_id)
 	fireteam.face_toward_tile(shooter.soldier_id, target.grid_position)
 	return target
@@ -1922,6 +1968,8 @@ static func try_auto_engagement(
 	var target: SoldierStateClass = _resolve_engaged_target(game_state, shooter)
 	if target == null:
 		return empty
+	if shooter.engaged_target_lost_msec > 0:
+		return empty
 
 	if not is_facing_target(shooter, target):
 		var fireteam := game_state.session.get_fireteam(shooter.team_id)
@@ -1935,7 +1983,7 @@ static func try_auto_engagement(
 	if not _is_fire_prep_complete(shooter):
 		return empty
 
-	if not _can_fire_yet(shooter, weapon):
+	if not _can_fire_yet(shooter, weapon, _cycle_range_between(shooter, target)):
 		return empty
 
 	return resolve_shot(game_state, shooter, target, true)
@@ -1946,6 +1994,7 @@ static func try_auto_engagement(
 static func effective_fire_cycle_sec(
 	weapon: WeaponDataClass,
 	first_shot: bool = false,
+	combat_range: float = -1.0,
 ) -> float:
 	var hit_policy := GameplayPolicies.hit
 	var cycle := hit_policy.base_fire_cycle_sec
@@ -1956,28 +2005,33 @@ static func effective_fire_cycle_sec(
 			cycle *= hit_policy.first_fire_cycle_sec / maxf(hit_policy.base_fire_cycle_sec, 0.001)
 		else:
 			cycle = hit_policy.first_fire_cycle_sec
+	cycle *= hit_policy.close_range_cycle_mult(combat_range)
 	return cycle
 
 
-static func begin_fire_prep(shooter: SoldierStateClass) -> void:
+static func begin_fire_prep(shooter: SoldierStateClass, combat_range: float = -1.0) -> void:
 	## Single aim/fire cycle (not stacked aim + interval). Stress scales the cycle.
 	var weapon := shooter.get_weapon_data()
 	var first_shot := shooter.last_shot_msec <= 0
-	var delay_sec := effective_fire_cycle_sec(weapon, first_shot)
+	var delay_sec := effective_fire_cycle_sec(weapon, first_shot, combat_range)
 	delay_sec *= get_stress_fire_delay_modifier(shooter.stress)
 	shooter.fire_ready_after_msec = SimulationClock.get_ticks_msec() + int(delay_sec * 1000.0)
 
 
-static func get_aim_delay_sec(shooter: SoldierStateClass) -> float:
+static func get_aim_delay_sec(shooter: SoldierStateClass, combat_range: float = -1.0) -> float:
 	## Alias of the fire cycle (UI "firing in Xs"); not a separate acquisition delay.
 	var weapon := shooter.get_weapon_data()
 	var first_shot := shooter.last_shot_msec <= 0
-	return effective_fire_cycle_sec(weapon, first_shot) * get_stress_fire_delay_modifier(shooter.stress)
+	return (
+		effective_fire_cycle_sec(weapon, first_shot, combat_range)
+		* get_stress_fire_delay_modifier(shooter.stress)
+	)
 
 
 static func get_fire_cooldown_remaining(
 	shooter: SoldierStateClass,
 	weapon: WeaponDataClass,
+	combat_range: float = -1.0,
 ) -> float:
 	if shooter == null:
 		return 0.0
@@ -1987,7 +2041,10 @@ static func get_fire_cooldown_remaining(
 			return remaining_prep
 	if weapon == null or shooter.last_shot_msec <= 0:
 		return 0.0
-	var interval_sec := effective_fire_cycle_sec(weapon) * get_stress_fire_delay_modifier(shooter.stress)
+	var interval_sec := (
+		effective_fire_cycle_sec(weapon, false, combat_range)
+		* get_stress_fire_delay_modifier(shooter.stress)
+	)
 	var elapsed_sec := (SimulationClock.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
 	return maxf(0.0, interval_sec - elapsed_sec)
 
@@ -2034,6 +2091,7 @@ static func hit_chance(
 static func _can_fire_yet(
 	shooter: SoldierStateClass,
 	weapon: WeaponDataClass,
+	combat_range: float = -1.0,
 ) -> bool:
 	## Cycle gate is normally fire_ready_after_msec (begin_fire_prep after each shot).
 	## last_shot fallback covers callers that skip prep (manual resolve_shot in tests).
@@ -2041,9 +2099,21 @@ static func _can_fire_yet(
 		return false
 	if shooter.last_shot_msec <= 0:
 		return true
-	var interval_sec := effective_fire_cycle_sec(weapon) * get_stress_fire_delay_modifier(shooter.stress)
+	var interval_sec := (
+		effective_fire_cycle_sec(weapon, false, combat_range)
+		* get_stress_fire_delay_modifier(shooter.stress)
+	)
 	var elapsed_sec := (SimulationClock.get_ticks_msec() - shooter.last_shot_msec) / 1000.0
 	return elapsed_sec >= interval_sec
+
+
+static func _cycle_range_between(
+	shooter: SoldierStateClass,
+	target: SoldierStateClass,
+) -> float:
+	if shooter == null or target == null:
+		return -1.0
+	return _combat_range(shooter.grid_position, target.grid_position)
 
 
 static func _manhattan_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:

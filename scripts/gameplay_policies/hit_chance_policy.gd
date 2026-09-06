@@ -31,9 +31,16 @@ const DEFAULT_AUTO_TARGET_ENGAGED_BONUS := 10.0
 const DEFAULT_AUTO_FIRE_SCAN_INTERVAL := 0.5
 ## RECOVERED from gameplay capture — 5.05s and 6.09s observed; midpoint used as default.
 ## Aim cycle and fire interval are the same thing in the original (continuous Aiming).
-const DEFAULT_BASE_FIRE_CYCLE_SEC := 5.5
+const DEFAULT_BASE_FIRE_CYCLE_SEC := 3.5
 ## TUNED — first shot after acquiring a target is a bit quicker than the repeat cycle.
-const DEFAULT_FIRST_FIRE_CYCLE_SEC := 4.0
+const DEFAULT_FIRST_FIRE_CYCLE_SEC := 2.0
+## Range at/below which the aim/fire cycle shortens (Euclidean tiles).
+const DEFAULT_CLOSE_RANGE_CYCLE_TILES := 6.0
+## Cycle multiplier at point-blank (range <= 1). Lerps to 1.0 by CLOSE_RANGE_CYCLE_TILES.
+const DEFAULT_CLOSE_RANGE_CYCLE_MIN_MULT := 0.60
+## Knife-range floor applied after situational multipliers (cover / prone / stress).
+const DEFAULT_POINT_BLANK_TILES := 2.0
+const DEFAULT_POINT_BLANK_MIN_HIT := 0.92
 ## TUNED — modest bump to Hit% / HitFinal when the target is not in cover.
 const DEFAULT_OPEN_GROUND_HIT_MULT := 1.15
 ## TUNED visual/audio spacing within a burst (6 rounds ≈ 0.2s). Does not affect hit rolls.
@@ -83,6 +90,10 @@ var auto_fire_scan_interval: float = DEFAULT_AUTO_FIRE_SCAN_INTERVAL
 ## Global aim/fire cycle (seconds). Per-weapon fire_interval_sec overrides when > 0.
 var base_fire_cycle_sec: float = DEFAULT_BASE_FIRE_CYCLE_SEC
 var first_fire_cycle_sec: float = DEFAULT_FIRST_FIRE_CYCLE_SEC
+var close_range_cycle_tiles: float = DEFAULT_CLOSE_RANGE_CYCLE_TILES
+var close_range_cycle_min_mult: float = DEFAULT_CLOSE_RANGE_CYCLE_MIN_MULT
+var point_blank_tiles: float = DEFAULT_POINT_BLANK_TILES
+var point_blank_min_hit: float = DEFAULT_POINT_BLANK_MIN_HIT
 ## Multiplies HitFinal when the target is not in cover. Cover curve is unchanged.
 var open_ground_hit_mult: float = DEFAULT_OPEN_GROUND_HIT_MULT
 var burst_round_interval_sec: float = DEFAULT_BURST_ROUND_INTERVAL_SEC
@@ -127,6 +138,10 @@ func reset_to_defaults() -> void:
 	auto_fire_scan_interval = DEFAULT_AUTO_FIRE_SCAN_INTERVAL
 	base_fire_cycle_sec = DEFAULT_BASE_FIRE_CYCLE_SEC
 	first_fire_cycle_sec = DEFAULT_FIRST_FIRE_CYCLE_SEC
+	close_range_cycle_tiles = DEFAULT_CLOSE_RANGE_CYCLE_TILES
+	close_range_cycle_min_mult = DEFAULT_CLOSE_RANGE_CYCLE_MIN_MULT
+	point_blank_tiles = DEFAULT_POINT_BLANK_TILES
+	point_blank_min_hit = DEFAULT_POINT_BLANK_MIN_HIT
 	open_ground_hit_mult = DEFAULT_OPEN_GROUND_HIT_MULT
 	burst_round_interval_sec = DEFAULT_BURST_ROUND_INTERVAL_SEC
 	fire_prep_delay_sec = base_fire_cycle_sec
@@ -151,6 +166,19 @@ func reset_to_defaults() -> void:
 	auto_score_smg_lmg_bonus = DEFAULT_AUTO_SCORE_SMG_LMG_BONUS
 
 
+## 0.30 at range<=1, 1.0 at/above close_range_cycle_tiles; 1.0 when range is unknown (<0).
+func close_range_cycle_mult(combat_range: float) -> float:
+	if combat_range < 0.0:
+		return 1.0
+	if combat_range <= 1.0:
+		return close_range_cycle_min_mult
+	if combat_range >= close_range_cycle_tiles:
+		return 1.0
+	var span := close_range_cycle_tiles - 1.0
+	var t := (combat_range - 1.0) / maxf(span, 0.001)
+	return lerpf(close_range_cycle_min_mult, 1.0, t)
+
+
 func apply_config(section: Dictionary) -> void:
 	_set_float(section, "clear_base_hit_chance", "clear_base_hit_chance")
 	_set_float(section, "clear_distance_penalty", "clear_distance_penalty")
@@ -168,6 +196,10 @@ func apply_config(section: Dictionary) -> void:
 	_set_float(section, "auto_fire_scan_interval", "auto_fire_scan_interval")
 	_set_float(section, "base_fire_cycle_sec", "base_fire_cycle_sec")
 	_set_float(section, "first_fire_cycle_sec", "first_fire_cycle_sec")
+	_set_float(section, "close_range_cycle_tiles", "close_range_cycle_tiles")
+	_set_float(section, "close_range_cycle_min_mult", "close_range_cycle_min_mult")
+	_set_float(section, "point_blank_tiles", "point_blank_tiles")
+	_set_float(section, "point_blank_min_hit", "point_blank_min_hit")
 	_set_float(section, "open_ground_hit_mult", "open_ground_hit_mult")
 	_set_float(section, "burst_round_interval_sec", "burst_round_interval_sec")
 	# Legacy key: prefer base_fire_cycle_sec when both are present.

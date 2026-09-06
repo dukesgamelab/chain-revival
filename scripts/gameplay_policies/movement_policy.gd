@@ -12,8 +12,10 @@ const BASE_WORLD_SPEED := 95.0 / 3.0
 
 ## RECOVERED MoveType pairs; state→value binding is ## TUNED (ambiguous by one slot in OIN).
 ## RUN: full type, strong crossing dodge. WALK: full type. CRAWL: hard to hit (low profile).
-const DEFAULT_TYPE_MULT_RUN := 1.0
-const DEFAULT_TYPE_MULT_WALK := 1.0
+const DEFAULT_TYPE_MULT_RUN := 1.05
+const DEFAULT_TYPE_MULT_WALK := 1.15
+## Head-on close (dot >= 0.7 of heading toward shooter). Tapers to 1.0 at dot 0.
+const DEFAULT_APPROACH_HIT_BONUS := 1.35
 const DEFAULT_TYPE_MULT_CRAWL := 0.4
 const DEFAULT_MOVE_MULT_RUN := 0.8
 const DEFAULT_MOVE_MULT_WALK := 0.9
@@ -30,6 +32,7 @@ var type_mult_crawl: float = DEFAULT_TYPE_MULT_CRAWL
 var move_mult_run: float = DEFAULT_MOVE_MULT_RUN
 var move_mult_walk: float = DEFAULT_MOVE_MULT_WALK
 var move_mult_crawl: float = DEFAULT_MOVE_MULT_CRAWL
+var approach_hit_bonus: float = DEFAULT_APPROACH_HIT_BONUS
 
 
 func reset_to_defaults() -> void:
@@ -42,6 +45,7 @@ func reset_to_defaults() -> void:
 	move_mult_run = DEFAULT_MOVE_MULT_RUN
 	move_mult_walk = DEFAULT_MOVE_MULT_WALK
 	move_mult_crawl = DEFAULT_MOVE_MULT_CRAWL
+	approach_hit_bonus = DEFAULT_APPROACH_HIT_BONUS
 
 
 func speed_multiplier(mode: int) -> float:
@@ -85,6 +89,27 @@ func angle_hit_multiplier(shooter_facing: Vector2i, target_heading: Vector2i, mo
 	return clampf(1.0 - move_m * absf(sin(delta_rad)), 0.0, 1.0)
 
 
+## Bonus when the target's heading points at the shooter. Never below 1.0.
+func approach_hit_multiplier(
+	shooter_cell: Vector2i,
+	target_cell: Vector2i,
+	target_heading: Vector2i,
+	_mode: int,
+) -> float:
+	var to_shooter := Vector2(float(shooter_cell.x - target_cell.x), float(shooter_cell.y - target_cell.y))
+	if to_shooter.length_squared() < 0.0001:
+		return 1.0
+	var heading := Vector2(float(target_heading.x), float(target_heading.y))
+	if heading.length_squared() < 0.0001:
+		return 1.0
+	var alignment := heading.normalized().dot(to_shooter.normalized())
+	if alignment <= 0.0:
+		return 1.0
+	if alignment >= 0.7:
+		return approach_hit_bonus
+	return lerpf(1.0, approach_hit_bonus, alignment / 0.7)
+
+
 ## Deterministic msec to traverse one grid step at the given speed multiplier.
 static func step_cost_msec(from_cell: Vector2i, to_cell: Vector2i, speed_mult: float) -> int:
 	var from_world := IsometricGrid.grid_to_world(from_cell)
@@ -114,3 +139,5 @@ func apply_config(section: Dictionary) -> void:
 		move_mult_walk = float(section.move_mult_walk)
 	if section.has("move_mult_crawl"):
 		move_mult_crawl = float(section.move_mult_crawl)
+	if section.has("approach_hit_bonus"):
+		approach_hit_bonus = float(section.approach_hit_bonus)

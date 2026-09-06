@@ -49,7 +49,7 @@ const DEFAULT_PRONE_SUPPRESSION_MULT := 0.75
 
 ## Legacy band tables kept for movement / fire-delay only (accuracy uses Exp-Str table).
 const DEFAULT_MOVEMENT_BY_BAND: Array[float] = [1.0, 0.9, 0.75, 0.5, 0.35]
-const DEFAULT_FIRE_DELAY_BY_BAND: Array[float] = [1.0, 1.1, 1.25, 1.5, 2.0]
+const DEFAULT_FIRE_DELAY_BY_BAND: Array[float] = [1.0, 1.05, 1.15, 1.3, 1.5]
 
 ## Fallback StressFactor when weapon data missing — matches recovered rifle/SMG/LMG shape.
 const DEFAULT_SUPPRESSION_RIFLE := 0.25

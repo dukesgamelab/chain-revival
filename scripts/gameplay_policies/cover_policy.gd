@@ -11,7 +11,8 @@ const DEFAULT_MODERATE_VISIBILITY_MULT := 0.65
 ## RECOVERED from Initial-*.oin.
 const INIT_COVER_IN_MULTIPLIER := 1.0
 const INIT_COVER_HIT_MULTIPLIER := 0.005 ## full-strength cover hit mult at range >= limit
-const INIT_COVER_RANGE_LIMIT := 3 ## range (tiles) at which cover reaches full strength
+const INIT_COVER_RANGE_LIMIT := 5 ## range (tiles) at which cover reaches full strength
+const INIT_COVER_NEAR_FLOOR := 0.5 ## floor on the ramp before cover_range_limit
 const INIT_MIN_DUCKING_RANGE := 4
 const INIT_KILLED_PROBABILITY := 20
 
@@ -65,8 +66,9 @@ func reset_to_defaults() -> void:
 	stack_mode = StackMode.FIRST
 
 
-## RECOVERED cover curve (combat range in tiles, Euclidean).
-## range 1 → 1.0 · range 2 → ~0.668 · range >= cover_range_limit → cover_hit_multiplier.
+## Cover curve (combat range in tiles, Euclidean).
+## range 1 → 1.0; ramps toward cover_hit_multiplier by cover_range_limit, floored at 0.5
+## while still inside the limit so a hedge at 3 tiles is not a near-zero cliff.
 func cover_multiplier_for_range(combat_range: float) -> float:
 	var limit := float(maxi(cover_range_limit, 1))
 	var r := maxf(combat_range, 1.0)
@@ -75,6 +77,7 @@ func cover_multiplier_for_range(combat_range: float) -> float:
 		mult = cover_hit_multiplier
 	else:
 		mult = (cover_hit_multiplier - 1.0) * (r - 1.0) / limit + 1.0
+		mult = maxf(mult, INIT_COVER_NEAR_FLOOR)
 	return clampf(mult * object_cover_strength, 0.0, 1.0)
 
 

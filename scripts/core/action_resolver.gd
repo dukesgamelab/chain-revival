@@ -869,7 +869,10 @@ static func execute_fire(
 		shooter.begin_sustained_fire()
 		shooter.fire_control_state = FireControlStateClass.FIRE_AT_WILL
 		shooter.set_engaged_target(target.team_id, target.soldier_id)
-		CombatSystem.begin_fire_prep(shooter)
+		CombatSystem.begin_fire_prep(
+			shooter,
+			CombatSystem._cycle_range_between(shooter, target),
+		)
 		if fireteam.face_toward_tile(shooter.soldier_id, target.grid_position):
 			any_faced = true
 		engaged_count += 1
@@ -913,7 +916,10 @@ static func execute_fire(
 			% [
 				Team.display_name(first_target.team_id),
 				first_target.soldier_id,
-				CombatSystem.get_aim_delay_sec(first_shooter),
+				CombatSystem.get_aim_delay_sec(
+					first_shooter,
+					CombatSystem._cycle_range_between(first_shooter, first_target),
+				),
 			],
 		)
 	if any_obscured:

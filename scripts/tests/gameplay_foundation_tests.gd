@@ -51,6 +51,7 @@ func _ready() -> void:
 	_test_lethality_multiplier()
 	_test_lethality_time_to_casualty_band()
 	_test_min_hit_chance_not_after_modifiers()
+	_test_point_blank_prone_cover_lethal()
 	_test_recovered_weapon_stats()
 	_test_fire_cadence_cycle()
 	_test_hit_polynomial_anchors()
@@ -1172,16 +1173,16 @@ func _test_policy_defaults_unchanged() -> void:
 		"Cover hit multiplier is recovered 0.005",
 		is_equal_approx(GameplayPolicies.cover.cover_hit_multiplier, 0.005),
 	)
-	_assert("Cover range limit is recovered 3", GameplayPolicies.cover.cover_range_limit == 3)
+	_assert("Cover range limit is 5", GameplayPolicies.cover.cover_range_limit == 5)
 	_assert("LOS peek adjacency unchanged", GameplayPolicies.los.peek_adjacency_chebyshev == 1)
 	_assert(
-		"Base fire cycle is recovered ~5.5s",
-		is_equal_approx(GameplayPolicies.hit.base_fire_cycle_sec, 5.5),
+		"Base fire cycle is tuned 2.5s",
+		is_equal_approx(GameplayPolicies.hit.base_fire_cycle_sec, 2.5),
 		"cycle=%s" % GameplayPolicies.hit.base_fire_cycle_sec,
 	)
 	_assert(
-		"First fire cycle is tuned 4.0s",
-		is_equal_approx(GameplayPolicies.hit.first_fire_cycle_sec, 4.0),
+		"First fire cycle is tuned 1.2s",
+		is_equal_approx(GameplayPolicies.hit.first_fire_cycle_sec, 1.2),
 		"first=%s" % GameplayPolicies.hit.first_fire_cycle_sec,
 	)
 	_assert(
@@ -1206,7 +1207,7 @@ func _test_policy_defaults_unchanged() -> void:
 	GameplayPolicies.reload_from_config()
 	_assert(
 		"Config reload preserves effective M1 Garand cycle",
-		is_equal_approx(GameplayPolicies.weapons.fire_interval_sec("m1_garand"), 5.5),
+		is_equal_approx(GameplayPolicies.weapons.fire_interval_sec("m1_garand"), 2.5),
 	)
 	_assert("Simulation tick hz default 20", SimulationClock.tick_hz == 20)
 	_assert("Simulation tick msec is 50", SimulationClock.tick_msec() == 50)
@@ -1407,6 +1408,64 @@ func _test_min_hit_chance_not_after_modifiers() -> void:
 	)
 
 
+func _test_point_blank_prone_cover_lethal() -> void:
+	## 1-tile rifle vs prone target in moderate cover must still be near-lethal.
+	_bootstrap()
+	GameplayPolicies.reset_all_to_defaults()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var shooter_cell := Vector2i(20, 30)
+	var target_cell := Vector2i(21, 30)
+	var cover_cell := Vector2i(20, 30)
+	map_data.set_object(cover_cell, MapObjectRegistryClass.TYPE_HAYBAIL)
+	var game_state := _make_game_state(map_data)
+	var shooter := game_state.get_soldier(Team.USA, 1)
+	var target := game_state.get_soldier(Team.GERMANY, 1)
+	shooter.grid_position = shooter_cell
+	target.grid_position = target_cell
+	shooter.clear_path()
+	target.clear_path()
+	shooter.stress = 0.0
+	target.stress = 0.0
+	target.position_state = PositionStateClass.DOWN
+	shooter.assign_weapon("m1_garand", false)
+	game_state.session.get_fireteam(Team.USA).face_toward_tile(1, target.grid_position)
+
+	var weapon := shooter.get_weapon_data()
+	var los := LOSSystemClass.evaluate(shooter_cell, target_cell, map_data, game_state)
+	_assert(
+		"Point-blank haybail is moderate cover, not blocked",
+		los.status != LOSSystemClass.Status.BLOCKED
+		and los.cover_type == CoverSystemClass.CoverType.MODERATE,
+		"status=%s cover=%s" % [los.status, los.cover_type],
+	)
+	var bd: Dictionary = {}
+	var final_chance: float = CombatSystemClass._final_hit_chance(shooter, target, weapon, los, bd)
+	_assert(
+		"Point-blank floor is recorded and applied",
+		is_equal_approx(float(bd.get("point_blank_floor", 0.0)), 0.92)
+		and final_chance >= 0.92,
+		"floor=%s final=%.4f" % [bd.get("point_blank_floor"), final_chance],
+	)
+	var per_round := clampf(final_chance * GameplayPolicies.hit.lethality_multiplier, 0.0, 1.0)
+	var rounds := weapon.ammo_cost(shooter.ammo_current)
+	var kill_chance := 1.0 - pow(1.0 - per_round, float(maxi(rounds, 1)))
+	_assert(
+		"Point-blank prone+cover rifle kill_chance >= 0.8",
+		kill_chance >= 0.8,
+		"kill=%.4f final=%.4f rounds=%d" % [kill_chance, final_chance, rounds],
+	)
+	CombatSystemClass.begin_fire_prep(shooter)
+	SimulationClock.advance_msec(int(GameplayPolicies.hit.fire_prep_delay_sec * 1000.0) + 50)
+	var shot := CombatSystemClass.resolve_shot(game_state, shooter, target, false)
+	_assert(
+		"resolve_shot reports effective attack kill_chance >= 0.8",
+		shot.fired and shot.kill_chance >= 0.8,
+		"fired=%s kill=%.4f" % [shot.fired, shot.kill_chance],
+	)
+
+
 func _test_recovered_weapon_stats() -> void:
 	GameplayPolicies.reset_all_to_defaults()
 	var WeaponPolicyClass := preload("res://scripts/gameplay_policies/weapon_policy.gd")
@@ -1463,7 +1522,7 @@ func _test_recovered_weapon_stats() -> void:
 
 
 func _test_fire_cadence_cycle() -> void:
-	## Stage 4: single ~5.5s aim/fire cycle; not stacked aim + short interval.
+	## Stage 4: single aim/fire cycle; not stacked aim + short interval.
 	_bootstrap()
 	GameplayPolicies.reset_all_to_defaults()
 	## Cadence only — keep target alive at point-blank (Stage 2 lethality ≈ removes on hit).
@@ -1539,18 +1598,35 @@ func _test_movement_angle_hit() -> void:
 	_assert("Open ground LOS for angle test", los.cover_type == CoverSystemClass.CoverType.NONE)
 
 	var stationary := CombatSystemClass._final_hit_chance(shooter, target, weapon, los)
-	## Charge straight at the shooter (west) while running — angle term ≈ 1.0.
+	## Charge straight at the shooter (west) while running — angle ≈ 1.0, approach 1.35, type 1.05.
 	target.assign_path([target.grid_position, Vector2i(19, 20), Vector2i(18, 20)])
 	target.movement_mode = MovementModeClass.RUN
 	target.facing_direction = FacingDirection.WEST
-	var charging := CombatSystemClass._final_hit_chance(shooter, target, weapon, los)
+	var charge_bd: Dictionary = {}
+	var charging := CombatSystemClass._final_hit_chance(shooter, target, weapon, los, charge_bd)
+	var expected_charge := (
+		stationary
+		* GameplayPolicies.movement.type_mult_run
+		* GameplayPolicies.movement.approach_hit_bonus
+	)
 	_assert(
-		"Frontal running rush stays near stationary open-ground hit",
-		absf(charging - stationary) < stationary * 0.08,
+		"Head-on running rush is deadlier than standing still",
+		charging > stationary,
 		"stationary=%.4f charging=%.4f" % [stationary, charging],
 	)
+	_assert(
+		"Head-on rush applies type × approach (angle ≈ 1)",
+		absf(charging - expected_charge) < 0.01,
+		"charging=%.4f expected≈%.4f approach=%s angle=%s"
+		% [
+			charging,
+			expected_charge,
+			charge_bd.get("move_approach_mult"),
+			charge_bd.get("move_angle_mult"),
+		],
+	)
 
-	## Cross the front (north) — abs(sin) ≈ 1 → ×(1 − 0.8) = 0.2.
+	## Cross the front (north) — abs(sin) ≈ 1 → ×(1 − 0.8) = 0.2; no approach bonus.
 	target.assign_path([target.grid_position, Vector2i(20, 19), Vector2i(20, 18)])
 	target.movement_mode = MovementModeClass.RUN
 	target.facing_direction = FacingDirection.NORTH
@@ -1560,9 +1636,9 @@ func _test_movement_angle_hit() -> void:
 		crossing < charging * 0.35,
 		"crossing=%.4f charging=%.4f" % [crossing, charging],
 	)
-	var expected_cross := stationary * 0.2
+	var expected_cross := stationary * GameplayPolicies.movement.type_mult_run * 0.2
 	_assert(
-		"Crossing multiplier ≈ 0.20 of stationary",
+		"Crossing multiplier ≈ type × 0.20 of stationary",
 		absf(crossing - expected_cross) < 0.01,
 		"crossing=%.4f expected≈%.4f" % [crossing, expected_cross],
 	)
@@ -1611,16 +1687,27 @@ func _test_cover_curve_and_slot() -> void:
 		"got=%.4f" % policy.cover_multiplier_for_range(1.0),
 	)
 	_assert(
-		"Cover mult at range 2 is ~0.668",
-		absf(policy.cover_multiplier_for_range(2.0) - 0.668333) < 0.01,
+		"Cover mult at range 2 stays useful (~0.80)",
+		absf(policy.cover_multiplier_for_range(2.0) - 0.801) < 0.02,
 		"got=%.4f" % policy.cover_multiplier_for_range(2.0),
 	)
 	_assert(
-		"Cover mult at range >= 3 is 0.005",
-		is_equal_approx(policy.cover_multiplier_for_range(3.0), 0.005)
+		"Cover mult at range 3 is above the 0.5 near-floor",
+		policy.cover_multiplier_for_range(3.0) >= 0.5
+		and policy.cover_multiplier_for_range(3.0) < 0.7,
+		"r3=%.4f" % policy.cover_multiplier_for_range(3.0),
+	)
+	_assert(
+		"Cover mult at range 4 is floored at 0.5",
+		is_equal_approx(policy.cover_multiplier_for_range(4.0), 0.5),
+		"r4=%.4f" % policy.cover_multiplier_for_range(4.0),
+	)
+	_assert(
+		"Cover mult at range >= 5 is 0.005",
+		is_equal_approx(policy.cover_multiplier_for_range(5.0), 0.005)
 		and is_equal_approx(policy.cover_multiplier_for_range(12.0), 0.005),
-		"r3=%.4f r12=%.4f"
-		% [policy.cover_multiplier_for_range(3.0), policy.cover_multiplier_for_range(12.0)],
+		"r5=%.4f r12=%.4f"
+		% [policy.cover_multiplier_for_range(5.0), policy.cover_multiplier_for_range(12.0)],
 	)
 
 	var map_data := MapDataClass.create_default()
