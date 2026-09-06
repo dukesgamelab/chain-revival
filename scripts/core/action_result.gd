@@ -40,6 +40,13 @@ var throw_orders: Array[Dictionary] = []
 ## Gameplay position_state is already applied; this is presentation-only.
 var stance_transition_orders: Array[Dictionary] = []
 
+## Authoritative facing from the match server: {team_id, soldier_id, facing}
+var face_updates: Array[Dictionary] = []
+
+## Authoritative stance / movementMode from the match server.
+## {team_id, soldier_id, facing, position_state, movement_mode}
+var soldier_updates: Array[Dictionary] = []
+
 
 static func fail(message: String) -> ActionResult:
 	var result := ActionResult.new()

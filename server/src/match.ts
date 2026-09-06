@@ -3,13 +3,23 @@
  */
 
 import type { WebSocket } from "ws";
-import { executeMove, processMovementTick, toMoveResultPayload } from "./action_resolver";
+import {
+  executeFace,
+  executeMove,
+  executePosition,
+  processMovementTick,
+  toFaceResultPayload,
+  toMoveResultPayload,
+  toPositionResultPayload,
+} from "./action_resolver";
 import { GameState } from "./game_state";
 import { MapData } from "./map_data";
 import {
   DEFAULT_MAP_ID,
   MATCH_ID,
+  type FaceCommandIntent,
   type MoveCommandIntent,
+  type PositionCommandIntent,
   type Vec2i,
 } from "./types";
 
@@ -67,6 +77,8 @@ export class LocalMatch {
         statusMessage: "Join a side before issuing orders.",
         moveOrders: [],
         movementHalts: [],
+        stanceTransitionOrders: [],
+        soldierUpdates: [],
       });
       return;
     }
@@ -79,6 +91,8 @@ export class LocalMatch {
         statusMessage: "Unknown match.",
         moveOrders: [],
         movementHalts: [],
+        stanceTransitionOrders: [],
+        soldierUpdates: [],
       });
       return;
     }
@@ -90,6 +104,82 @@ export class LocalMatch {
       "Move %s team=%d soldier=%d success=%s",
       intent.requestId,
       intent.teamId,
+      intent.soldierId,
+      result.success,
+    );
+  }
+
+  handleFace(clientId: string, intent: FaceCommandIntent): void {
+    const client = this.clients.get(clientId);
+    if (client === undefined || client.teamId === null) {
+      this.sendTo(clientId, {
+        type: "face_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Join a side before issuing orders.",
+        faceUpdates: [],
+      });
+      return;
+    }
+    if (intent.matchId && intent.matchId !== this.matchId) {
+      this.sendTo(clientId, {
+        type: "face_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Unknown match.",
+        faceUpdates: [],
+      });
+      return;
+    }
+    const result = executeFace(this.gameState, intent, client.teamId);
+    this.broadcast(toFaceResultPayload(this.matchId, intent.requestId, result));
+    console.log(
+      "Face %s team=%d soldier=%d success=%s",
+      intent.requestId,
+      client.teamId,
+      intent.soldierId,
+      result.success,
+    );
+  }
+
+  handlePosition(clientId: string, intent: PositionCommandIntent): void {
+    const client = this.clients.get(clientId);
+    if (client === undefined || client.teamId === null) {
+      this.sendTo(clientId, {
+        type: "position_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Join a side before issuing orders.",
+        positionState: 0,
+        movementHalts: [],
+        stanceTransitionOrders: [],
+        soldierUpdates: [],
+      });
+      return;
+    }
+    if (intent.matchId && intent.matchId !== this.matchId) {
+      this.sendTo(clientId, {
+        type: "position_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Unknown match.",
+        positionState: 0,
+        movementHalts: [],
+        stanceTransitionOrders: [],
+        soldierUpdates: [],
+      });
+      return;
+    }
+    const result = executePosition(this.gameState, intent, client.teamId);
+    this.broadcast(toPositionResultPayload(this.matchId, intent.requestId, result));
+    console.log(
+      "Position %s team=%d soldier=%d success=%s",
+      intent.requestId,
+      client.teamId,
       intent.soldierId,
       result.success,
     );
@@ -154,5 +244,56 @@ export function parseMoveIntent(message: Record<string, unknown>): MoveCommandIn
     targetCell,
     scope: Number(message.scope ?? 0),
     movementMode: Number(message.movementMode ?? 0),
+  };
+}
+
+function parseCell(value: unknown): Vec2i | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+  const cell = value as Record<string, unknown>;
+  return {
+    x: Number(cell.x ?? 0),
+    y: Number(cell.y ?? 0),
+  };
+}
+
+export function parseFaceIntent(message: Record<string, unknown>): FaceCommandIntent | null {
+  const requestId = typeof message.requestId === "string" ? message.requestId : "";
+  if (requestId.length === 0) {
+    return null;
+  }
+  const targetCell = parseCell(message.targetCell);
+  if (targetCell === null) {
+    return null;
+  }
+  let aimWorld: Vec2i | null = null;
+  if (message.aimWorld !== undefined && message.aimWorld !== null) {
+    aimWorld = parseCell(message.aimWorld);
+  }
+  return {
+    type: "face_command",
+    matchId: typeof message.matchId === "string" ? message.matchId : MATCH_ID,
+    requestId,
+    teamId: Number(message.teamId ?? 0),
+    soldierId: Number(message.soldierId ?? 0),
+    targetCell,
+    scope: Number(message.scope ?? 0),
+    aimWorld,
+  };
+}
+
+export function parsePositionIntent(message: Record<string, unknown>): PositionCommandIntent | null {
+  const requestId = typeof message.requestId === "string" ? message.requestId : "";
+  if (requestId.length === 0) {
+    return null;
+  }
+  return {
+    type: "position_command",
+    matchId: typeof message.matchId === "string" ? message.matchId : MATCH_ID,
+    requestId,
+    teamId: Number(message.teamId ?? 0),
+    soldierId: Number(message.soldierId ?? 0),
+    positionState: Number(message.positionState ?? 0),
   };
 }

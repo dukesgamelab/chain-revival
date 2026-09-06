@@ -3,6 +3,7 @@
  * process_movement_tick (movement slice only).
  */
 
+import { facingName, teamDisplayName, towardWorldPoint } from "./facing";
 import type { GameState } from "./game_state";
 import { speedMultiplier, stepCostMsec } from "./movement_policy";
 import { findPath } from "./pathfinder";
@@ -12,15 +13,24 @@ import {
   MOVE_SCOPE_SQUAD,
   POSITION_DOWN,
   POSITION_UP,
+  type FaceCommandIntent,
+  type FaceResultPayload,
   type MoveCommandIntent,
   type MoveOrderPayload,
   type MoveResultPayload,
   type MovementTickPayload,
+  type PositionCommandIntent,
+  type PositionResultPayload,
+  type SoldierUpdatePayload,
+  type StanceTransitionOrder,
   type Vec2i,
   chebyshev,
   vec,
   vecEq,
 } from "./types";
+
+/** Matches typical stand/drop anim length; server does not wait for clients. */
+const STANCE_PENDING_GATE_MSEC = 450;
 
 export interface ActionResult {
   success: boolean;
@@ -29,17 +39,27 @@ export interface ActionResult {
   movementHalts: Array<{ teamId: number; soldierId: number; snapCell: Vec2i }>;
   movementSteps: MovementTickPayload["movementSteps"];
   movementCompletions: MovementTickPayload["movementCompletions"];
+  faceUpdates: Array<{ teamId: number; soldierId: number; facing: Vec2i }>;
+  stanceTransitionOrders: StanceTransitionOrder[];
+  soldierUpdates: SoldierUpdatePayload[];
 }
 
-export function fail(message: string): ActionResult {
+export function emptyAction(success = true, statusMessage = ""): ActionResult {
   return {
-    success: false,
-    statusMessage: message,
+    success,
+    statusMessage,
     moveOrders: [],
     movementHalts: [],
     movementSteps: [],
     movementCompletions: [],
+    faceUpdates: [],
+    stanceTransitionOrders: [],
+    soldierUpdates: [],
   };
+}
+
+export function fail(message: string): ActionResult {
+  return emptyAction(false, message);
 }
 
 export function executeMove(
@@ -71,16 +91,9 @@ export function executeMove(
   if (resolved.rejected) {
     return fail(resolved.message);
   }
-  standUpForLocomotion(soldier, resolved.mode);
 
-  const result: ActionResult = {
-    success: true,
-    statusMessage: "",
-    moveOrders: [],
-    movementHalts: [],
-    movementSteps: [],
-    movementCompletions: [],
-  };
+  const result = emptyAction();
+  standUpForLocomotion(soldier, resolved.mode, result);
   if (!assignMovePath(gameState, soldier, target, resolved.mode, result)) {
     if (vecEq(target, soldier.gridPosition)) {
       return fail("Soldier is already at that tile.");
@@ -120,21 +133,14 @@ function executeSquadMove(
   }
   const anchor = orderable[0];
   const anchorPos = formationRefs.get(anchor.soldierId) as Vec2i;
-  const result: ActionResult = {
-    success: true,
-    statusMessage: "",
-    moveOrders: [],
-    movementHalts: [],
-    movementSteps: [],
-    movementCompletions: [],
-  };
+  const result = emptyAction();
   let leadPath: Vec2i[] = [];
   let leadStart = vec(-999, -999);
   let ordered = 0;
 
   for (const soldier of orderable) {
     const resolved = resolveMoveOrder(soldier, cmd.movementMode, now);
-    standUpForLocomotion(soldier, resolved.mode);
+    standUpForLocomotion(soldier, resolved.mode, result);
     const memberRef = formationRefs.get(soldier.soldierId) as Vec2i;
     const offset = vec(memberRef.x - anchorPos.x, memberRef.y - anchorPos.y);
     const memberTarget = squadRelativeCell(gameState, squadTarget, offset);
@@ -191,13 +197,21 @@ function resolveMoveOrder(
   return { mode: requestedMode, message: "", rejected: false };
 }
 
-function standUpForLocomotion(soldier: SoldierState, mode: number): void {
+function standUpForLocomotion(soldier: SoldierState, mode: number, result: ActionResult): void {
+  soldier.clearPendingPosition();
   if (mode === MOVEMENT_CRAWL) {
+    if (soldier.positionState !== POSITION_DOWN) {
+      soldier.positionState = POSITION_DOWN;
+    }
+    pushSoldierUpdate(result, soldier);
     return;
   }
-  if (soldier.positionState === POSITION_DOWN) {
-    soldier.positionState = POSITION_UP;
+  if (soldier.positionState !== POSITION_DOWN) {
+    pushSoldierUpdate(result, soldier);
+    return;
   }
+  soldier.positionState = POSITION_UP;
+  pushSoldierUpdate(result, soldier);
 }
 
 function formationReferenceCell(soldier: SoldierState): Vec2i {
@@ -278,12 +292,7 @@ function assignMovePath(
   soldier.movementMode = mode;
   const speedMult = speedMultiplier(mode);
   soldier.assignPath(path, speedMult);
-  result.moveOrders.push({
-    teamId: soldier.teamId,
-    soldierId: soldier.soldierId,
-    path: path.map((c) => ({ ...c })),
-    speedMult,
-  });
+  pushMoveOrder(result, soldier, path, speedMult);
   return true;
 }
 
@@ -343,24 +352,12 @@ function assignTranslatedSquadPath(
   soldier.movementMode = mode;
   const speedMult = speedMultiplier(mode);
   soldier.assignPath(path, speedMult);
-  result.moveOrders.push({
-    teamId: soldier.teamId,
-    soldierId: soldier.soldierId,
-    path: path.map((c) => ({ ...c })),
-    speedMult,
-  });
+  pushMoveOrder(result, soldier, path, speedMult);
   return true;
 }
 
 export function processMovementTick(gameState: GameState): ActionResult {
-  const result: ActionResult = {
-    success: true,
-    statusMessage: "",
-    moveOrders: [],
-    movementHalts: [],
-    movementSteps: [],
-    movementCompletions: [],
-  };
+  const result = emptyAction();
   const tickMsec = gameState.clock.tickMsec();
   for (const soldier of gameState.soldiers) {
     if (soldier.isDead || !soldier.isMoving) {
@@ -439,6 +436,166 @@ function movementLabel(mode: number): string {
   return "run";
 }
 
+function pushMoveOrder(
+  result: ActionResult,
+  soldier: SoldierState,
+  path: Vec2i[],
+  speedMult: number,
+): void {
+  result.moveOrders.push({
+    teamId: soldier.teamId,
+    soldierId: soldier.soldierId,
+    path: path.map((c) => ({ ...c })),
+    speedMult,
+    movementMode: soldier.movementMode,
+    positionState: soldier.positionState,
+  });
+  pushSoldierUpdate(result, soldier);
+}
+
+function pushSoldierUpdate(result: ActionResult, soldier: SoldierState): void {
+  const existing = result.soldierUpdates.findIndex(
+    (u) => u.teamId === soldier.teamId && u.soldierId === soldier.soldierId,
+  );
+  const update: SoldierUpdatePayload = {
+    teamId: soldier.teamId,
+    soldierId: soldier.soldierId,
+    facing: { ...soldier.facing },
+    positionState: soldier.positionState,
+    movementMode: soldier.movementMode,
+  };
+  if (existing >= 0) {
+    result.soldierUpdates[existing] = update;
+  } else {
+    result.soldierUpdates.push(update);
+  }
+}
+
+function haltSoldierIfMoving(soldier: SoldierState, result: ActionResult): boolean {
+  if (!soldier.isMoving) {
+    return false;
+  }
+  result.movementHalts.push({
+    teamId: soldier.teamId,
+    soldierId: soldier.soldierId,
+    snapCell: { ...soldier.gridPosition },
+  });
+  soldier.clearPath();
+  return true;
+}
+
+export function executeFace(
+  gameState: GameState,
+  cmd: FaceCommandIntent,
+  actingTeamId: number,
+): ActionResult {
+  if (cmd.teamId !== actingTeamId) {
+    return fail("That soldier is not under your control.");
+  }
+  const now = gameState.clock.getTicksMsec();
+  if (cmd.scope === MOVE_SCOPE_SQUAD) {
+    return executeFaceSquad(gameState, cmd, actingTeamId, now);
+  }
+  const soldier = gameState.getSoldier(actingTeamId, cmd.soldierId);
+  if (soldier === null || soldier.isDead) {
+    return fail("Soldier unavailable.");
+  }
+  if (soldier.isStunned(now)) {
+    return fail("Soldier is stunned.");
+  }
+  const facing = towardWorldPoint(soldier.gridPosition, cmd.targetCell, cmd.aimWorld);
+  if (facing.x === 0 && facing.y === 0) {
+    return fail("Could not determine facing from that click.");
+  }
+  soldier.facing = { ...facing };
+  const result = emptyAction(true, faceStatus(actingTeamId, soldier));
+  result.faceUpdates.push({
+    teamId: soldier.teamId,
+    soldierId: soldier.soldierId,
+    facing: { ...soldier.facing },
+  });
+  return result;
+}
+
+function executeFaceSquad(
+  gameState: GameState,
+  cmd: FaceCommandIntent,
+  actingTeamId: number,
+  now: number,
+): ActionResult {
+  const result = emptyAction();
+  let faced = 0;
+  for (const soldier of gameState.soldiersOnTeam(actingTeamId)) {
+    if (soldier.isDead || soldier.isStunned(now)) {
+      continue;
+    }
+    const facing = towardWorldPoint(soldier.gridPosition, cmd.targetCell, cmd.aimWorld);
+    if (facing.x === 0 && facing.y === 0) {
+      continue;
+    }
+    soldier.facing = { ...facing };
+    result.faceUpdates.push({
+      teamId: soldier.teamId,
+      soldierId: soldier.soldierId,
+      facing: { ...soldier.facing },
+    });
+    faced += 1;
+  }
+  if (faced <= 0) {
+    return fail("No soldiers could face that direction.");
+  }
+  result.statusMessage = `${teamDisplayName(actingTeamId)} Fireteam facing — ${faced} soldier(s) reoriented.`;
+  return result;
+}
+
+export function executePosition(
+  gameState: GameState,
+  cmd: PositionCommandIntent,
+  actingTeamId: number,
+): ActionResult {
+  if (cmd.teamId !== actingTeamId) {
+    return fail("That soldier is not under your control.");
+  }
+  if (cmd.positionState !== POSITION_UP && cmd.positionState !== POSITION_DOWN) {
+    return fail("Invalid stance.");
+  }
+  const now = gameState.clock.getTicksMsec();
+  const soldier = gameState.getSoldier(actingTeamId, cmd.soldierId);
+  if (soldier === null || soldier.isDead) {
+    return fail("Soldier unavailable.");
+  }
+  if (soldier.isStunned(now)) {
+    return fail("Soldier is stunned.");
+  }
+  soldier.expirePendingStance(now);
+  if (soldier.pendingPositionState >= 0) {
+    return fail("Soldier is already changing stance.");
+  }
+  const label = cmd.positionState === POSITION_DOWN ? "DOWN" : "UP";
+  if (soldier.positionState === cmd.positionState) {
+    return emptyAction(true, `Soldier ${soldier.soldierId} already ${label}`);
+  }
+
+  const result = emptyAction();
+  if (haltSoldierIfMoving(soldier, result)) {
+    /* halt while stance applies immediately */
+  }
+  soldier.positionState = cmd.positionState;
+  soldier.beginPendingStance(cmd.positionState, now, STANCE_PENDING_GATE_MSEC);
+  result.stanceTransitionOrders.push({
+    teamId: soldier.teamId,
+    soldierId: soldier.soldierId,
+    targetPositionState: cmd.positionState,
+  });
+  pushSoldierUpdate(result, soldier);
+  result.statusMessage = `Soldier ${soldier.soldierId} changed to ${label}`;
+  return result;
+}
+
+function faceStatus(teamId: number, soldier: SoldierState): string {
+  return `${teamDisplayName(teamId)} Soldier ${soldier.soldierId} facing ${facingName(soldier.facing)}.`;
+}
+
 export function toMoveResultPayload(
   matchId: string,
   requestId: string,
@@ -452,5 +609,41 @@ export function toMoveResultPayload(
     statusMessage: result.statusMessage,
     moveOrders: result.moveOrders,
     movementHalts: result.movementHalts,
+    stanceTransitionOrders: result.stanceTransitionOrders,
+    soldierUpdates: result.soldierUpdates,
+  };
+}
+
+export function toFaceResultPayload(
+  matchId: string,
+  requestId: string,
+  result: ActionResult,
+): FaceResultPayload {
+  return {
+    type: "face_result",
+    matchId,
+    requestId,
+    success: result.success,
+    statusMessage: result.statusMessage,
+    faceUpdates: result.faceUpdates,
+  };
+}
+
+export function toPositionResultPayload(
+  matchId: string,
+  requestId: string,
+  result: ActionResult,
+): PositionResultPayload {
+  const first = result.soldierUpdates[0];
+  return {
+    type: "position_result",
+    matchId,
+    requestId,
+    success: result.success,
+    statusMessage: result.statusMessage,
+    positionState: first?.positionState ?? POSITION_UP,
+    movementHalts: result.movementHalts,
+    stanceTransitionOrders: result.stanceTransitionOrders,
+    soldierUpdates: result.soldierUpdates,
   };
 }

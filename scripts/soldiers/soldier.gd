@@ -839,6 +839,16 @@ func _finish_presentation_move() -> void:
 	movement_finished.emit(team_id, soldier_id)
 
 
+func sync_locomotion_mode_from_state(state: SoldierState) -> void:
+	## Snap presentation stance/mode before follow_path so crawl vs walk matches authority.
+	if state == null:
+		return
+	_presentation_movement_mode = state.movement_mode
+	if _stance_transition_active:
+		return
+	_apply_position_visual(state)
+
+
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	## Presentation-only path chase. Authoritative grid_position advances on sim ticks.
 	_interrupt_standing_idle_for_action()

@@ -143,12 +143,10 @@ func _ready() -> void:
 	_set_loading_status("Loading map…")
 	await get_tree().process_frame
 	if GameModeManager.is_local_multiplayer():
+		_ensure_multiplayer_result_signals()
 		_set_loading_status("Joining match…")
 		await NetworkClient.wait_for_snapshot()
-		if not NetworkClient.move_result_received.is_connected(_on_network_move_result):
-			NetworkClient.move_result_received.connect(_on_network_move_result)
-		if not NetworkClient.movement_tick_received.is_connected(_on_network_movement_tick):
-			NetworkClient.movement_tick_received.connect(_on_network_movement_tick)
+		_ensure_multiplayer_result_signals()
 	_load_map_data()
 	_init_session_from_spawns()
 	if GameModeManager.is_local_multiplayer() and not NetworkClient.last_snapshot.is_empty():
@@ -2614,6 +2612,9 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 	for order in result.move_orders:
 		var order_view: Soldier = _get_view(order.team_id, order.soldier_id)
 		if order_view != null:
+			var mover: SoldierState = _game_state.get_soldier(int(order.team_id), int(order.soldier_id))
+			if mover != null:
+				order_view.sync_locomotion_mode_from_state(mover)
 			order_view.follow_path(order.path, order.speed_mult)
 
 	if result.refresh_map_data:
@@ -2969,7 +2970,9 @@ func _grenade_preview_shooter() -> SoldierState:
 
 func _apply_move_command(cmd: MoveCommand) -> void:
 	if GameModeManager.is_local_multiplayer():
-		await NetworkClient.submit_move_and_wait(cmd)
+		_ensure_multiplayer_result_signals()
+		var net_result: ActionResultClass = await NetworkClient.submit_move_and_wait(cmd)
+		_on_network_move_result(net_result, "")
 		return
 	var result: ActionResultClass = CommandRouter.submit_command(
 		_game_state,
@@ -2992,6 +2995,74 @@ func _on_network_move_result(result: ActionResultClass, _request_id: String) -> 
 	_present_action_result(result)
 
 
+func _on_network_face_result(result: ActionResultClass, _request_id: String) -> void:
+	_apply_network_face_result(result)
+
+
+func _on_network_position_result(result: ActionResultClass, _request_id: String) -> void:
+	_apply_network_position_result(result)
+
+
+func _ensure_multiplayer_result_signals() -> void:
+	if not GameModeManager.is_local_multiplayer():
+		return
+	if not NetworkClient.move_result_received.is_connected(_on_network_move_result):
+		NetworkClient.move_result_received.connect(_on_network_move_result)
+	if not NetworkClient.face_result_received.is_connected(_on_network_face_result):
+		NetworkClient.face_result_received.connect(_on_network_face_result)
+	if not NetworkClient.position_result_received.is_connected(_on_network_position_result):
+		NetworkClient.position_result_received.connect(_on_network_position_result)
+	if not NetworkClient.movement_tick_received.is_connected(_on_network_movement_tick):
+		NetworkClient.movement_tick_received.connect(_on_network_movement_tick)
+
+
+func _apply_network_face_result(result: ActionResultClass) -> void:
+	if result == null:
+		return
+	AuthoritativeSyncClass.apply_face_result(_game_state, result)
+	if result.success:
+		for update in result.face_updates:
+			var tid := int(update.get("team_id", -1))
+			var sid := int(update.get("soldier_id", -1))
+			_sync_soldier_view(tid, sid, false)
+		_sync_face_soldier_views()
+	_present_action_result(result)
+
+
+func _apply_network_position_result(result: ActionResultClass) -> void:
+	if result == null:
+		return
+	AuthoritativeSyncClass.apply_position_result(_game_state, result)
+	if result.success:
+		_maybe_clear_move_targeting_after_prone(result)
+	_present_action_result(result)
+
+
+func _maybe_clear_move_targeting_after_prone(result: ActionResultClass) -> void:
+	if not _move_targeting:
+		return
+	if MovementModeClass.is_allowed(PositionStateClass.DOWN, _active_movement_mode):
+		return
+	for update in result.soldier_updates:
+		if int(update.get("position_state", PositionStateClass.UP)) != PositionStateClass.DOWN:
+			continue
+		var sid := int(update.get("soldier_id", -1))
+		if _squad_move_targeting or _move_soldier_id == sid:
+			_command_bar.clear_move_targeting()
+			_move_targeting = false
+			_squad_move_targeting = false
+			return
+	for order in result.stance_transition_orders:
+		if int(order.get("target_position_state", -1)) != PositionStateClass.DOWN:
+			continue
+		var sid := int(order.get("soldier_id", -1))
+		if _squad_move_targeting or _move_soldier_id == sid:
+			_command_bar.clear_move_targeting()
+			_move_targeting = false
+			_squad_move_targeting = false
+			return
+
+
 func _on_network_movement_tick(payload: Dictionary) -> void:
 	var tick_result: ActionResultClass = AuthoritativeSyncClass.apply_movement_tick(
 		_game_state,
@@ -3001,6 +3072,11 @@ func _on_network_movement_tick(payload: Dictionary) -> void:
 
 
 func _apply_face_command(cmd: FaceCommand) -> void:
+	if GameModeManager.is_local_multiplayer():
+		_ensure_multiplayer_result_signals()
+		var net_result: ActionResultClass = await NetworkClient.submit_face_and_wait(cmd)
+		_apply_network_face_result(net_result)
+		return
 	var result: ActionResultClass = CommandRouter.submit_command(_game_state, cmd)
 	if result.success:
 		_sync_face_soldier_views()
@@ -3043,8 +3119,17 @@ func _apply_face_at_tile(target_cell: Vector2i, aim_world: Vector2) -> void:
 				Team.soldier_key(soldier_state.team_id, soldier_state.soldier_id)
 			)
 
-	var result: ActionResultClass = CommandRouter.submit_command(_game_state, face_cmd)
-	if result.success:
+	var result: ActionResultClass
+	if GameModeManager.is_local_multiplayer():
+		_ensure_multiplayer_result_signals()
+		result = await NetworkClient.submit_face_and_wait(face_cmd)
+		_apply_network_face_result(result)
+	else:
+		result = CommandRouter.submit_command(_game_state, face_cmd)
+		if result.success:
+			_sync_face_soldier_views()
+		_present_action_result(result)
+	if result != null and result.success:
 		_mark_face_committed(soldiers)
 		_face_manual_aim_cell = face_cell
 		_face_manual_aim_world = aim_world
@@ -3054,8 +3139,8 @@ func _apply_face_at_tile(target_cell: Vector2i, aim_world: Vector2) -> void:
 			_clear_face_manual_override()
 			_face_manual_aim_cell = face_cell
 			_face_manual_aim_world = aim_world
-		_sync_face_soldier_views()
-	_present_action_result(result)
+		if GameModeManager.is_local_multiplayer():
+			_sync_face_soldier_views()
 
 
 func _apply_face_enemy_fire(aim_world: Vector2, clicked_soldier: SoldierState) -> void:
@@ -3076,7 +3161,13 @@ func _apply_face_enemy_fire(aim_world: Vector2, clicked_soldier: SoldierState) -
 		face_cmd.scope = FaceCommand.Scope.SINGLE
 		face_cmd.soldier_id = _face_soldier_id
 
-	var face_result: ActionResultClass = CommandRouter.submit_command(_game_state, face_cmd)
+	var face_result: ActionResultClass
+	if GameModeManager.is_local_multiplayer():
+		_ensure_multiplayer_result_signals()
+		face_result = await NetworkClient.submit_face_and_wait(face_cmd)
+		_apply_network_face_result(face_result)
+	else:
+		face_result = CommandRouter.submit_command(_game_state, face_cmd)
 	if face_result.success:
 		_mark_face_committed(soldiers)
 		_face_manual_aim_cell = clicked_soldier.grid_position
@@ -3103,7 +3194,7 @@ func _apply_face_enemy_fire(aim_world: Vector2, clicked_soldier: SoldierState) -
 			_command_bar.show_status(face_result.status_message)
 		else:
 			_command_bar.show_status("Facing enemy — no line of sight to fire.")
-		if face_result.success:
+		if face_result.success and not GameModeManager.is_local_multiplayer():
 			_present_action_result(face_result)
 		return
 
@@ -3131,6 +3222,11 @@ func _apply_face_enemy_fire(aim_world: Vector2, clicked_soldier: SoldierState) -
 
 
 func _apply_position_command(cmd: PositionCommand) -> void:
+	if GameModeManager.is_local_multiplayer():
+		_ensure_multiplayer_result_signals()
+		var net_result: ActionResultClass = await NetworkClient.submit_position_and_wait(cmd)
+		_apply_network_position_result(net_result)
+		return
 	var result: ActionResultClass = CommandRouter.submit_command(_game_state, cmd)
 	if (
 		result.success
@@ -3179,6 +3275,20 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 
 func _on_position_change_requested(soldier_id: int, position_state: int) -> void:
 	if soldier_id == CommandBar.SQUAD_ID:
+		if GameModeManager.is_local_multiplayer():
+			var fireteam_mp: Fireteam = _control_fireteam()
+			for state in fireteam_mp.soldiers:
+				var soldier_mp: SoldierState = state
+				if soldier_mp == null or soldier_mp.is_dead or soldier_mp.is_stunned():
+					continue
+				if not _session.can_local_control_soldier(soldier_mp.team_id, soldier_mp.soldier_id):
+					continue
+				var cmd_mp := PositionCommand.new()
+				cmd_mp.team_id = _session.active_team_id
+				cmd_mp.soldier_id = soldier_mp.soldier_id
+				cmd_mp.position_state = position_state
+				await _apply_position_command(cmd_mp)
+			return
 		var last_result: ActionResultClass = null
 		var combined_transitions: Array[Dictionary] = []
 		var combined_halts: Array[Dictionary] = []
@@ -3228,10 +3338,13 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 	cmd.team_id = _session.active_team_id
 	cmd.soldier_id = soldier_id
 	cmd.position_state = position_state
-	_apply_position_command(cmd)
+	await _apply_position_command(cmd)
 
 
 func _arm_movement_mode(soldier_id: int, movement_mode: int) -> String:
+	if GameModeManager.is_local_multiplayer():
+		## Targeting UI only — authoritative movementMode commits on accepted MoveCommand.
+		return "Soldier movement mode = %s" % MovementModeClass.display_name(movement_mode)
 	var result: ActionResultClass = CommandRouter.arm_movement_mode(
 		_game_state,
 		_session.active_team_id,

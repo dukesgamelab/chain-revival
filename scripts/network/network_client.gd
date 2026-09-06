@@ -13,6 +13,8 @@ const DEFAULT_SNAPSHOT_TIMEOUT_SEC := 5.0
 const DEFAULT_MOVE_TIMEOUT_SEC := 3.0
 const ActionResultClass := preload("res://scripts/core/action_result.gd")
 const MoveCommandClass := preload("res://scripts/commands/move_command.gd")
+const FaceCommandClass := preload("res://scripts/commands/face_command.gd")
+const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
 const AuthoritativeSyncClass := preload("res://scripts/network/authoritative_sync.gd")
 
 signal connection_changed(connected: bool)
@@ -21,6 +23,8 @@ signal side_assigned(side_name: String)
 signal side_denied(reason: String)
 signal match_snapshot_received(snapshot: Dictionary)
 signal move_result_received(result: ActionResultClass, request_id: String)
+signal face_result_received(result: ActionResultClass, request_id: String)
+signal position_result_received(result: ActionResultClass, request_id: String)
 signal movement_tick_received(payload: Dictionary)
 
 var _socket := WebSocketPeer.new()
@@ -148,11 +152,7 @@ func submit_move_and_wait(
 ) -> ActionResultClass:
 	if not _connected or cmd == null:
 		return ActionResultClass.fail("Not connected to the match server.")
-	_request_seq += 1
-	var request_id := "%s-%d" % [client_id if not client_id.is_empty() else "client", _request_seq]
-	_move_wait_request_id = request_id
-	_move_wait_resolved = false
-	_move_wait_result = null
+	var request_id := _begin_command_wait()
 	send_json({
 		"type": "move_command",
 		"matchId": match_id,
@@ -163,13 +163,66 @@ func submit_move_and_wait(
 		"scope": int(cmd.scope),
 		"movementMode": cmd.movement_mode,
 	})
+	return await _wait_for_command_result(timeout_sec, "Move")
+
+
+func submit_face_and_wait(
+	cmd: FaceCommandClass,
+	timeout_sec: float = DEFAULT_MOVE_TIMEOUT_SEC,
+) -> ActionResultClass:
+	if not _connected or cmd == null:
+		return ActionResultClass.fail("Not connected to the match server.")
+	var request_id := _begin_command_wait()
+	var payload := {
+		"type": "face_command",
+		"matchId": match_id,
+		"requestId": request_id,
+		"teamId": cmd.team_id,
+		"soldierId": cmd.soldier_id,
+		"targetCell": {"x": cmd.target_cell.x, "y": cmd.target_cell.y},
+		"scope": int(cmd.scope),
+	}
+	if cmd.aim_world.x > -90000.0:
+		payload["aimWorld"] = {"x": cmd.aim_world.x, "y": cmd.aim_world.y}
+	send_json(payload)
+	return await _wait_for_command_result(timeout_sec, "Face")
+
+
+func submit_position_and_wait(
+	cmd: PositionCommandClass,
+	timeout_sec: float = DEFAULT_MOVE_TIMEOUT_SEC,
+) -> ActionResultClass:
+	if not _connected or cmd == null:
+		return ActionResultClass.fail("Not connected to the match server.")
+	var request_id := _begin_command_wait()
+	send_json({
+		"type": "position_command",
+		"matchId": match_id,
+		"requestId": request_id,
+		"teamId": cmd.team_id,
+		"soldierId": cmd.soldier_id,
+		"positionState": cmd.position_state,
+	})
+	return await _wait_for_command_result(timeout_sec, "Position")
+
+
+func _begin_command_wait() -> String:
+	_request_seq += 1
+	var request_id := "%s-%d" % [client_id if not client_id.is_empty() else "client", _request_seq]
+	_move_wait_request_id = request_id
+	_move_wait_resolved = false
+	_move_wait_result = null
+	return request_id
+
+
+func _wait_for_command_result(timeout_sec: float, label: String) -> ActionResultClass:
 	var deadline_msec := Time.get_ticks_msec() + int(timeout_sec * 1000.0)
 	while Time.get_ticks_msec() < deadline_msec:
 		await get_tree().process_frame
 		if _move_wait_resolved:
-			return _move_wait_result if _move_wait_result != null else ActionResultClass.fail("Empty move result.")
+			return _move_wait_result if _move_wait_result != null else ActionResultClass.fail("Empty %s result." % label)
 	_move_wait_request_id = ""
-	return ActionResultClass.fail("Move request timed out.")
+	return ActionResultClass.fail("%s request timed out." % label)
 
 
 func send_json(data: Dictionary) -> void:
@@ -291,6 +344,10 @@ func _handle_message(message: Dictionary) -> void:
 			_on_side_denied(str(message.get("reason", "Side denied")))
 		"move_result":
 			_on_move_result(message)
+		"face_result":
+			_on_face_result(message)
+		"position_result":
+			_on_position_result(message)
 		"movement_tick":
 			movement_tick_received.emit(message)
 		_:
@@ -334,11 +391,42 @@ func _on_match_snapshot(snapshot: Dictionary) -> void:
 func _on_move_result(payload: Dictionary) -> void:
 	var request_id := str(payload.get("requestId", payload.get("request_id", "")))
 	var result: ActionResultClass = AuthoritativeSyncClass.action_result_from_payload(payload)
+	var waiting := _is_waiting_for(request_id)
+	_resolve_command_wait(request_id, result)
+	## Issuer applies after wait; the other window applies from this signal.
+	if not waiting:
+		move_result_received.emit(result, request_id)
+
+
+func _on_face_result(payload: Dictionary) -> void:
+	var request_id := str(payload.get("requestId", payload.get("request_id", "")))
+	var result: ActionResultClass = AuthoritativeSyncClass.action_result_from_payload(payload)
+	result.refresh_views = result.success
+	var waiting := _is_waiting_for(request_id)
+	_resolve_command_wait(request_id, result)
+	if not waiting:
+		face_result_received.emit(result, request_id)
+
+
+func _on_position_result(payload: Dictionary) -> void:
+	var request_id := str(payload.get("requestId", payload.get("request_id", "")))
+	var result: ActionResultClass = AuthoritativeSyncClass.action_result_from_payload(payload)
+	result.refresh_views = result.success
+	var waiting := _is_waiting_for(request_id)
+	_resolve_command_wait(request_id, result)
+	if not waiting:
+		position_result_received.emit(result, request_id)
+
+
+func _is_waiting_for(request_id: String) -> bool:
+	return not request_id.is_empty() and request_id == _move_wait_request_id
+
+
+func _resolve_command_wait(request_id: String, result: ActionResultClass) -> void:
 	if request_id == _move_wait_request_id and not _move_wait_request_id.is_empty():
 		_move_wait_result = result
 		_move_wait_resolved = true
 		_move_wait_request_id = ""
-	move_result_received.emit(result, request_id)
 
 
 func _emit_status() -> void:

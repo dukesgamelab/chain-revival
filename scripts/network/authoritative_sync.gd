@@ -41,7 +41,7 @@ static func apply_snapshot(game_state: GameStateClass, snapshot: Dictionary) -> 
 
 static func action_result_from_payload(payload: Dictionary) -> ActionResultClass:
 	if not bool(payload.get("success", false)):
-		return ActionResultClass.fail(str(payload.get("statusMessage", payload.get("status_message", "Move rejected."))))
+		return ActionResultClass.fail(str(payload.get("statusMessage", payload.get("status_message", "Command rejected."))))
 	var result := ActionResultClass.new()
 	result.success = true
 	result.status_message = str(payload.get("statusMessage", payload.get("status_message", "")))
@@ -55,6 +55,8 @@ static func action_result_from_payload(payload: Dictionary) -> ActionResultClass
 			"soldier_id": int(order.get("soldierId", order.get("soldier_id", -1))),
 			"path": _path(order.get("path", [])),
 			"speed_mult": float(order.get("speedMult", order.get("speed_mult", 1.0))),
+			"movement_mode": int(order.get("movementMode", order.get("movement_mode", MovementMode.RUN))),
+			"position_state": int(order.get("positionState", order.get("position_state", PositionStateClass.UP))),
 		})
 	for raw in payload.get("movementHalts", payload.get("movement_halts", [])):
 		if not raw is Dictionary:
@@ -64,6 +66,17 @@ static func action_result_from_payload(payload: Dictionary) -> ActionResultClass
 			"team_id": int(halt.get("teamId", halt.get("team_id", -1))),
 			"soldier_id": int(halt.get("soldierId", halt.get("soldier_id", -1))),
 			"snap_cell": _cell(halt.get("snapCell", halt.get("snap_cell", {}))),
+		})
+	_append_stance_orders(result, payload)
+	_apply_soldier_updates_to_result(result, payload)
+	for raw in payload.get("faceUpdates", payload.get("face_updates", [])):
+		if not raw is Dictionary:
+			continue
+		var face: Dictionary = raw
+		result.face_updates.append({
+			"team_id": int(face.get("teamId", face.get("team_id", -1))),
+			"soldier_id": int(face.get("soldierId", face.get("soldier_id", -1))),
+			"facing": _cell(face.get("facing", {})),
 		})
 	return result
 
@@ -90,7 +103,49 @@ static func apply_move_result(game_state: GameStateClass, result: ActionResultCl
 		for cell in path:
 			if cell is Vector2i:
 				typed.append(cell)
+		if order.has("movement_mode"):
+			soldier.movement_mode = int(order.movement_mode)
+		if order.has("position_state"):
+			soldier.position_state = int(order.position_state)
+			soldier.clear_pending_position()
 		soldier.assign_path(typed, float(order.get("speed_mult", 1.0)))
+	_apply_soldier_update_dicts(game_state, result.soldier_updates)
+
+
+static func apply_face_result(game_state: GameStateClass, result: ActionResultClass) -> void:
+	if game_state == null or result == null or not result.success:
+		return
+	for update in result.face_updates:
+		var soldier: SoldierState = game_state.get_soldier(int(update.team_id), int(update.soldier_id))
+		if soldier == null:
+			continue
+		var facing: Vector2i = update.get("facing", Vector2i.ZERO)
+		if facing == Vector2i.ZERO:
+			continue
+		soldier.facing_direction = FacingDirection.from_step(facing)
+
+
+static func apply_position_result(game_state: GameStateClass, result: ActionResultClass) -> void:
+	if game_state == null or result == null:
+		return
+	for halt in result.movement_halts:
+		var soldier: SoldierState = game_state.get_soldier(int(halt.team_id), int(halt.soldier_id))
+		if soldier == null:
+			continue
+		soldier.clear_path()
+		var snap: Variant = halt.get("snap_cell", null)
+		if snap is Vector2i:
+			soldier.grid_position = snap
+	if not result.success:
+		return
+	_apply_soldier_update_dicts(game_state, result.soldier_updates)
+	for order in result.stance_transition_orders:
+		var soldier: SoldierState = game_state.get_soldier(int(order.team_id), int(order.soldier_id))
+		if soldier == null:
+			continue
+		var target := int(order.target_position_state)
+		soldier.position_state = target
+		soldier.pending_position_state = target
 
 
 static func apply_movement_tick(game_state: GameStateClass, payload: Dictionary) -> ActionResultClass:
@@ -134,6 +189,51 @@ static func apply_movement_tick(game_state: GameStateClass, payload: Dictionary)
 			"soldier_id": soldier_id,
 		})
 	return result
+
+
+static func _append_stance_orders(result: ActionResultClass, payload: Dictionary) -> void:
+	for raw in payload.get("stanceTransitionOrders", payload.get("stance_transition_orders", [])):
+		if not raw is Dictionary:
+			continue
+		var order: Dictionary = raw
+		result.stance_transition_orders.append({
+			"team_id": int(order.get("teamId", order.get("team_id", -1))),
+			"soldier_id": int(order.get("soldierId", order.get("soldier_id", -1))),
+			"target_position_state": int(
+				order.get("targetPositionState", order.get("target_position_state", PositionStateClass.UP))
+			),
+		})
+
+
+static func _apply_soldier_updates_to_result(result: ActionResultClass, payload: Dictionary) -> void:
+	for raw in payload.get("soldierUpdates", payload.get("soldier_updates", [])):
+		if not raw is Dictionary:
+			continue
+		var update: Dictionary = raw
+		result.soldier_updates.append({
+			"team_id": int(update.get("teamId", update.get("team_id", -1))),
+			"soldier_id": int(update.get("soldierId", update.get("soldier_id", -1))),
+			"facing": _cell(update.get("facing", {})),
+			"position_state": int(update.get("positionState", update.get("position_state", PositionStateClass.UP))),
+			"movement_mode": int(update.get("movementMode", update.get("movement_mode", MovementMode.RUN))),
+		})
+
+
+static func _apply_soldier_update_dicts(game_state: GameStateClass, updates: Array) -> void:
+	for update in updates:
+		if not update is Dictionary:
+			continue
+		var soldier: SoldierState = game_state.get_soldier(int(update.team_id), int(update.soldier_id))
+		if soldier == null:
+			continue
+		if update.has("facing"):
+			var facing: Vector2i = update.facing
+			if facing != Vector2i.ZERO:
+				soldier.facing_direction = FacingDirection.from_step(facing)
+		if update.has("position_state"):
+			soldier.position_state = int(update.position_state)
+		if update.has("movement_mode"):
+			soldier.movement_mode = int(update.movement_mode)
 
 
 static func _cell(value: Variant) -> Vector2i:

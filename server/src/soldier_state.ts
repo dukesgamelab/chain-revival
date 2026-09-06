@@ -22,6 +22,9 @@ export class SoldierState {
   moveStepCostMsec = 0;
   moveSpeedMult = 1.0;
   stunnedUntilMsec = 0;
+  /** Presentation gate mirrored from Godot; gameplay stance is already committed. */
+  pendingPositionState = -1;
+  pendingStanceUntilMsec = 0;
 
   constructor(soldierId: number, teamId: number, gridPosition: Vec2i, facing: Vec2i) {
     this.soldierId = soldierId;
@@ -32,6 +35,22 @@ export class SoldierState {
 
   isStunned(nowMsec: number): boolean {
     return nowMsec < this.stunnedUntilMsec;
+  }
+
+  clearPendingPosition(): void {
+    this.pendingPositionState = -1;
+    this.pendingStanceUntilMsec = 0;
+  }
+
+  expirePendingStance(nowMsec: number): void {
+    if (this.pendingPositionState >= 0 && nowMsec >= this.pendingStanceUntilMsec) {
+      this.clearPendingPosition();
+    }
+  }
+
+  beginPendingStance(target: number, nowMsec: number, gateMsec: number): void {
+    this.pendingPositionState = target;
+    this.pendingStanceUntilMsec = nowMsec + gateMsec;
   }
 
   clearPath(): void {

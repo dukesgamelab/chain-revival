@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket, type RawData } from "ws";
 import { randomUUID } from "node:crypto";
-import { LocalMatch, parseMoveIntent } from "./match";
+import { LocalMatch, parseFaceIntent, parseMoveIntent, parsePositionIntent } from "./match";
 import {
   parseSideName,
   registerClient,
@@ -104,10 +104,49 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
         statusMessage: "Invalid move command.",
         moveOrders: [],
         movementHalts: [],
+        stanceTransitionOrders: [],
+        soldierUpdates: [],
       });
       return;
     }
     match.handleMove(clientId, intent);
+    return;
+  }
+
+  if (message.type === "face_command") {
+    const intent = parseFaceIntent(message);
+    if (intent === null) {
+      sendJson(ws, {
+        type: "face_result",
+        matchId: MATCH_ID,
+        requestId: typeof message.requestId === "string" ? message.requestId : "",
+        success: false,
+        statusMessage: "Invalid face command.",
+        faceUpdates: [],
+      });
+      return;
+    }
+    match.handleFace(clientId, intent);
+    return;
+  }
+
+  if (message.type === "position_command") {
+    const intent = parsePositionIntent(message);
+    if (intent === null) {
+      sendJson(ws, {
+        type: "position_result",
+        matchId: MATCH_ID,
+        requestId: typeof message.requestId === "string" ? message.requestId : "",
+        success: false,
+        statusMessage: "Invalid position command.",
+        positionState: 0,
+        movementHalts: [],
+        stanceTransitionOrders: [],
+        soldierUpdates: [],
+      });
+      return;
+    }
+    match.handlePosition(clientId, intent);
   }
 }
 

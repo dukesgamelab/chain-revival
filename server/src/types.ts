@@ -72,6 +72,22 @@ export interface MoveOrderPayload {
   soldierId: number;
   path: Vec2i[];
   speedMult: number;
+  movementMode: number;
+  positionState: number;
+}
+
+export interface SoldierUpdatePayload {
+  teamId: number;
+  soldierId: number;
+  facing: Vec2i;
+  positionState: number;
+  movementMode: number;
+}
+
+export interface StanceTransitionOrder {
+  teamId: number;
+  soldierId: number;
+  targetPositionState: number;
 }
 
 export interface MoveResultPayload {
@@ -82,6 +98,49 @@ export interface MoveResultPayload {
   statusMessage: string;
   moveOrders: MoveOrderPayload[];
   movementHalts: Array<{ teamId: number; soldierId: number; snapCell: Vec2i }>;
+  stanceTransitionOrders: StanceTransitionOrder[];
+  soldierUpdates: SoldierUpdatePayload[];
+}
+
+export interface FaceCommandIntent {
+  type: "face_command";
+  matchId: string;
+  requestId: string;
+  teamId: number;
+  soldierId: number;
+  targetCell: Vec2i;
+  scope: number;
+  aimWorld: Vec2i | null;
+}
+
+export interface FaceResultPayload {
+  type: "face_result";
+  matchId: string;
+  requestId: string;
+  success: boolean;
+  statusMessage: string;
+  faceUpdates: Array<{ teamId: number; soldierId: number; facing: Vec2i }>;
+}
+
+export interface PositionCommandIntent {
+  type: "position_command";
+  matchId: string;
+  requestId: string;
+  teamId: number;
+  soldierId: number;
+  positionState: number;
+}
+
+export interface PositionResultPayload {
+  type: "position_result";
+  matchId: string;
+  requestId: string;
+  success: boolean;
+  statusMessage: string;
+  positionState: number;
+  movementHalts: Array<{ teamId: number; soldierId: number; snapCell: Vec2i }>;
+  stanceTransitionOrders: StanceTransitionOrder[];
+  soldierUpdates: SoldierUpdatePayload[];
 }
 
 export interface MovementTickPayload {

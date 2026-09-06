@@ -88,14 +88,18 @@ func _route(action_label: String, resolver_call: Callable) -> ActionResultClass:
 	var mode_name := GameMode.display_name(GameModeManager.get_mode())
 	GameLog.log_system("[CommandRouter] submit: %s (mode=%s)" % [action_label, mode_name])
 
-	if GameModeManager.is_local_multiplayer() and action_label == "command:MoveCommand":
-		GameLog.log_system("[CommandRouter] refused local MoveCommand — server is authoritative")
-		return ActionResultClass.fail("Move commands must be resolved by the match server.")
+	if GameModeManager.is_local_multiplayer() and (
+		action_label == "command:MoveCommand"
+		or action_label == "command:FaceCommand"
+		or action_label == "command:PositionCommand"
+	):
+		GameLog.log_system("[CommandRouter] refused local %s — server is authoritative" % action_label)
+		return ActionResultClass.fail("That command must be resolved by the match server.")
 
 	if GameModeManager.is_offline_dev() or GameModeManager.is_local_multiplayer():
 		var route_note := "locally → ActionResolver"
 		if GameModeManager.is_local_multiplayer():
-			route_note = "locally → ActionResolver (non-move; movement is server-owned)"
+			route_note = "locally → ActionResolver (combat/UI only; move/face/stance are server-owned)"
 		GameLog.log_system("[CommandRouter] routed %s" % route_note)
 		return resolver_call.call() as ActionResultClass
 
