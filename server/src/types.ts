@@ -211,6 +211,8 @@ export interface FireAtCommandIntent {
   targetTeamId: number;
   targetSoldierId: number;
   scope: number;
+  targetCell?: Vec2i;
+  aimWorld?: Vec2i | null;
 }
 
 export interface FireAtResultPayload {

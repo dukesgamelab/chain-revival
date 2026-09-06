@@ -399,5 +399,10 @@ export function parseFireAtIntent(message: Record<string, unknown>): FireAtComma
     targetTeamId: Number(message.targetTeamId ?? -1),
     targetSoldierId: Number(message.targetSoldierId ?? -1),
     scope: Number(message.scope ?? 0),
+    targetCell: parseCell(message.targetCell) ?? undefined,
+    aimWorld:
+      message.aimWorld !== undefined && message.aimWorld !== null
+        ? parseCell(message.aimWorld)
+        : null,
   };
 }

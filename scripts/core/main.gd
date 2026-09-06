@@ -75,6 +75,7 @@ var _fire_at_mode: bool = false
 var _squad_fire_at_mode: bool = false
 var _fire_at_soldier_id: int = 1
 var _fire_at_engaged: bool = false
+var _fire_at_submit_busy: bool = false
 var _face_mode: bool = false
 var _face_soldier_id: int = 1
 var _grenade_mode: bool = false
@@ -442,6 +443,9 @@ func _apply_multiplayer_side_lock() -> void:
 	if not PlayerSides.has_assignment():
 		push_error("Local multiplayer started without an assigned side.")
 		return
+	_session.bind_local_player_to_team(PlayerSides.assigned_team_id)
+	if _game_state != null:
+		_game_state.local_player_id = _session.local_player_id
 	_session.set_active_team(PlayerSides.assigned_team_id)
 	_command_bar.set_active_team(PlayerSides.assigned_team_id)
 	var fireteam: Fireteam = _control_fireteam()
@@ -897,6 +901,8 @@ func _combat_scan_interval_msec() -> int:
 func _get_manual_fire_at_shooters() -> Array[SoldierState]:
 	var shooters: Array[SoldierState] = []
 	var fireteam: Fireteam = _control_fireteam()
+	if fireteam == null:
+		return shooters
 	if _squad_fire_at_mode:
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
@@ -1305,18 +1311,15 @@ func _update_squad_los_preview(
 	for shooter_state in _get_manual_fire_at_shooters():
 		var from_world := _get_soldier_tracer_point(shooter_state)
 		var preview: FireAtPreviewResult
-		if _fire_at_engaged and shooter_state.is_sustained_fire():
-			preview = CombatSystem.evaluate_engaged_target_preview(_game_state, shooter_state)
-		else:
-			preview = CombatSystem.evaluate_fire_at_preview(
-				_game_state,
-				shooter_state,
-				from_world,
-				aim_world,
-				click_cell,
-				explicit_team_id,
-				explicit_soldier_id,
-			)
+		preview = CombatSystem.evaluate_fire_at_preview(
+			_game_state,
+			shooter_state,
+			from_world,
+			aim_world,
+			click_cell,
+			explicit_team_id,
+			explicit_soldier_id,
+		)
 		if preview.target != null and preview.targetable:
 			cone_has_target = true
 		entries.append({"from_world": from_world, "preview": preview})
@@ -1384,9 +1387,16 @@ func _init_session_from_spawns() -> void:
 			gx += s.x
 			gy += s.y
 		germany_anchor = Vector2i(gx / red_spawns.size(), gy / red_spawns.size())
-	var match_cfg = MatchConfigStoreClass.consume_pending()
-	if match_cfg == null:
-		match_cfg = MatchConfigClass.default_offline_1v1()
+	var match_cfg
+	if GameModeManager.is_local_multiplayer():
+		## Do not consume user:// pending config — two Godot windows share that file.
+		match_cfg = MatchConfigClass.default_local_multiplayer_1v1()
+		if PlayerSides.has_assignment():
+			match_cfg.local_player_id = 1 if PlayerSides.assigned_team_id == Team.USA else 2
+	else:
+		match_cfg = MatchConfigStoreClass.consume_pending()
+		if match_cfg == null:
+			match_cfg = MatchConfigClass.default_offline_1v1()
 	if match_cfg.is_survival_1v_all():
 		blue_spawns = _map_data.team_1_spawn_points.duplicate()
 		if blue_spawns.is_empty():
@@ -1409,6 +1419,8 @@ func _init_session_from_spawns() -> void:
 		)
 		match_cfg = MatchConfigClass.default_offline_1v1()
 	_session = GameSessionClass.from_match_config(match_cfg, blue_spawns, red_spawns)
+	if GameModeManager.is_local_multiplayer() and PlayerSides.has_assignment():
+		_session.bind_local_player_to_team(PlayerSides.assigned_team_id)
 	_game_state = _session.create_game_state(_map_data)
 	if match_cfg.is_survival_1v_all():
 		_game_state.survival_mode = true
@@ -2777,6 +2789,8 @@ func _make_grenade_context(soldier_state: SoldierState) -> CommandContextClass:
 func _control_fireteam() -> Fireteam:
 	if _session == null:
 		return null
+	if GameModeManager.is_local_multiplayer() and PlayerSides.has_assignment():
+		return _session.get_fireteam(PlayerSides.assigned_team_id)
 	return _session.get_local_control_fireteam()
 
 
@@ -3249,21 +3263,10 @@ func _apply_position_command(cmd: PositionCommand) -> void:
 
 
 func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int) -> void:
+	if GameModeManager.is_local_multiplayer():
+		_submit_mp_fire_control(soldier_id, fire_control_state)
+		return
 	if soldier_id == CommandBar.SQUAD_ID:
-		if GameModeManager.is_local_multiplayer():
-			var fireteam_mp: Fireteam = _control_fireteam()
-			for state in fireteam_mp.soldiers:
-				var soldier_mp: SoldierState = state
-				if soldier_mp == null or soldier_mp.is_dead:
-					continue
-				if not _session.can_local_control_soldier(soldier_mp.team_id, soldier_mp.soldier_id):
-					continue
-				var cmd_mp := FireControlCommandClass.new()
-				cmd_mp.team_id = _session.active_team_id
-				cmd_mp.soldier_id = soldier_mp.soldier_id
-				cmd_mp.fire_control_state = fire_control_state
-				await _apply_fire_control_command(cmd_mp)
-			return
 		var last_result: ActionResultClass = null
 		var fireteam: Fireteam = _control_fireteam()
 		for state in fireteam.soldiers:
@@ -3290,6 +3293,38 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 	cmd.team_id = _session.active_team_id
 	cmd.soldier_id = soldier_id
 	cmd.fire_control_state = fire_control_state
+	_apply_fire_control_command(cmd)
+
+
+func _submit_mp_fire_control(soldier_id: int, fire_control_state: int) -> void:
+	var issued := 0
+	if soldier_id == CommandBar.SQUAD_ID:
+		var fireteam_mp: Fireteam = _control_fireteam()
+		if fireteam_mp == null:
+			_command_bar.show_status("No soldiers available.")
+			return
+		for state in fireteam_mp.soldiers:
+			var soldier_mp: SoldierState = state
+			if soldier_mp == null or soldier_mp.is_dead:
+				continue
+			if not _session.can_local_control_soldier(soldier_mp.team_id, soldier_mp.soldier_id):
+				continue
+			var cmd_mp := FireControlCommandClass.new()
+			cmd_mp.team_id = _session.active_team_id
+			cmd_mp.soldier_id = soldier_mp.soldier_id
+			cmd_mp.fire_control_state = fire_control_state
+			issued += 1
+			await _apply_fire_control_command(cmd_mp)
+		if issued == 0:
+			_command_bar.show_status("No soldiers available.")
+		return
+	if not _session.can_local_control_soldier(_session.active_team_id, soldier_id):
+		_command_bar.show_status("That soldier is not under your control.")
+		return
+	var cmd := FireControlCommandClass.new()
+	cmd.team_id = _session.active_team_id
+	cmd.soldier_id = soldier_id
+	cmd.fire_control_state = fire_control_state
 	await _apply_fire_control_command(cmd)
 
 
@@ -3304,21 +3339,10 @@ func _apply_fire_control_command(cmd: FireControlCommandClass) -> void:
 
 
 func _on_position_change_requested(soldier_id: int, position_state: int) -> void:
+	if GameModeManager.is_local_multiplayer():
+		_submit_mp_position_change(soldier_id, position_state)
+		return
 	if soldier_id == CommandBar.SQUAD_ID:
-		if GameModeManager.is_local_multiplayer():
-			var fireteam_mp: Fireteam = _control_fireteam()
-			for state in fireteam_mp.soldiers:
-				var soldier_mp: SoldierState = state
-				if soldier_mp == null or soldier_mp.is_dead or soldier_mp.is_stunned():
-					continue
-				if not _session.can_local_control_soldier(soldier_mp.team_id, soldier_mp.soldier_id):
-					continue
-				var cmd_mp := PositionCommand.new()
-				cmd_mp.team_id = _session.active_team_id
-				cmd_mp.soldier_id = soldier_mp.soldier_id
-				cmd_mp.position_state = position_state
-				await _apply_position_command(cmd_mp)
-			return
 		var last_result: ActionResultClass = null
 		var combined_transitions: Array[Dictionary] = []
 		var combined_halts: Array[Dictionary] = []
@@ -3368,6 +3392,38 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 	cmd.team_id = _session.active_team_id
 	cmd.soldier_id = soldier_id
 	cmd.position_state = position_state
+	_apply_position_command(cmd)
+
+
+func _submit_mp_position_change(soldier_id: int, position_state: int) -> void:
+	var issued := 0
+	if soldier_id == CommandBar.SQUAD_ID:
+		var fireteam_mp: Fireteam = _control_fireteam()
+		if fireteam_mp == null:
+			_command_bar.show_status("No soldiers available.")
+			return
+		for state in fireteam_mp.soldiers:
+			var soldier_mp: SoldierState = state
+			if soldier_mp == null or soldier_mp.is_dead or soldier_mp.is_stunned():
+				continue
+			if not _session.can_local_control_soldier(soldier_mp.team_id, soldier_mp.soldier_id):
+				continue
+			var cmd_mp := PositionCommand.new()
+			cmd_mp.team_id = _session.active_team_id
+			cmd_mp.soldier_id = soldier_mp.soldier_id
+			cmd_mp.position_state = position_state
+			issued += 1
+			await _apply_position_command(cmd_mp)
+		if issued == 0:
+			_command_bar.show_status("No soldiers available.")
+		return
+	if not _session.can_local_control_soldier(_session.active_team_id, soldier_id):
+		_command_bar.show_status("That soldier is not under your control.")
+		return
+	var cmd := PositionCommand.new()
+	cmd.team_id = _session.active_team_id
+	cmd.soldier_id = soldier_id
+	cmd.position_state = position_state
 	await _apply_position_command(cmd)
 
 
@@ -3389,21 +3445,22 @@ func _apply_fire_at_aim(
 	clicked_soldier: SoldierState = null,
 	click_cell: Vector2i = Vector2i(-999, -999),
 ) -> void:
+	if _fire_at_submit_busy:
+		return
 	var shooters: Array[SoldierState] = _get_manual_fire_at_shooters()
 	if shooters.is_empty():
 		_command_bar.show_status("No available soldiers to fire.")
 		return
+	_fire_at_submit_busy = true
 
 	var enemy := _resolve_fire_at_click_enemy(clicked_soldier, click_cell, aim_world)
 	var cmd := FireCommand.new()
 	cmd.team_id = _session.active_team_id
 	cmd.aim_world = aim_world
+	cmd.target_cell = click_cell
 	if enemy != null:
 		cmd.target_team_id = enemy.team_id
 		cmd.target_soldier_id = enemy.soldier_id
-	if GameModeManager.is_local_multiplayer() and enemy == null:
-		await _commit_fire_at_face_only(click_cell, aim_world)
-		return
 	if _squad_fire_at_mode:
 		cmd.scope = FireCommand.Scope.SQUAD
 	else:
@@ -3422,34 +3479,17 @@ func _apply_fire_at_aim(
 			_make_fire_context(shooters),
 		)
 		_present_action_result(result)
-	## Click commits the aim point — stop mouse-follow until Fire At is pressed again.
-	## Do not clear sustained fire here (unlike right-click cancel).
+	_fire_at_submit_busy = false
+	## Stay in Fire At until another command — further tile clicks retarget / re-face.
 	if result != null and result.success:
-		var aim_status := result.status_message
-		_leave_fire_at_targeting()
-		if not aim_status.is_empty():
-			_command_bar.show_status(aim_status)
+		_keep_fire_at_targeting()
+		if not result.status_message.is_empty():
+			_command_bar.show_status(result.status_message)
 
 
-## Click committed but no enemy ID — face the tile like single-player Fire At with no target.
-func _commit_fire_at_face_only(click_cell: Vector2i, aim_world: Vector2) -> void:
-	var face_cmd := FaceCommand.new()
-	face_cmd.team_id = _session.active_team_id
-	face_cmd.target_cell = click_cell
-	face_cmd.aim_world = aim_world
-	if _squad_fire_at_mode:
-		face_cmd.scope = FaceCommand.Scope.SQUAD
-	else:
-		face_cmd.scope = FaceCommand.Scope.SINGLE
-		face_cmd.soldier_id = _fire_at_soldier_id
-	_ensure_multiplayer_result_signals()
-	var face_result: ActionResultClass = await NetworkClient.submit_face_and_wait(face_cmd)
-	_apply_network_face_result(face_result)
-	_leave_fire_at_targeting()
-	if face_result != null and face_result.success:
-		_command_bar.show_status("No visible target there.")
-	elif face_result != null and not face_result.status_message.is_empty():
-		_command_bar.show_status(face_result.status_message)
+func _keep_fire_at_targeting() -> void:
+	_command_bar.affirm_fire_at_pressed(_squad_fire_at_mode, _fire_at_soldier_id)
+	_sync_fire_at_ui_from_engagements()
 
 
 func _finalize_shot_result(
@@ -3832,16 +3872,18 @@ func _find_enemy_in_fire_at_aim_cone(aim_world: Vector2, click_cell: Vector2i) -
 				max_range,
 			):
 				continue
-			var dist := float(
-				absi(shooter.grid_position.x - enemy.grid_position.x)
-				+ absi(shooter.grid_position.y - enemy.grid_position.y)
-			)
+			var click_dist := 0.0
 			if click_cell.x > -900:
-				var click_dist := float(
+				click_dist = float(
 					absi(click_cell.x - enemy.grid_position.x)
 					+ absi(click_cell.y - enemy.grid_position.y)
 				)
-				dist += click_dist * 0.01
+			var shooter_dist := float(
+				absi(shooter.grid_position.x - enemy.grid_position.x)
+				+ absi(shooter.grid_position.y - enemy.grid_position.y)
+			)
+			## Prefer the enemy nearest the clicked tile so a new aim direction retargets.
+			var dist := click_dist * 100.0 + shooter_dist
 			if dist < best_dist:
 				best_dist = dist
 				best = enemy

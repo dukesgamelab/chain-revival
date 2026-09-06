@@ -14,3 +14,4 @@ var target_team_id: int = -1
 var target_soldier_id: int = -1
 var scope: Scope = Scope.SINGLE
 var aim_world: Vector2 = Vector2.ZERO
+var target_cell: Vector2i = Vector2i(-999, -999)

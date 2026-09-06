@@ -647,17 +647,17 @@ export function executeFireAt(
   if (cmd.teamId !== actingTeamId) {
     return fail("That soldier is not under your control.");
   }
-  if (cmd.targetTeamId < 0 || cmd.targetSoldierId <= 0) {
-    return fail(
-      "Manual Fire At without an explicit enemy requires authoritative LOS/spotting (not ported).",
-    );
-  }
 
   const now = gameState.clock.getTicksMsec();
   const shooters =
     cmd.scope === MOVE_SCOPE_SQUAD
       ? gameState.soldiersOnTeam(actingTeamId)
       : [gameState.getSoldier(actingTeamId, cmd.soldierId)];
+
+  const hasExplicitTarget = cmd.targetTeamId >= 0 && cmd.targetSoldierId > 0;
+  if (!hasExplicitTarget) {
+    return executeFireAtFaceOnly(gameState, cmd, shooters, now);
+  }
 
   const target = gameState.getSoldier(cmd.targetTeamId, cmd.targetSoldierId);
   if (target === null || target.isDead) {
@@ -682,15 +682,7 @@ export function executeFireAt(
     shooter.beginSustainedFire();
     shooter.fireControlState = FIRE_AT_WILL;
     shooter.setEngagedTarget(target.teamId, target.soldierId);
-    const facing = towardCell(shooter.gridPosition, target.gridPosition);
-    if (facing.x !== 0 || facing.y !== 0) {
-      shooter.facing = { ...facing };
-      result.faceUpdates.push({
-        teamId: shooter.teamId,
-        soldierId: shooter.soldierId,
-        facing: { ...shooter.facing },
-      });
-    }
+    applyFireAtFacing(shooter, result, target.gridPosition, cmd.aimWorld ?? null);
     pushTargetUpdate(result, shooter);
     engaged += 1;
   }
@@ -708,6 +700,64 @@ export function executeFireAt(
     result.statusMessage = `${engaged} soldiers assigned priority targets.`;
   }
   return result;
+}
+
+/** Same as GDScript execute_fire with no target: end sustained fire and face the click. */
+function executeFireAtFaceOnly(
+  gameState: GameState,
+  cmd: FireAtCommandIntent,
+  shooters: Array<SoldierState | null>,
+  now: number,
+): ActionResult {
+  const faceCell = cmd.targetCell;
+  if (faceCell === undefined) {
+    return fail("Fire At requires an aim tile or an enemy.");
+  }
+  const result = emptyAction();
+  let faced = 0;
+  let firstNotice = "";
+  for (const shooter of shooters) {
+    if (shooter === null || shooter.isDead) {
+      continue;
+    }
+    if (shooter.isStunned(now)) {
+      firstNotice = firstNotice || "Soldier is stunned and cannot fire.";
+      continue;
+    }
+    haltSoldierIfMoving(shooter, result);
+    if (shooter.sustainedFire) {
+      shooter.endSustainedFire();
+    } else if (shooter.isEngaged()) {
+      shooter.clearEngagement();
+    }
+    applyFireAtFacing(shooter, result, faceCell, cmd.aimWorld ?? null);
+    pushTargetUpdate(result, shooter);
+    faced += 1;
+  }
+  if (faced === 0) {
+    return fail(firstNotice || "No available soldiers to fire.");
+  }
+  result.syncFireAtUi = true;
+  result.statusMessage = "No visible target there.";
+  return result;
+}
+
+function applyFireAtFacing(
+  shooter: SoldierState,
+  result: ActionResult,
+  faceCell: { x: number; y: number },
+  aimWorld: { x: number; y: number } | null,
+): void {
+  const facing = towardWorldPoint(shooter.gridPosition, faceCell, aimWorld);
+  if (facing.x === 0 && facing.y === 0) {
+    return;
+  }
+  shooter.facing = { ...facing };
+  result.faceUpdates.push({
+    teamId: shooter.teamId,
+    soldierId: shooter.soldierId,
+    facing: { ...shooter.facing },
+  });
 }
 
 function fireControlLabel(state: number): string {

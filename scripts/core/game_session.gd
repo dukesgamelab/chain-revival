@@ -234,7 +234,29 @@ func is_soldier_owned_by_player(player_id: int, team_id: int, soldier_id: int) -
 func can_local_control_soldier(team_id: int, soldier_id: int) -> bool:
 	if not PlayerSides.can_control_team(team_id):
 		return false
-	return is_soldier_owned_by_local(team_id, soldier_id)
+	if is_soldier_owned_by_local(team_id, soldier_id):
+		return true
+	## Two Godot windows share user:// match-config; local_player_id can be the other seat.
+	if GameModeManager.is_local_multiplayer():
+		var side_ft := get_fireteam(team_id)
+		return side_ft != null and side_ft.owns_soldier(soldier_id)
+	return false
+
+
+## Bind this machine's local player to the fireteam that owns `team_id`.
+func bind_local_player_to_team(team_id: int) -> void:
+	for ft in owned_fireteams:
+		if ft != null and ft.team_id == team_id and ft.owner_player_id > 0:
+			local_player_id = ft.owner_player_id
+			if match_config != null:
+				match_config.local_player_id = ft.owner_player_id
+			return
+	if team_id == Team.GERMANY:
+		local_player_id = 2
+	elif team_id == Team.USA:
+		local_player_id = 1
+	if match_config != null:
+		match_config.local_player_id = local_player_id
 
 
 func set_active_team(team_id: int) -> void:

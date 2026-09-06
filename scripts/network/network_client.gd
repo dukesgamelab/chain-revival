@@ -41,9 +41,7 @@ var _side_request_success := false
 var client_id: String = ""
 var match_id: String = ""
 var last_snapshot: Dictionary = {}
-var _move_wait_request_id: String = ""
-var _move_wait_resolved := false
-var _move_wait_result: ActionResultClass = null
+var _pending_waits: Dictionary = {}
 var _request_seq := 0
 
 
@@ -167,7 +165,7 @@ func submit_move_and_wait(
 		"scope": int(cmd.scope),
 		"movementMode": cmd.movement_mode,
 	})
-	return await _wait_for_command_result(timeout_sec, "Move")
+	return await _wait_for_command_result(timeout_sec, "Move", request_id)
 
 
 func submit_face_and_wait(
@@ -189,7 +187,7 @@ func submit_face_and_wait(
 	if cmd.aim_world.x > -90000.0:
 		payload["aimWorld"] = {"x": cmd.aim_world.x, "y": cmd.aim_world.y}
 	send_json(payload)
-	return await _wait_for_command_result(timeout_sec, "Face")
+	return await _wait_for_command_result(timeout_sec, "Face", request_id)
 
 
 func submit_position_and_wait(
@@ -207,7 +205,7 @@ func submit_position_and_wait(
 		"soldierId": cmd.soldier_id,
 		"positionState": cmd.position_state,
 	})
-	return await _wait_for_command_result(timeout_sec, "Position")
+	return await _wait_for_command_result(timeout_sec, "Position", request_id)
 
 
 func submit_fire_control_and_wait(
@@ -225,7 +223,7 @@ func submit_fire_control_and_wait(
 		"soldierId": cmd.soldier_id,
 		"fireControlState": cmd.fire_control_state,
 	})
-	return await _wait_for_command_result(timeout_sec, "FireControl")
+	return await _wait_for_command_result(timeout_sec, "FireControl", request_id)
 
 
 func submit_fire_at_and_wait(
@@ -235,7 +233,7 @@ func submit_fire_at_and_wait(
 	if not _connected or cmd == null:
 		return ActionResultClass.fail("Not connected to the match server.")
 	var request_id := _begin_command_wait()
-	send_json({
+	var payload := {
 		"type": "fire_at_command",
 		"matchId": match_id,
 		"requestId": request_id,
@@ -244,26 +242,38 @@ func submit_fire_at_and_wait(
 		"targetTeamId": cmd.target_team_id,
 		"targetSoldierId": cmd.target_soldier_id,
 		"scope": int(cmd.scope),
-	})
-	return await _wait_for_command_result(timeout_sec, "FireAt")
+	}
+	if cmd.target_cell.x > -900:
+		payload["targetCell"] = {"x": cmd.target_cell.x, "y": cmd.target_cell.y}
+	if cmd.aim_world.x > -90000.0:
+		payload["aimWorld"] = {"x": cmd.aim_world.x, "y": cmd.aim_world.y}
+	send_json(payload)
+	return await _wait_for_command_result(timeout_sec, "FireAt", request_id)
 
 
 func _begin_command_wait() -> String:
 	_request_seq += 1
 	var request_id := "%s-%d" % [client_id if not client_id.is_empty() else "client", _request_seq]
-	_move_wait_request_id = request_id
-	_move_wait_resolved = false
-	_move_wait_result = null
+	_pending_waits[request_id] = {"resolved": false, "result": null}
 	return request_id
 
 
-func _wait_for_command_result(timeout_sec: float, label: String) -> ActionResultClass:
+func _wait_for_command_result(
+	timeout_sec: float,
+	label: String,
+	request_id: String,
+) -> ActionResultClass:
 	var deadline_msec := Time.get_ticks_msec() + int(timeout_sec * 1000.0)
 	while Time.get_ticks_msec() < deadline_msec:
 		await get_tree().process_frame
-		if _move_wait_resolved:
-			return _move_wait_result if _move_wait_result != null else ActionResultClass.fail("Empty %s result." % label)
-	_move_wait_request_id = ""
+		if not _pending_waits.has(request_id):
+			return ActionResultClass.fail("%s request cancelled." % label)
+		var entry: Dictionary = _pending_waits[request_id]
+		if bool(entry.get("resolved", false)):
+			var result: ActionResultClass = entry.get("result") as ActionResultClass
+			_pending_waits.erase(request_id)
+			return result if result != null else ActionResultClass.fail("Empty %s result." % label)
+	_pending_waits.erase(request_id)
 	return ActionResultClass.fail("%s request timed out." % label)
 
 
@@ -292,9 +302,7 @@ func _reset_socket() -> void:
 	client_id = ""
 	match_id = ""
 	last_snapshot.clear()
-	_move_wait_request_id = ""
-	_move_wait_resolved = false
-	_move_wait_result = null
+	_pending_waits.clear()
 	set_process(false)
 
 
@@ -487,14 +495,17 @@ func _on_fire_at_result(payload: Dictionary) -> void:
 
 
 func _is_waiting_for(request_id: String) -> bool:
-	return not request_id.is_empty() and request_id == _move_wait_request_id
+	if request_id.is_empty() or not _pending_waits.has(request_id):
+		return false
+	return not bool((_pending_waits[request_id] as Dictionary).get("resolved", false))
 
 
 func _resolve_command_wait(request_id: String, result: ActionResultClass) -> void:
-	if request_id == _move_wait_request_id and not _move_wait_request_id.is_empty():
-		_move_wait_result = result
-		_move_wait_resolved = true
-		_move_wait_request_id = ""
+	if request_id.is_empty() or not _pending_waits.has(request_id):
+		return
+	var entry: Dictionary = _pending_waits[request_id]
+	entry["resolved"] = true
+	entry["result"] = result
 
 
 func _emit_status() -> void:

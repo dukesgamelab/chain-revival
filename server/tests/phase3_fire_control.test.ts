@@ -321,24 +321,32 @@ test("wrong-side Fire At is rejected", () => {
   assert.equal(ger(state).isEngaged(), false);
 });
 
-test("Fire At without an explicit target is blocked until LOS is ported", () => {
+test("Fire At without an explicit target faces the tile and clears a priority target", () => {
   const state = makeState();
+  const soldier = usa(state);
+  soldier.beginSustainedFire();
+  soldier.setEngagedTarget(TEAM_GERMANY, 1);
+  soldier.facing = { x: -1, y: 0 };
   const result = executeFireAt(
     state,
     {
       type: "fire_at_command",
       matchId: MATCH_ID,
-      requestId: "fa-los",
+      requestId: "fa-retile",
       teamId: TEAM_USA,
       soldierId: 1,
       targetTeamId: -1,
       targetSoldierId: -1,
       scope: MOVE_SCOPE_SINGLE,
+      targetCell: { x: soldier.gridPosition.x + 3, y: soldier.gridPosition.y },
     },
     TEAM_USA,
   );
-  assert.equal(result.success, false);
-  assert.match(result.statusMessage, /LOS|spotting/i);
+  assert.equal(result.success, true);
+  assert.equal(soldier.sustainedFire, false);
+  assert.equal(soldier.isEngaged(), false);
+  assert.deepEqual(soldier.facing, { x: 1, y: 0 });
+  assert.match(result.statusMessage, /No visible target/i);
 });
 
 test("stunned shooter cannot Fire At", () => {

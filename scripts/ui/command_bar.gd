@@ -543,6 +543,9 @@ func _on_squad_position_toggled(is_down: bool) -> void:
 
 
 func _on_squad_fire_control_selected(fire_control_state: int) -> void:
+	clear_fire_at_mode()
+	clear_face_mode()
+	clear_grenade_mode()
 	fire_control_change_requested.emit(SQUAD_ID, fire_control_state)
 
 
@@ -635,6 +638,9 @@ func _on_row_grenade_toggled(soldier_id: int, is_pressed: bool) -> void:
 
 
 func _on_row_fire_control_selected(soldier_id: int, fire_control_state: int) -> void:
+	clear_fire_at_mode()
+	clear_face_mode()
+	clear_grenade_mode()
 	## Do not notify Main — a full view refresh would wipe the button from stale GameState
 	## before the authoritative fire-control result arrives.
 	_select_soldier(soldier_id, true, false)
@@ -646,7 +652,7 @@ func _on_row_position_toggled(soldier_id: int, is_down: bool) -> void:
 	clear_fire_at_mode()
 	clear_face_mode()
 	clear_grenade_mode()
-	_select_soldier(soldier_id, true)
+	_select_soldier(soldier_id, true, false)
 	position_change_requested.emit(
 		soldier_id,
 		PositionState.DOWN if is_down else PositionState.UP,
