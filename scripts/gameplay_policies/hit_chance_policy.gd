@@ -31,13 +31,13 @@ const DEFAULT_AUTO_TARGET_ENGAGED_BONUS := 10.0
 const DEFAULT_AUTO_FIRE_SCAN_INTERVAL := 0.5
 ## RECOVERED from gameplay capture — 5.05s and 6.09s observed; midpoint used as default.
 ## Aim cycle and fire interval are the same thing in the original (continuous Aiming).
-const DEFAULT_BASE_FIRE_CYCLE_SEC := 3.5
-## TUNED — first shot after acquiring a target is a bit quicker than the repeat cycle.
-const DEFAULT_FIRST_FIRE_CYCLE_SEC := 2.0
+const DEFAULT_BASE_FIRE_CYCLE_SEC := 5.0
+## Same as the repeat cycle — one aimed shot every 5 seconds.
+const DEFAULT_FIRST_FIRE_CYCLE_SEC := 5.0
 ## Range at/below which the aim/fire cycle shortens (Euclidean tiles).
 const DEFAULT_CLOSE_RANGE_CYCLE_TILES := 6.0
-## Cycle multiplier at point-blank (range <= 1). Lerps to 1.0 by CLOSE_RANGE_CYCLE_TILES.
-const DEFAULT_CLOSE_RANGE_CYCLE_MIN_MULT := 0.60
+## 1.0 = no close-range cadence speedup; shots stay on the 5s cycle.
+const DEFAULT_CLOSE_RANGE_CYCLE_MIN_MULT := 1.0
 ## Knife-range floor applied after situational multipliers (cover / prone / stress).
 const DEFAULT_POINT_BLANK_TILES := 2.0
 const DEFAULT_POINT_BLANK_MIN_HIT := 0.92
@@ -166,7 +166,7 @@ func reset_to_defaults() -> void:
 	auto_score_smg_lmg_bonus = DEFAULT_AUTO_SCORE_SMG_LMG_BONUS
 
 
-## 0.30 at range<=1, 1.0 at/above close_range_cycle_tiles; 1.0 when range is unknown (<0).
+## close_range_cycle_min_mult at range<=1, 1.0 at/above close_range_cycle_tiles; 1.0 when range is unknown.
 func close_range_cycle_mult(combat_range: float) -> float:
 	if combat_range < 0.0:
 		return 1.0

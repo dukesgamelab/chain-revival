@@ -1176,13 +1176,13 @@ func _test_policy_defaults_unchanged() -> void:
 	_assert("Cover range limit is 5", GameplayPolicies.cover.cover_range_limit == 5)
 	_assert("LOS peek adjacency unchanged", GameplayPolicies.los.peek_adjacency_chebyshev == 1)
 	_assert(
-		"Base fire cycle is tuned 2.5s",
-		is_equal_approx(GameplayPolicies.hit.base_fire_cycle_sec, 2.5),
+		"Base fire cycle is 5.0s",
+		is_equal_approx(GameplayPolicies.hit.base_fire_cycle_sec, 5.0),
 		"cycle=%s" % GameplayPolicies.hit.base_fire_cycle_sec,
 	)
 	_assert(
-		"First fire cycle is tuned 1.2s",
-		is_equal_approx(GameplayPolicies.hit.first_fire_cycle_sec, 1.2),
+		"First fire cycle is 5.0s",
+		is_equal_approx(GameplayPolicies.hit.first_fire_cycle_sec, 5.0),
 		"first=%s" % GameplayPolicies.hit.first_fire_cycle_sec,
 	)
 	_assert(
@@ -1207,7 +1207,7 @@ func _test_policy_defaults_unchanged() -> void:
 	GameplayPolicies.reload_from_config()
 	_assert(
 		"Config reload preserves effective M1 Garand cycle",
-		is_equal_approx(GameplayPolicies.weapons.fire_interval_sec("m1_garand"), 2.5),
+		is_equal_approx(GameplayPolicies.weapons.fire_interval_sec("m1_garand"), 5.0),
 	)
 	_assert("Simulation tick hz default 20", SimulationClock.tick_hz == 20)
 	_assert("Simulation tick msec is 50", SimulationClock.tick_msec() == 50)
