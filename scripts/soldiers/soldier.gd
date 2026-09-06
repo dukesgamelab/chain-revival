@@ -44,6 +44,8 @@ var _path: Array[Vector2i] = []
 var _path_index: int = 0
 var _move_target_world: Vector2 = Vector2.ZERO
 var _is_moving: bool = false
+## Last ordered destination — ignore sim catch-up once the visual has arrived.
+var _settled_path_end: Vector2i = Vector2i(-999, -999)
 var _previous_grid_pos: Vector2i = Vector2i.ZERO
 var _is_dead: bool = false
 var _speed_multiplier: float = 1.0
@@ -800,6 +802,7 @@ func stop_movement() -> void:
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
+	_settled_path_end = Vector2i(-999, -999)
 	if was_moving:
 		_interrupt_standing_idle_for_action()
 	if was_moving and _uses_og_frames() and not _blocks_action_override():
@@ -842,6 +845,7 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	_path = path
 	_path_index = 1
 	_is_moving = true
+	_settled_path_end = _path[_path.size() - 1]
 	_previous_grid_pos = _path[0]
 	position = IsometricGrid.grid_to_world(_path[0])
 	## Chase the next authoritative cell; sync_from_state keeps this aligned with sim.
@@ -869,19 +873,12 @@ func _process(delta: float) -> void:
 
 	var to_target := _move_target_world - position
 	var distance := to_target.length()
-	## Only play walk while still chasing a sim path cell. After sim finishes we clear
-	## _path and settle to the final cell — do not keep looping the run anim in place.
+	## Play walk while still chasing a path cell. After the path is consumed we settle —
+	## do not keep looping the run anim in place.
 	var chasing_path := _path_index < _path.size() and not _path.is_empty()
 
 	if distance <= 0.001:
-		position = _move_target_world
-		if not chasing_path:
-			_finish_presentation_move()
-		else:
-			## Arrived early at the next sim cell — pause run anim (no run-in-place).
-			var step_delta := _path[_path_index] - _previous_grid_pos
-			_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
-			_update_locomotion_visual(step_delta, false)
+		_arrive_at_chase_cell()
 		return
 
 	if chasing_path:
@@ -891,11 +888,27 @@ func _process(delta: float) -> void:
 
 	var move_amount := move_speed * _speed_multiplier * delta
 	if move_amount >= distance:
-		position = _move_target_world
-		if not chasing_path:
-			_finish_presentation_move()
+		_arrive_at_chase_cell()
 	else:
 		position += to_target.normalized() * move_amount
+
+
+## Consume the current chase cell and keep running to the next one.
+## Waiting idle here (old "arrived early") restarted the run clip every tile.
+func _arrive_at_chase_cell() -> void:
+	position = _move_target_world
+	if _path.is_empty() or _path_index >= _path.size():
+		_finish_presentation_move()
+		return
+	_previous_grid_pos = _path[_path_index]
+	_path_index += 1
+	if _path_index >= _path.size():
+		_finish_presentation_move()
+		return
+	_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
+	var step_delta := _path[_path_index] - _previous_grid_pos
+	_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
+	_update_locomotion_visual(step_delta, true)
 
 
 ## Align visual chase target with authoritative simulation state (presentation only).
@@ -911,6 +924,15 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 		return
 	_speed_multiplier = state.move_speed_mult if state.move_speed_mult > 0.0 else _speed_multiplier
 	if state.is_moving and state.current_path.size() > state.path_index and state.path_index > 0:
+		## Same order already on screen and at/ahead of sim — do not rewind the chase
+		## or restart the run clip (MP ticks used to hitch every tile).
+		var dest: Vector2i = state.current_path[state.current_path.size() - 1]
+		if dest == _settled_path_end and not _is_moving:
+			if position.distance_to(IsometricGrid.grid_to_world(dest)) <= 1.5:
+				return
+		if _is_moving and _chase_is_same_route(state) and _path_index >= state.path_index:
+			set_process(true)
+			return
 		_path = state.current_path.duplicate()
 		_path_index = state.path_index
 		_previous_grid_pos = state.grid_position
@@ -941,6 +963,14 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 
 func _has_active_chase() -> bool:
 	return not _path.is_empty() and _path_index < _path.size()
+
+
+func _chase_is_same_route(state: SoldierState) -> bool:
+	if state == null or _path.is_empty() or state.current_path.is_empty():
+		return false
+	if _path.size() != state.current_path.size():
+		return false
+	return _path[_path.size() - 1] == state.current_path[state.current_path.size() - 1]
 
 
 func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:
