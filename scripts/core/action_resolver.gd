@@ -395,10 +395,11 @@ static func execute_move(
 	if context == null or not context.find_path.is_valid():
 		return ActionResult.fail("Move command requires a pathfinder in CommandContext.")
 
+	cmd.target_cell = game_state.map_data.clamp_to_bounds(cmd.target_cell)
 	if not game_state.map_data.is_walkable(cmd.target_cell):
 		if game_state.map_data.is_blocked(cmd.target_cell):
 			return ActionResult.fail("That tile is blocked.")
-		return ActionResult.fail("That tile is outside the map.")
+		return ActionResult.fail("No path to that tile.")
 
 	if (
 		game_state.locks_deployment_zone()
@@ -442,8 +443,8 @@ static func execute_move(
 		var anchor: SoldierState = orderable[0]
 		var anchor_pos: Vector2i = formation_refs[anchor.soldier_id]
 		var squad_target := cmd.target_cell
-		var survival_rush := context != null and context.survival_ge_advance
-		if not survival_rush:
+		var enforce_cohesion := _should_enforce_fireteam_cohesion(game_state, context)
+		if enforce_cohesion:
 			squad_target = _clamp_cell_to_fireteam_cohesion(
 				squad_target, _living_fireteam_positions(fireteam, -1)
 			)
@@ -466,7 +467,7 @@ static func execute_move(
 				squad_target,
 				offset,
 			)
-			if not survival_rush:
+			if enforce_cohesion:
 				var peers := _living_fireteam_positions(fireteam, squad_soldier.soldier_id)
 				member_target = _clamp_cell_to_fireteam_cohesion(member_target, peers)
 			if (
@@ -532,13 +533,12 @@ static func execute_move(
 				return ActionResult.fail(notices[0])
 			return ActionResult.fail("No soldiers could %s to that tile." % squad_mode_label)
 		## Planned ends must keep the fireteam within cohesion (incl. soldiers left behind).
-		if not survival_rush and not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
+		## Human orders never fail this — a stretched fireteam must still be able to move.
+		if enforce_cohesion and not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
 			_rollback_move_orders(fireteam, result)
-			if _acting_is_ai(game_state, context):
-				var quiet := ActionResult.new()
-				quiet.refresh_views = false
-				return quiet
-			return ActionResult.fail(FIRETEAM_COHESION_FAIL_MSG)
+			var quiet := ActionResult.new()
+			quiet.refresh_views = false
+			return quiet
 		if _should_emit_human_path_overlay(game_state, context):
 			result.path_overlay = {
 				"cells": [] as Array[Vector2i],
@@ -572,10 +572,10 @@ static func execute_move(
 		return ActionResult.fail(validation)
 
 	var single_target := cmd.target_cell
-	var peer_positions := _living_fireteam_positions(fireteam, soldier_state.soldier_id)
-	var survival_rush := context != null and context.survival_ge_advance
-	if not survival_rush:
+	var enforce_cohesion := _should_enforce_fireteam_cohesion(game_state, context)
+	if enforce_cohesion:
 		## Run toward the click; stop at the cohesion edge instead of ignoring the order.
+		var peer_positions := _living_fireteam_positions(fireteam, soldier_state.soldier_id)
 		single_target = _clamp_cell_to_fireteam_cohesion(single_target, peer_positions)
 
 	if not _assign_move_path(
@@ -587,13 +587,11 @@ static func execute_move(
 			return ActionResult.fail("Soldier is already at that tile.")
 		return ActionResult.fail("No path to that tile.")
 
-	if not survival_rush and not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
+	if enforce_cohesion and not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
 		_rollback_move_orders(fireteam, result)
-		if _acting_is_ai(game_state, context):
-			var quiet := ActionResult.new()
-			quiet.refresh_views = false
-			return quiet
-		return ActionResult.fail(FIRETEAM_COHESION_FAIL_MSG)
+		var quiet := ActionResult.new()
+		quiet.refresh_views = false
+		return quiet
 
 	if _should_emit_human_path_overlay(game_state, context):
 		result.path_overlay = {
@@ -1085,8 +1083,7 @@ static func execute_grenade(
 		return ActionResult.fail("Soldier already has a grenade in the air.")
 	if soldier.grenade_count <= 0:
 		return ActionResult.fail("No grenades remaining.")
-	if not game_state.map_data.is_in_bounds(cmd.target_cell):
-		return ActionResult.fail("That tile is outside the map.")
+	cmd.target_cell = game_state.map_data.clamp_to_bounds(cmd.target_cell)
 
 	## Range / friendly checks use current cell (where a runner would halt).
 	var throw_distance := CombatSystem.grenade_throw_distance(
@@ -1148,9 +1145,7 @@ static func arm_movement_mode_for_soldier(
 	if move_result.rejected:
 		return move_result.message
 
-	var stand_message := _stand_up_for_run(soldier, move_result.mode)
-	if not MovementModeClass.is_allowed(soldier.position_state, move_result.mode):
-		return "Cannot use %s while DOWN." % MovementModeClass.display_name(move_result.mode)
+	var stand_message := _stand_up_for_locomotion(soldier, move_result.mode)
 
 	soldier.movement_mode = move_result.mode
 	var mode_message := "Soldier %d movement mode = %s" % [
@@ -1361,6 +1356,16 @@ static func _acting_is_ai(game_state: GameStateClass, context: CommandContext) -
 	return game_state.command_hierarchy.is_ai_player(pid)
 
 
+## AI keeps fireteam clustering. Humans (and Survival GE rushes) must always be able to move.
+static func _should_enforce_fireteam_cohesion(
+	game_state: GameStateClass,
+	context: CommandContext,
+) -> bool:
+	if context != null and context.survival_ge_advance:
+		return false
+	return _acting_is_ai(game_state, context)
+
+
 static func _chebyshev(a: Vector2i, b: Vector2i) -> int:
 	return maxi(absi(a.x - b.x), absi(a.y - b.y))
 
@@ -1510,14 +1515,13 @@ static func _validate_move(soldier: SoldierState, mode: int) -> String:
 	## never move again — it lay in the open taking fire until it died.
 	if soldier.pending_position_state >= 0:
 		soldier.clear_pending_position()
-	_stand_up_for_run(soldier, mode)
-	if not MovementModeClass.is_allowed(soldier.position_state, mode):
-		return "Cannot %s while DOWN." % MovementModeClass.display_name(mode)
+	_stand_up_for_locomotion(soldier, mode)
 	return ""
 
 
-static func _stand_up_for_run(soldier: SoldierState, mode: int) -> String:
-	if soldier == null or mode != MovementModeClass.RUN:
+## RUN/WALK stand a prone soldier. CRAWL stays down. Stance never rejects a move.
+static func _stand_up_for_locomotion(soldier: SoldierState, mode: int) -> String:
+	if soldier == null or mode == MovementModeClass.CRAWL:
 		return ""
 	if soldier.position_state != PositionStateClass.DOWN and soldier.pending_position_state < 0:
 		return ""
@@ -1526,6 +1530,10 @@ static func _stand_up_for_run(soldier: SoldierState, mode: int) -> String:
 		return ""
 	soldier.position_state = PositionStateClass.UP
 	return "Soldier %d changed to UP" % soldier.soldier_id
+
+
+static func _stand_up_for_run(soldier: SoldierState, mode: int) -> String:
+	return _stand_up_for_locomotion(soldier, mode)
 
 
 static func _animation_family_for_soldier(soldier: SoldierState) -> String:

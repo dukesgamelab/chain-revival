@@ -14,8 +14,10 @@ const TILE_WIDTH := TileSizeConfig.TILE_WIDTH
 ## Re-exported from TileSizeConfig — single source of truth for tile footprint.
 const TILE_HEIGHT := TileSizeConfig.TILE_HEIGHT
 
-## Extra grass rings drawn outside the playable map (visual only, not walkable).
-const MAP_VISUAL_BORDER := 12
+## No decorative off-map tiles. The authored grid is the whole battlefield.
+const MAP_VISUAL_BORDER := 0
+## Extra camera slack in cells so edge tiles are not flush against the screen.
+const MAP_CAMERA_PAD_CELLS := 2
 
 ## Presentation-only view rotation: 0-3 = 0, 90, 180, 270 degrees clockwise.
 static var current_view_rotation: int = 0
@@ -318,7 +320,7 @@ static func grid_line(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]
 
 
 ## World-space bounding box that fully contains every tile on the map (presentation).
-## Pass border_cells to include decorative grass rings outside the playable grid.
+## Pass border_cells only for camera slack — those cells are not drawn or walkable.
 static func get_map_world_bounds(map_width: int, map_height: int, border_cells: int = 0) -> Rect2:
 	if map_width <= 0 or map_height <= 0:
 		return Rect2()

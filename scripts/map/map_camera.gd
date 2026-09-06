@@ -36,7 +36,7 @@ func set_map_size(map_width: int, map_height: int) -> void:
 	_map_bounds = IsometricGrid.get_map_world_bounds(
 		map_width,
 		map_height,
-		IsometricGrid.MAP_VISUAL_BORDER,
+		IsometricGrid.MAP_CAMERA_PAD_CELLS,
 	)
 	_clamp_position()
 

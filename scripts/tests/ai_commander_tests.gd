@@ -1001,11 +1001,11 @@ func _test_pinned_prone_soldier_can_still_move() -> void:
 		CombatSystem.is_stress_pinned(soldier.stress),
 		"stress=%.1f" % soldier.stress,
 	)
-	## WALK is what a pinned RUN used to become, and WALK is what gets rejected while DOWN.
+	## WALK while DOWN used to be rejected and could strand a soldier. It now stands them.
 	_assert(
-		"prone soldier cannot WALK (the rejection that stranded them)",
-		not ActionResolverClass.validate_move(soldier, MovementModeClass.WALK).is_empty(),
-		"expected a rejection message",
+		"prone soldier can WALK (stands them up)",
+		ActionResolverClass.validate_move(soldier, MovementModeClass.WALK).is_empty(),
+		"WALK while DOWN must stand, not reject",
 	)
 	_assert(
 		"prone soldier can still CRAWL",
@@ -1310,12 +1310,17 @@ func _test_pending_stance_does_not_block_movement() -> void:
 		soldier.pending_position_state < 0,
 		"pending=%d" % soldier.pending_position_state,
 	)
-	## The real stance rule is unchanged: prone still cannot walk.
+	soldier.position_state = PositionStateClass.DOWN
 	soldier.pending_position_state = PositionStateClass.DOWN
 	_assert(
-		"prone still cannot WALK even with the gate removed",
-		not ActionResolverClass.validate_move(soldier, MovementModeClass.WALK).is_empty(),
-		"expected a rejection message",
+		"prone WALK stands the soldier instead of rejecting",
+		ActionResolverClass.validate_move(soldier, MovementModeClass.WALK).is_empty(),
+		"WALK while DOWN must stand, not reject",
+	)
+	_assert(
+		"WALK while DOWN leaves the soldier standing",
+		soldier.position_state == PositionStateClass.UP,
+		"position_state=%d" % soldier.position_state,
 	)
 
 

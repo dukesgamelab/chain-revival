@@ -166,7 +166,7 @@ func _draw() -> void:
 	_draw_spawn_markers()
 
 
-## Decorative grass diamonds outside the playable map (not used for pathfinding).
+## Optional rim fill when MAP_VISUAL_BORDER > 0 (kept at 0 — the grid is the map).
 func _draw_grass_border() -> void:
 	var border := IsometricGrid.MAP_VISUAL_BORDER
 	for ring in range(1, border + 1):

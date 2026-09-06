@@ -2,7 +2,6 @@ class_name MovementMode
 extends RefCounted
 ## How a soldier moves when given a move order.
 
-const PositionStateClass := preload("res://scripts/enums/position_state.gd")
 const MovementPolicyClass := preload("res://scripts/gameplay_policies/movement_policy.gd")
 
 enum Mode { RUN, WALK, CRAWL }
@@ -41,10 +40,6 @@ static func speed_multiplier(mode: int) -> float:
 	return GameplayPolicies.movement.speed_multiplier(mode)
 
 
-## RUN auto-stands prone soldiers. DOWN soldiers may otherwise only crawl.
-static func is_allowed(position_state: int, mode: int) -> bool:
-	if mode == RUN:
-		return true
-	if position_state == PositionStateClass.DOWN:
-		return mode == CRAWL
+## Locomotion is always legal. RUN/WALK stand a prone soldier; CRAWL stays down.
+static func is_allowed(_position_state: int, _mode: int) -> bool:
 	return true

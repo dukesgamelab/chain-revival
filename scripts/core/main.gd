@@ -1220,9 +1220,11 @@ func _update_grenade_preview() -> void:
 		return
 
 	var target_cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
+	if _map_data != null:
+		target_cell = _map_data.clamp_to_bounds(target_cell)
 	var from_world := _get_soldier_tracer_point(shooter)
 	var target_world := IsometricGrid.soldier_aim_point(target_cell)
-	var in_bounds := _map_data.is_in_bounds(target_cell)
+	var in_bounds := _map_data != null and _map_data.is_in_bounds(target_cell)
 	var in_range := (
 		in_bounds
 		and CombatSystem.grenade_throw_distance(shooter.grid_position, target_cell)
@@ -1755,6 +1757,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	var target_cell := IsometricGrid.world_to_cell_at_point(_get_world_mouse_local())
+	if _map_data != null:
+		target_cell = _map_data.clamp_to_bounds(target_cell)
 
 	if mouse_event.button_index == MOUSE_BUTTON_RIGHT:
 		if _fire_at_mode:

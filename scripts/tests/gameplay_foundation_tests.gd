@@ -29,6 +29,10 @@ func _ready() -> void:
 	_bootstrap()
 	_test_fortress_map_loads()
 	_test_soldier_movement()
+	_test_human_move_ignores_fireteam_cohesion()
+	_test_prone_walk_stands_instead_of_reject()
+	_test_stunned_soldier_cannot_move()
+	_test_off_grid_move_clamps_onto_map()
 	_test_squad_run_to_redirect_keeps_formation()
 	_test_firing()
 	_test_grenade_throwing()
@@ -228,6 +232,111 @@ func _test_soldier_movement() -> void:
 		"Soldier movement ends on target cell",
 		soldier.grid_position == target,
 		"expected %s got %s" % [target, soldier.grid_position],
+	)
+
+
+func _test_human_move_ignores_fireteam_cohesion() -> void:
+	## A stretched fireteam used to fail every Run To with "Cannot move that far from fireteam".
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var fireteam := game_state.session.get_fireteam(Team.USA)
+	_assert("cohesion fixture has a fireteam", fireteam != null and fireteam.soldiers.size() >= 2)
+	var mover: SoldierState = fireteam.soldiers[0]
+	var peer: SoldierState = fireteam.soldiers[1]
+	mover.grid_position = Vector2i(8, 20)
+	peer.grid_position = Vector2i(40, 20)
+	mover.clear_path()
+	peer.clear_path()
+	var target := Vector2i(6, 20)
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = mover.soldier_id
+	cmd.target_cell = target
+	cmd.movement_mode = MovementModeClass.RUN
+	cmd.scope = MoveCommandClass.Scope.SINGLE
+	var result := ActionResolverClass.execute_move(game_state, cmd, _path_context(map_data))
+	_assert(
+		"Human move succeeds even when fireteam span exceeds cohesion",
+		result.success,
+		result.status_message,
+	)
+	_assert(
+		"Human move is not rolled back by cohesion",
+		mover.is_moving and not mover.current_path.is_empty(),
+		"is_moving=%s path_len=%d" % [mover.is_moving, mover.current_path.size()],
+	)
+
+
+func _test_prone_walk_stands_instead_of_reject() -> void:
+	_bootstrap()
+	var game_state := _make_game_state()
+	var soldier := game_state.get_soldier(Team.USA, 1)
+	soldier.position_state = PositionStateClass.DOWN
+	soldier.clear_pending_position()
+	var validation := ActionResolverClass.validate_move(soldier, MovementModeClass.WALK)
+	_assert("Prone WALK is accepted", validation.is_empty(), validation)
+	_assert(
+		"Prone WALK stands the soldier",
+		soldier.position_state == PositionStateClass.UP,
+		"position_state=%d" % soldier.position_state,
+	)
+
+
+func _test_stunned_soldier_cannot_move() -> void:
+	_bootstrap()
+	var game_state := _make_game_state()
+	var soldier := game_state.get_soldier(Team.USA, 1)
+	soldier.apply_stun(4.0)
+	var start := soldier.grid_position
+	var target := start + Vector2i(2, 0)
+	if not game_state.map_data.is_walkable(target):
+		target = start + Vector2i(0, 2)
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = 1
+	cmd.target_cell = target
+	cmd.movement_mode = MovementModeClass.RUN
+	cmd.scope = MoveCommandClass.Scope.SINGLE
+	var result := ActionResolverClass.execute_move(
+		game_state, cmd, _path_context(game_state.map_data)
+	)
+	_assert("Stunned soldier cannot be ordered to move", not result.success, result.status_message)
+	_assert(
+		"Stun is the move rejection reason",
+		result.status_message.contains("stunned"),
+		result.status_message,
+	)
+
+
+func _test_off_grid_move_clamps_onto_map() -> void:
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var soldier := game_state.get_soldier(Team.USA, 1)
+	soldier.grid_position = Vector2i(5, 5)
+	soldier.clear_path()
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = 1
+	cmd.target_cell = Vector2i(-8, 5)
+	cmd.movement_mode = MovementModeClass.RUN
+	cmd.scope = MoveCommandClass.Scope.SINGLE
+	var result := ActionResolverClass.execute_move(game_state, cmd, _path_context(map_data))
+	_assert("Off-grid click is accepted as an on-map move", result.success, result.status_message)
+	_assert(
+		"Off-grid click snaps to the map rim",
+		cmd.target_cell == Vector2i(0, 5),
+		"clamped=%s" % cmd.target_cell,
+	)
+	_assert(
+		"Path ends on the map rim",
+		not soldier.current_path.is_empty()
+		and soldier.current_path[soldier.current_path.size() - 1] == Vector2i(0, 5),
 	)
 
 

@@ -141,6 +141,13 @@ func is_in_bounds(cell: Vector2i) -> bool:
 	return cell.x >= 0 and cell.y >= 0 and cell.x < width and cell.y < height
 
 
+## Snap a click that lands just past the rim onto the nearest map cell.
+func clamp_to_bounds(cell: Vector2i) -> Vector2i:
+	if width <= 0 or height <= 0:
+		return cell
+	return Vector2i(clampi(cell.x, 0, width - 1), clampi(cell.y, 0, height - 1))
+
+
 func get_object_type(cell: Vector2i) -> String:
 	return str(_object_lookup.get(cell, ""))
 

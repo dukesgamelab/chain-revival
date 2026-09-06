@@ -274,14 +274,9 @@ func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0
 		state.grenade_count,
 		state.has_pending_grenade(),
 	)
-	row.set_move_button_enabled(
-		MovementMode.RUN,
-		MovementMode.is_allowed(state.position_state, MovementMode.RUN),
-	)
-	row.set_move_button_enabled(
-		MovementMode.CRAWL,
-		MovementMode.is_allowed(state.position_state, MovementMode.CRAWL),
-	)
+	var can_move := alive and not state.is_stunned()
+	row.set_move_button_enabled(MovementMode.RUN, can_move)
+	row.set_move_button_enabled(MovementMode.CRAWL, can_move)
 
 
 func set_soldier_row_interactive(row_index: int, enabled: bool) -> void:
