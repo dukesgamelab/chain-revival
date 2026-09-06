@@ -2847,12 +2847,12 @@ func _sync_run_to_destination_overlay() -> void:
 				):
 					continue
 			var dest := Vector2i(-999, -999)
-			if state.is_moving and not state.current_path.is_empty():
+			var view: Soldier = _get_view(state.team_id, state.soldier_id)
+			if view != null:
+				## Hide the diamond when the sprite has arrived, even if sim is still catching up.
+				dest = view.presentation_destination_cell()
+			elif state.is_moving and not state.current_path.is_empty():
 				dest = state.current_path[state.current_path.size() - 1]
-			else:
-				var view: Soldier = _get_view(state.team_id, state.soldier_id)
-				if view != null:
-					dest = view.presentation_destination_cell()
 			if dest.x <= -900:
 				continue
 			markers.append({
