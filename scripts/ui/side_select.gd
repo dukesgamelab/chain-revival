@@ -2,6 +2,8 @@ extends Control
 ## Choose USA or Germany after connecting to the local multiplayer server.
 
 const MAIN_SCENE := "res://scenes/main.tscn"
+const MatchConfigClass := preload("res://scripts/core/match_config.gd")
+const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 
 const _HINT_DEFAULT := "Choose your team. Each side can only be taken by one player."
 const _HINT_REQUESTING := "Requesting side from server..."
@@ -36,6 +38,9 @@ func _request_side(side_name: String) -> void:
 
 	var assigned := await NetworkClient.request_side_and_wait(side_name)
 	if assigned and PlayerSides.has_assignment():
+		var cfg = MatchConfigClass.default_local_multiplayer_1v1()
+		cfg.local_player_id = 1 if PlayerSides.assigned_team_id == Team.USA else 2
+		MatchConfigStoreClass.set_pending(cfg)
 		get_tree().change_scene_to_file(MAIN_SCENE)
 		return
 

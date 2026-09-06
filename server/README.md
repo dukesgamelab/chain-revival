@@ -1,6 +1,9 @@
 # Chain Revival — Local Multiplayer Server
 
-Node.js + TypeScript WebSocket server for local multiplayer. This is the foundation only: clients can connect and exchange a `ping` / `pong` handshake. Authoritative game logic will be added later.
+Authoritative Node.js + TypeScript WebSocket server for LOCAL_MULTIPLAYER.
+
+The server owns the match `GameState` and resolves `MoveCommand` through a
+ported ActionResolver movement slice. Godot clients present results only.
 
 ## Requirements
 
@@ -14,11 +17,17 @@ npm install
 npm run dev
 ```
 
-The server listens on `ws://localhost:3000` and logs:
+The server listens on `ws://localhost:3000` and creates one match (`local-mp-1`)
+on Farm Fight (`ff_farm`).
 
-```text
-Chain Revival local multiplayer server running on ws://localhost:3000
-```
+## Two-window test
+
+1. Start the server (`cd server && npm run dev`).
+2. Launch two Godot editor instances of this project (or two exported builds).
+3. In each window: **Multiplayer** → connect → pick **USA** or **GERMANY**.
+4. Each side can only be taken once. Both windows receive the same snapshot.
+5. USA issues Run To; both windows animate that soldier. Same for Germany.
+6. USA cannot move German soldiers (server rejects). Vice versa.
 
 ## Scripts
 
@@ -28,48 +37,16 @@ Chain Revival local multiplayer server running on ws://localhost:3000
 | `npm run build` | Compile TypeScript to `dist/` |
 | `npm start` | Run compiled output (`node dist/index.js`) |
 
-## Test message
+## Messages
 
-Send from a WebSocket client:
+| Direction | `type` | Role |
+|-----------|--------|------|
+| C→S | `hello` | Handshake; server replies `welcome` + `clientId` + `matchId` |
+| C→S | `request_side` | `USA` / `GERMANY`; exclusive ownership |
+| S→C | `side_assigned` / `side_denied` | Server-owned side |
+| S→C | `match_snapshot` | Initial authoritative state (map id + soldiers) |
+| C→S | `move_command` | Intent only (`requestId`, soldier, destination, mode, scope) |
+| S→C | `move_result` | Broadcast ActionResult paths |
+| S→C | `movement_tick` | Authoritative tile steps / completions |
 
-```json
-{ "type": "ping" }
-```
-
-Server responds:
-
-```json
-{ "type": "pong", "serverTime": 123456789 }
-```
-
-Hello handshake (used by Godot local multiplayer test):
-
-```json
-{ "type": "hello", "clientName": "Godot Client" }
-```
-
-Server responds:
-
-```json
-{ "type": "welcome", "message": "Hello Godot client", "clientId": "..." }
-```
-
-Side assignment:
-
-```json
-{ "type": "request_side", "side": "USA" }
-```
-
-Server responds with `{ "type": "side_assigned", "side": "USA" }` or `{ "type": "side_denied", "reason": "Side already taken" }`.
-
-## Project layout
-
-```text
-src/
-  index.ts           WebSocket server entry point
-  game_state.ts      Placeholder (not ported from Godot)
-  action_resolver.ts Placeholder (not ported from Godot)
-  commands/index.ts  Placeholder command envelope types
-```
-
-The Godot client is unchanged and still runs offline gameplay as before.
+Single-player / Offline Quick Start never talks to this server.

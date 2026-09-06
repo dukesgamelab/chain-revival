@@ -3,6 +3,7 @@ extends Control
 
 const MAIN_SCENE := "res://scenes/main.tscn"
 const MATCH_SETUP_SCENE := "res://scenes/match_setup.tscn"
+const SIDE_SELECT_SCENE := "res://scenes/side_select.tscn"
 const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
 const ASSET_ANIM_EDITOR_SCENE := "res://scenes/editor/asset_animation_editor.tscn"
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
@@ -60,12 +61,13 @@ func _on_multiplayer_pressed() -> void:
 	if BuildConfig.is_survival_playtest():
 		return
 	_set_buttons_enabled(false)
-	## Networking not required for Phase 1 config — still attempt connect for existing flow,
-	## then open Match Setup (Open slots). Failures fall back to setup anyway.
 	GameModeManager.set_mode(GameMode.LOCAL_MULTIPLAYER)
-	await NetworkClient.connect_and_wait()
-	_open_match_setup(MatchConfigClass.GameModeKind.MULTIPLAYER)
-	_set_buttons_enabled(true)
+	var connected := await NetworkClient.connect_and_wait()
+	if not connected:
+		GameLog.log_system("[ModeSelect] Local multiplayer server is not running.")
+		_set_buttons_enabled(true)
+		return
+	get_tree().change_scene_to_file(SIDE_SELECT_SCENE)
 
 
 func _open_match_setup(game_mode_kind: int) -> void:

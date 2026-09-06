@@ -1,21 +1,82 @@
 /**
- * Placeholder for authoritative multiplayer game state.
- * Godot GameState is not ported yet.
+ * Authoritative multiplayer GameState (movement slice).
+ * Lives only on the Node server in LOCAL_MULTIPLAYER.
  */
 
-export interface GameStateSnapshot {
-  version: number;
-}
+import type { MapData } from "./map_data";
+import { SimulationClock } from "./simulation_clock";
+import { SoldierState, defaultFacingForTeam } from "./soldier_state";
+import {
+  MATCH_ID,
+  TEAM_GERMANY,
+  TEAM_USA,
+  type MatchSnapshot,
+  type Vec2i,
+} from "./types";
+
+const SOLDIERS_PER_SIDE = 4;
 
 export class GameState {
-  private version = 0;
+  readonly matchId = MATCH_ID;
+  readonly map: MapData;
+  readonly clock = new SimulationClock();
+  readonly soldiers: SoldierState[] = [];
 
-  getSnapshot(): GameStateSnapshot {
-    return { version: this.version };
+  constructor(map: MapData) {
+    this.map = map;
+    this.spawnSides();
+    this.faceOpposites();
   }
 
-  /** Reserved for future server-side state mutations. */
-  tick(): void {
-    this.version += 1;
+  private spawnSides(): void {
+    spawnTeam(this.soldiers, TEAM_USA, this.map.team1Spawns);
+    spawnTeam(this.soldiers, TEAM_GERMANY, this.map.team2Spawns);
   }
+
+  private faceOpposites(): void {
+    const usa = this.soldiers.filter((s) => s.teamId === TEAM_USA);
+    const ger = this.soldiers.filter((s) => s.teamId === TEAM_GERMANY);
+    const n = Math.min(usa.length, ger.length);
+    for (let i = 0; i < n; i += 1) {
+      usa[i].facing = towardCell(usa[i].gridPosition, ger[i].gridPosition);
+      ger[i].facing = towardCell(ger[i].gridPosition, usa[i].gridPosition);
+    }
+  }
+
+  getSoldier(teamId: number, soldierId: number): SoldierState | null {
+    return (
+      this.soldiers.find((s) => s.teamId === teamId && s.soldierId === soldierId) ?? null
+    );
+  }
+
+  soldiersOnTeam(teamId: number): SoldierState[] {
+    return this.soldiers.filter((s) => s.teamId === teamId);
+  }
+
+  getSnapshot(): MatchSnapshot {
+    return {
+      type: "match_snapshot",
+      matchId: this.matchId,
+      mapId: this.map.mapId,
+      simMsec: this.clock.getTicksMsec(),
+      soldiers: this.soldiers.map((s) => s.toSnapshot()),
+    };
+  }
+}
+
+function spawnTeam(out: SoldierState[], teamId: number, spawns: Vec2i[]): void {
+  const facing = defaultFacingForTeam(teamId);
+  for (let i = 0; i < SOLDIERS_PER_SIDE; i += 1) {
+    const cell = spawns[i] ?? { x: 2 + i, y: teamId === TEAM_USA ? 2 : 10 };
+    out.push(new SoldierState(i + 1, teamId, cell, facing));
+  }
+}
+
+function towardCell(from: Vec2i, to: Vec2i): Vec2i {
+  const dx = Math.max(-1, Math.min(1, to.x - from.x));
+  const dy = Math.max(-1, Math.min(1, to.y - from.y));
+  if (dx === 0 && dy === 0) {
+    return { x: 0, y: -1 };
+  }
+  return { x: dx, y: dy };
 }

@@ -41,6 +41,13 @@ func _init(
 	rebuild_default_slots()
 
 
+static func default_local_multiplayer_1v1() -> RefCounted:
+	## Two human seats on Farm Fight. Runtime mode is LOCAL_MULTIPLAYER; server owns state.
+	var cfg = default_offline_1v1()
+	cfg.timed_deployment = false
+	return cfg
+
+
 static func default_offline_1v1() -> RefCounted:
 	## Dev Offline Quick Start: both sides human (hotseat). No AI.
 	## Uses MULTIPLAYER slot rules (multiple humans allowed); GameModeManager stays OFFLINE_DEV.

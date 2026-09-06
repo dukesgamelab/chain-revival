@@ -1,13 +1,16 @@
 import { WebSocketServer, WebSocket, type RawData } from "ws";
 import { randomUUID } from "node:crypto";
+import { LocalMatch, parseMoveIntent } from "./match";
 import {
   parseSideName,
   registerClient,
   removeClient,
   requestSide,
 } from "./side_ownership";
+import { MATCH_ID, sideToTeamId } from "./types";
 
 const PORT = 3000;
+const match = new LocalMatch();
 
 interface IncomingMessage {
   type?: string;
@@ -48,10 +51,12 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
     const clientName =
       typeof message.clientName === "string" ? message.clientName : "Unknown client";
     console.log("Hello from %s (%s)", clientName, clientId);
+    match.attachClient(clientId, ws);
     sendJson(ws, {
       type: "welcome",
       message: "Hello Godot client",
       clientId,
+      matchId: MATCH_ID,
     });
     return;
   }
@@ -70,17 +75,51 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
       return;
     }
 
-    sendJson(ws, { type: "side_assigned", side: result.side });
+    const teamId = sideToTeamId(result.side);
+    match.setClientTeam(clientId, teamId);
+    sendJson(ws, {
+      type: "side_assigned",
+      side: result.side,
+      matchId: MATCH_ID,
+      teamId,
+    });
+    match.sendSnapshot(ws);
+    return;
+  }
+
+  if (message.type === "join_match") {
+    match.attachClient(clientId, ws);
+    match.sendSnapshot(ws);
+    return;
+  }
+
+  if (message.type === "move_command") {
+    const intent = parseMoveIntent(message);
+    if (intent === null) {
+      sendJson(ws, {
+        type: "move_result",
+        matchId: MATCH_ID,
+        requestId: typeof message.requestId === "string" ? message.requestId : "",
+        success: false,
+        statusMessage: "Invalid move command.",
+        moveOrders: [],
+        movementHalts: [],
+      });
+      return;
+    }
+    match.handleMove(clientId, intent);
   }
 }
 
 const wss = new WebSocketServer({ port: PORT });
 
 console.log(`Chain Revival local multiplayer server running on ws://localhost:${PORT}`);
+console.log(`Authoritative match ${MATCH_ID} ready`);
 
 wss.on("connection", (ws: WebSocket) => {
   const clientId = randomUUID();
   registerClient(ws, clientId);
+  match.attachClient(clientId, ws);
   console.log("Client connected (%s)", clientId);
 
   ws.on("message", (data: RawData) => {
@@ -89,6 +128,7 @@ wss.on("connection", (ws: WebSocket) => {
 
   ws.on("close", () => {
     removeClient(clientId);
+    match.removeClient(clientId);
     console.log("Client disconnected (%s)", clientId);
   });
 

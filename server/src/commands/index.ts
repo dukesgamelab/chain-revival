@@ -1,22 +1,8 @@
-/**
- * Placeholder command types for future multiplayer routing.
- * Godot command classes are not ported yet.
- */
+import type { MoveCommandIntent } from "../types";
 
-export type CommandType =
-  | "ping"
-  | "hello"
-  | "request_side"
-  | "move"
-  | "face"
-  | "fire"
-  | "grenade"
-  | "position";
+export type CommandType = "ping" | "hello" | "request_side" | "join_match" | "move_command";
 
-export interface CommandEnvelope {
-  type: CommandType;
-  payload?: Record<string, unknown>;
-}
+export type CommandEnvelope = MoveCommandIntent | { type: CommandType; [key: string]: unknown };
 
 export function isCommandEnvelope(value: unknown): value is CommandEnvelope {
   if (typeof value !== "object" || value === null) {

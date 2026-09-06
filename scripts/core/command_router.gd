@@ -4,7 +4,8 @@ extends Node
 ## Flow (OFFLINE_DEV):
 ##   Input/UI → CommandRouter → ActionResolver → GameState → visuals
 ##
-## LOCAL_MULTIPLAYER: connection test via NetworkClient; gameplay still resolves locally for now.
+## LOCAL_MULTIPLAYER: MoveCommand is sent to the Node server (see NetworkClient).
+## Other commands stay local until later phases. Single-player is unchanged.
 
 const ActionResolverClass := preload("res://scripts/core/action_resolver.gd")
 const ActionResultClass := preload("res://scripts/core/action_result.gd")
@@ -87,10 +88,14 @@ func _route(action_label: String, resolver_call: Callable) -> ActionResultClass:
 	var mode_name := GameMode.display_name(GameModeManager.get_mode())
 	GameLog.log_system("[CommandRouter] submit: %s (mode=%s)" % [action_label, mode_name])
 
+	if GameModeManager.is_local_multiplayer() and action_label == "command:MoveCommand":
+		GameLog.log_system("[CommandRouter] refused local MoveCommand — server is authoritative")
+		return ActionResultClass.fail("Move commands must be resolved by the match server.")
+
 	if GameModeManager.is_offline_dev() or GameModeManager.is_local_multiplayer():
 		var route_note := "locally → ActionResolver"
 		if GameModeManager.is_local_multiplayer():
-			route_note = "locally → ActionResolver (server routing TBD)"
+			route_note = "locally → ActionResolver (non-move; movement is server-owned)"
 		GameLog.log_system("[CommandRouter] routed %s" % route_note)
 		return resolver_call.call() as ActionResultClass
 

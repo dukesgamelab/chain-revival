@@ -1,0 +1,109 @@
+/** Shared grid / soldier types for the authoritative local match. */
+
+export const TEAM_USA = 1;
+export const TEAM_GERMANY = 2;
+
+export const MOVE_SCOPE_SINGLE = 0;
+export const MOVE_SCOPE_SQUAD = 1;
+
+export const MOVEMENT_RUN = 0;
+export const MOVEMENT_WALK = 1;
+export const MOVEMENT_CRAWL = 2;
+
+export const POSITION_UP = 0;
+export const POSITION_DOWN = 1;
+
+export const MATCH_ID = "local-mp-1";
+export const DEFAULT_MAP_ID = "ff_farm";
+
+export interface Vec2i {
+  x: number;
+  y: number;
+}
+
+export function vec(x: number, y: number): Vec2i {
+  return { x, y };
+}
+
+export function vecEq(a: Vec2i, b: Vec2i): boolean {
+  return a.x === b.x && a.y === b.y;
+}
+
+export function vecKey(cell: Vec2i): string {
+  return `${cell.x},${cell.y}`;
+}
+
+export function chebyshev(a: Vec2i, b: Vec2i): number {
+  return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+}
+
+export function sideToTeamId(side: "USA" | "GERMANY"): number {
+  return side === "GERMANY" ? TEAM_GERMANY : TEAM_USA;
+}
+
+export function teamIdToSide(teamId: number): "USA" | "GERMANY" {
+  return teamId === TEAM_GERMANY ? "GERMANY" : "USA";
+}
+
+export interface SoldierSnapshot {
+  soldierId: number;
+  teamId: number;
+  gridPosition: Vec2i;
+  facing: Vec2i;
+  positionState: number;
+  movementMode: number;
+  isDead: boolean;
+  isMoving: boolean;
+  currentPath: Vec2i[];
+  pathIndex: number;
+  moveSpeedMult: number;
+}
+
+export interface MatchSnapshot {
+  type: "match_snapshot";
+  matchId: string;
+  mapId: string;
+  simMsec: number;
+  soldiers: SoldierSnapshot[];
+}
+
+export interface MoveOrderPayload {
+  teamId: number;
+  soldierId: number;
+  path: Vec2i[];
+  speedMult: number;
+}
+
+export interface MoveResultPayload {
+  type: "move_result";
+  matchId: string;
+  requestId: string;
+  success: boolean;
+  statusMessage: string;
+  moveOrders: MoveOrderPayload[];
+  movementHalts: Array<{ teamId: number; soldierId: number; snapCell: Vec2i }>;
+}
+
+export interface MovementTickPayload {
+  type: "movement_tick";
+  matchId: string;
+  simMsec: number;
+  movementSteps: Array<{
+    teamId: number;
+    soldierId: number;
+    tile: Vec2i;
+    stepDelta: Vec2i;
+  }>;
+  movementCompletions: Array<{ teamId: number; soldierId: number }>;
+}
+
+export interface MoveCommandIntent {
+  type: "move_command";
+  matchId: string;
+  requestId: string;
+  teamId: number;
+  soldierId: number;
+  targetCell: Vec2i;
+  scope: number;
+  movementMode: number;
+}

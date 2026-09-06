@@ -38,6 +38,7 @@ const ScenarioEndCauseClass := preload("res://scripts/enums/scenario_end_cause.g
 const ScenarioWinnerClass := preload("res://scripts/enums/scenario_winner.gd")
 const MissionDebriefDialogClass := preload("res://scripts/ui/mission_debrief_dialog.gd")
 const SurvivalDifficultyDialogClass := preload("res://scripts/ui/survival_difficulty_dialog.gd")
+const AuthoritativeSyncClass := preload("res://scripts/network/authoritative_sync.gd")
 
 @onready var _world: MapWorldView = $World
 @onready var _map_background: Node2D = $World/MapBackground
@@ -141,8 +142,17 @@ func _ready() -> void:
 
 	_set_loading_status("Loading map…")
 	await get_tree().process_frame
+	if GameModeManager.is_local_multiplayer():
+		_set_loading_status("Joining match…")
+		await NetworkClient.wait_for_snapshot()
+		if not NetworkClient.move_result_received.is_connected(_on_network_move_result):
+			NetworkClient.move_result_received.connect(_on_network_move_result)
+		if not NetworkClient.movement_tick_received.is_connected(_on_network_movement_tick):
+			NetworkClient.movement_tick_received.connect(_on_network_movement_tick)
 	_load_map_data()
 	_init_session_from_spawns()
+	if GameModeManager.is_local_multiplayer() and not NetworkClient.last_snapshot.is_empty():
+		AuthoritativeSyncClass.apply_snapshot(_game_state, NetworkClient.last_snapshot)
 	_connect_command_bar()
 	_apply_multiplayer_side_lock()
 
@@ -536,6 +546,9 @@ func _step_fixed_simulation(frame_delta: float) -> void:
 
 
 func _step_simulation_tick(skip_ai: bool = false) -> void:
+	if GameModeManager.is_local_multiplayer():
+		## Server owns the sim clock, movement tick, and (later) combat/AI.
+		return
 	var stepped := SimulationClock.advance_tick()
 
 	var move_t0 := Time.get_ticks_usec()
@@ -1368,6 +1381,11 @@ func _load_map_data() -> void:
 		_return_to_editor_on_exit = EditorPlaySession.should_return_to_editor()
 	if not pending.is_empty():
 		_map_data = MapLoader.load_path(pending)
+	elif GameModeManager.is_local_multiplayer():
+		var map_id := str(NetworkClient.last_snapshot.get("mapId", MatchConfigClass.MAP_FARM_FIGHT))
+		if map_id.is_empty():
+			map_id = MatchConfigClass.MAP_FARM_FIGHT
+		_map_data = MapLoader.load_path("res://maps/%s.json" % map_id)
 	else:
 		var match_cfg = MatchConfigStoreClass.peek_pending()
 		if match_cfg != null and not str(match_cfg.map_path()).is_empty():
@@ -2933,6 +2951,9 @@ func _grenade_preview_shooter() -> SoldierState:
 
 
 func _apply_move_command(cmd: MoveCommand) -> void:
+	if GameModeManager.is_local_multiplayer():
+		await NetworkClient.submit_move_and_wait(cmd)
+		return
 	var result: ActionResultClass = CommandRouter.submit_command(
 		_game_state,
 		cmd,
@@ -2947,6 +2968,19 @@ func _apply_move_command(cmd: MoveCommand) -> void:
 		var soldier_state: SoldierState = _game_state.get_soldier(order.team_id, order.soldier_id)
 		_log_move_order(cmd.target_cell, order.path, soldier_state)
 	_present_action_result(result)
+
+
+func _on_network_move_result(result: ActionResultClass, _request_id: String) -> void:
+	AuthoritativeSyncClass.apply_move_result(_game_state, result)
+	_present_action_result(result)
+
+
+func _on_network_movement_tick(payload: Dictionary) -> void:
+	var tick_result: ActionResultClass = AuthoritativeSyncClass.apply_movement_tick(
+		_game_state,
+		payload,
+	)
+	_present_movement_tick_result(tick_result)
 
 
 func _apply_face_command(cmd: FaceCommand) -> void:

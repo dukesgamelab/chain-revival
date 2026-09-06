@@ -2,8 +2,7 @@ extends Node
 ## Autoload: current game mode for offline dev vs local multiplayer connection tests.
 
 var current_mode: int = GameConfig.DEFAULT_GAME_MODE
-## Host/server runs AI Commanders. Thin clients set false when networking lands.
-## Offline + current local-MP (single process) both keep authority true.
+## Host/offline runs AI Commanders. LOCAL_MULTIPLAYER clients never tick AI.
 var _ai_authority: bool = true
 
 
@@ -26,6 +25,8 @@ func set_mode(mode: int) -> void:
 	if current_mode == mode:
 		return
 	current_mode = mode
+	## Thin clients never tick AI. Offline / single-player keep host authority.
+	_ai_authority = mode != GameMode.LOCAL_MULTIPLAYER
 	GameLog.log_system("[GameMode] Switched to %s." % GameMode.display_name(current_mode))
 
 
