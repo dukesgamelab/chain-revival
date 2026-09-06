@@ -644,13 +644,20 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 	## Per-tick movement: chase position only. Do NOT invalidate fog every step —
 	## that forced player-visibility rebuilds while many AI units marched (late-game hitch).
 	## MP: follow_path already owns the run; chasing each server tick restarts the last step.
-	if not networked:
-		for step in result.movement_steps:
-			var step_view: Soldier = _get_view(int(step.team_id), int(step.soldier_id))
-			var step_state: SoldierState = _game_state.get_soldier(int(step.team_id), int(step.soldier_id))
-			if step_view != null and step_state != null:
-				step_view.sync_movement_chase_from_state(step_state)
-				_debug_sync_calls_this_tick += 1
+	for step in result.movement_steps:
+		var step_view: Soldier = _get_view(int(step.team_id), int(step.soldier_id))
+		var step_state: SoldierState = _game_state.get_soldier(int(step.team_id), int(step.soldier_id))
+		if step_view == null or step_state == null:
+			continue
+		if networked:
+			## Replica (or a missed move_result) never started the chase — start it once.
+			if not step_view.is_moving() and step_state.is_moving and step_state.current_path.size() > 1:
+				step_view.sync_locomotion_mode_from_state(step_state)
+				step_view.follow_path(step_state.current_path, step_state.move_speed_mult)
+			_debug_sync_calls_this_tick += 1
+		else:
+			step_view.sync_movement_chase_from_state(step_state)
+			_debug_sync_calls_this_tick += 1
 
 	var had_completion := false
 	var local_completion := false
@@ -660,7 +667,7 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 		var soldier_id := int(done.soldier_id)
 		var state: SoldierState = _game_state.get_soldier(team_id, soldier_id)
 		var view: Soldier = _get_view(team_id, soldier_id)
-		if view != null and state != null and not networked:
+		if view != null and state != null:
 			var is_selected: bool = (
 				team_id == _session.active_team_id
 				and soldier_id == _control_fireteam().selected_soldier_id
@@ -1209,21 +1216,7 @@ func _update_los_preview() -> void:
 		shooter.grid_position,
 		max_range,
 	)
-	var shooter_ids: Array[int] = []
-	for shooter_state in _get_manual_fire_at_shooters():
-		shooter_ids.append(shooter_state.soldier_id)
-	var face_cell := preview.click_cell
-	if preview.target != null:
-		face_cell = preview.target.grid_position
-	## Mouse-aim only while targeting — once a tile/enemy is clicked, facing stays locked.
-	ActionResolverClass.preview_fire_at_facing(
-		_game_state,
-		_session.active_team_id,
-		shooter_ids,
-		face_cell,
-		aim_world,
-	)
-	_sync_fire_at_shooter_views()
+	## LOS cone only — soldiers face / Fire At on click, not while the mouse moves.
 	_los_visualizer.show_fire_at_preview(from_world, cone_world, preview)
 
 
@@ -1308,7 +1301,6 @@ func _update_squad_los_preview(
 
 	var entries: Array = []
 	var cone_has_target := false
-	var face_cell := click_cell
 
 	for shooter_state in _get_manual_fire_at_shooters():
 		var from_world := _get_soldier_tracer_point(shooter_state)
@@ -1325,34 +1317,12 @@ func _update_squad_los_preview(
 				explicit_team_id,
 				explicit_soldier_id,
 			)
-		if preview.target != null:
-			if preview.targetable:
-				cone_has_target = true
-			if face_cell == click_cell:
-				face_cell = preview.target.grid_position
+		if preview.target != null and preview.targetable:
+			cone_has_target = true
 		entries.append({"from_world": from_world, "preview": preview})
 
-	var shooter_ids: Array[int] = []
-	for shooter_state in _get_manual_fire_at_shooters():
-		shooter_ids.append(shooter_state.soldier_id)
-	ActionResolverClass.preview_fire_at_facing(
-		_game_state,
-		_session.active_team_id,
-		shooter_ids,
-		face_cell,
-		aim_world,
-	)
-	## Refresh facing + corner idle against the current aim cell.
-	_sync_fire_at_shooter_views()
-
+	## LOS cone only — soldiers face / Fire At on click, not while the mouse moves.
 	_los_visualizer.show_squad_fire_at_previews(entries, cone_world, cone_has_target)
-
-
-func _sync_fire_at_shooter_views() -> void:
-	var active_fireteam: Fireteam = _control_fireteam()
-	for shooter_state in _get_manual_fire_at_shooters():
-		var is_selected: bool = shooter_state.soldier_id == active_fireteam.selected_soldier_id
-		_sync_soldier_view(shooter_state.team_id, shooter_state.soldier_id, is_selected)
 
 
 func _get_fire_at_preview_shooter() -> SoldierState:
@@ -1815,7 +1785,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			aim_world = _get_soldier_tracer_point(clicked_soldier)
 		else:
 			aim_world = IsometricGrid.soldier_aim_point(target_cell)
-		_apply_fire_at_aim(aim_world, clicked_soldier)
+		_apply_fire_at_aim(aim_world, clicked_soldier, target_cell)
 		get_viewport().set_input_as_handled()
 		return
 
@@ -2657,6 +2627,16 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		_spawn_grenade_explosions(result.grenade_explosions)
 		_trigger_grenade_death_animations(result.grenade_explosions)
 
+	## Stance clips must start before refresh_views / sync_from_state snaps the pose.
+	for order in result.stance_transition_orders:
+		var stance_view: Soldier = _get_view(int(order.team_id), int(order.soldier_id))
+		var stance_soldier: SoldierState = _game_state.get_soldier(int(order.team_id), int(order.soldier_id))
+		if stance_view != null and stance_soldier != null:
+			stance_view.play_stance_transition(
+				int(order.target_position_state),
+				stance_soldier.facing_direction,
+			)
+
 	if not result.move_orders.is_empty():
 		## Move orders: sync only affected soldiers (chase), not the whole roster.
 		_invalidate_fog_cache()
@@ -2686,21 +2666,17 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		## Stress / hold-fire crouch poses without a full roster sync.
 		_refresh_idle_pose_visuals()
 		_refresh_command_bar_light()
+	else:
+		for update in result.face_updates:
+			_sync_soldier_view(int(update.get("team_id", -1)), int(update.get("soldier_id", -1)), false)
+		for update in result.target_updates:
+			_sync_soldier_view(int(update.get("team_id", -1)), int(update.get("soldier_id", -1)), false)
 
 	for order in result.throw_orders:
 		var throw_view: Soldier = _get_view(int(order.team_id), int(order.soldier_id))
 		var thrower: SoldierState = _game_state.get_soldier(int(order.team_id), int(order.soldier_id))
 		if throw_view != null and thrower != null:
 			throw_view.play_throw_grenade(thrower.position_state, thrower.facing_direction)
-
-	for order in result.stance_transition_orders:
-		var stance_view: Soldier = _get_view(int(order.team_id), int(order.soldier_id))
-		var stance_soldier: SoldierState = _game_state.get_soldier(int(order.team_id), int(order.soldier_id))
-		if stance_view != null and stance_soldier != null:
-			stance_view.play_stance_transition(
-				int(order.target_position_state),
-				stance_soldier.facing_direction,
-			)
 
 	if result.sync_fire_at_ui:
 		_sync_fire_at_ui_from_engagements()
@@ -3003,6 +2979,27 @@ func _on_network_position_result(result: ActionResultClass, _request_id: String)
 	_apply_network_position_result(result)
 
 
+func _on_network_fire_control_result(result: ActionResultClass, _request_id: String) -> void:
+	_apply_network_target_result(result)
+
+
+func _on_network_fire_at_result(result: ActionResultClass, _request_id: String) -> void:
+	_apply_network_target_result(result)
+
+
+func _apply_network_target_result(result: ActionResultClass) -> void:
+	if result == null:
+		return
+	AuthoritativeSyncClass.apply_target_result(_game_state, result)
+	if result.success:
+		for update in result.face_updates:
+			_sync_soldier_view(int(update.get("team_id", -1)), int(update.get("soldier_id", -1)), false)
+		for update in result.target_updates:
+			_sync_soldier_view(int(update.get("team_id", -1)), int(update.get("soldier_id", -1)), false)
+		_refresh_command_bar()
+	_present_action_result(result)
+
+
 func _ensure_multiplayer_result_signals() -> void:
 	if not GameModeManager.is_local_multiplayer():
 		return
@@ -3014,6 +3011,10 @@ func _ensure_multiplayer_result_signals() -> void:
 		NetworkClient.position_result_received.connect(_on_network_position_result)
 	if not NetworkClient.movement_tick_received.is_connected(_on_network_movement_tick):
 		NetworkClient.movement_tick_received.connect(_on_network_movement_tick)
+	if not NetworkClient.fire_control_result_received.is_connected(_on_network_fire_control_result):
+		NetworkClient.fire_control_result_received.connect(_on_network_fire_control_result)
+	if not NetworkClient.fire_at_result_received.is_connected(_on_network_fire_at_result):
+		NetworkClient.fire_at_result_received.connect(_on_network_fire_at_result)
 
 
 func _apply_network_face_result(result: ActionResultClass) -> void:
@@ -3209,16 +3210,22 @@ func _apply_face_enemy_fire(aim_world: Vector2, clicked_soldier: SoldierState) -
 		cmd.scope = FireCommand.Scope.SINGLE
 		cmd.soldier_id = _face_soldier_id
 
-	var fire_result: ActionResultClass = CommandRouter.submit_command(
-		_game_state,
-		cmd,
-		_make_fire_context(fire_shooters),
-	)
-	if fire_result.success:
-		_sync_face_soldier_views()
-	if not fire_result.status_message.is_empty():
+	var fire_result: ActionResultClass
+	if GameModeManager.is_local_multiplayer():
+		_ensure_multiplayer_result_signals()
+		fire_result = await NetworkClient.submit_fire_at_and_wait(cmd)
+		_apply_network_target_result(fire_result)
+	else:
+		fire_result = CommandRouter.submit_command(
+			_game_state,
+			cmd,
+			_make_fire_context(fire_shooters),
+		)
+		if fire_result.success:
+			_sync_face_soldier_views()
+		_present_action_result(fire_result)
+	if fire_result != null and not fire_result.status_message.is_empty():
 		_command_bar.show_status(fire_result.status_message)
-	_present_action_result(fire_result)
 
 
 func _apply_position_command(cmd: PositionCommand) -> void:
@@ -3243,6 +3250,20 @@ func _apply_position_command(cmd: PositionCommand) -> void:
 
 func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int) -> void:
 	if soldier_id == CommandBar.SQUAD_ID:
+		if GameModeManager.is_local_multiplayer():
+			var fireteam_mp: Fireteam = _control_fireteam()
+			for state in fireteam_mp.soldiers:
+				var soldier_mp: SoldierState = state
+				if soldier_mp == null or soldier_mp.is_dead:
+					continue
+				if not _session.can_local_control_soldier(soldier_mp.team_id, soldier_mp.soldier_id):
+					continue
+				var cmd_mp := FireControlCommandClass.new()
+				cmd_mp.team_id = _session.active_team_id
+				cmd_mp.soldier_id = soldier_mp.soldier_id
+				cmd_mp.fire_control_state = fire_control_state
+				await _apply_fire_control_command(cmd_mp)
+			return
 		var last_result: ActionResultClass = null
 		var fireteam: Fireteam = _control_fireteam()
 		for state in fireteam.soldiers:
@@ -3269,6 +3290,15 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 	cmd.team_id = _session.active_team_id
 	cmd.soldier_id = soldier_id
 	cmd.fire_control_state = fire_control_state
+	await _apply_fire_control_command(cmd)
+
+
+func _apply_fire_control_command(cmd: FireControlCommandClass) -> void:
+	if GameModeManager.is_local_multiplayer():
+		_ensure_multiplayer_result_signals()
+		var net_result: ActionResultClass = await NetworkClient.submit_fire_control_and_wait(cmd)
+		_apply_network_target_result(net_result)
+		return
 	var result: ActionResultClass = CommandRouter.submit_command(_game_state, cmd)
 	_present_action_result(result)
 
@@ -3354,37 +3384,72 @@ func _arm_movement_mode(soldier_id: int, movement_mode: int) -> String:
 	return result.status_message if result.success else ""
 
 
-func _apply_fire_at_aim(aim_world: Vector2, clicked_soldier: SoldierState = null) -> void:
+func _apply_fire_at_aim(
+	aim_world: Vector2,
+	clicked_soldier: SoldierState = null,
+	click_cell: Vector2i = Vector2i(-999, -999),
+) -> void:
 	var shooters: Array[SoldierState] = _get_manual_fire_at_shooters()
 	if shooters.is_empty():
 		_command_bar.show_status("No available soldiers to fire.")
 		return
 
+	var enemy := _resolve_fire_at_click_enemy(clicked_soldier, click_cell, aim_world)
 	var cmd := FireCommand.new()
 	cmd.team_id = _session.active_team_id
 	cmd.aim_world = aim_world
-	if clicked_soldier != null and clicked_soldier.team_id != _session.active_team_id:
-		cmd.target_team_id = clicked_soldier.team_id
-		cmd.target_soldier_id = clicked_soldier.soldier_id
+	if enemy != null:
+		cmd.target_team_id = enemy.team_id
+		cmd.target_soldier_id = enemy.soldier_id
+	if GameModeManager.is_local_multiplayer() and enemy == null:
+		await _commit_fire_at_face_only(click_cell, aim_world)
+		return
 	if _squad_fire_at_mode:
 		cmd.scope = FireCommand.Scope.SQUAD
 	else:
 		cmd.scope = FireCommand.Scope.SINGLE
 		cmd.soldier_id = _fire_at_soldier_id
 
-	var result: ActionResultClass = CommandRouter.submit_command(
-		_game_state,
-		cmd,
-		_make_fire_context(shooters),
-	)
-	_present_action_result(result)
+	var result: ActionResultClass
+	if GameModeManager.is_local_multiplayer():
+		_ensure_multiplayer_result_signals()
+		result = await NetworkClient.submit_fire_at_and_wait(cmd)
+		_apply_network_target_result(result)
+	else:
+		result = CommandRouter.submit_command(
+			_game_state,
+			cmd,
+			_make_fire_context(shooters),
+		)
+		_present_action_result(result)
 	## Click commits the aim point — stop mouse-follow until Fire At is pressed again.
 	## Do not clear sustained fire here (unlike right-click cancel).
-	if result.success:
+	if result != null and result.success:
 		var aim_status := result.status_message
 		_leave_fire_at_targeting()
 		if not aim_status.is_empty():
 			_command_bar.show_status(aim_status)
+
+
+## Click committed but no enemy ID — face the tile like single-player Fire At with no target.
+func _commit_fire_at_face_only(click_cell: Vector2i, aim_world: Vector2) -> void:
+	var face_cmd := FaceCommand.new()
+	face_cmd.team_id = _session.active_team_id
+	face_cmd.target_cell = click_cell
+	face_cmd.aim_world = aim_world
+	if _squad_fire_at_mode:
+		face_cmd.scope = FaceCommand.Scope.SQUAD
+	else:
+		face_cmd.scope = FaceCommand.Scope.SINGLE
+		face_cmd.soldier_id = _fire_at_soldier_id
+	_ensure_multiplayer_result_signals()
+	var face_result: ActionResultClass = await NetworkClient.submit_face_and_wait(face_cmd)
+	_apply_network_face_result(face_result)
+	_leave_fire_at_targeting()
+	if face_result != null and face_result.success:
+		_command_bar.show_status("No visible target there.")
+	elif face_result != null and not face_result.status_message.is_empty():
+		_command_bar.show_status(face_result.status_message)
 
 
 func _finalize_shot_result(
@@ -3712,6 +3777,75 @@ func _sync_views_after_load() -> void:
 
 func _get_world_mouse_local() -> Vector2:
 	return _world.to_local(get_global_mouse_position())
+
+
+## Fire At commits on click: sprite, occupied tile, or enemy in the aim cone (no hover assign).
+func _resolve_fire_at_click_enemy(
+	clicked_soldier: SoldierState,
+	click_cell: Vector2i,
+	aim_world: Vector2,
+) -> SoldierState:
+	if _is_enemy_fire_at_target(clicked_soldier):
+		return clicked_soldier
+	if click_cell.x > -900 and _game_state != null:
+		var on_cell: SoldierState = _game_state.find_living_soldier_at_cell(click_cell)
+		if _is_enemy_fire_at_target(on_cell):
+			return on_cell
+	return _find_enemy_in_fire_at_aim_cone(aim_world, click_cell)
+
+
+func _is_enemy_fire_at_target(soldier_state: SoldierState) -> bool:
+	if soldier_state == null or soldier_state.is_dead or _session == null:
+		return false
+	return soldier_state.team_id != _session.active_team_id
+
+
+## Click-time UI pick only — cone geometry, not authoritative LOS/spotting.
+func _find_enemy_in_fire_at_aim_cone(aim_world: Vector2, click_cell: Vector2i) -> SoldierState:
+	var shooters: Array[SoldierState] = _get_manual_fire_at_shooters()
+	if shooters.is_empty() or _game_state == null:
+		return null
+	var best: SoldierState = null
+	var best_dist := INF
+	for shooter in shooters:
+		var weapon := shooter.get_weapon_data()
+		var max_range := (
+			ConeOfFireClass.effective_range(weapon.range_tiles)
+			if weapon != null
+			else ConeOfFireClass.RANGE_BONUS
+		)
+		var from_world := _get_soldier_tracer_point(shooter)
+		var enemy_team_id := _game_state.enemy_team_id(shooter.team_id)
+		var enemies: Fireteam = _game_state.session.get_fireteam(enemy_team_id)
+		if enemies == null:
+			continue
+		for state in enemies.soldiers:
+			var enemy: SoldierState = state
+			if enemy == null or enemy.is_dead:
+				continue
+			var enemy_world := IsometricGrid.soldier_aim_point(enemy.grid_position)
+			if not ConeOfFireClass.is_world_point_in_aim_cone(
+				from_world,
+				aim_world,
+				enemy_world,
+				shooter.grid_position,
+				max_range,
+			):
+				continue
+			var dist := float(
+				absi(shooter.grid_position.x - enemy.grid_position.x)
+				+ absi(shooter.grid_position.y - enemy.grid_position.y)
+			)
+			if click_cell.x > -900:
+				var click_dist := float(
+					absi(click_cell.x - enemy.grid_position.x)
+					+ absi(click_cell.y - enemy.grid_position.y)
+				)
+				dist += click_dist * 0.01
+			if dist < best_dist:
+				best_dist = dist
+				best = enemy
+	return best
 
 
 ## Resolve a soldier under the cursor (grid cell + sprite proximity for isometric picking).

@@ -22,6 +22,7 @@ func _ready() -> void:
 	_test_position_result_both_replicas()
 	_test_move_result_stance_and_mode()
 	_test_snapshot_restores_facing_stance_mode()
+	_test_fire_control_and_target_both_replicas()
 	print("")
 	print("Authoritative sync tests: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -167,3 +168,63 @@ func _test_snapshot_restores_facing_stance_mode() -> void:
 	_assert("snapshot facing", soldier.facing_direction == Vector2i(-1, 1))
 	_assert("snapshot stance", soldier.position_state == PositionStateClass.DOWN)
 	_assert("snapshot movementMode", soldier.movement_mode == MovementModeClass.CRAWL)
+
+
+func _test_fire_control_and_target_both_replicas() -> void:
+	var usa := _make_game_state()
+	var germany := _make_game_state()
+	var payload := {
+		"success": true,
+		"statusMessage": "Priority target Germany Soldier 1.",
+		"syncFireAtUi": true,
+		"targetUpdates": [
+			{
+				"teamId": Team.USA,
+				"soldierId": 1,
+				"fireControlState": FireControlState.FIRE_AT_WILL,
+				"engagedTargetTeamId": Team.GERMANY,
+				"engagedTargetSoldierId": 1,
+				"sustainedFire": true,
+			},
+		],
+		"faceUpdates": [],
+		"movementHalts": [],
+	}
+	var result: ActionResultClass = AuthoritativeSyncClass.action_result_from_payload(payload)
+	AuthoritativeSyncClass.apply_target_result(usa, result)
+	AuthoritativeSyncClass.apply_target_result(germany, result)
+	var a: SoldierState = usa.get_soldier(Team.USA, 1)
+	var b: SoldierState = germany.get_soldier(Team.USA, 1)
+	_assert(
+		"fire-at both replicas",
+		a.sustained_fire
+		and b.sustained_fire
+		and a.engaged_target_soldier_id == 1
+		and b.engaged_target_soldier_id == 1
+		and a.fire_control_state == FireControlState.FIRE_AT_WILL,
+	)
+	var hold_payload := {
+		"success": true,
+		"statusMessage": "Hold Fire",
+		"syncFireAtUi": true,
+		"targetUpdates": [
+			{
+				"teamId": Team.USA,
+				"soldierId": 1,
+				"fireControlState": FireControlState.HOLD_FIRE,
+				"engagedTargetTeamId": -1,
+				"engagedTargetSoldierId": -1,
+				"sustainedFire": false,
+			},
+		],
+	}
+	var hold: ActionResultClass = AuthoritativeSyncClass.action_result_from_payload(hold_payload)
+	AuthoritativeSyncClass.apply_target_result(usa, hold)
+	AuthoritativeSyncClass.apply_target_result(germany, hold)
+	_assert(
+		"hold-fire both replicas",
+		a.fire_control_state == FireControlState.HOLD_FIRE
+		and b.fire_control_state == FireControlState.HOLD_FIRE
+		and not a.is_engaged()
+		and not b.is_engaged(),
+	)

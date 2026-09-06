@@ -92,6 +92,8 @@ func _route(action_label: String, resolver_call: Callable) -> ActionResultClass:
 		action_label == "command:MoveCommand"
 		or action_label == "command:FaceCommand"
 		or action_label == "command:PositionCommand"
+		or action_label == "command:FireControlCommand"
+		or action_label == "command:FireCommand"
 	):
 		GameLog.log_system("[CommandRouter] refused local %s — server is authoritative" % action_label)
 		return ActionResultClass.fail("That command must be resolved by the match server.")
@@ -99,7 +101,7 @@ func _route(action_label: String, resolver_call: Callable) -> ActionResultClass:
 	if GameModeManager.is_offline_dev() or GameModeManager.is_local_multiplayer():
 		var route_note := "locally → ActionResolver"
 		if GameModeManager.is_local_multiplayer():
-			route_note = "locally → ActionResolver (combat/UI only; move/face/stance are server-owned)"
+			route_note = "locally → ActionResolver (remaining local-only commands)"
 		GameLog.log_system("[CommandRouter] routed %s" % route_note)
 		return resolver_call.call() as ActionResultClass
 

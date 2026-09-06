@@ -47,6 +47,11 @@ var face_updates: Array[Dictionary] = []
 ## {team_id, soldier_id, facing, position_state, movement_mode}
 var soldier_updates: Array[Dictionary] = []
 
+## Authoritative fire-control / priority-target state from the match server.
+## {team_id, soldier_id, fire_control_state, engaged_target_team_id,
+##  engaged_target_soldier_id, sustained_fire}
+var target_updates: Array[Dictionary] = []
+
 
 static func fail(message: String) -> ActionResult:
 	var result := ActionResult.new()

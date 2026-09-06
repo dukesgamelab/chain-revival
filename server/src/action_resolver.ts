@@ -3,18 +3,24 @@
  * process_movement_tick (movement slice only).
  */
 
-import { facingName, teamDisplayName, towardWorldPoint } from "./facing";
+import { facingName, teamDisplayName, towardCell, towardWorldPoint } from "./facing";
 import type { GameState } from "./game_state";
 import { speedMultiplier, stepCostMsec } from "./movement_policy";
 import { findPath } from "./pathfinder";
 import type { SoldierState } from "./soldier_state";
 import {
+  FIRE_AT_WILL,
+  FIRE_HOLD,
   MOVEMENT_CRAWL,
   MOVE_SCOPE_SQUAD,
   POSITION_DOWN,
   POSITION_UP,
   type FaceCommandIntent,
   type FaceResultPayload,
+  type FireAtCommandIntent,
+  type FireAtResultPayload,
+  type FireControlCommandIntent,
+  type FireControlResultPayload,
   type MoveCommandIntent,
   type MoveOrderPayload,
   type MoveResultPayload,
@@ -23,6 +29,7 @@ import {
   type PositionResultPayload,
   type SoldierUpdatePayload,
   type StanceTransitionOrder,
+  type TargetUpdatePayload,
   type Vec2i,
   chebyshev,
   vec,
@@ -42,6 +49,8 @@ export interface ActionResult {
   faceUpdates: Array<{ teamId: number; soldierId: number; facing: Vec2i }>;
   stanceTransitionOrders: StanceTransitionOrder[];
   soldierUpdates: SoldierUpdatePayload[];
+  targetUpdates: TargetUpdatePayload[];
+  syncFireAtUi: boolean;
 }
 
 export function emptyAction(success = true, statusMessage = ""): ActionResult {
@@ -55,6 +64,8 @@ export function emptyAction(success = true, statusMessage = ""): ActionResult {
     faceUpdates: [],
     stanceTransitionOrders: [],
     soldierUpdates: [],
+    targetUpdates: [],
+    syncFireAtUi: false,
   };
 }
 
@@ -592,6 +603,136 @@ export function executePosition(
   return result;
 }
 
+export function executeFireControl(
+  gameState: GameState,
+  cmd: FireControlCommandIntent,
+  actingTeamId: number,
+): ActionResult {
+  if (cmd.teamId !== actingTeamId) {
+    return fail("That soldier is not under your control.");
+  }
+  if (cmd.fireControlState !== FIRE_HOLD && cmd.fireControlState !== FIRE_AT_WILL) {
+    return fail("Invalid fire-control state.");
+  }
+  const soldier = gameState.getSoldier(actingTeamId, cmd.soldierId);
+  if (soldier === null || soldier.isDead) {
+    return fail("Soldier unavailable.");
+  }
+
+  soldier.fireControlState = cmd.fireControlState;
+  const result = emptyAction(
+    true,
+    `Soldier ${soldier.soldierId} set to ${fireControlLabel(cmd.fireControlState)}`,
+  );
+  if (cmd.fireControlState === FIRE_HOLD) {
+    if (soldier.sustainedFire) {
+      soldier.endSustainedFire();
+      result.syncFireAtUi = true;
+      result.statusMessage = `Soldier ${soldier.soldierId} set to Hold Fire — ceased fire.`;
+    } else if (soldier.isEngaged()) {
+      soldier.clearEngagement();
+      result.syncFireAtUi = true;
+      result.statusMessage = `Soldier ${soldier.soldierId} set to Hold Fire — ceased fire.`;
+    }
+  }
+  pushTargetUpdate(result, soldier);
+  return result;
+}
+
+export function executeFireAt(
+  gameState: GameState,
+  cmd: FireAtCommandIntent,
+  actingTeamId: number,
+): ActionResult {
+  if (cmd.teamId !== actingTeamId) {
+    return fail("That soldier is not under your control.");
+  }
+  if (cmd.targetTeamId < 0 || cmd.targetSoldierId <= 0) {
+    return fail(
+      "Manual Fire At without an explicit enemy requires authoritative LOS/spotting (not ported).",
+    );
+  }
+
+  const now = gameState.clock.getTicksMsec();
+  const shooters =
+    cmd.scope === MOVE_SCOPE_SQUAD
+      ? gameState.soldiersOnTeam(actingTeamId)
+      : [gameState.getSoldier(actingTeamId, cmd.soldierId)];
+
+  const target = gameState.getSoldier(cmd.targetTeamId, cmd.targetSoldierId);
+  if (target === null || target.isDead) {
+    return fail("Invalid target.");
+  }
+  if (target.teamId === actingTeamId) {
+    return fail("Cannot assign a friendly as a priority target.");
+  }
+
+  const result = emptyAction();
+  let engaged = 0;
+  let firstNotice = "";
+  for (const shooter of shooters) {
+    if (shooter === null || shooter.isDead) {
+      continue;
+    }
+    if (shooter.isStunned(now)) {
+      firstNotice = firstNotice || "Soldier is stunned and cannot fire.";
+      continue;
+    }
+    haltSoldierIfMoving(shooter, result);
+    shooter.beginSustainedFire();
+    shooter.fireControlState = FIRE_AT_WILL;
+    shooter.setEngagedTarget(target.teamId, target.soldierId);
+    const facing = towardCell(shooter.gridPosition, target.gridPosition);
+    if (facing.x !== 0 || facing.y !== 0) {
+      shooter.facing = { ...facing };
+      result.faceUpdates.push({
+        teamId: shooter.teamId,
+        soldierId: shooter.soldierId,
+        facing: { ...shooter.facing },
+      });
+    }
+    pushTargetUpdate(result, shooter);
+    engaged += 1;
+  }
+
+  if (engaged === 0) {
+    return fail(firstNotice || "No available soldiers to fire.");
+  }
+  if (result.movementHalts.length > 0) {
+    result.statusMessage = "";
+  }
+  result.syncFireAtUi = true;
+  if (engaged === 1) {
+    result.statusMessage = `Priority target ${teamDisplayName(target.teamId)} Soldier ${target.soldierId}.`;
+  } else {
+    result.statusMessage = `${engaged} soldiers assigned priority targets.`;
+  }
+  return result;
+}
+
+function fireControlLabel(state: number): string {
+  return state === FIRE_HOLD ? "HOLD_FIRE" : "FIRE_AT_WILL";
+}
+
+function pushTargetUpdate(result: ActionResult, soldier: SoldierState): void {
+  const update: TargetUpdatePayload = {
+    teamId: soldier.teamId,
+    soldierId: soldier.soldierId,
+    fireControlState: soldier.fireControlState,
+    engagedTargetTeamId: soldier.engagedTargetTeamId,
+    engagedTargetSoldierId: soldier.engagedTargetSoldierId,
+    sustainedFire: soldier.sustainedFire,
+  };
+  const existing = result.targetUpdates.findIndex(
+    (u) => u.teamId === soldier.teamId && u.soldierId === soldier.soldierId,
+  );
+  if (existing >= 0) {
+    result.targetUpdates[existing] = update;
+  } else {
+    result.targetUpdates.push(update);
+  }
+}
+
 function faceStatus(teamId: number, soldier: SoldierState): string {
   return `${teamDisplayName(teamId)} Soldier ${soldier.soldierId} facing ${facingName(soldier.facing)}.`;
 }
@@ -645,5 +786,39 @@ export function toPositionResultPayload(
     movementHalts: result.movementHalts,
     stanceTransitionOrders: result.stanceTransitionOrders,
     soldierUpdates: result.soldierUpdates,
+  };
+}
+
+export function toFireControlResultPayload(
+  matchId: string,
+  requestId: string,
+  result: ActionResult,
+): FireControlResultPayload {
+  return {
+    type: "fire_control_result",
+    matchId,
+    requestId,
+    success: result.success,
+    statusMessage: result.statusMessage,
+    syncFireAtUi: result.syncFireAtUi,
+    targetUpdates: result.targetUpdates,
+  };
+}
+
+export function toFireAtResultPayload(
+  matchId: string,
+  requestId: string,
+  result: ActionResult,
+): FireAtResultPayload {
+  return {
+    type: "fire_at_result",
+    matchId,
+    requestId,
+    success: result.success,
+    statusMessage: result.statusMessage,
+    syncFireAtUi: result.syncFireAtUi,
+    movementHalts: result.movementHalts,
+    faceUpdates: result.faceUpdates,
+    targetUpdates: result.targetUpdates,
   };
 }

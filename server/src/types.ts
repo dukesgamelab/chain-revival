@@ -13,6 +13,9 @@ export const MOVEMENT_CRAWL = 2;
 export const POSITION_UP = 0;
 export const POSITION_DOWN = 1;
 
+export const FIRE_HOLD = 0;
+export const FIRE_AT_WILL = 1;
+
 export const MATCH_ID = "local-mp-1";
 export const DEFAULT_MAP_ID = "ff_farm";
 
@@ -57,6 +60,19 @@ export interface SoldierSnapshot {
   currentPath: Vec2i[];
   pathIndex: number;
   moveSpeedMult: number;
+  fireControlState: number;
+  engagedTargetTeamId: number;
+  engagedTargetSoldierId: number;
+  sustainedFire: boolean;
+}
+
+export interface TargetUpdatePayload {
+  teamId: number;
+  soldierId: number;
+  fireControlState: number;
+  engagedTargetTeamId: number;
+  engagedTargetSoldierId: number;
+  sustainedFire: boolean;
 }
 
 export interface MatchSnapshot {
@@ -165,4 +181,46 @@ export interface MoveCommandIntent {
   targetCell: Vec2i;
   scope: number;
   movementMode: number;
+}
+
+export interface FireControlCommandIntent {
+  type: "fire_control_command";
+  matchId: string;
+  requestId: string;
+  teamId: number;
+  soldierId: number;
+  fireControlState: number;
+}
+
+export interface FireControlResultPayload {
+  type: "fire_control_result";
+  matchId: string;
+  requestId: string;
+  success: boolean;
+  statusMessage: string;
+  syncFireAtUi: boolean;
+  targetUpdates: TargetUpdatePayload[];
+}
+
+export interface FireAtCommandIntent {
+  type: "fire_at_command";
+  matchId: string;
+  requestId: string;
+  teamId: number;
+  soldierId: number;
+  targetTeamId: number;
+  targetSoldierId: number;
+  scope: number;
+}
+
+export interface FireAtResultPayload {
+  type: "fire_at_result";
+  matchId: string;
+  requestId: string;
+  success: boolean;
+  statusMessage: string;
+  syncFireAtUi: boolean;
+  movementHalts: Array<{ teamId: number; soldierId: number; snapCell: Vec2i }>;
+  faceUpdates: Array<{ teamId: number; soldierId: number; facing: Vec2i }>;
+  targetUpdates: TargetUpdatePayload[];
 }

@@ -5,10 +5,14 @@
 import type { WebSocket } from "ws";
 import {
   executeFace,
+  executeFireAt,
+  executeFireControl,
   executeMove,
   executePosition,
   processMovementTick,
   toFaceResultPayload,
+  toFireAtResultPayload,
+  toFireControlResultPayload,
   toMoveResultPayload,
   toPositionResultPayload,
 } from "./action_resolver";
@@ -18,6 +22,8 @@ import {
   DEFAULT_MAP_ID,
   MATCH_ID,
   type FaceCommandIntent,
+  type FireAtCommandIntent,
+  type FireControlCommandIntent,
   type MoveCommandIntent,
   type PositionCommandIntent,
   type Vec2i,
@@ -185,6 +191,70 @@ export class LocalMatch {
     );
   }
 
+  handleFireControl(clientId: string, intent: FireControlCommandIntent): void {
+    const client = this.clients.get(clientId);
+    if (client === undefined || client.teamId === null) {
+      this.sendTo(clientId, {
+        type: "fire_control_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Join a side before issuing orders.",
+        syncFireAtUi: false,
+        targetUpdates: [],
+      });
+      return;
+    }
+    if (intent.matchId && intent.matchId !== this.matchId) {
+      this.sendTo(clientId, {
+        type: "fire_control_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Unknown match.",
+        syncFireAtUi: false,
+        targetUpdates: [],
+      });
+      return;
+    }
+    const result = executeFireControl(this.gameState, intent, client.teamId);
+    this.broadcast(toFireControlResultPayload(this.matchId, intent.requestId, result));
+  }
+
+  handleFireAt(clientId: string, intent: FireAtCommandIntent): void {
+    const client = this.clients.get(clientId);
+    if (client === undefined || client.teamId === null) {
+      this.sendTo(clientId, {
+        type: "fire_at_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Join a side before issuing orders.",
+        syncFireAtUi: false,
+        movementHalts: [],
+        faceUpdates: [],
+        targetUpdates: [],
+      });
+      return;
+    }
+    if (intent.matchId && intent.matchId !== this.matchId) {
+      this.sendTo(clientId, {
+        type: "fire_at_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Unknown match.",
+        syncFireAtUi: false,
+        movementHalts: [],
+        faceUpdates: [],
+        targetUpdates: [],
+      });
+      return;
+    }
+    const result = executeFireAt(this.gameState, intent, client.teamId);
+    this.broadcast(toFireAtResultPayload(this.matchId, intent.requestId, result));
+  }
+
   private startTick(): void {
     const period = this.gameState.clock.tickMsec();
     this.tickTimer = setInterval(() => {
@@ -295,5 +365,39 @@ export function parsePositionIntent(message: Record<string, unknown>): PositionC
     teamId: Number(message.teamId ?? 0),
     soldierId: Number(message.soldierId ?? 0),
     positionState: Number(message.positionState ?? 0),
+  };
+}
+
+export function parseFireControlIntent(
+  message: Record<string, unknown>,
+): FireControlCommandIntent | null {
+  const requestId = typeof message.requestId === "string" ? message.requestId : "";
+  if (requestId.length === 0) {
+    return null;
+  }
+  return {
+    type: "fire_control_command",
+    matchId: typeof message.matchId === "string" ? message.matchId : MATCH_ID,
+    requestId,
+    teamId: Number(message.teamId ?? 0),
+    soldierId: Number(message.soldierId ?? 0),
+    fireControlState: Number(message.fireControlState ?? 0),
+  };
+}
+
+export function parseFireAtIntent(message: Record<string, unknown>): FireAtCommandIntent | null {
+  const requestId = typeof message.requestId === "string" ? message.requestId : "";
+  if (requestId.length === 0) {
+    return null;
+  }
+  return {
+    type: "fire_at_command",
+    matchId: typeof message.matchId === "string" ? message.matchId : MATCH_ID,
+    requestId,
+    teamId: Number(message.teamId ?? 0),
+    soldierId: Number(message.soldierId ?? 0),
+    targetTeamId: Number(message.targetTeamId ?? -1),
+    targetSoldierId: Number(message.targetSoldierId ?? -1),
+    scope: Number(message.scope ?? 0),
   };
 }

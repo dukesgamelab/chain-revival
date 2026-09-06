@@ -6,6 +6,7 @@ extends RefCounted
 const ActionResultClass := preload("res://scripts/core/action_result.gd")
 const GameStateClass := preload("res://scripts/core/game_state.gd")
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
+const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
 
 
 static func apply_snapshot(game_state: GameStateClass, snapshot: Dictionary) -> void:
@@ -37,6 +38,19 @@ static func apply_snapshot(game_state: GameStateClass, snapshot: Dictionary) -> 
 			soldier.path_index = int(entry.get("pathIndex", entry.get("path_index", 1)))
 		else:
 			soldier.clear_path()
+		if entry.has("fireControlState") or entry.has("fire_control_state"):
+			soldier.fire_control_state = int(
+				entry.get("fireControlState", entry.get("fire_control_state", FireControlStateClass.FIRE_AT_WILL))
+			)
+		if entry.has("engagedTargetTeamId") or entry.has("engaged_target_team_id"):
+			soldier.engaged_target_team_id = int(
+				entry.get("engagedTargetTeamId", entry.get("engaged_target_team_id", -1))
+			)
+			soldier.engaged_target_soldier_id = int(
+				entry.get("engagedTargetSoldierId", entry.get("engaged_target_soldier_id", -1))
+			)
+		if entry.has("sustainedFire") or entry.has("sustained_fire"):
+			soldier.sustained_fire = bool(entry.get("sustainedFire", entry.get("sustained_fire", false)))
 
 
 static func action_result_from_payload(payload: Dictionary) -> ActionResultClass:
@@ -69,6 +83,8 @@ static func action_result_from_payload(payload: Dictionary) -> ActionResultClass
 		})
 	_append_stance_orders(result, payload)
 	_apply_soldier_updates_to_result(result, payload)
+	_append_target_updates(result, payload)
+	result.sync_fire_at_ui = bool(payload.get("syncFireAtUi", payload.get("sync_fire_at_ui", false)))
 	for raw in payload.get("faceUpdates", payload.get("face_updates", [])):
 		if not raw is Dictionary:
 			continue
@@ -148,6 +164,36 @@ static func apply_position_result(game_state: GameStateClass, result: ActionResu
 		soldier.pending_position_state = target
 
 
+static func apply_target_result(game_state: GameStateClass, result: ActionResultClass) -> void:
+	if game_state == null or result == null:
+		return
+	for halt in result.movement_halts:
+		var halted: SoldierState = game_state.get_soldier(int(halt.team_id), int(halt.soldier_id))
+		if halted == null:
+			continue
+		halted.clear_path()
+		var snap: Variant = halt.get("snap_cell", null)
+		if snap is Vector2i:
+			halted.grid_position = snap
+	if not result.success:
+		return
+	apply_face_result(game_state, result)
+	for update in result.target_updates:
+		if not update is Dictionary:
+			continue
+		var soldier: SoldierState = game_state.get_soldier(int(update.team_id), int(update.soldier_id))
+		if soldier == null:
+			continue
+		soldier.fire_control_state = int(
+			update.get("fire_control_state", soldier.fire_control_state)
+		)
+		soldier.engaged_target_team_id = int(update.get("engaged_target_team_id", -1))
+		soldier.engaged_target_soldier_id = int(update.get("engaged_target_soldier_id", -1))
+		soldier.sustained_fire = bool(update.get("sustained_fire", false))
+		if not soldier.sustained_fire and not soldier.is_engaged():
+			soldier.reset_fire_prep()
+
+
 static func apply_movement_tick(game_state: GameStateClass, payload: Dictionary) -> ActionResultClass:
 	var result := ActionResultClass.new()
 	result.success = true
@@ -202,6 +248,27 @@ static func _append_stance_orders(result: ActionResultClass, payload: Dictionary
 			"target_position_state": int(
 				order.get("targetPositionState", order.get("target_position_state", PositionStateClass.UP))
 			),
+		})
+
+
+static func _append_target_updates(result: ActionResultClass, payload: Dictionary) -> void:
+	for raw in payload.get("targetUpdates", payload.get("target_updates", [])):
+		if not raw is Dictionary:
+			continue
+		var update: Dictionary = raw
+		result.target_updates.append({
+			"team_id": int(update.get("teamId", update.get("team_id", -1))),
+			"soldier_id": int(update.get("soldierId", update.get("soldier_id", -1))),
+			"fire_control_state": int(
+				update.get("fireControlState", update.get("fire_control_state", FireControlStateClass.FIRE_AT_WILL))
+			),
+			"engaged_target_team_id": int(
+				update.get("engagedTargetTeamId", update.get("engaged_target_team_id", -1))
+			),
+			"engaged_target_soldier_id": int(
+				update.get("engagedTargetSoldierId", update.get("engaged_target_soldier_id", -1))
+			),
+			"sustained_fire": bool(update.get("sustainedFire", update.get("sustained_fire", false))),
 		})
 
 

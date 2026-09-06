@@ -1,6 +1,13 @@
 import { WebSocketServer, WebSocket, type RawData } from "ws";
 import { randomUUID } from "node:crypto";
-import { LocalMatch, parseFaceIntent, parseMoveIntent, parsePositionIntent } from "./match";
+import {
+  LocalMatch,
+  parseFaceIntent,
+  parseFireAtIntent,
+  parseFireControlIntent,
+  parseMoveIntent,
+  parsePositionIntent,
+} from "./match";
 import {
   parseSideName,
   registerClient,
@@ -147,6 +154,44 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
       return;
     }
     match.handlePosition(clientId, intent);
+    return;
+  }
+
+  if (message.type === "fire_control_command") {
+    const intent = parseFireControlIntent(message);
+    if (intent === null) {
+      sendJson(ws, {
+        type: "fire_control_result",
+        matchId: MATCH_ID,
+        requestId: typeof message.requestId === "string" ? message.requestId : "",
+        success: false,
+        statusMessage: "Invalid fire-control command.",
+        syncFireAtUi: false,
+        targetUpdates: [],
+      });
+      return;
+    }
+    match.handleFireControl(clientId, intent);
+    return;
+  }
+
+  if (message.type === "fire_at_command") {
+    const intent = parseFireAtIntent(message);
+    if (intent === null) {
+      sendJson(ws, {
+        type: "fire_at_result",
+        matchId: MATCH_ID,
+        requestId: typeof message.requestId === "string" ? message.requestId : "",
+        success: false,
+        statusMessage: "Invalid Fire At command.",
+        syncFireAtUi: false,
+        movementHalts: [],
+        faceUpdates: [],
+        targetUpdates: [],
+      });
+      return;
+    }
+    match.handleFireAt(clientId, intent);
   }
 }
 

@@ -635,7 +635,9 @@ func _on_row_grenade_toggled(soldier_id: int, is_pressed: bool) -> void:
 
 
 func _on_row_fire_control_selected(soldier_id: int, fire_control_state: int) -> void:
-	_select_soldier(soldier_id, true)
+	## Do not notify Main — a full view refresh would wipe the button from stale GameState
+	## before the authoritative fire-control result arrives.
+	_select_soldier(soldier_id, true, false)
 	fire_control_change_requested.emit(soldier_id, fire_control_state)
 
 

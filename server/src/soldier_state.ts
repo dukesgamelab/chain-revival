@@ -1,5 +1,6 @@
 import { stepCostMsec } from "./movement_policy";
 import {
+  FIRE_AT_WILL,
   MOVEMENT_RUN,
   POSITION_UP,
   type SoldierSnapshot,
@@ -25,6 +26,10 @@ export class SoldierState {
   /** Presentation gate mirrored from Godot; gameplay stance is already committed. */
   pendingPositionState = -1;
   pendingStanceUntilMsec = 0;
+  fireControlState = FIRE_AT_WILL;
+  engagedTargetTeamId = -1;
+  engagedTargetSoldierId = -1;
+  sustainedFire = false;
 
   constructor(soldierId: number, teamId: number, gridPosition: Vec2i, facing: Vec2i) {
     this.soldierId = soldierId;
@@ -62,6 +67,33 @@ export class SoldierState {
     this.moveSpeedMult = 1.0;
   }
 
+  isEngaged(): boolean {
+    return this.engagedTargetTeamId >= 0 && this.engagedTargetSoldierId > 0;
+  }
+
+  setEngagedTarget(targetTeamId: number, targetSoldierId: number): void {
+    this.engagedTargetTeamId = targetTeamId;
+    this.engagedTargetSoldierId = targetSoldierId;
+  }
+
+  clearEngagedTarget(): void {
+    this.engagedTargetTeamId = -1;
+    this.engagedTargetSoldierId = -1;
+  }
+
+  beginSustainedFire(): void {
+    this.sustainedFire = true;
+  }
+
+  endSustainedFire(): void {
+    this.sustainedFire = false;
+    this.clearEngagedTarget();
+  }
+
+  clearEngagement(): void {
+    this.clearEngagedTarget();
+  }
+
   assignPath(path: Vec2i[], speedMult: number): void {
     if (this.isDead) {
       return;
@@ -92,6 +124,10 @@ export class SoldierState {
       currentPath: this.currentPath.map((cell) => ({ ...cell })),
       pathIndex: this.pathIndex,
       moveSpeedMult: this.moveSpeedMult,
+      fireControlState: this.fireControlState,
+      engagedTargetTeamId: this.engagedTargetTeamId,
+      engagedTargetSoldierId: this.engagedTargetSoldierId,
+      sustainedFire: this.sustainedFire,
     };
   }
 }

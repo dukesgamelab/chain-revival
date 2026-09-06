@@ -15,6 +15,8 @@ const ActionResultClass := preload("res://scripts/core/action_result.gd")
 const MoveCommandClass := preload("res://scripts/commands/move_command.gd")
 const FaceCommandClass := preload("res://scripts/commands/face_command.gd")
 const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
+const FireControlCommandClass := preload("res://scripts/commands/fire_control_command.gd")
+const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
 const AuthoritativeSyncClass := preload("res://scripts/network/authoritative_sync.gd")
 
 signal connection_changed(connected: bool)
@@ -25,6 +27,8 @@ signal match_snapshot_received(snapshot: Dictionary)
 signal move_result_received(result: ActionResultClass, request_id: String)
 signal face_result_received(result: ActionResultClass, request_id: String)
 signal position_result_received(result: ActionResultClass, request_id: String)
+signal fire_control_result_received(result: ActionResultClass, request_id: String)
+signal fire_at_result_received(result: ActionResultClass, request_id: String)
 signal movement_tick_received(payload: Dictionary)
 
 var _socket := WebSocketPeer.new()
@@ -206,6 +210,44 @@ func submit_position_and_wait(
 	return await _wait_for_command_result(timeout_sec, "Position")
 
 
+func submit_fire_control_and_wait(
+	cmd: FireControlCommandClass,
+	timeout_sec: float = DEFAULT_MOVE_TIMEOUT_SEC,
+) -> ActionResultClass:
+	if not _connected or cmd == null:
+		return ActionResultClass.fail("Not connected to the match server.")
+	var request_id := _begin_command_wait()
+	send_json({
+		"type": "fire_control_command",
+		"matchId": match_id,
+		"requestId": request_id,
+		"teamId": cmd.team_id,
+		"soldierId": cmd.soldier_id,
+		"fireControlState": cmd.fire_control_state,
+	})
+	return await _wait_for_command_result(timeout_sec, "FireControl")
+
+
+func submit_fire_at_and_wait(
+	cmd: FireCommandClass,
+	timeout_sec: float = DEFAULT_MOVE_TIMEOUT_SEC,
+) -> ActionResultClass:
+	if not _connected or cmd == null:
+		return ActionResultClass.fail("Not connected to the match server.")
+	var request_id := _begin_command_wait()
+	send_json({
+		"type": "fire_at_command",
+		"matchId": match_id,
+		"requestId": request_id,
+		"teamId": cmd.team_id,
+		"soldierId": cmd.soldier_id,
+		"targetTeamId": cmd.target_team_id,
+		"targetSoldierId": cmd.target_soldier_id,
+		"scope": int(cmd.scope),
+	})
+	return await _wait_for_command_result(timeout_sec, "FireAt")
+
+
 func _begin_command_wait() -> String:
 	_request_seq += 1
 	var request_id := "%s-%d" % [client_id if not client_id.is_empty() else "client", _request_seq]
@@ -348,6 +390,10 @@ func _handle_message(message: Dictionary) -> void:
 			_on_face_result(message)
 		"position_result":
 			_on_position_result(message)
+		"fire_control_result":
+			_on_fire_control_result(message)
+		"fire_at_result":
+			_on_fire_at_result(message)
 		"movement_tick":
 			movement_tick_received.emit(message)
 		_:
@@ -416,6 +462,28 @@ func _on_position_result(payload: Dictionary) -> void:
 	_resolve_command_wait(request_id, result)
 	if not waiting:
 		position_result_received.emit(result, request_id)
+
+
+func _on_fire_control_result(payload: Dictionary) -> void:
+	var request_id := str(payload.get("requestId", payload.get("request_id", "")))
+	var result: ActionResultClass = AuthoritativeSyncClass.action_result_from_payload(payload)
+	result.refresh_views = result.success
+	result.sync_fire_at_ui = bool(payload.get("syncFireAtUi", payload.get("sync_fire_at_ui", false)))
+	var waiting := _is_waiting_for(request_id)
+	_resolve_command_wait(request_id, result)
+	if not waiting:
+		fire_control_result_received.emit(result, request_id)
+
+
+func _on_fire_at_result(payload: Dictionary) -> void:
+	var request_id := str(payload.get("requestId", payload.get("request_id", "")))
+	var result: ActionResultClass = AuthoritativeSyncClass.action_result_from_payload(payload)
+	result.refresh_views = result.success
+	result.sync_fire_at_ui = bool(payload.get("syncFireAtUi", payload.get("sync_fire_at_ui", result.success)))
+	var waiting := _is_waiting_for(request_id)
+	_resolve_command_wait(request_id, result)
+	if not waiting:
+		fire_at_result_received.emit(result, request_id)
 
 
 func _is_waiting_for(request_id: String) -> bool:
