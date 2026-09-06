@@ -642,14 +642,17 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 	if result == null:
 		return
 	_debug_sync_calls_this_tick = 0
+	var networked := GameModeManager.is_local_multiplayer()
 	## Per-tick movement: chase position only. Do NOT invalidate fog every step —
 	## that forced player-visibility rebuilds while many AI units marched (late-game hitch).
-	for step in result.movement_steps:
-		var step_view: Soldier = _get_view(int(step.team_id), int(step.soldier_id))
-		var step_state: SoldierState = _game_state.get_soldier(int(step.team_id), int(step.soldier_id))
-		if step_view != null and step_state != null:
-			step_view.sync_movement_chase_from_state(step_state)
-			_debug_sync_calls_this_tick += 1
+	## MP: follow_path already owns the run; chasing each server tick restarts the last step.
+	if not networked:
+		for step in result.movement_steps:
+			var step_view: Soldier = _get_view(int(step.team_id), int(step.soldier_id))
+			var step_state: SoldierState = _game_state.get_soldier(int(step.team_id), int(step.soldier_id))
+			if step_view != null and step_state != null:
+				step_view.sync_movement_chase_from_state(step_state)
+				_debug_sync_calls_this_tick += 1
 
 	var had_completion := false
 	var local_completion := false
@@ -659,7 +662,7 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 		var soldier_id := int(done.soldier_id)
 		var state: SoldierState = _game_state.get_soldier(team_id, soldier_id)
 		var view: Soldier = _get_view(team_id, soldier_id)
-		if view != null and state != null:
+		if view != null and state != null and not networked:
 			var is_selected: bool = (
 				team_id == _session.active_team_id
 				and soldier_id == _control_fireteam().selected_soldier_id
@@ -2627,6 +2630,9 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		refresh_dest_overlay = true
 	elif not result.move_orders.is_empty() and _path_overlay_is_for_local_human(result):
 		refresh_dest_overlay = true
+	elif not result.move_orders.is_empty():
+		## MP move_result has no path_overlay payload — still show red dest tiles.
+		refresh_dest_overlay = true
 	if refresh_dest_overlay:
 		_sync_run_to_destination_overlay()
 
@@ -2829,17 +2835,28 @@ func _sync_run_to_destination_overlay() -> void:
 	if _iso_map == null or _session == null:
 		return
 	var markers: Array = []
-	for fireteam in _session.local_owned_fireteams():
+	for fireteam in _session.all_fireteams():
 		for state_v in fireteam.soldiers:
 			var state: SoldierState = state_v
-			if state == null or state.is_dead or not state.is_moving:
-				continue
-			if state.current_path.is_empty():
+			if state == null or state.is_dead:
 				continue
 			if not _session.can_local_control_soldier(state.team_id, state.soldier_id):
+				if not (
+					GameModeManager.is_local_multiplayer()
+					and PlayerSides.can_control_team(state.team_id)
+				):
+					continue
+			var dest := Vector2i(-999, -999)
+			if state.is_moving and not state.current_path.is_empty():
+				dest = state.current_path[state.current_path.size() - 1]
+			else:
+				var view: Soldier = _get_view(state.team_id, state.soldier_id)
+				if view != null:
+					dest = view.presentation_destination_cell()
+			if dest.x <= -900:
 				continue
 			markers.append({
-				"cell": state.current_path[state.current_path.size() - 1],
+				"cell": dest,
 				"soldier_id": state.soldier_id,
 			})
 	if markers.is_empty():
@@ -3349,8 +3366,8 @@ func _on_soldier_step_reached(_team_id: int, _soldier_id: int, _tile: Vector2i, 
 
 
 func _on_soldier_movement_finished(_team_id: int, _soldier_id: int) -> void:
-	## Legacy presentation signal — authoritative completion comes from process_movement_tick.
-	pass
+	## Presentation reached the dest (MP sim may have finished earlier). Drop that diamond.
+	_sync_run_to_destination_overlay()
 
 
 func _on_soldier_stance_transition_finished(

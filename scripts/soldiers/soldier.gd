@@ -469,6 +469,12 @@ func sync_from_state(
 	_dead_marker.visible = false
 	if state.is_moving:
 		sync_movement_chase_from_state(state)
+	elif _should_let_presentation_finish_move(state):
+		## Sim is done; keep the remaining run so the last tile is not a snap/stutter.
+		_apply_fog_visual(fog_visual, is_selected)
+		set_selected(is_selected)
+		_refresh_id_marker(state)
+		return
 	elif _is_moving:
 		## Presentation settle only (sim already stopped). Snap — never block aim hold
 		## across camera rotates when world projection jumps.
@@ -477,7 +483,7 @@ func sync_from_state(
 		_is_moving = false
 		_set_world_position_from_cell(state.grid_position)
 	else:
-		_set_world_position_from_cell(state.grid_position)
+		_set_world_position_from_cell_if_needed(state.grid_position)
 	_facing_from_cell = state.grid_position
 	## Aim hold before selection/idle locomotion so CIS cannot win the frame.
 	_sync_fire_aim_hold(state)
@@ -822,6 +828,7 @@ func _finish_presentation_move() -> void:
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
+	_settled_path_end = Vector2i(-999, -999)
 	if _uses_og_frames() and not _blocks_action_override():
 		## Idle arm / ensure keeps _process on for the standing fidget wait.
 		_update_locomotion_visual(_last_applied_facing, false)
@@ -829,6 +836,7 @@ func _finish_presentation_move() -> void:
 		set_process(true)
 	else:
 		set_process(false)
+	movement_finished.emit(team_id, soldier_id)
 
 
 func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
@@ -947,22 +955,36 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 		## (different z_index among siblings disables Y-sort vs walls).
 		set_process(true)
 		return
-	## Path finished in sim — clear path chase and settle onto the final cell, then idle.
+	## Path finished in sim — if the visual is still on this route, let it finish
+	## the last cells. Clearing here caused a snap / extra step at the end.
+	if _should_let_presentation_finish_move(state):
+		set_process(true)
+		return
+	var dest_world := IsometricGrid.grid_to_world(state.grid_position)
+	if position.distance_to(dest_world) <= 2.0:
+		position = dest_world
+		if _is_moving:
+			_finish_presentation_move()
+		return
 	_path.clear()
 	_path_index = 0
-	_move_target_world = IsometricGrid.grid_to_world(state.grid_position)
-	if position.distance_to(_move_target_world) <= 0.5:
-		position = _move_target_world
-		_finish_presentation_move()
-	else:
-		## Settle lerp — never leave the run loop playing while sliding to the cell.
-		_is_moving = true
-		_update_locomotion_visual(_last_applied_facing, false)
-		set_process(true)
+	_move_target_world = dest_world
+	## Settle lerp — never leave the run loop playing while sliding to the cell.
+	_is_moving = true
+	_update_locomotion_visual(_last_applied_facing, false)
+	set_process(true)
 
 
 func _has_active_chase() -> bool:
 	return not _path.is_empty() and _path_index < _path.size()
+
+
+func presentation_destination_cell() -> Vector2i:
+	if _settled_path_end.x > -900:
+		return _settled_path_end
+	if not _path.is_empty():
+		return _path[_path.size() - 1]
+	return Vector2i(-999, -999)
 
 
 func _chase_is_same_route(state: SoldierState) -> bool:
@@ -971,6 +993,22 @@ func _chase_is_same_route(state: SoldierState) -> bool:
 	if _path.size() != state.current_path.size():
 		return false
 	return _path[_path.size() - 1] == state.current_path[state.current_path.size() - 1]
+
+
+func _should_let_presentation_finish_move(state: SoldierState) -> bool:
+	if state == null or not _is_moving or not _has_active_chase():
+		return false
+	var dest := state.grid_position
+	if not state.current_path.is_empty():
+		dest = state.current_path[state.current_path.size() - 1]
+	return _settled_path_end == dest or _path[_path.size() - 1] == dest
+
+
+func _set_world_position_from_cell_if_needed(cell: Vector2i) -> void:
+	var dest_world := IsometricGrid.grid_to_world(cell) + _corner_lean_world_offset()
+	if position.distance_to(dest_world) <= 2.0:
+		return
+	_set_world_position_from_cell(cell)
 
 
 func _apply_facing(facing: Vector2i, from_cell: Vector2i = Vector2i.ZERO) -> void:
