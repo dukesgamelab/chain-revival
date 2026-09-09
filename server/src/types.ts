@@ -80,6 +80,9 @@ export interface MatchSnapshot {
   matchId: string;
   mapId: string;
   simMsec: number;
+  tickId: number;
+  simRunning: boolean;
+  matchPhase: string;
   soldiers: SoldierSnapshot[];
 }
 
@@ -163,6 +166,7 @@ export interface MovementTickPayload {
   type: "movement_tick";
   matchId: string;
   simMsec: number;
+  tickId: number;
   movementSteps: Array<{
     teamId: number;
     soldierId: number;

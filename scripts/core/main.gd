@@ -549,7 +549,7 @@ func _step_fixed_simulation(frame_delta: float) -> void:
 
 func _step_simulation_tick(skip_ai: bool = false) -> void:
 	if GameModeManager.is_local_multiplayer():
-		## Server owns the sim clock, movement tick, and (later) combat/AI.
+		## Server SimulationClock owns match time. Do not advance local GameState here.
 		return
 	var stepped := SimulationClock.advance_tick()
 

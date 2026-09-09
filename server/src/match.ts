@@ -1,5 +1,14 @@
 /**
- * One local multiplayer match. Server owns GameState and the sim tick.
+ * One local multiplayer match. Server owns GameState and the sim clock.
+ *
+ * Clock lifecycle (not a player-facing pause menu):
+ * - created → running immediately (match exists before either client joins)
+ * - running: consumeRealtime → fixed ticks → movement + sim timers
+ * - paused: infrastructure only (tests / future host pause). Not wired to UI.
+ * - ended: clock stop(); no further GameState ticks
+ *
+ * Connecting/disconnecting clients does not create or reset the clock.
+ * setInterval is only a wake — gameplay steps come from monotonic elapsed time.
  */
 
 import type { WebSocket } from "ws";
@@ -18,6 +27,7 @@ import {
 } from "./action_resolver";
 import { GameState } from "./game_state";
 import { MapData } from "./map_data";
+import type { ClockPumpResult } from "./simulation_clock";
 import {
   DEFAULT_MAP_ID,
   MATCH_ID,
@@ -25,9 +35,19 @@ import {
   type FireAtCommandIntent,
   type FireControlCommandIntent,
   type MoveCommandIntent,
+  type MovementTickPayload,
   type PositionCommandIntent,
   type Vec2i,
 } from "./types";
+
+export type MatchPhase = "created" | "running" | "paused" | "ended";
+
+export interface MatchOptions {
+  /** Production default true. Tests pass false and call advanceRealtime. */
+  startDriver?: boolean;
+}
+
+const DIAG_INTERVAL_MSEC = 5000;
 
 export interface MatchClient {
   clientId: string;
@@ -40,17 +60,38 @@ export class LocalMatch {
   readonly gameState: GameState;
   private readonly clients = new Map<string, MatchClient>();
   private tickTimer: NodeJS.Timeout | null = null;
+  private lastPumpHrTime: bigint | null = null;
+  private lastDiagMsec = 0;
+  private phase: MatchPhase = "created";
+  snapshotSends = 0;
+  movementTickSends = 0;
 
-  constructor(mapId = DEFAULT_MAP_ID) {
+  constructor(mapId = DEFAULT_MAP_ID, options: MatchOptions = {}) {
     const map = MapData.loadFromRepo(mapId);
     this.gameState = new GameState(map);
-    this.startTick();
+    this.phase = "running";
+    if (options.startDriver !== false) {
+      this.startDriver();
+    }
     console.log(
-      "Match %s created map=%s soldiers=%d",
+      "Match %s created map=%s soldiers=%d tickHz=%d",
       this.matchId,
       map.mapId,
       this.gameState.soldiers.length,
+      this.gameState.clock.tickHz,
     );
+  }
+
+  get matchPhase(): MatchPhase {
+    return this.phase;
+  }
+
+  get clock() {
+    return this.gameState.clock;
+  }
+
+  get clientCount(): number {
+    return this.clients.size;
   }
 
   attachClient(clientId: string, ws: WebSocket): void {
@@ -69,10 +110,62 @@ export class LocalMatch {
   }
 
   sendSnapshot(ws: WebSocket): void {
-    ws.send(JSON.stringify(this.gameState.getSnapshot()));
+    this.snapshotSends += 1;
+    ws.send(JSON.stringify(this.gameState.getSnapshot(this.phase)));
+  }
+
+  pauseSimulation(): void {
+    if (this.phase === "ended") {
+      return;
+    }
+    this.phase = "paused";
+    this.clock.pause();
+  }
+
+  resumeSimulation(): void {
+    if (this.phase !== "paused") {
+      return;
+    }
+    this.phase = "running";
+    this.clock.resume();
+    this.lastPumpHrTime = process.hrtime.bigint();
+  }
+
+  endMatch(): void {
+    this.phase = "ended";
+    this.clock.stop();
+    this.gameState.timers.clear();
+    this.stopDriver();
+  }
+
+  /**
+   * Testable pump: feed measured real elapsed msec (not Date.now gameplay delta).
+   * Production driver uses process.hrtime.bigint() the same way.
+   */
+  advanceRealtime(elapsedMsec: number): ClockPumpResult {
+    if (this.phase !== "running" || !this.clock.isRunning()) {
+      return { steps: 0, discardedMsec: 0, capped: false };
+    }
+    return this.clock.consumeRealtime(elapsedMsec, (tickId, tickMsec) => {
+      this.simulationTick(tickId, tickMsec);
+    });
   }
 
   handleMove(clientId: string, intent: MoveCommandIntent): void {
+    if (this.phase === "ended") {
+      this.sendTo(clientId, {
+        type: "move_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Match has ended.",
+        moveOrders: [],
+        movementHalts: [],
+        stanceTransitionOrders: [],
+        soldierUpdates: [],
+      });
+      return;
+    }
     const client = this.clients.get(clientId);
     if (client === undefined || client.teamId === null) {
       this.sendTo(clientId, {
@@ -116,6 +209,17 @@ export class LocalMatch {
   }
 
   handleFace(clientId: string, intent: FaceCommandIntent): void {
+    if (this.phase === "ended") {
+      this.sendTo(clientId, {
+        type: "face_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Match has ended.",
+        faceUpdates: [],
+      });
+      return;
+    }
     const client = this.clients.get(clientId);
     if (client === undefined || client.teamId === null) {
       this.sendTo(clientId, {
@@ -151,6 +255,20 @@ export class LocalMatch {
   }
 
   handlePosition(clientId: string, intent: PositionCommandIntent): void {
+    if (this.phase === "ended") {
+      this.sendTo(clientId, {
+        type: "position_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Match has ended.",
+        positionState: 0,
+        movementHalts: [],
+        stanceTransitionOrders: [],
+        soldierUpdates: [],
+      });
+      return;
+    }
     const client = this.clients.get(clientId);
     if (client === undefined || client.teamId === null) {
       this.sendTo(clientId, {
@@ -192,6 +310,18 @@ export class LocalMatch {
   }
 
   handleFireControl(clientId: string, intent: FireControlCommandIntent): void {
+    if (this.phase === "ended") {
+      this.sendTo(clientId, {
+        type: "fire_control_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Match has ended.",
+        syncFireAtUi: false,
+        targetUpdates: [],
+      });
+      return;
+    }
     const client = this.clients.get(clientId);
     if (client === undefined || client.teamId === null) {
       this.sendTo(clientId, {
@@ -222,6 +352,20 @@ export class LocalMatch {
   }
 
   handleFireAt(clientId: string, intent: FireAtCommandIntent): void {
+    if (this.phase === "ended") {
+      this.sendTo(clientId, {
+        type: "fire_at_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Match has ended.",
+        syncFireAtUi: false,
+        movementHalts: [],
+        faceUpdates: [],
+        targetUpdates: [],
+      });
+      return;
+    }
     const client = this.clients.get(clientId);
     if (client === undefined || client.teamId === null) {
       this.sendTo(clientId, {
@@ -255,23 +399,79 @@ export class LocalMatch {
     this.broadcast(toFireAtResultPayload(this.matchId, intent.requestId, result));
   }
 
-  private startTick(): void {
-    const period = this.gameState.clock.tickMsec();
-    this.tickTimer = setInterval(() => {
-      this.gameState.clock.advanceTick();
-      const tick = processMovementTick(this.gameState);
-      if (tick.movementSteps.length === 0 && tick.movementCompletions.length === 0) {
-        return;
-      }
-      this.broadcast({
+  /**
+   * One authoritative sim step. Movement (and later combat/AI) plug in here.
+   * Does not broadcast the full GameState.
+   */
+  simulationTick(tickId: number, _tickMsec: number): void {
+    const movement = processMovementTick(this.gameState);
+    this.gameState.timers.pollDue(this.clock);
+    if (movement.movementSteps.length > 0 || movement.movementCompletions.length > 0) {
+      this.movementTickSends += 1;
+      const payload: MovementTickPayload = {
         type: "movement_tick",
         matchId: this.matchId,
-        simMsec: this.gameState.clock.getTicksMsec(),
-        movementSteps: tick.movementSteps,
-        movementCompletions: tick.movementCompletions,
-      });
+        simMsec: this.clock.getTicksMsec(),
+        tickId,
+        movementSteps: movement.movementSteps,
+        movementCompletions: movement.movementCompletions,
+      };
+      this.broadcast(payload);
+    }
+  }
+
+  private startDriver(): void {
+    const period = this.clock.tickMsec();
+    this.lastPumpHrTime = process.hrtime.bigint();
+    this.tickTimer = setInterval(() => {
+      this.pumpRealtime();
     }, period);
     this.tickTimer.unref?.();
+  }
+
+  private stopDriver(): void {
+    if (this.tickTimer !== null) {
+      clearInterval(this.tickTimer);
+      this.tickTimer = null;
+    }
+  }
+
+  private pumpRealtime(): void {
+    const now = process.hrtime.bigint();
+    if (this.lastPumpHrTime === null) {
+      this.lastPumpHrTime = now;
+      return;
+    }
+    const elapsedMsec = Number(now - this.lastPumpHrTime) / 1_000_000;
+    this.lastPumpHrTime = now;
+    const pump = this.advanceRealtime(elapsedMsec);
+    this.maybeLogDiagnostics(pump);
+  }
+
+  private maybeLogDiagnostics(pump: ClockPumpResult): void {
+    const simMsec = this.clock.getTicksMsec();
+    if (pump.capped) {
+      console.warn(
+        "[SimClock] catch-up cap match=%s tickId=%d discardedMsec=%d maxCatchup=%d",
+        this.matchId,
+        this.clock.getTickId(),
+        pump.discardedMsec,
+        this.clock.maxCatchupTicks,
+      );
+    }
+    if (simMsec - this.lastDiagMsec < DIAG_INTERVAL_MSEC) {
+      return;
+    }
+    this.lastDiagMsec = simMsec;
+    console.log(
+      "[SimClock] match=%s tickId=%d simMsec=%d phase=%s clients=%d running=%s",
+      this.matchId,
+      this.clock.getTickId(),
+      simMsec,
+      this.phase,
+      this.clients.size,
+      this.clock.isRunning(),
+    );
   }
 
   private sendTo(clientId: string, payload: unknown): void {

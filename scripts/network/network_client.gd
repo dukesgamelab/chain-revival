@@ -432,10 +432,12 @@ func _on_match_snapshot(snapshot: Dictionary) -> void:
 	if snapshot.has("matchId"):
 		match_id = str(snapshot.get("matchId", match_id))
 	GameLog.log_system(
-		"[NetworkClient] Match snapshot matchId=%s mapId=%s soldiers=%d"
+		"[NetworkClient] Match snapshot matchId=%s mapId=%s tickId=%s simMsec=%s soldiers=%d"
 		% [
 			str(snapshot.get("matchId", "")),
 			str(snapshot.get("mapId", "")),
+			str(snapshot.get("tickId", snapshot.get("tick_id", "?"))),
+			str(snapshot.get("simMsec", snapshot.get("sim_msec", "?"))),
 			(snapshot.get("soldiers", []) as Array).size() if snapshot.get("soldiers", []) is Array else 0,
 		]
 	)

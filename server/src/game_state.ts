@@ -4,6 +4,7 @@
  */
 
 import type { MapData } from "./map_data";
+import { SimTimers } from "./sim_timers";
 import { SimulationClock } from "./simulation_clock";
 import { SoldierState, defaultFacingForTeam } from "./soldier_state";
 import {
@@ -20,6 +21,7 @@ export class GameState {
   readonly matchId = MATCH_ID;
   readonly map: MapData;
   readonly clock = new SimulationClock();
+  readonly timers = new SimTimers();
   readonly soldiers: SoldierState[] = [];
 
   constructor(map: MapData) {
@@ -53,12 +55,15 @@ export class GameState {
     return this.soldiers.filter((s) => s.teamId === teamId);
   }
 
-  getSnapshot(): MatchSnapshot {
+  getSnapshot(matchPhase = "running"): MatchSnapshot {
     return {
       type: "match_snapshot",
       matchId: this.matchId,
       mapId: this.map.mapId,
       simMsec: this.clock.getTicksMsec(),
+      tickId: this.clock.getTickId(),
+      simRunning: this.clock.isRunning(),
+      matchPhase,
       soldiers: this.soldiers.map((s) => s.toSnapshot()),
     };
   }
