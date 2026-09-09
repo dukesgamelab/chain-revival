@@ -64,6 +64,12 @@ export interface SoldierSnapshot {
   engagedTargetTeamId: number;
   engagedTargetSoldierId: number;
   sustainedFire: boolean;
+  weaponId: string;
+  ammoCurrent: number;
+  fireReadyAfterMsec: number;
+  lastShotMsec: number;
+  deathSpriteFamily: string;
+  stanceAtDeath: number;
 }
 
 export interface TargetUpdatePayload {
@@ -244,6 +250,47 @@ export interface FireAtCommandIntent {
   scope: number;
   targetCell?: Vec2i;
   aimWorld?: Vec2i | null;
+}
+
+export interface CombatShotPayload {
+  shotId: number;
+  shooterTeamId: number;
+  shooterId: number;
+  targetTeamId: number;
+  targetId: number;
+  fired: boolean;
+  hit: boolean;
+  killed: boolean;
+  blocked: boolean;
+  noAmmo: boolean;
+  outOfRange: boolean;
+  onCooldown: boolean;
+  hadCover: boolean;
+  coverType: number;
+  weaponId: string;
+  weaponName: string;
+  tracerCount: number;
+  cornerPeek: boolean;
+  peekSide: number;
+  cornerCell: Vec2i;
+  hitFinal: number;
+  killChance: number;
+  ammoCurrent: number;
+  fireReadyAfterMsec: number;
+  facing: Vec2i;
+  deathSpriteFamily?: string;
+  stanceAtDeath?: number;
+  movementHalt?: Vec2i;
+  hitBreakdown?: Record<string, number> | object;
+  messages: string[];
+}
+
+export interface CombatShotsPayload {
+  type: "combat_shots";
+  matchId: string;
+  simMsec: number;
+  tickId: number;
+  shots: CombatShotPayload[];
 }
 
 export interface FireAtResultPayload {

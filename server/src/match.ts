@@ -25,6 +25,8 @@ import {
   toMoveResultPayload,
   toPositionResultPayload,
 } from "./action_resolver";
+import { COMBAT_SCAN_TICKS } from "./perception";
+import { processCombatTick } from "./combat_system";
 import { GameState } from "./game_state";
 import { MapData } from "./map_data";
 import type { ClockPumpResult } from "./simulation_clock";
@@ -39,6 +41,7 @@ import {
   type PositionCommandIntent,
   type TargetSyncPayload,
   type Vec2i,
+  type CombatShotsPayload,
   type VisibilityUpdatePayload,
 } from "./types";
 
@@ -442,6 +445,19 @@ export class LocalMatch {
         targetUpdates: perception.targetUpdates,
       };
       this.broadcast(targets);
+    }
+    if (tickId % COMBAT_SCAN_TICKS === 0) {
+      const combat = processCombatTick(this.gameState);
+      if (combat.shots.length > 0) {
+        const payload: CombatShotsPayload = {
+          type: "combat_shots",
+          matchId: this.matchId,
+          simMsec: this.clock.getTicksMsec(),
+          tickId,
+          shots: combat.shots,
+        };
+        this.broadcast(payload);
+      }
     }
   }
 

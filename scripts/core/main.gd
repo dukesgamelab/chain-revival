@@ -3036,6 +3036,8 @@ func _ensure_multiplayer_result_signals() -> void:
 		NetworkClient.visibility_update_received.connect(_on_network_visibility_update)
 	if not NetworkClient.target_sync_received.is_connected(_on_network_target_sync):
 		NetworkClient.target_sync_received.connect(_on_network_target_sync)
+	if not NetworkClient.combat_shots_received.is_connected(_on_network_combat_shots):
+		NetworkClient.combat_shots_received.connect(_on_network_combat_shots)
 
 
 func _apply_network_face_result(result: ActionResultClass) -> void:
@@ -3086,6 +3088,7 @@ func _maybe_clear_move_targeting_after_prone(result: ActionResultClass) -> void:
 
 
 func _on_network_movement_tick(payload: Dictionary) -> void:
+	AuthoritativeSyncClass.apply_sim_time(payload)
 	var tick_result: ActionResultClass = AuthoritativeSyncClass.apply_movement_tick(
 		_game_state,
 		payload,
@@ -3097,6 +3100,14 @@ func _on_network_visibility_update(payload: Dictionary) -> void:
 	AuthoritativeSyncClass.apply_visibility(payload)
 	_invalidate_fog_cache()
 	_refresh_enemy_spotting_visuals()
+
+
+func _on_network_combat_shots(payload: Dictionary) -> void:
+	var result: ActionResultClass = AuthoritativeSyncClass.apply_combat_shots(_game_state, payload)
+	_present_action_result(result)
+	_invalidate_fog_cache()
+	_refresh_enemy_spotting_visuals()
+	_refresh_command_bar()
 
 
 func _on_network_target_sync(payload: Dictionary) -> void:

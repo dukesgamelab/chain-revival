@@ -7,6 +7,8 @@ import { facingName, teamDisplayName, towardCell, towardWorldPoint } from "./fac
 import type { GameState } from "./game_state";
 import { evaluate, LOS_BLOCKED } from "./los";
 import { speedMultiplier, stepCostMsec } from "./movement_policy";
+import { beginFirePrep } from "./fire_prep";
+import { combatRange } from "./hit_resolution";
 import { canAssignManualPriority, canSpot } from "./perception";
 import { findPath } from "./pathfinder";
 import type { SoldierState } from "./soldier_state";
@@ -697,6 +699,7 @@ export function executeFireAt(
     shooter.beginSustainedFire();
     shooter.fireControlState = FIRE_AT_WILL;
     shooter.setEngagedTarget(target.teamId, target.soldierId);
+    beginFirePrep(gameState, shooter, combatRange(shooter.gridPosition, target.gridPosition));
     applyFireAtFacing(shooter, result, target.gridPosition, cmd.aimWorld ?? null);
     pushTargetUpdate(result, shooter);
     engaged += 1;

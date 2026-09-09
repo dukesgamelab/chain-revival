@@ -7,6 +7,7 @@ const ActionResultClass := preload("res://scripts/core/action_result.gd")
 const GameStateClass := preload("res://scripts/core/game_state.gd")
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
+const CombatShotResultClass := preload("res://scripts/combat/combat_shot_result.gd")
 
 ## team_id -> Dictionary of "team:soldier" -> true (authoritative enemy visibility)
 static var team_visible: Dictionary = {}
@@ -46,9 +47,16 @@ static func is_enemy_visible_to_team(viewer_team_id: int, enemy: SoldierState) -
 	return bool((seen as Dictionary).get("%d:%d" % [enemy.team_id, enemy.soldier_id], false))
 
 
+static func apply_sim_time(payload: Dictionary) -> void:
+	var msec := int(payload.get("simMsec", payload.get("sim_msec", -1)))
+	if msec >= 0:
+		SimulationClock.reset(msec)
+
+
 static func apply_snapshot(game_state: GameStateClass, snapshot: Dictionary) -> void:
 	if game_state == null:
 		return
+	apply_sim_time(snapshot)
 	if snapshot.has("visibility") or snapshot.has("sides"):
 		apply_visibility(snapshot)
 	var soldiers: Variant = snapshot.get("soldiers", [])
@@ -90,6 +98,105 @@ static func apply_snapshot(game_state: GameStateClass, snapshot: Dictionary) -> 
 			)
 		if entry.has("sustainedFire") or entry.has("sustained_fire"):
 			soldier.sustained_fire = bool(entry.get("sustainedFire", entry.get("sustained_fire", false)))
+		if entry.has("weaponId") or entry.has("weapon_id"):
+			var wid := str(entry.get("weaponId", entry.get("weapon_id", "")))
+			if not wid.is_empty() and wid != soldier.weapon_id:
+				soldier.assign_weapon(wid, false)
+		if entry.has("ammoCurrent") or entry.has("ammo_current"):
+			soldier.ammo_current = int(entry.get("ammoCurrent", entry.get("ammo_current", soldier.ammo_current)))
+		if entry.has("fireReadyAfterMsec") or entry.has("fire_ready_after_msec"):
+			soldier.fire_ready_after_msec = int(
+				entry.get("fireReadyAfterMsec", entry.get("fire_ready_after_msec", 0))
+			)
+		if entry.has("lastShotMsec") or entry.has("last_shot_msec"):
+			soldier.last_shot_msec = int(entry.get("lastShotMsec", entry.get("last_shot_msec", 0)))
+		if entry.has("deathSpriteFamily") or entry.has("death_sprite_family"):
+			soldier.death_sprite_family = str(
+				entry.get("deathSpriteFamily", entry.get("death_sprite_family", ""))
+			)
+		if entry.has("stanceAtDeath") or entry.has("stance_at_death"):
+			soldier.stance_at_death = int(
+				entry.get("stanceAtDeath", entry.get("stance_at_death", soldier.position_state))
+			)
+
+
+static func apply_combat_shots(game_state: GameStateClass, payload: Dictionary) -> ActionResultClass:
+	apply_sim_time(payload)
+	var result := ActionResultClass.new()
+	result.success = true
+	result.refresh_views = true
+	for raw in payload.get("shots", []):
+		if not raw is Dictionary:
+			continue
+		var shot: CombatShotResultClass = combat_shot_from_payload(raw)
+		result.combat_shots.append(shot)
+		if not shot.fired:
+			continue
+		var shooter: SoldierState = game_state.get_soldier(shot.shooter_team_id, shot.shooter_id)
+		if shooter != null:
+			var facing := _cell(raw.get("facing", {}))
+			if facing != Vector2i.ZERO:
+				shooter.facing_direction = FacingDirection.from_step(facing)
+			if raw.has("ammoCurrent") or raw.has("ammo_current"):
+				shooter.ammo_current = int(raw.get("ammoCurrent", raw.get("ammo_current", shooter.ammo_current)))
+			shooter.last_shot_msec = SimulationClock.get_ticks_msec()
+			shooter.last_fired_msec = shooter.last_shot_msec
+			shooter.fire_ready_after_msec = int(
+				raw.get("fireReadyAfterMsec", raw.get("fire_ready_after_msec", shooter.fire_ready_after_msec))
+			)
+		var target: SoldierState = game_state.get_soldier(shot.target_team_id, shot.target_id)
+		if shot.killed and target != null and not target.is_dead:
+			target.stance_at_death = int(
+				raw.get("stanceAtDeath", raw.get("stance_at_death", target.position_state))
+			)
+			var family := str(raw.get("deathSpriteFamily", raw.get("death_sprite_family", "")))
+			if not family.is_empty():
+				target.death_sprite_family = family
+			target.mark_killed()
+			_clear_engagements_on_dead(game_state, target)
+	return result
+
+
+static func _clear_engagements_on_dead(game_state: GameStateClass, dead: SoldierState) -> void:
+	if game_state == null or dead == null:
+		return
+	for team_id in [1, 2]:
+		var ft = game_state.session.get_fireteam(team_id) if game_state.session != null else null
+		if ft == null:
+			continue
+		for state in ft.soldiers:
+			var soldier: SoldierState = state
+			if (
+				soldier.engaged_target_team_id == dead.team_id
+				and soldier.engaged_target_soldier_id == dead.soldier_id
+			):
+				soldier.clear_engaged_target()
+				soldier.reset_fire_prep()
+
+
+static func combat_shot_from_payload(raw: Dictionary) -> CombatShotResultClass:
+	var shot := CombatShotResultClass.new()
+	shot.fired = bool(raw.get("fired", false))
+	shot.hit = bool(raw.get("hit", false))
+	shot.killed = bool(raw.get("killed", false))
+	shot.blocked = bool(raw.get("blocked", false))
+	shot.no_ammo = bool(raw.get("noAmmo", raw.get("no_ammo", false)))
+	shot.out_of_range = bool(raw.get("outOfRange", raw.get("out_of_range", false)))
+	shot.on_cooldown = bool(raw.get("onCooldown", raw.get("on_cooldown", false)))
+	shot.had_cover = bool(raw.get("hadCover", raw.get("had_cover", false)))
+	shot.cover_type = int(raw.get("coverType", raw.get("cover_type", 0)))
+	shot.weapon_name = str(raw.get("weaponName", raw.get("weapon_name", "")))
+	shot.tracer_count = int(raw.get("tracerCount", raw.get("tracer_count", 0)))
+	shot.shooter_team_id = int(raw.get("shooterTeamId", raw.get("shooter_team_id", 1)))
+	shot.shooter_id = int(raw.get("shooterId", raw.get("shooter_id", 1)))
+	shot.target_team_id = int(raw.get("targetTeamId", raw.get("target_team_id", 2)))
+	shot.target_id = int(raw.get("targetId", raw.get("target_id", 1)))
+	shot.corner_peek = bool(raw.get("cornerPeek", raw.get("corner_peek", false)))
+	shot.peek_side = int(raw.get("peekSide", raw.get("peek_side", 0)))
+	shot.corner_cell = _cell(raw.get("cornerCell", raw.get("corner_cell", {})))
+	shot.hit_final = float(raw.get("hitFinal", raw.get("hit_final", 0.0)))
+	shot.kill_chance = float(raw.get("killChance", raw.get("kill_chance", 0.0)))
+	return shot
 
 
 static func action_result_from_payload(payload: Dictionary) -> ActionResultClass:

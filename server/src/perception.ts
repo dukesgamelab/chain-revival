@@ -4,6 +4,7 @@
  * Combat scan every 10 ticks (0.5s). Pair rebuild only when dirty or on scan.
  */
 
+import { beginFirePrep } from "./fire_prep";
 import type { GameState } from "./game_state";
 import { euclidean, isFacingTowardTarget, manhattan, soldierKey } from "./grid";
 import { COVER_COMPLETE, COVER_MODERATE, COVER_NONE } from "./map_objects";
@@ -182,7 +183,9 @@ export class PerceptionSystem {
       shooter.engagedTargetLostMsec = 0;
       return;
     }
-    shooter.setEngagedTarget(next.teamId, next.soldierId);
+    if (shooter.setEngagedTarget(next.teamId, next.soldierId)) {
+      beginFirePrep(state, shooter);
+    }
     shooter.engagedTargetLostMsec = 0;
     const facing = faceToward(shooter.gridPosition, next.gridPosition);
     if (facing.x !== 0 || facing.y !== 0) {

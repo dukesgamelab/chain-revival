@@ -3,6 +3,7 @@
  * Lives only on the Node server in LOCAL_MULTIPLAYER.
  */
 
+import { GameRandom } from "./game_random";
 import type { LosOccupant } from "./los";
 import type { MapData } from "./map_data";
 import { PerceptionSystem } from "./perception";
@@ -26,6 +27,8 @@ export class GameState {
   readonly timers = new SimTimers();
   readonly soldiers: SoldierState[] = [];
   readonly perception = new PerceptionSystem();
+  readonly rng = new GameRandom(1);
+  nextShotId = 0;
 
   constructor(map: MapData) {
     this.map = map;
