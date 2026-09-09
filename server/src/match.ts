@@ -37,7 +37,9 @@ import {
   type MoveCommandIntent,
   type MovementTickPayload,
   type PositionCommandIntent,
+  type TargetSyncPayload,
   type Vec2i,
+  type VisibilityUpdatePayload,
 } from "./types";
 
 export type MatchPhase = "created" | "running" | "paused" | "ended";
@@ -65,6 +67,7 @@ export class LocalMatch {
   private phase: MatchPhase = "created";
   snapshotSends = 0;
   movementTickSends = 0;
+  visibilitySends = 0;
 
   constructor(mapId = DEFAULT_MAP_ID, options: MatchOptions = {}) {
     const map = MapData.loadFromRepo(mapId);
@@ -417,6 +420,28 @@ export class LocalMatch {
         movementCompletions: movement.movementCompletions,
       };
       this.broadcast(payload);
+    }
+    const perception = this.gameState.perception.processTick(this.gameState, tickId);
+    if (perception.visibilityChanged) {
+      this.visibilitySends += 1;
+      const vis: VisibilityUpdatePayload = {
+        type: "visibility_update",
+        matchId: this.matchId,
+        simMsec: this.clock.getTicksMsec(),
+        tickId,
+        sides: this.gameState.perception.visibilityPayload(),
+      };
+      this.broadcast(vis);
+    }
+    if (perception.targetUpdates.length > 0) {
+      const targets: TargetSyncPayload = {
+        type: "target_sync",
+        matchId: this.matchId,
+        simMsec: this.clock.getTicksMsec(),
+        tickId,
+        targetUpdates: perception.targetUpdates,
+      };
+      this.broadcast(targets);
     }
   }
 

@@ -75,6 +75,32 @@ export interface TargetUpdatePayload {
   sustainedFire: boolean;
 }
 
+export interface VisibleSoldierRef {
+  teamId: number;
+  soldierId: number;
+}
+
+export interface VisibilitySidePayload {
+  teamId: number;
+  visible: VisibleSoldierRef[];
+}
+
+export interface VisibilityUpdatePayload {
+  type: "visibility_update";
+  matchId: string;
+  simMsec: number;
+  tickId: number;
+  sides: VisibilitySidePayload[];
+}
+
+export interface TargetSyncPayload {
+  type: "target_sync";
+  matchId: string;
+  simMsec: number;
+  tickId: number;
+  targetUpdates: TargetUpdatePayload[];
+}
+
 export interface MatchSnapshot {
   type: "match_snapshot";
   matchId: string;
@@ -84,6 +110,7 @@ export interface MatchSnapshot {
   simRunning: boolean;
   matchPhase: string;
   soldiers: SoldierSnapshot[];
+  visibility: VisibilitySidePayload[];
 }
 
 export interface MoveOrderPayload {

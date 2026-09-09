@@ -8,10 +8,49 @@ const GameStateClass := preload("res://scripts/core/game_state.gd")
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
 
+## team_id -> Dictionary of "team:soldier" -> true (authoritative enemy visibility)
+static var team_visible: Dictionary = {}
+
+
+static func apply_visibility(payload: Dictionary) -> void:
+	var sides: Variant = payload.get("sides", payload.get("visibility", []))
+	if not sides is Array:
+		return
+	team_visible.clear()
+	for raw in sides:
+		if not raw is Dictionary:
+			continue
+		var side: Dictionary = raw
+		var team_id := int(side.get("teamId", side.get("team_id", -1)))
+		var seen: Dictionary = {}
+		for entry in side.get("visible", []):
+			if not entry is Dictionary:
+				continue
+			var enemy: Dictionary = entry
+			var key := "%d:%d" % [
+				int(enemy.get("teamId", enemy.get("team_id", -1))),
+				int(enemy.get("soldierId", enemy.get("soldier_id", -1))),
+			]
+			seen[key] = true
+		team_visible[team_id] = seen
+
+
+static func is_enemy_visible_to_team(viewer_team_id: int, enemy: SoldierState) -> bool:
+	if enemy == null:
+		return false
+	if enemy.team_id == viewer_team_id:
+		return true
+	var seen: Variant = team_visible.get(viewer_team_id, {})
+	if not seen is Dictionary:
+		return false
+	return bool((seen as Dictionary).get("%d:%d" % [enemy.team_id, enemy.soldier_id], false))
+
 
 static func apply_snapshot(game_state: GameStateClass, snapshot: Dictionary) -> void:
 	if game_state == null:
 		return
+	if snapshot.has("visibility") or snapshot.has("sides"):
+		apply_visibility(snapshot)
 	var soldiers: Variant = snapshot.get("soldiers", [])
 	if not soldiers is Array:
 		return

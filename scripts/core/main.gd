@@ -152,6 +152,7 @@ func _ready() -> void:
 	_init_session_from_spawns()
 	if GameModeManager.is_local_multiplayer() and not NetworkClient.last_snapshot.is_empty():
 		AuthoritativeSyncClass.apply_snapshot(_game_state, NetworkClient.last_snapshot)
+		_invalidate_fog_cache()
 	_connect_command_bar()
 	_apply_multiplayer_side_lock()
 
@@ -2295,6 +2296,8 @@ func _is_enemy_spotted_for_viewer(
 	active_team: int,
 	enemy: SoldierState,
 ) -> bool:
+	if GameModeManager.is_local_multiplayer():
+		return AuthoritativeSyncClass.is_enemy_visible_to_team(active_team, enemy)
 	if viewer_player_id > 0:
 		return CombatSystem.is_enemy_visible_to_player(_game_state, viewer_player_id, enemy)
 	return CombatSystem.is_enemy_visible_to_team(_game_state, active_team, enemy)
@@ -3029,6 +3032,10 @@ func _ensure_multiplayer_result_signals() -> void:
 		NetworkClient.fire_control_result_received.connect(_on_network_fire_control_result)
 	if not NetworkClient.fire_at_result_received.is_connected(_on_network_fire_at_result):
 		NetworkClient.fire_at_result_received.connect(_on_network_fire_at_result)
+	if not NetworkClient.visibility_update_received.is_connected(_on_network_visibility_update):
+		NetworkClient.visibility_update_received.connect(_on_network_visibility_update)
+	if not NetworkClient.target_sync_received.is_connected(_on_network_target_sync):
+		NetworkClient.target_sync_received.connect(_on_network_target_sync)
 
 
 func _apply_network_face_result(result: ActionResultClass) -> void:
@@ -3084,6 +3091,25 @@ func _on_network_movement_tick(payload: Dictionary) -> void:
 		payload,
 	)
 	_present_movement_tick_result(tick_result)
+
+
+func _on_network_visibility_update(payload: Dictionary) -> void:
+	AuthoritativeSyncClass.apply_visibility(payload)
+	_invalidate_fog_cache()
+	_refresh_enemy_spotting_visuals()
+
+
+func _on_network_target_sync(payload: Dictionary) -> void:
+	var result: ActionResultClass = AuthoritativeSyncClass.action_result_from_payload(
+		{
+			"success": true,
+			"targetUpdates": payload.get("targetUpdates", payload.get("target_updates", [])),
+		}
+	)
+	AuthoritativeSyncClass.apply_target_result(_game_state, result)
+	for update in result.target_updates:
+		_sync_soldier_view(int(update.get("team_id", -1)), int(update.get("soldier_id", -1)), false)
+	_refresh_command_bar()
 
 
 func _apply_face_command(cmd: FaceCommand) -> void:

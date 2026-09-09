@@ -30,6 +30,9 @@ export class SoldierState {
   engagedTargetTeamId = -1;
   engagedTargetSoldierId = -1;
   sustainedFire = false;
+  lastFiredMsec = 0;
+  engagedTargetLostMsec = 0;
+  private readonly lastSeen = new Map<string, { msec: number; cell: Vec2i }>();
 
   constructor(soldierId: number, teamId: number, gridPosition: Vec2i, facing: Vec2i) {
     this.soldierId = soldierId;
@@ -79,6 +82,15 @@ export class SoldierState {
   clearEngagedTarget(): void {
     this.engagedTargetTeamId = -1;
     this.engagedTargetSoldierId = -1;
+    this.engagedTargetLostMsec = 0;
+  }
+
+  recordLastSeen(teamId: number, soldierId: number, msec: number, cell: Vec2i): void {
+    this.lastSeen.set(`${teamId}:${soldierId}`, { msec, cell: { ...cell } });
+  }
+
+  getLastSeen(teamId: number, soldierId: number): { msec: number; cell: Vec2i } | null {
+    return this.lastSeen.get(`${teamId}:${soldierId}`) ?? null;
   }
 
   beginSustainedFire(): void {

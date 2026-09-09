@@ -16,6 +16,7 @@ import {
   MOVE_SCOPE_SQUAD,
   TEAM_GERMANY,
   TEAM_USA,
+  vec,
 } from "../src/types";
 
 function makeState(): GameState {
@@ -32,6 +33,21 @@ function ger(state: GameState, id = 1) {
   const soldier = state.getSoldier(TEAM_GERMANY, id);
   assert.ok(soldier);
   return soldier;
+}
+
+/** Adjacent clear LOS so Fire At visibility validation matches existing GDScript. */
+function putInClearLos(state: GameState): void {
+  const usaCells = [vec(4, 4), vec(3, 4), vec(5, 4), vec(6, 4)];
+  const gerCells = [vec(4, 5), vec(3, 5), vec(5, 5), vec(6, 5)];
+  state.soldiersOnTeam(TEAM_USA).forEach((soldier, i) => {
+    soldier.gridPosition = usaCells[i] ?? usaCells[0];
+    soldier.facing = vec(0, 1);
+  });
+  state.soldiersOnTeam(TEAM_GERMANY).forEach((soldier, i) => {
+    soldier.gridPosition = gerCells[i] ?? gerCells[0];
+    soldier.facing = vec(0, -1);
+  });
+  state.perception.rebuildVisibility(state);
 }
 
 test("Hold Fire sets fireControlState and clears a priority target", () => {
@@ -119,6 +135,7 @@ test("dead soldier cannot change fire control", () => {
 
 test("manual Fire At assigns a priority/sustained target", () => {
   const state = makeState();
+  putInClearLos(state);
   const shooter = usa(state);
   const target = ger(state);
   const result = executeFireAt(
@@ -184,6 +201,7 @@ test("manual Fire At rejects a dead target", () => {
 
 test("manual Fire At replaces the previous priority target", () => {
   const state = makeState();
+  putInClearLos(state);
   const shooter = usa(state);
   executeFireAt(
     state,
@@ -220,6 +238,7 @@ test("manual Fire At replaces the previous priority target", () => {
 
 test("Hold Fire after Fire At clears the priority target", () => {
   const state = makeState();
+  putInClearLos(state);
   executeFireAt(
     state,
     {
@@ -254,6 +273,7 @@ test("Hold Fire after Fire At clears the priority target", () => {
 
 test("manual Fire At is allowed while Hold Fire is set and switches to Fire At Will", () => {
   const state = makeState();
+  putInClearLos(state);
   const soldier = usa(state);
   soldier.fireControlState = FIRE_HOLD;
   const result = executeFireAt(
@@ -277,6 +297,7 @@ test("manual Fire At is allowed while Hold Fire is set and switches to Fire At W
 
 test("squad Fire At assigns every living shooter on the acting side", () => {
   const state = makeState();
+  putInClearLos(state);
   const result = executeFireAt(
     state,
     {
@@ -385,6 +406,7 @@ test("snapshot serializes fire-control and priority target", () => {
 
 test("both clients stay identical when applying fire-control and Fire At payloads", () => {
   const state = makeState();
+  putInClearLos(state);
   const hold = executeFireControl(
     state,
     {
@@ -419,14 +441,15 @@ test("both clients stay identical when applying fire-control and Fire At payload
   assert.equal(firePayload.targetUpdates[0].sustainedFire, true);
 });
 
-test("automatic Fire At Will acquisition is not performed without authoritative LOS", () => {
+test("automatic Fire At Will does not invent a target on the command itself", () => {
   const state = makeState();
+  putInClearLos(state);
   const soldier = usa(state);
   soldier.fireControlState = FIRE_AT_WILL;
   assert.equal(soldier.isEngaged(), false);
   assert.equal(
     soldier.engagedTargetSoldierId,
     -1,
-    "LOS/spotting is required before the server may auto-acquire; do not invent nearest-enemy.",
+    "Acquisition happens on the combat-scan cadence, not on the Fire At Will toggle.",
   );
 });

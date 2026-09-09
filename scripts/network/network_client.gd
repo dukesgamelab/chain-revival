@@ -30,6 +30,8 @@ signal position_result_received(result: ActionResultClass, request_id: String)
 signal fire_control_result_received(result: ActionResultClass, request_id: String)
 signal fire_at_result_received(result: ActionResultClass, request_id: String)
 signal movement_tick_received(payload: Dictionary)
+signal visibility_update_received(payload: Dictionary)
+signal target_sync_received(payload: Dictionary)
 
 var _socket := WebSocketPeer.new()
 var _connected := false
@@ -404,6 +406,10 @@ func _handle_message(message: Dictionary) -> void:
 			_on_fire_at_result(message)
 		"movement_tick":
 			movement_tick_received.emit(message)
+		"visibility_update":
+			visibility_update_received.emit(message)
+		"target_sync":
+			target_sync_received.emit(message)
 		_:
 			GameLog.log_system("[NetworkClient] Unhandled message type: %s" % msg_type)
 

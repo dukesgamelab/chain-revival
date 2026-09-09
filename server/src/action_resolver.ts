@@ -5,7 +5,9 @@
 
 import { facingName, teamDisplayName, towardCell, towardWorldPoint } from "./facing";
 import type { GameState } from "./game_state";
+import { evaluate, LOS_BLOCKED } from "./los";
 import { speedMultiplier, stepCostMsec } from "./movement_policy";
+import { canAssignManualPriority, canSpot } from "./perception";
 import { findPath } from "./pathfinder";
 import type { SoldierState } from "./soldier_state";
 import {
@@ -113,6 +115,7 @@ export function executeMove(
   }
   const modeLabel = movementLabel(resolved.mode);
   result.statusMessage = `Soldier ${cmd.soldierId} ${modeLabel} to (${target.x}, ${target.y})`;
+  gameState.markPerceptionDirty();
   return result;
 }
 
@@ -187,6 +190,7 @@ function executeSquadMove(
     return fail(notices[0] ?? "No soldiers could move to that tile.");
   }
   result.statusMessage = `Fireteam moving to (${squadTarget.x}, ${squadTarget.y})`;
+  gameState.markPerceptionDirty();
   return result;
 }
 
@@ -416,6 +420,7 @@ function advanceSoldier(
       tile: { ...to },
       stepDelta,
     });
+    gameState.markPerceptionDirty();
     soldier.pathIndex += 1;
     if (soldier.pathIndex >= soldier.currentPath.length) {
       completeMove(soldier, result);
@@ -525,6 +530,7 @@ export function executeFace(
     soldierId: soldier.soldierId,
     facing: { ...soldier.facing },
   });
+  gameState.markPerceptionDirty();
   return result;
 }
 
@@ -556,6 +562,7 @@ function executeFaceSquad(
     return fail("No soldiers could face that direction.");
   }
   result.statusMessage = `${teamDisplayName(actingTeamId)} Fireteam facing — ${faced} soldier(s) reoriented.`;
+  gameState.markPerceptionDirty();
   return result;
 }
 
@@ -600,6 +607,7 @@ export function executePosition(
   });
   pushSoldierUpdate(result, soldier);
   result.statusMessage = `Soldier ${soldier.soldierId} changed to ${label}`;
+  gameState.markPerceptionDirty();
   return result;
 }
 
@@ -670,6 +678,7 @@ export function executeFireAt(
   const result = emptyAction();
   let engaged = 0;
   let firstNotice = "";
+  let anyObscured = false;
   for (const shooter of shooters) {
     if (shooter === null || shooter.isDead) {
       continue;
@@ -678,23 +687,51 @@ export function executeFireAt(
       firstNotice = firstNotice || "Soldier is stunned and cannot fire.";
       continue;
     }
+    if (!canAssignManualPriority(shooter, target, gameState, cmd.targetCell ?? target.gridPosition)) {
+      continue;
+    }
     haltSoldierIfMoving(shooter, result);
+    if (canSpot(shooter, target, gameState)) {
+      shooter.recordLastSeen(target.teamId, target.soldierId, now, target.gridPosition);
+    }
     shooter.beginSustainedFire();
     shooter.fireControlState = FIRE_AT_WILL;
     shooter.setEngagedTarget(target.teamId, target.soldierId);
     applyFireAtFacing(shooter, result, target.gridPosition, cmd.aimWorld ?? null);
     pushTargetUpdate(result, shooter);
     engaged += 1;
+    const los = evaluate(
+      shooter.gridPosition,
+      target.gridPosition,
+      gameState.map,
+      gameState.losOccupants(),
+    );
+    if (los.status === LOS_BLOCKED) {
+      anyObscured = true;
+    }
   }
 
   if (engaged === 0) {
-    return fail(firstNotice || "No available soldiers to fire.");
+    if (firstNotice) {
+      return fail(firstNotice);
+    }
+    if (cmd.targetCell !== undefined) {
+      const face = executeFireAtFaceOnly(gameState, cmd, shooters, now);
+      if (face.success) {
+        face.statusMessage = "No visible target there.";
+      }
+      return face;
+    }
+    return fail("No visible target there.");
   }
   if (result.movementHalts.length > 0) {
     result.statusMessage = "";
   }
   result.syncFireAtUi = true;
-  if (engaged === 1) {
+  gameState.markPerceptionDirty();
+  if (anyObscured && engaged === 1) {
+    result.statusMessage = `Priority target ${teamDisplayName(target.teamId)} Soldier ${target.soldierId} — holding fire until line of sight clears.`;
+  } else if (engaged === 1) {
     result.statusMessage = `Priority target ${teamDisplayName(target.teamId)} Soldier ${target.soldierId}.`;
   } else {
     result.statusMessage = `${engaged} soldiers assigned priority targets.`;

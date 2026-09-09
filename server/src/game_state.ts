@@ -3,7 +3,9 @@
  * Lives only on the Node server in LOCAL_MULTIPLAYER.
  */
 
+import type { LosOccupant } from "./los";
 import type { MapData } from "./map_data";
+import { PerceptionSystem } from "./perception";
 import { SimTimers } from "./sim_timers";
 import { SimulationClock } from "./simulation_clock";
 import { SoldierState, defaultFacingForTeam } from "./soldier_state";
@@ -23,11 +25,14 @@ export class GameState {
   readonly clock = new SimulationClock();
   readonly timers = new SimTimers();
   readonly soldiers: SoldierState[] = [];
+  readonly perception = new PerceptionSystem();
 
   constructor(map: MapData) {
     this.map = map;
     this.spawnSides();
     this.faceOpposites();
+    this.perception.rebuildVisibility(this);
+    this.perception.acknowledge();
   }
 
   private spawnSides(): void {
@@ -55,6 +60,26 @@ export class GameState {
     return this.soldiers.filter((s) => s.teamId === teamId);
   }
 
+  findLivingSoldierAtCell(cell: Vec2i): SoldierState | null {
+    return (
+      this.soldiers.find(
+        (s) => !s.isDead && s.gridPosition.x === cell.x && s.gridPosition.y === cell.y,
+      ) ?? null
+    );
+  }
+
+  losOccupants(): LosOccupant[] {
+    return this.soldiers.map((s) => ({
+      cell: s.gridPosition,
+      isDead: s.isDead,
+      positionState: s.positionState,
+    }));
+  }
+
+  markPerceptionDirty(): void {
+    this.perception.markDirty();
+  }
+
   getSnapshot(matchPhase = "running"): MatchSnapshot {
     return {
       type: "match_snapshot",
@@ -65,6 +90,7 @@ export class GameState {
       simRunning: this.clock.isRunning(),
       matchPhase,
       soldiers: this.soldiers.map((s) => s.toSnapshot()),
+      visibility: this.perception.visibilityPayload(),
     };
   }
 }
