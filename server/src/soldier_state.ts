@@ -45,6 +45,7 @@ export class SoldierState {
   ammoMax = 0;
   marksman = 0;
   stress = 0;
+  receivedSuppressionThisTick = false;
   stanceAtDeath = POSITION_UP;
   deathSpriteFamily = "";
   private readonly lastSeen = new Map<string, { msec: number; cell: Vec2i }>();
@@ -217,6 +218,7 @@ export class SoldierState {
       lastShotMsec: this.lastShotMsec,
       deathSpriteFamily: this.deathSpriteFamily,
       stanceAtDeath: this.stanceAtDeath,
+      stress: this.stress,
     };
   }
 }

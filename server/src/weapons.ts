@@ -22,6 +22,10 @@ export interface WeaponData {
   rangeConstSqr: number;
   rangeConstPent: number;
   stressAimFactor: number;
+  /** RECOVERED StressFactor — per-tile stress factor in range-scaled gain formula. */
+  suppressionGenerated: number;
+  /** RECOVERED StressLimit — range cutoff in tiles; no suppression at/beyond this. */
+  stressLimitTiles: number;
 }
 
 function rifle(id: string, name: string): WeaponData {
@@ -41,6 +45,8 @@ function rifle(id: string, name: string): WeaponData {
     rangeConstSqr: 0,
     rangeConstPent: 0,
     stressAimFactor: 0.5,
+    suppressionGenerated: 0.25,
+    stressLimitTiles: 25,
   };
 }
 
@@ -61,6 +67,8 @@ function smg(id: string, name: string, rounds: number): WeaponData {
     rangeConstSqr: 0,
     rangeConstPent: 0.02,
     stressAimFactor: 1.5,
+    suppressionGenerated: 2.0,
+    stressLimitTiles: 13,
   };
 }
 
@@ -82,6 +90,8 @@ function lmg(id: string, name: string, rounds: number, bulletUnused = 6): Weapon
     rangeConstSqr: 0,
     rangeConstPent: 0,
     stressAimFactor: 2.0,
+    suppressionGenerated: 0.6,
+    stressLimitTiles: 25,
   };
 }
 

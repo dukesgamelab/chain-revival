@@ -1,6 +1,6 @@
 /**
- * Authoritative aim / fire / kill — port of CombatSystem resolve_shot + combat tick.
- * Suppression gain/decay and grenades are not applied.
+ * Authoritative aim / fire / kill + suppression gain/decay.
+ * Port of CombatSystem resolve_shot, apply_suppression_from_shot, recover_stress_tick.
  */
 
 import type { GameState } from "./game_state";
@@ -13,17 +13,25 @@ import {
   LETHALITY_MULTIPLIER,
   weaponFor,
 } from "./hit_resolution";
-import { evaluate, LOS_BLOCKED } from "./los";
+import { evaluate, LOS_BLOCKED, type LosResult } from "./los";
 import { COVER_COMPLETE, COVER_MODERATE } from "./map_objects";
 import {
+  COMBAT_SCAN_TICKS,
   findBestAutoTarget,
   isAutoTargetValid,
   isPriorityTrackable,
   TARGET_LOST_GRACE_MSEC,
 } from "./perception";
 import type { SoldierState } from "./soldier_state";
-import { fireDelayModifier } from "./stress_accuracy";
-import { FIRE_AT_WILL, type CombatShotPayload, type Vec2i } from "./types";
+import {
+  applyStressDecay,
+  fireDelayModifier,
+  MAX_STRESS,
+  MODERATE_COVER_SUPPRESSION_MULT,
+  PRONE_SUPPRESSION_MULT,
+  rangeSuppressionGainRuntime,
+} from "./stress_accuracy";
+import { FIRE_AT_WILL, POSITION_DOWN, type CombatShotPayload, type Vec2i } from "./types";
 import { ammoCost, effectiveWeaponRange } from "./weapons";
 
 export interface CombatTickResult {
@@ -145,6 +153,13 @@ export function resolveShot(
     shot.hit = true;
     applyKill(state, shooter, target, shot);
   }
+
+  // Apply suppression to target from this shot (hit or miss).
+  if (!target.isDead) {
+    applySuppressionFromShot(state, shooter, target, los);
+  }
+
+  shot.targetStress = target.stress;
   void autoEngagement;
   return shot;
 }
@@ -219,7 +234,15 @@ export function tryAutoEngagement(state: GameState, shooter: SoldierState): Comb
   return resolveShot(state, shooter, target, true);
 }
 
+/** Combat scan interval in seconds (COMBAT_SCAN_TICKS * 50ms per tick). */
+const COMBAT_SCAN_SEC = (COMBAT_SCAN_TICKS * 50) / 1000;
+
 export function processCombatTick(state: GameState): CombatTickResult {
+  // Clear per-tick suppression flags before this scan.
+  for (const s of state.soldiers) {
+    s.receivedSuppressionThisTick = false;
+  }
+
   const shots: CombatShotPayload[] = [];
   for (const shooter of state.soldiers) {
     if (!shooter.sustainedFire) {
@@ -239,7 +262,74 @@ export function processCombatTick(state: GameState): CombatTickResult {
       shots.push(shot);
     }
   }
+
+  // Recover stress for soldiers who did not receive suppression this tick.
+  recoverStressTick(state, COMBAT_SCAN_SEC);
+
   return { shots };
+}
+
+/**
+ * Apply suppression stress to the target from an incoming shot.
+ * Port of CombatSystem.apply_suppression_from_shot.
+ * Gain = (stressLimitTiles - range) * stressFactor * STRESS_SCALE * coverMult * stanceMult.
+ */
+function applySuppressionFromShot(
+  state: GameState,
+  shooter: SoldierState,
+  target: SoldierState,
+  los: LosResult,
+): void {
+  if (target.isDead || shooter.isDead) {
+    return;
+  }
+  if (los.status === LOS_BLOCKED) {
+    return;
+  }
+  const weapon = weaponFor(shooter);
+  if (weapon === null) {
+    return;
+  }
+  const rangeTiles = Math.round(combatRange(shooter.gridPosition, target.gridPosition));
+  const gain = rangeSuppressionGainRuntime(
+    weapon.suppressionGenerated,
+    weapon.stressLimitTiles,
+    rangeTiles,
+  );
+  if (gain <= 0) {
+    return;
+  }
+  let coverMult = 1.0;
+  if (los.coverType === COVER_MODERATE) {
+    coverMult = MODERATE_COVER_SUPPRESSION_MULT;
+  }
+  let stanceMult = 1.0;
+  if (target.positionState === POSITION_DOWN) {
+    stanceMult = PRONE_SUPPRESSION_MULT;
+  }
+  const finalGain = gain * coverMult * stanceMult;
+  if (finalGain <= 0) {
+    return;
+  }
+  target.stress = Math.min(target.stress + finalGain, MAX_STRESS);
+  target.receivedSuppressionThisTick = true;
+}
+
+/**
+ * Exponential stress decay for all living soldiers who were not suppressed this tick.
+ * Port of CombatSystem.recover_stress_tick.
+ */
+function recoverStressTick(state: GameState, deltaSec: number): void {
+  for (const soldier of state.soldiers) {
+    if (soldier.isDead || soldier.stress <= 0) {
+      continue;
+    }
+    if (soldier.receivedSuppressionThisTick) {
+      continue;
+    }
+    const prone = soldier.positionState === POSITION_DOWN;
+    soldier.stress = applyStressDecay(soldier.stress, prone, deltaSec);
+  }
 }
 
 function resolveEngagedTarget(

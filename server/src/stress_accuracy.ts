@@ -1,10 +1,24 @@
 /**
- * Hit-formula stress read only. Does not apply suppression gain/decay.
- * Port of SuppressionPolicy.accuracy_modifier_for + fire_delay_modifier.
+ * Stress/suppression system: accuracy read + suppression gain/decay.
+ * Port of SuppressionPolicy (accuracy_modifier_for, fire_delay_modifier,
+ * range_suppression_gain_runtime, apply_stress_decay).
  */
 
-const STRESS_SCALE = 100 / 7;
+const ORIGINAL_MAX_STRESS = 7.0;
+const STRESS_SCALE = 100 / ORIGINAL_MAX_STRESS;
 const DEFAULT_EXPERIENCE = 4.0;
+const MAX_STRESS = 100;
+const STRESS_MULTIPLIER_GLOBAL = 1.0;
+
+/** Retain fraction over one decay_reference_sec period of no incoming fire. */
+const STRESS_FALL_MULTIPLIER = 0.3;
+/** Seconds over which STRESS_FALL_MULTIPLIER is applied once. Matches base fire cycle. */
+const DECAY_REFERENCE_SEC = 5.5;
+
+/** Cover/stance multipliers for suppression gain. */
+export const MODERATE_COVER_SUPPRESSION_MULT = 0.65;
+export const PRONE_SUPPRESSION_MULT = 0.75;
+
 const TIER_KEYS = [-8, -4, 0, 4, 8];
 const TIER_ROWS: number[][] = [
   [0.5, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0],
@@ -83,6 +97,53 @@ function rawWeight(effectiveTier: number, band: number): number {
   }
   return 1;
 }
+
+/**
+ * RECOVERED: (stressLimitTiles - range) * stressFactor -> runtime 0-100.
+ * No gain at or beyond the weapon's range cutoff.
+ */
+export function rangeSuppressionGainRuntime(
+  stressFactor: number,
+  stressLimitTiles: number,
+  rangeTiles: number,
+): number {
+  if (stressLimitTiles <= 0 || rangeTiles >= stressLimitTiles) {
+    return 0;
+  }
+  const original = (stressLimitTiles - rangeTiles) * stressFactor;
+  if (original <= 0) {
+    return 0;
+  }
+  return original * STRESS_MULTIPLIER_GLOBAL * STRESS_SCALE;
+}
+
+/**
+ * Exponential stress decay toward 0 when not taking fire.
+ * Prone recovers 2x faster (retain^0.5 per period).
+ */
+export function applyStressDecay(
+  runtimeStress: number,
+  prone: boolean,
+  deltaSec: number,
+): number {
+  if (runtimeStress <= 0) {
+    return 0;
+  }
+  const dt = Math.max(deltaSec, 0);
+  if (dt <= 0) {
+    return runtimeStress;
+  }
+  let retainPeriod = STRESS_FALL_MULTIPLIER;
+  if (prone) {
+    retainPeriod *= 0.5;
+  }
+  retainPeriod = clamp(retainPeriod, 0, 1);
+  const period = Math.max(DECAY_REFERENCE_SEC, 0.001);
+  const retain = retainPeriod ** (dt / period);
+  return Math.max(0, runtimeStress * retain);
+}
+
+export { MAX_STRESS };
 
 function clamp(n: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, n));

@@ -70,6 +70,7 @@ export interface SoldierSnapshot {
   lastShotMsec: number;
   deathSpriteFamily: string;
   stanceAtDeath: number;
+  stress: number;
 }
 
 export interface TargetUpdatePayload {
@@ -282,6 +283,8 @@ export interface CombatShotPayload {
   stanceAtDeath?: number;
   movementHalt?: Vec2i;
   hitBreakdown?: Record<string, number> | object;
+  /** Target's stress level after this shot's suppression was applied. */
+  targetStress?: number;
   messages: string[];
 }
 
