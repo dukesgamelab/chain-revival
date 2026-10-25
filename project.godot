@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Chain Revival"
 run/main_scene="res://scenes/mode_select.tscn"
-config/features=PackedStringArray("4.6", "Forward Plus")
+config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://assets/ui/app_icon.png"
 config/windows_native_icon="res://assets/ui/app_icon.ico"
 
