@@ -36,6 +36,15 @@ export class MapData {
   readonly height: number;
   readonly team1Spawns: Vec2i[];
   readonly team2Spawns: Vec2i[];
+  readonly victoryPoints: Array<{
+    x: number;
+    y: number;
+    holder: string;
+    initialHolder: string;
+    captureElapsedSec: number;
+    usPoints: number;
+    gmPoints: number;
+  }>;
   private readonly blocked = new Set<string>();
   private readonly tiles = new Map<string, TileGameplay>();
 
@@ -52,6 +61,7 @@ export class MapData {
     this.height = height;
     this.team1Spawns = team1Spawns;
     this.team2Spawns = team2Spawns;
+    this.victoryPoints = [];
     for (const cell of blockedTiles) {
       this.blocked.add(vecKey(cell));
     }
@@ -78,6 +88,23 @@ export class MapData {
     const team1 = cellsFromJson(raw.team_1_spawn_points);
     const team2 = cellsFromJson(raw.team_2_spawn_points);
     const map = new MapData(mapId, width, height, blockedTiles, team1, team2);
+    // Parse victory points from map JSON.
+    const vpRaw = raw.victory_points;
+    if (Array.isArray(vpRaw)) {
+      for (const entry of vpRaw) {
+        if (typeof entry !== "object" || entry === null) continue;
+        const vp = entry as Record<string, unknown>;
+        map.victoryPoints.push({
+          x: Number(vp.x ?? -999),
+          y: Number(vp.y ?? -999),
+          holder: String(vp.holder ?? vp.initial_holder ?? "Germany"),
+          initialHolder: String(vp.initial_holder ?? "Germany"),
+          captureElapsedSec: 0,
+          usPoints: Number(vp.us_points ?? 0),
+          gmPoints: Number(vp.gm_points ?? 0),
+        });
+      }
+    }
     const objects = raw.map_objects;
     if (Array.isArray(objects) && objects.length > 0) {
       for (const entry of objects) {

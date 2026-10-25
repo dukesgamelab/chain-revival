@@ -119,6 +119,12 @@ export interface MatchSnapshot {
   matchPhase: string;
   soldiers: SoldierSnapshot[];
   visibility: VisibilitySidePayload[];
+  /** Scenario clock and scoring state for reconnect sync. */
+  scenarioTimeRemainingSec?: number;
+  scenarioElapsedSec?: number;
+  scenarioEnded?: boolean;
+  usaTotalPoints?: number;
+  germanyTotalPoints?: number;
 }
 
 export interface MoveOrderPayload {

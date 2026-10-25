@@ -17,6 +17,11 @@ import {
   type MatchSnapshot,
   type Vec2i,
 } from "./types";
+import {
+  createScenarioState,
+  type ScenarioState,
+  type VictoryPointEntry,
+} from "./scenario_rules";
 
 const SOLDIERS_PER_SIDE = 4;
 
@@ -29,9 +34,11 @@ export class GameState {
   readonly perception = new PerceptionSystem();
   readonly rng = new GameRandom(1);
   nextShotId = 0;
+  readonly scenario: ScenarioState;
 
   constructor(map: MapData) {
     this.map = map;
+    this.scenario = createScenarioState(map.victoryPoints ?? []);
     this.spawnSides();
     this.faceOpposites();
     this.perception.rebuildVisibility(this);
@@ -94,6 +101,11 @@ export class GameState {
       matchPhase,
       soldiers: this.soldiers.map((s) => s.toSnapshot()),
       visibility: this.perception.visibilityPayload(),
+      scenarioTimeRemainingSec: this.scenario.timeRemainingSec,
+      scenarioElapsedSec: this.scenario.elapsedSec,
+      scenarioEnded: this.scenario.ended,
+      usaTotalPoints: (this.scenario.killPoints[1] ?? 0) + (this.scenario.terrainPoints[1] ?? 0),
+      germanyTotalPoints: (this.scenario.killPoints[2] ?? 0) + (this.scenario.terrainPoints[2] ?? 0),
     };
   }
 }

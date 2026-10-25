@@ -34,6 +34,13 @@ import {
   type GrenadeExplosionPayload,
 } from "./grenade_system";
 import { AiCommanderFramework, type AiFrameworkOptions } from "./ai_commander_framework";
+import {
+  processTick as processScenarioTick,
+  onSoldierKilled as scenarioOnKill,
+  totalPoints,
+  endCauseMessage,
+  winnerDisplayName,
+} from "./scenario_rules";
 import { GameState } from "./game_state";
 import { MapData } from "./map_data";
 import type { ClockPumpResult } from "./simulation_clock";
@@ -534,6 +541,30 @@ export class LocalMatch {
 
       // Recover from stun after expiry
       recoverStunTick(this.gameState);
+
+      // Scenario clock + victory point capture + end conditions
+      const tickSec = 0.5; // COMBAT_SCAN_TICKS * 50ms
+      const scenarioEnded = processScenarioTick(this.gameState, this.gameState.scenario, tickSec);
+      if (scenarioEnded) {
+        this.phase = "ended";
+        this.broadcast({
+          type: "match_ended",
+          matchId: this.matchId,
+          simMsec: this.clock.getTicksMsec(),
+          endCause: this.gameState.scenario.endCause,
+          winner: this.gameState.scenario.winner,
+          endCauseMessage: endCauseMessage(this.gameState.scenario.endCause),
+          winnerMessage: winnerDisplayName(this.gameState.scenario.winner),
+          usaKillPoints: this.gameState.scenario.killPoints[1] ?? 0,
+          usaTerrainPoints: this.gameState.scenario.terrainPoints[1] ?? 0,
+          usaTotalPoints: totalPoints(this.gameState.scenario, 1),
+          germanyKillPoints: this.gameState.scenario.killPoints[2] ?? 0,
+          germanyTerrainPoints: this.gameState.scenario.terrainPoints[2] ?? 0,
+          germanyTotalPoints: totalPoints(this.gameState.scenario, 2),
+          timeRemainingSec: this.gameState.scenario.timeRemainingSec,
+        });
+        this.stopDriver();
+      }
     }
   }
 
