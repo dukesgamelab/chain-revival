@@ -71,6 +71,7 @@ export interface SoldierSnapshot {
   deathSpriteFamily: string;
   stanceAtDeath: number;
   stress: number;
+  grenadeCount: number;
 }
 
 export interface TargetUpdatePayload {
@@ -251,6 +252,15 @@ export interface FireAtCommandIntent {
   scope: number;
   targetCell?: Vec2i;
   aimWorld?: Vec2i | null;
+}
+
+export interface GrenadeCommandIntent {
+  type: "grenade_command";
+  matchId: string;
+  requestId: string;
+  teamId: number;
+  soldierId: number;
+  targetCell: Vec2i;
 }
 
 export interface CombatShotPayload {

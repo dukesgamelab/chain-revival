@@ -5,6 +5,7 @@ import {
   parseFaceIntent,
   parseFireAtIntent,
   parseFireControlIntent,
+  parseGrenadeIntent,
   parseMoveIntent,
   parsePositionIntent,
 } from "./match";
@@ -192,6 +193,27 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
       return;
     }
     match.handleFireAt(clientId, intent);
+    return;
+  }
+
+  if (message.type === "grenade_command") {
+    const intent = parseGrenadeIntent(message);
+    if (intent === null) {
+      sendJson(ws, {
+        type: "grenade_result",
+        matchId: MATCH_ID,
+        requestId: typeof message.requestId === "string" ? message.requestId : "",
+        success: false,
+        statusMessage: "Invalid grenade command.",
+        throwerTeamId: 0,
+        throwerId: 0,
+        targetCell: { x: 0, y: 0 },
+        grenadeCount: 0,
+        facing: { x: 0, y: 0 },
+      });
+      return;
+    }
+    match.handleGrenade(clientId, intent);
   }
 }
 

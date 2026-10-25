@@ -46,6 +46,10 @@ export class SoldierState {
   marksman = 0;
   stress = 0;
   receivedSuppressionThisTick = false;
+  grenadeCount = 5;
+  pendingGrenadeTarget: Vec2i = { x: -999, y: -999 };
+  grenadeExplodeAtMsec = 0;
+  standOnStunRecovery = false;
   stanceAtDeath = POSITION_UP;
   deathSpriteFamily = "";
   private readonly lastSeen = new Map<string, { msec: number; cell: Vec2i }>();
@@ -88,6 +92,15 @@ export class SoldierState {
   beginPendingStance(target: number, nowMsec: number, gateMsec: number): void {
     this.pendingPositionState = target;
     this.pendingStanceUntilMsec = nowMsec + gateMsec;
+  }
+
+  clearPendingGrenade(): void {
+    this.grenadeExplodeAtMsec = 0;
+    this.pendingGrenadeTarget = { x: -999, y: -999 };
+  }
+
+  hasPendingGrenade(): boolean {
+    return this.grenadeExplodeAtMsec > 0;
   }
 
   clearPath(): void {
@@ -219,6 +232,7 @@ export class SoldierState {
       deathSpriteFamily: this.deathSpriteFamily,
       stanceAtDeath: this.stanceAtDeath,
       stress: this.stress,
+      grenadeCount: this.grenadeCount,
     };
   }
 }

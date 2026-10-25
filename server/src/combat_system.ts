@@ -168,6 +168,9 @@ export function tryEngagedFire(state: GameState, shooter: SoldierState): CombatS
   if (shooter.isDead || shooter.isMoving || shooter.isStunned(state.clock.getTicksMsec())) {
     return null;
   }
+  if (shooter.hasPendingGrenade()) {
+    return null;
+  }
   if (!shooter.sustainedFire) {
     return null;
   }
@@ -198,6 +201,9 @@ export function tryEngagedFire(state: GameState, shooter: SoldierState): CombatS
 
 export function tryAutoEngagement(state: GameState, shooter: SoldierState): CombatShotPayload | null {
   if (shooter.isDead || shooter.isMoving || shooter.isStunned(state.clock.getTicksMsec())) {
+    return null;
+  }
+  if (shooter.hasPendingGrenade()) {
     return null;
   }
   if (shooter.sustainedFire) {

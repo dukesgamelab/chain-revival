@@ -27,6 +27,12 @@ import {
 } from "./action_resolver";
 import { COMBAT_SCAN_TICKS } from "./perception";
 import { processCombatTick } from "./combat_system";
+import {
+  executeGrenade,
+  processGrenadeExplosions,
+  recoverStunTick,
+  type GrenadeExplosionPayload,
+} from "./grenade_system";
 import { GameState } from "./game_state";
 import { MapData } from "./map_data";
 import type { ClockPumpResult } from "./simulation_clock";
@@ -36,6 +42,7 @@ import {
   type FaceCommandIntent,
   type FireAtCommandIntent,
   type FireControlCommandIntent,
+  type GrenadeCommandIntent,
   type MoveCommandIntent,
   type MovementTickPayload,
   type PositionCommandIntent,
@@ -405,6 +412,42 @@ export class LocalMatch {
     this.broadcast(toFireAtResultPayload(this.matchId, intent.requestId, result));
   }
 
+  handleGrenade(clientId: string, intent: GrenadeCommandIntent): void {
+    if (this.phase === "ended") {
+      this.sendTo(clientId, {
+        type: "grenade_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Match has ended.",
+        throwerTeamId: intent.teamId,
+        throwerId: intent.soldierId,
+        targetCell: intent.targetCell,
+        grenadeCount: 0,
+        facing: { x: 0, y: 0 },
+      });
+      return;
+    }
+    const client = this.clients.get(clientId);
+    if (client === undefined || client.teamId === null) {
+      this.sendTo(clientId, {
+        type: "grenade_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: "Join a side before issuing orders.",
+        throwerTeamId: intent.teamId,
+        throwerId: intent.soldierId,
+        targetCell: intent.targetCell,
+        grenadeCount: 0,
+        facing: { x: 0, y: 0 },
+      });
+      return;
+    }
+    const result = executeGrenade(this.gameState, intent, client.teamId);
+    this.broadcast(result);
+  }
+
   /**
    * One authoritative sim step. Movement (and later combat/AI) plug in here.
    * Does not broadcast the full GameState.
@@ -447,6 +490,24 @@ export class LocalMatch {
       this.broadcast(targets);
     }
     if (tickId % COMBAT_SCAN_TICKS === 0) {
+      // Process grenade fuse expiry before combat shots
+      const grenades = processGrenadeExplosions(this.gameState);
+      for (const explosion of grenades.explosions) {
+        const payload: GrenadeExplosionPayload = {
+          type: "grenade_explode",
+          matchId: this.matchId,
+          simMsec: this.clock.getTicksMsec(),
+          throwerTeamId: explosion.thrower.teamId,
+          throwerId: explosion.thrower.soldierId,
+          explosionCell: explosion.explosionCell,
+          blastRadius: 2.0,
+          killed: explosion.killed,
+          stunned: explosion.stunned,
+          messages: explosion.messages,
+        };
+        this.broadcast(payload);
+      }
+
       const combat = processCombatTick(this.gameState);
       if (combat.shots.length > 0) {
         const payload: CombatShotsPayload = {
@@ -458,6 +519,9 @@ export class LocalMatch {
         };
         this.broadcast(payload);
       }
+
+      // Recover from stun after expiry
+      recoverStunTick(this.gameState);
     }
   }
 
@@ -623,6 +687,25 @@ export function parseFireControlIntent(
     teamId: Number(message.teamId ?? 0),
     soldierId: Number(message.soldierId ?? 0),
     fireControlState: Number(message.fireControlState ?? 0),
+  };
+}
+
+export function parseGrenadeIntent(message: Record<string, unknown>): GrenadeCommandIntent | null {
+  const requestId = typeof message.requestId === "string" ? message.requestId : "";
+  if (requestId.length === 0) {
+    return null;
+  }
+  const targetCell = parseCell(message.targetCell);
+  if (targetCell === null) {
+    return null;
+  }
+  return {
+    type: "grenade_command",
+    matchId: typeof message.matchId === "string" ? message.matchId : MATCH_ID,
+    requestId,
+    teamId: Number(message.teamId ?? 0),
+    soldierId: Number(message.soldierId ?? 0),
+    targetCell,
   };
 }
 
