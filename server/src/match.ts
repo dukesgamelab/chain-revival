@@ -33,6 +33,7 @@ import {
   recoverStunTick,
   type GrenadeExplosionPayload,
 } from "./grenade_system";
+import { AiCommanderFramework, type AiFrameworkOptions } from "./ai_commander_framework";
 import { GameState } from "./game_state";
 import { MapData } from "./map_data";
 import type { ClockPumpResult } from "./simulation_clock";
@@ -78,6 +79,7 @@ export class LocalMatch {
   snapshotSends = 0;
   movementTickSends = 0;
   visibilitySends = 0;
+  private aiFramework: AiCommanderFramework | null = null;
 
   constructor(mapId = DEFAULT_MAP_ID, options: MatchOptions = {}) {
     const map = MapData.loadFromRepo(mapId);
@@ -412,6 +414,12 @@ export class LocalMatch {
     this.broadcast(toFireAtResultPayload(this.matchId, intent.requestId, result));
   }
 
+  /** Enable AI for the specified teams. Call after match creation. */
+  setupAi(options: AiFrameworkOptions): void {
+    this.aiFramework = new AiCommanderFramework();
+    this.aiFramework.setup(this.gameState, options);
+  }
+
   handleGrenade(clientId: string, intent: GrenadeCommandIntent): void {
     if (this.phase === "ended") {
       this.sendTo(clientId, {
@@ -488,6 +496,10 @@ export class LocalMatch {
         targetUpdates: perception.targetUpdates,
       };
       this.broadcast(targets);
+    }
+    // AI commanders think on a staggered schedule (every ~4 ticks).
+    if (this.aiFramework !== null) {
+      this.aiFramework.tick(this.gameState);
     }
     if (tickId % COMBAT_SCAN_TICKS === 0) {
       // Process grenade fuse expiry before combat shots
