@@ -88,15 +88,23 @@ export class LocalMatch {
   visibilitySends = 0;
   private aiFramework: AiCommanderFramework | null = null;
 
+  private waitForBothSides = true;
+  private matchStarted = false;
+
   constructor(mapId = DEFAULT_MAP_ID, options: MatchOptions = {}) {
     const map = MapData.loadFromRepo(mapId);
     this.gameState = new GameState(map);
-    this.phase = "running";
-    if (options.startDriver !== false) {
-      this.startDriver();
+    // Start paused, waiting for both sides to connect.
+    this.phase = "created";
+    this.waitForBothSides = true;
+    this.matchStarted = false;
+    if (options.startDriver === false) {
+      // Tests manage the clock directly.
+      this.waitForBothSides = false;
+      this.phase = "running";
     }
     console.log(
-      "Match %s created map=%s soldiers=%d tickHz=%d",
+      "Match %s created map=%s soldiers=%d tickHz=%d (waiting for both sides)",
       this.matchId,
       map.mapId,
       this.gameState.soldiers.length,
@@ -124,6 +132,30 @@ export class LocalMatch {
     const client = this.clients.get(clientId);
     if (client !== undefined) {
       client.teamId = teamId;
+    }
+    this.checkBothSidesReady();
+  }
+
+  private checkBothSidesReady(): void {
+    if (!this.waitForBothSides || this.matchStarted) {
+      return;
+    }
+    let hasUsa = false;
+    let hasGermany = false;
+    for (const client of this.clients.values()) {
+      if (client.teamId === 1) hasUsa = true;
+      if (client.teamId === 2) hasGermany = true;
+    }
+    if (hasUsa && hasGermany) {
+      this.matchStarted = true;
+      this.phase = "running";
+      this.startDriver();
+      console.log("Both sides connected — match starting!");
+      this.broadcast({
+        type: "match_starting",
+        matchId: this.matchId,
+        message: "Both sides connected. Match starting!",
+      });
     }
   }
 
