@@ -8,6 +8,7 @@ const GameStateClass := preload("res://scripts/core/game_state.gd")
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
 const CombatShotResultClass := preload("res://scripts/combat/combat_shot_result.gd")
+const CombatGrenadeResult := preload("res://scripts/combat/combat_grenade_result.gd")
 
 ## team_id -> Dictionary of "team:soldier" -> true (authoritative enemy visibility)
 static var team_visible: Dictionary = {}
@@ -118,6 +119,12 @@ static func apply_snapshot(game_state: GameStateClass, snapshot: Dictionary) -> 
 			soldier.stance_at_death = int(
 				entry.get("stanceAtDeath", entry.get("stance_at_death", soldier.position_state))
 			)
+		if entry.has("stress"):
+			soldier.stress = float(entry.get("stress", 0.0))
+		if entry.has("grenadeCount") or entry.has("grenade_count"):
+			soldier.grenade_count = int(
+				entry.get("grenadeCount", entry.get("grenade_count", soldier.grenade_count))
+			)
 
 
 static func apply_combat_shots(game_state: GameStateClass, payload: Dictionary) -> ActionResultClass:
@@ -145,6 +152,9 @@ static func apply_combat_shots(game_state: GameStateClass, payload: Dictionary) 
 				raw.get("fireReadyAfterMsec", raw.get("fire_ready_after_msec", shooter.fire_ready_after_msec))
 			)
 		var target: SoldierState = game_state.get_soldier(shot.target_team_id, shot.target_id)
+		## Apply authoritative stress from suppression.
+		if target != null and not target.is_dead and (raw.has("targetStress") or raw.has("target_stress")):
+			target.stress = float(raw.get("targetStress", raw.get("target_stress", target.stress)))
 		if shot.killed and target != null and not target.is_dead:
 			target.stance_at_death = int(
 				raw.get("stanceAtDeath", raw.get("stance_at_death", target.position_state))
@@ -155,6 +165,57 @@ static func apply_combat_shots(game_state: GameStateClass, payload: Dictionary) 
 			target.mark_killed()
 			_clear_engagements_on_dead(game_state, target)
 	return result
+
+
+static func apply_grenade_explode(game_state: GameStateClass, payload: Dictionary) -> ActionResultClass:
+	apply_sim_time(payload)
+	var result := ActionResultClass.new()
+	result.success = true
+	result.refresh_views = true
+
+	var explosion_cell := _cell(payload.get("explosionCell", payload.get("explosion_cell", {})))
+
+	## Process kills.
+	for raw in payload.get("killed", []):
+		if not raw is Dictionary:
+			continue
+		var team_id := int(raw.get("teamId", raw.get("team_id", -1)))
+		var soldier_id := int(raw.get("soldierId", raw.get("soldier_id", -1)))
+		var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
+		if soldier != null and not soldier.is_dead:
+			soldier.mark_killed()
+			_clear_engagements_on_dead(game_state, soldier)
+
+	## Process stuns.
+	for raw in payload.get("stunned", []):
+		if not raw is Dictionary:
+			continue
+		var team_id := int(raw.get("teamId", raw.get("team_id", -1)))
+		var soldier_id := int(raw.get("soldierId", raw.get("soldier_id", -1)))
+		var duration_sec := float(raw.get("durationSec", raw.get("duration_sec", 6.0)))
+		var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
+		if soldier != null and not soldier.is_dead:
+			soldier.apply_grenade_stun(duration_sec)
+
+	## Build a grenade result for presentation.
+	var grenade_result := CombatGrenadeResult.new() if _has_grenade_result_class() else null
+	if grenade_result != null:
+		grenade_result.thrower_team_id = int(
+			payload.get("throwerTeamId", payload.get("thrower_team_id", -1))
+		)
+		grenade_result.thrower_id = int(
+			payload.get("throwerId", payload.get("thrower_id", -1))
+		)
+		grenade_result.explosion_cell = explosion_cell
+		grenade_result.blast_radius = float(
+			payload.get("blastRadius", payload.get("blast_radius", 2.0))
+		)
+		result.grenade_explosions.append(grenade_result)
+	return result
+
+
+static func _has_grenade_result_class() -> bool:
+	return ClassDB.class_exists("CombatGrenadeResult") or ResourceLoader.exists("res://scripts/combat/combat_grenade_result.gd")
 
 
 static func _clear_engagements_on_dead(game_state: GameStateClass, dead: SoldierState) -> void:

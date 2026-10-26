@@ -17,6 +17,7 @@ const FaceCommandClass := preload("res://scripts/commands/face_command.gd")
 const PositionCommandClass := preload("res://scripts/commands/position_command.gd")
 const FireControlCommandClass := preload("res://scripts/commands/fire_control_command.gd")
 const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
+const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd")
 const AuthoritativeSyncClass := preload("res://scripts/network/authoritative_sync.gd")
 
 signal connection_changed(connected: bool)
@@ -33,6 +34,9 @@ signal movement_tick_received(payload: Dictionary)
 signal visibility_update_received(payload: Dictionary)
 signal target_sync_received(payload: Dictionary)
 signal combat_shots_received(payload: Dictionary)
+signal grenade_thrown_received(payload: Dictionary)
+signal grenade_explode_received(payload: Dictionary)
+signal match_ended_received(payload: Dictionary)
 
 var _socket := WebSocketPeer.new()
 var _connected := false
@@ -254,6 +258,24 @@ func submit_fire_at_and_wait(
 	return await _wait_for_command_result(timeout_sec, "FireAt", request_id)
 
 
+func submit_grenade_and_wait(
+	cmd: GrenadeCommandClass,
+	timeout_sec: float = DEFAULT_MOVE_TIMEOUT_SEC,
+) -> ActionResultClass:
+	if not _connected or cmd == null:
+		return ActionResultClass.fail("Not connected to the match server.")
+	var request_id := _begin_command_wait()
+	send_json({
+		"type": "grenade_command",
+		"matchId": match_id,
+		"requestId": request_id,
+		"teamId": cmd.team_id,
+		"soldierId": cmd.soldier_id,
+		"targetCell": {"x": cmd.target_cell.x, "y": cmd.target_cell.y},
+	})
+	return await _wait_for_command_result(timeout_sec, "Grenade", request_id)
+
+
 func _begin_command_wait() -> String:
 	_request_seq += 1
 	var request_id := "%s-%d" % [client_id if not client_id.is_empty() else "client", _request_seq]
@@ -413,6 +435,19 @@ func _handle_message(message: Dictionary) -> void:
 			target_sync_received.emit(message)
 		"combat_shots":
 			combat_shots_received.emit(message)
+		"grenade_thrown":
+			_on_grenade_thrown(message)
+		"grenade_explode":
+			grenade_explode_received.emit(message)
+		"match_ended":
+			match_ended_received.emit(message)
+			GameLog.log_system(
+				"[NetworkClient] Match ended: %s (%s)"
+				% [
+					str(message.get("winnerMessage", "")),
+					str(message.get("endCauseMessage", "")),
+				]
+			)
 		_:
 			GameLog.log_system("[NetworkClient] Unhandled message type: %s" % msg_type)
 
@@ -517,6 +552,41 @@ func _resolve_command_wait(request_id: String, result: ActionResultClass) -> voi
 	var entry: Dictionary = _pending_waits[request_id]
 	entry["resolved"] = true
 	entry["result"] = result
+
+
+func _on_grenade_thrown(payload: Dictionary) -> void:
+	var request_id := str(payload.get("requestId", payload.get("request_id", "")))
+	var result: ActionResultClass = ActionResultClass.new()
+	result.success = bool(payload.get("success", false))
+	result.status_message = str(payload.get("statusMessage", payload.get("status_message", "")))
+	result.refresh_views = result.success
+	if result.success:
+		result.throw_orders.append({
+			"team_id": int(payload.get("throwerTeamId", payload.get("thrower_team_id", -1))),
+			"soldier_id": int(payload.get("throwerId", payload.get("thrower_id", -1))),
+		})
+		## Apply facing and halt if present.
+		var facing: Vector2i = AuthoritativeSyncClass._cell(payload.get("facing", {}))
+		if facing != Vector2i.ZERO:
+			result.face_updates.append({
+				"team_id": int(payload.get("throwerTeamId", payload.get("thrower_team_id", -1))),
+				"soldier_id": int(payload.get("throwerId", payload.get("thrower_id", -1))),
+				"facing": facing,
+			})
+		if payload.has("movementHalt") or payload.has("movement_halt"):
+			var halt_cell := AuthoritativeSyncClass._cell(
+				payload.get("movementHalt", payload.get("movement_halt", {}))
+			)
+			if halt_cell != Vector2i.ZERO:
+				result.movement_halts.append({
+					"team_id": int(payload.get("throwerTeamId", payload.get("thrower_team_id", -1))),
+					"soldier_id": int(payload.get("throwerId", payload.get("thrower_id", -1))),
+					"snap_cell": halt_cell,
+				})
+	var waiting := _is_waiting_for(request_id)
+	_resolve_command_wait(request_id, result)
+	if not waiting:
+		grenade_thrown_received.emit(payload)
 
 
 func _emit_status() -> void:
