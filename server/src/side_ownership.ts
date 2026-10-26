@@ -34,6 +34,12 @@ export function removeClient(clientId: string): void {
   clients.delete(clientId);
 }
 
+export function resetSides(): void {
+  sideOwners.USA = null;
+  sideOwners.GERMANY = null;
+  clients.clear();
+}
+
 export function parseSideName(value: unknown): SideName | null {
   if (value === "USA" || value === "GERMANY") {
     return value;

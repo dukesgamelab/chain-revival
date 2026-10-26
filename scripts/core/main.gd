@@ -3038,6 +3038,10 @@ func _ensure_multiplayer_result_signals() -> void:
 		NetworkClient.target_sync_received.connect(_on_network_target_sync)
 	if not NetworkClient.combat_shots_received.is_connected(_on_network_combat_shots):
 		NetworkClient.combat_shots_received.connect(_on_network_combat_shots)
+	if not NetworkClient.grenade_explode_received.is_connected(_on_network_grenade_explode):
+		NetworkClient.grenade_explode_received.connect(_on_network_grenade_explode)
+	if not NetworkClient.match_ended_received.is_connected(_on_network_match_ended):
+		NetworkClient.match_ended_received.connect(_on_network_match_ended)
 
 
 func _apply_network_face_result(result: ActionResultClass) -> void:
@@ -3108,6 +3112,29 @@ func _on_network_combat_shots(payload: Dictionary) -> void:
 	_invalidate_fog_cache()
 	_refresh_enemy_spotting_visuals()
 	_refresh_command_bar()
+
+
+func _on_network_grenade_explode(payload: Dictionary) -> void:
+	var result: ActionResultClass = AuthoritativeSyncClass.apply_grenade_explode(_game_state, payload)
+	_present_action_result(result)
+	_invalidate_fog_cache()
+	_refresh_enemy_spotting_visuals()
+	_refresh_command_bar()
+
+
+func _on_network_match_ended(payload: Dictionary) -> void:
+	if _game_state == null:
+		return
+	## Apply authoritative end state from the server.
+	_game_state.scenario_ended = true
+	_game_state.end_cause = int(payload.get("endCause", payload.get("end_cause", 4)))
+	_game_state.winner = int(payload.get("winner", 0))
+	_game_state.match_phase = 2 ## ENDED
+	_game_state.team_kill_points[Team.USA] = int(payload.get("usaKillPoints", payload.get("usa_kill_points", 0)))
+	_game_state.team_kill_points[Team.GERMANY] = int(payload.get("germanyKillPoints", payload.get("germany_kill_points", 0)))
+	_game_state.team_terrain_points[Team.USA] = int(payload.get("usaTerrainPoints", payload.get("usa_terrain_points", 0)))
+	_game_state.team_terrain_points[Team.GERMANY] = int(payload.get("germanyTerrainPoints", payload.get("germany_terrain_points", 0)))
+	_on_scenario_ended()
 
 
 func _on_network_target_sync(payload: Dictionary) -> void:

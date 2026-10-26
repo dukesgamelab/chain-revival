@@ -14,11 +14,21 @@ import {
   registerClient,
   removeClient,
   requestSide,
+  resetSides,
 } from "./side_ownership";
 import { MATCH_ID, sideToTeamId } from "./types";
 
 const PORT = 3000;
-const match = new LocalMatch();
+let match = new LocalMatch();
+
+/** Reset to a fresh match when the previous one has ended. */
+function ensureFreshMatch(): void {
+  if (match.matchPhase === "ended") {
+    console.log("Previous match ended — creating a fresh match.");
+    resetSides();
+    match = new LocalMatch();
+  }
+}
 
 interface IncomingMessage {
   type?: string;
@@ -56,6 +66,7 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
   }
 
   if (message.type === "hello") {
+    ensureFreshMatch();
     const clientName =
       typeof message.clientName === "string" ? message.clientName : "Unknown client";
     console.log("Hello from %s (%s)", clientName, clientId);
