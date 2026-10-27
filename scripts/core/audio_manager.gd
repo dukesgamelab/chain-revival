@@ -93,7 +93,7 @@ func play_grenade_explosion() -> void:
 	_grenade_pool_index = (_grenade_pool_index + 1) % _grenade_players.size()
 
 
-func play_death(team_id: int = -1) -> void:
+func play_death(_team_id: int = -1) -> void:
 	var stream := _pick_death_stream()
 	_play_from_pool(
 		_death_players,

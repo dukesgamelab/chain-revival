@@ -195,19 +195,19 @@ static func _walk_letter_range_from_db(is_usa: bool) -> PackedStringArray:
 ## Under CoC X-flip, logical ±X steps reverse on screen — pick the letter from the
 ## visual step so bodies match aim lines / movement on the flipped map.
 static func direction_from_step(step: Vector2i) -> String:
-	var snapped := snap_step_to_eight_way(step)
+	var snapped_step := snap_step_to_eight_way(step)
 	if MapCoordinateTransform.uses_coc_x_flip():
 		## visual_delta = (-logical_dx, logical_dy) for the authoritative X-flip.
-		snapped = Vector2i(-snapped.x, snapped.y)
-	return _letter_from_visual_step(snapped)
+		snapped_step = Vector2i(-snapped_step.x, snapped_step.y)
+	return _letter_from_visual_step(snapped_step)
 
 
 ## Threat step points from victim toward attacker / blast. Fall direction is away from threat.
 static func direction_from_threat(threat_step: Vector2i) -> String:
-	var snapped := snap_step_to_eight_way(threat_step)
-	if snapped == Vector2i.ZERO:
+	var snapped_step := snap_step_to_eight_way(threat_step)
+	if snapped_step == Vector2i.ZERO:
 		return direction_from_step(FacingDirection.NORTH)
-	return direction_from_step(-snapped)
+	return direction_from_step(-snapped_step)
 
 
 static func snap_step_to_eight_way(step: Vector2i) -> Vector2i:

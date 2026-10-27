@@ -242,6 +242,7 @@ func _test_submits_move_face_fire_grenade() -> void:
 			continue
 		soldier.clear_path()
 		soldier.is_moving = false
+		@warning_ignore("integer_division")
 		soldier.grid_position = Vector2i(24 + (i % 2), 20 + (i / 2))
 		## Face nearly toward USA (NW) so shared LOS works but FaceCommand still needed.
 		soldier.facing_direction = FacingDirectionClass.NORTHWEST
@@ -288,12 +289,14 @@ func _test_submits_move_face_fire_grenade() -> void:
 		soldier_g.is_moving = false
 		soldier_g.grenade_count = maxi(soldier_g.grenade_count, 1)
 		## Stay in throw range (5) but outside blast (3) of the USA cluster.
+		@warning_ignore("integer_division")
 		soldier_g.grid_position = Vector2i(27 + (i % 2), 20 + (i / 2))
 	## Pack USA on adjacent cells so cluster >= 2.
 	for sid in range(1, 5):
 		var usa_s = gs.get_soldier(Team.USA, sid)
 		if usa_s == null:
 			continue
+		@warning_ignore("integer_division")
 		usa_s.grid_position = Vector2i(22 + (sid % 2), 20 + (sid / 2))
 	CombatSystem.clear_player_visibility_cache()
 	CombatSystem.notify_command_hierarchy_changed(gs)

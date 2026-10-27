@@ -157,5 +157,7 @@ func _median(values: Array[float]) -> float:
 	sorted.sort()
 	var n := sorted.size()
 	if n % 2 == 1:
+		@warning_ignore("integer_division")
 		return sorted[n / 2]
+	@warning_ignore("integer_division")
 	return (sorted[n / 2 - 1] + sorted[n / 2]) * 0.5

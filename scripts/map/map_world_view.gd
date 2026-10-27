@@ -141,6 +141,7 @@ func is_terrain_overlay_enabled() -> bool:
 
 
 func cycle_handedness_candidate() -> String:
+	@warning_ignore("shadowed_variable_base_class")
 	var name := MapCoordinateTransform.cycle_candidate()
 	refresh_presentation()
 	refresh_view_rotation()

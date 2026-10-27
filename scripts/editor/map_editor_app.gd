@@ -227,6 +227,7 @@ func _load_map(path: String) -> void:
 	_history.clear()
 	_world.apply_map_data(_map_data)
 	_camera.set_map_size(_map_data.width, _map_data.height)
+	@warning_ignore("integer_division")
 	var focus := Vector2i(_map_data.width / 2, _map_data.height / 2)
 	if not _map_data.team_1_spawn_points.is_empty():
 		focus = _map_data.team_1_spawn_points[0]

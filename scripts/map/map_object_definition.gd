@@ -101,8 +101,8 @@ static func from_placement(entry: Dictionary) -> MapObjectDefinition:
 	return def
 
 
-static func type_id_for_family(family: String) -> String:
-	var fam := family.to_upper()
+static func type_id_for_family(p_family: String) -> String:
+	var fam := p_family.to_upper()
 	if fam.is_empty():
 		return "coc_prop"
 	if fam == "SWAL" or fam.begins_with("WH") or fam == "SCRS" or fam == "WFLOS3A":

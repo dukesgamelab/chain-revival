@@ -50,8 +50,8 @@ var winner: int = 0
 var team_kill_points: Dictionary = {}
 ## team_id -> int points from held VPs at mission end.
 var team_terrain_points: Dictionary = {}
-## Internal VP poll accumulator (seconds of sim time).
-var _vp_poll_accum_sec: float = 0.0
+## VP poll accumulator (seconds of sim time). Used by ScenarioRules.
+var vp_poll_accum_sec: float = 0.0
 ## Set by ScenarioRules when a VP holder flips — Main clears after redraw.
 var vp_holders_dirty: bool = false
 

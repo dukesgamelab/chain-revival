@@ -269,10 +269,10 @@ func _test_cone_covers_full_facing_sector() -> void:
 				## Only require coverage when the snapped facing for that cell matches —
 				## or when the continuous bearing is inside the sector (rounding can nudge
 				## edge samples onto a neighbor octant at short range).
-				var snapped := FacingDirection.toward_cell(origin, target)
+				var snapped_dir := FacingDirection.toward_cell(origin, target)
 				var cell_bearing := rad_to_deg(atan2(float(dy), float(dx)))
 				var delta := absf(wrapf(cell_bearing - face_deg, -180.0, 180.0))
-				if snapped != facing and delta > half_sector_deg + 0.5:
+				if snapped_dir != facing and delta > half_sector_deg + 0.5:
 					continue
 				if not ConeOfFireClass.is_cell_in_cone(origin, facing, target, max_range):
 					failures.append(

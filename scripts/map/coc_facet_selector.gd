@@ -70,16 +70,21 @@ static func slot_for_facets(display_angle_deg: int, facets: int) -> int:
 		1:
 			return 0
 		2:
+			@warning_ignore("integer_division")
 			return int(((angle + 90) % 360) / 180)
 		4:
+			@warning_ignore("integer_division")
 			return int(((angle + 45) % 360) / 90)
 		8:
+			@warning_ignore("integer_division")
 			return int(((angle + 22) % 360) / 45)
 		_:
 			## Unknown facet counts: clamp to nearest supported quantizer.
 			if facets > 4:
+				@warning_ignore("integer_division")
 				return int(((angle + 22) % 360) / 45) % 8
 			if facets > 1:
+				@warning_ignore("integer_division")
 				return int(((angle + 45) % 360) / 90) % 4
 			return 0
 

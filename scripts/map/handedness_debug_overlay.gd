@@ -72,6 +72,7 @@ func _cell_world(cell: Vector2i) -> Vector2:
 func _draw_axis_markers() -> void:
 	var origin := AXIS_ORIGIN
 	if not map_data.is_in_bounds(origin):
+		@warning_ignore("integer_division")
 		origin = Vector2i(map_data.width / 2, map_data.height / 2)
 	var o := _cell_world(origin)
 	var px := _cell_world(origin + Vector2i(AXIS_LEN, 0))

@@ -160,7 +160,7 @@ static func set_camera_variant(family: String, camera_deg: int, variant: Diction
 	entry["camera_variants"] = variants
 
 
-static func ensure_family(family: String, seed: Dictionary = {}) -> void:
+static func ensure_family(family: String, seed_data: Dictionary = {}) -> void:
 	var fam := family.to_upper()
 	if fam.is_empty():
 		return
@@ -168,7 +168,7 @@ static func ensure_family(family: String, seed: Dictionary = {}) -> void:
 	var families: Dictionary = _root.get("families", {})
 	if families.has(fam):
 		return
-	var entry := seed.duplicate(true) if not seed.is_empty() else _blank_entry(fam)
+	var entry := seed_data.duplicate(true) if not seed_data.is_empty() else _blank_entry(fam)
 	entry["family"] = fam
 	families[fam] = entry
 	_root["families"] = families

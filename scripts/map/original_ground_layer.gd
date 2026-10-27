@@ -45,6 +45,7 @@ func _draw() -> void:
 		return
 	if CocTileCatalog.ground_variant_count() <= 0:
 		return
+	@warning_ignore("shadowed_variable_base_class")
 	var scale := OriginalMapProjection.map_scale()
 	for y in range(map_data.height):
 		for x in range(map_data.width):

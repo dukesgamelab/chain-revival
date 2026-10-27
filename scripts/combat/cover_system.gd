@@ -378,8 +378,8 @@ static func _cell_occupant_prone(cell: Vector2i, game_state: GameState) -> bool:
 
 ## Deprecated: spotting no longer hides by adjacent wall cover alone (see find_spotting_blocking_tile).
 static func is_target_hidden_from_spotting(
-	from_cell: Vector2i,
-	to_cell: Vector2i,
+	_from_cell: Vector2i,
+	_to_cell: Vector2i,
 	_map_data: MapData,
 ) -> bool:
 	return false

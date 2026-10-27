@@ -41,6 +41,7 @@ func _draw_flag_tile(cell: Vector2i, holder: String) -> void:
 	draw_colored_polygon(inset, Color(0.55, 0.55, 0.58, 0.92))
 	draw_polyline(inset, Color(0.22, 0.22, 0.25, 1.0), 1.5, true)
 
+	@warning_ignore("shadowed_variable_base_class")
 	var scale := (
 		OriginalMapProjection.map_scale()
 		if map_data.is_original_visual_map()

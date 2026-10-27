@@ -8,7 +8,7 @@ const GameStateClass := preload("res://scripts/core/game_state.gd")
 const PositionStateClass := preload("res://scripts/enums/position_state.gd")
 const FireControlStateClass := preload("res://scripts/enums/fire_control_state.gd")
 const CombatShotResultClass := preload("res://scripts/combat/combat_shot_result.gd")
-const CombatGrenadeResult := preload("res://scripts/combat/combat_grenade_result.gd")
+const CombatGrenadeResultClass := preload("res://scripts/combat/combat_grenade_result.gd")
 
 ## team_id -> Dictionary of "team:soldier" -> true (authoritative enemy visibility)
 static var team_visible: Dictionary = {}
@@ -198,7 +198,7 @@ static func apply_grenade_explode(game_state: GameStateClass, payload: Dictionar
 			soldier.apply_grenade_stun(duration_sec)
 
 	## Build a grenade result for presentation.
-	var grenade_result := CombatGrenadeResult.new() if _has_grenade_result_class() else null
+	var grenade_result := CombatGrenadeResultClass.new() if _has_grenade_result_class() else null
 	if grenade_result != null:
 		grenade_result.thrower_team_id = int(
 			payload.get("throwerTeamId", payload.get("thrower_team_id", -1))

@@ -8,6 +8,7 @@ signal face_toggled(soldier_id: int, is_pressed: bool)
 signal position_toggled(soldier_id: int, is_down: bool)
 signal fire_control_selected(soldier_id: int, fire_control_state: int)
 signal grenade_toggled(soldier_id: int, is_pressed: bool)
+@warning_ignore("unused_signal")
 signal ammo_adjust_requested(soldier_id: int, delta: int)
 
 @export var soldier_id: int = 1

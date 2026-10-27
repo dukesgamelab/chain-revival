@@ -132,9 +132,9 @@ func _height_cache_get(cell: Vector2i) -> int:
 	return int(_height_cache[cell.y * width + cell.x])
 
 
-func _height_cache_set(cell: Vector2i, height: int) -> void:
+func _height_cache_set(cell: Vector2i, h: int) -> void:
 	_ensure_height_cache()
-	_height_cache[cell.y * width + cell.x] = clampi(height, 0, 2)
+	_height_cache[cell.y * width + cell.x] = clampi(h, 0, 2)
 
 
 func is_in_bounds(cell: Vector2i) -> bool:
@@ -314,9 +314,9 @@ func obstruction_height(cell: Vector2i) -> int:
 	var cached := _height_cache_get(cell)
 	if cached != 255:
 		return cached
-	var height := _compute_obstruction_height(cell)
-	_height_cache_set(cell, height)
-	return height
+	var obs_height := _compute_obstruction_height(cell)
+	_height_cache_set(cell, obs_height)
+	return obs_height
 
 
 func _compute_obstruction_height(cell: Vector2i) -> int:
@@ -373,10 +373,10 @@ func blocks_vision(
 	observer_prone: bool = false,
 	_target_prone: bool = false,
 ) -> bool:
-	var height := obstruction_height(cell)
-	if height >= 2:
+	var obs_height := obstruction_height(cell)
+	if obs_height >= 2:
 		return true
-	if height == 1:
+	if obs_height == 1:
 		return observer_prone
 	return false
 
@@ -435,8 +435,8 @@ func is_blocked(cell: Vector2i) -> bool:
 	if tc == TerrainClass.CLIMB:
 		return not ALLOW_CLIMB_TRAVERSAL
 	## If class token is missing/wrong but height says low/full obstacle, still block.
-	var height := obstruction_height(cell)
-	if height >= 1 and not ALLOW_CLIMB_TRAVERSAL:
+	var obs_height := obstruction_height(cell)
+	if obs_height >= 1 and not ALLOW_CLIMB_TRAVERSAL:
 		return true
 	return false
 
@@ -689,7 +689,7 @@ static func _strip_legacy_shared_gameplay_keys(source: Dictionary) -> int:
 func set_cell_terrain(
 	cell: Vector2i,
 	terrain: int = -1,
-	height: int = -1,
+	p_height: int = -1,
 ) -> void:
 	if not is_in_bounds(cell) or not has_object(cell):
 		return
@@ -709,8 +709,8 @@ func set_cell_terrain(
 		else parse_terrain_class(str(overrides.get("terrain", gp.get("terrain", "_HG_EVEN"))))
 	)
 	var resolved_height := (
-		height
-		if height >= 0
+		p_height
+		if p_height >= 0
 		else clampi(int(float(overrides.get("terrain_height", gp.get("terrain_height", 0)))), 0, 2)
 	)
 	resolved_height = clampi(resolved_height, 0, 2)
@@ -1027,6 +1027,7 @@ static func offset_spawns_behind_enemy(
 	for s in spawns:
 		sx += s.x
 		sy += s.y
+	@warning_ignore("integer_division")
 	var own := Vector2i(sx / spawns.size(), sy / spawns.size())
 	var delta := enemy_anchor - own
 	var step := Vector2i.ZERO
@@ -1063,10 +1064,12 @@ static func _nearest_walkable_near(map_data: MapData, cell: Vector2i) -> Vector2
 	return cell
 
 
+@warning_ignore("integer_division")
 static func _default_spawn_line(anchor: Vector2i) -> Array[Vector2i]:
 	## Eight cells (2×4) so 2v2 can place two full fireteams per side.
 	var out: Array[Vector2i] = []
 	for i in 8:
+		@warning_ignore("integer_division")
 		out.append(anchor + Vector2i(i % 2, i / 2))
 	return out
 

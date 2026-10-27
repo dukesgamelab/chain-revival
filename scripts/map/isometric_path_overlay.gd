@@ -138,6 +138,7 @@ func _draw() -> void:
 				_draw_soldier_dot_sprite(cluster_center, int(ids[i]), 0.75)
 
 
+@warning_ignore("shadowed_variable_base_class")
 func _draw_soldier_dot_sprite(center: Vector2, soldier_id: int, scale: float = 1.0) -> void:
 	if _dot_textures.is_empty():
 		_load_dot_textures()

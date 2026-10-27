@@ -64,6 +64,7 @@ func process_chunked_apply(budget: int = 40) -> bool:
 		return true
 	if _chunk_placements.is_empty():
 		return true
+	@warning_ignore("shadowed_variable_base_class")
 	var scale := OriginalMapProjection.map_scale()
 	var end_i := mini(_chunk_index + maxi(budget, 1), _chunk_placements.size())
 	while _chunk_index < end_i:
@@ -154,11 +155,13 @@ func _sorted_original_placements() -> Array:
 
 
 func _rebuild_original_sprites() -> void:
+	@warning_ignore("shadowed_variable_base_class")
 	var scale := OriginalMapProjection.map_scale()
 	for entry in _sorted_original_placements():
 		_add_original_placement(entry, scale)
 
 
+@warning_ignore("shadowed_variable_base_class")
 func _add_original_placement(entry: Variant, scale: float) -> void:
 	if map_data == null or not (entry is Dictionary):
 		return
