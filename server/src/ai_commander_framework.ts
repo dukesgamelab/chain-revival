@@ -204,6 +204,7 @@ export class AiCommanderFramework {
           soldierId: Number(command.soldierId),
           targetCell: command.targetCell as Vec2i,
           scope: Number(command.scope ?? 0),
+          aimWorld: null,
         };
         const result = executeFace(state, intent, teamId);
         return { success: result.faceUpdates.length > 0 };

@@ -14,6 +14,8 @@ import {
   type VictoryPointEntry,
 } from "./victory_points";
 
+export type { VictoryPointEntry };
+
 // --- End cause / winner constants ---
 
 export const END_CAUSE_NONE = 0;
