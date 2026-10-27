@@ -66,6 +66,11 @@ func center_on_world(world: Vector2) -> void:
 
 
 func _process(delta: float) -> void:
+	# Skip keyboard panning while a text input has focus (e.g. chat).
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused is LineEdit or focused is TextEdit:
+		return
+
 	var move := Vector2.ZERO
 	if Input.is_action_pressed("move_up"):
 		move.y -= 1.0

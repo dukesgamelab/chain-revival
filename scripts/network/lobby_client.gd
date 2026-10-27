@@ -16,8 +16,13 @@ var _http_create: HTTPRequest
 var _http_join: HTTPRequest
 var _http_delete: HTTPRequest
 var _http_update: HTTPRequest
+var _http_cleanup: HTTPRequest
 var _http_chat_send: HTTPRequest
 var _http_chat_fetch: HTTPRequest
+
+## Stashed create args while we clean up old lobbies first.
+var _pending_match_name: String = ""
+var _pending_server_url: String = ""
 
 
 func _ready() -> void:
@@ -26,6 +31,7 @@ func _ready() -> void:
 	_http_join = _make_http("_on_join_response")
 	_http_delete = _make_http("_on_delete_response")
 	_http_update = _make_http("_on_update_response")
+	_http_cleanup = _make_http("_on_cleanup_response")
 	_http_chat_send = _make_http("_on_chat_send_response")
 	_http_chat_fetch = _make_http("_on_chat_fetch_response")
 
@@ -34,36 +40,26 @@ func _ready() -> void:
 # Public API
 # ─────────────────────────────────────────────────────────────────────────
 
-## List all lobbies with status 'waiting', ordered by newest first.
+## List lobbies: waiting ones plus any hosted by the current user.
 func list_lobbies() -> void:
 	if not _check_auth():
 		return
-	# Fetch waiting lobbies AND any lobby hosted by the current user (to detect joins).
 	var url := "%s/rest/v1/lobbies?or=(status.eq.waiting,host_id.eq.%s)&order=created_at.desc" % [SupabaseAuth.SUPABASE_URL, SupabaseAuth.user_id]
 	_http_list.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
 
 
-## Create a new lobby with the given match name.
+## Create a new lobby. First deletes any existing lobbies by this host.
 func create_lobby(match_name: String, server_url: String = "") -> void:
 	if not _check_auth():
 		return
-	var payload := {
-		"host_id": SupabaseAuth.user_id,
-		"host_display_name": SupabaseAuth.display_name,
-		"match_name": match_name,
-		"status": "waiting",
-		"current_players": 1,
-	}
-	if not server_url.is_empty():
-		payload["server_url"] = server_url
-	var body := JSON.stringify(payload)
-	var headers := _bearer_headers_prefer_return()
-	var url := "%s/rest/v1/lobbies" % SupabaseAuth.SUPABASE_URL
-	_http_create.request(url, headers, HTTPClient.METHOD_POST, body)
+	_pending_match_name = match_name
+	_pending_server_url = server_url
+	# Delete any stale lobbies by this host first.
+	var url := "%s/rest/v1/lobbies?host_id=eq.%s" % [SupabaseAuth.SUPABASE_URL, SupabaseAuth.user_id]
+	_http_cleanup.request(url, _bearer_headers(), HTTPClient.METHOD_DELETE)
 
 
-## Join an existing lobby by incrementing current_players.
-## The caller should check the lobby is still 'waiting' before calling.
+## Join an existing lobby by setting it to in_progress.
 func join_lobby(lobby_id: String) -> void:
 	if not _check_auth():
 		return
@@ -76,7 +72,7 @@ func join_lobby(lobby_id: String) -> void:
 	_http_join.request(url, headers, HTTPClient.METHOD_PATCH, body)
 
 
-## Update lobby status (e.g. 'in_progress', 'finished').
+## Update lobby status (e.g. 'finished').
 func update_lobby_status(lobby_id: String, new_status: String) -> void:
 	if not _check_auth():
 		return
@@ -107,12 +103,10 @@ func send_chat_message(msg: String) -> void:
 	_http_chat_send.request(url, _bearer_headers(), HTTPClient.METHOD_POST, body)
 
 
-## Fetch chat messages newer than since_iso (ISO 8601 timestamp).
-## Pass an empty string to get the most recent batch.
+## Fetch the last 50 chat messages. The UI deduplicates by ID.
 func fetch_chat_messages(_since_iso: String = "") -> void:
 	if not _check_auth():
 		return
-	# Fetch the last 50 messages. The UI deduplicates by ID.
 	var url := "%s/rest/v1/chat_messages?order=created_at.asc&limit=50" % SupabaseAuth.SUPABASE_URL
 	_http_chat_fetch.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
 
@@ -158,13 +152,28 @@ func _on_delete_response(result: int, response_code: int, _headers: PackedString
 	lobby_deleted.emit()
 
 
+func _on_cleanup_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+	# Old lobbies cleaned up (or none existed). Now create the new one.
+	var payload := {
+		"host_id": SupabaseAuth.user_id,
+		"host_display_name": SupabaseAuth.display_name,
+		"match_name": _pending_match_name,
+		"status": "waiting",
+		"current_players": 1,
+	}
+	if not _pending_server_url.is_empty():
+		payload["server_url"] = _pending_server_url
+	var body := JSON.stringify(payload)
+	var headers := _bearer_headers_prefer_return()
+	var url := "%s/rest/v1/lobbies" % SupabaseAuth.SUPABASE_URL
+	_http_create.request(url, headers, HTTPClient.METHOD_POST, body)
+
+
 func _on_update_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
-	# Fire and forget; the lobby_browser polls anyway.
 	pass
 
 
 func _on_chat_send_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
-	# Fire and forget; the chat poll will pick it up.
 	pass
 
 
@@ -194,7 +203,6 @@ func _bearer_headers() -> PackedStringArray:
 	])
 
 
-## Same as _bearer_headers but asks PostgREST to return the created/updated row.
 func _bearer_headers_prefer_return() -> PackedStringArray:
 	return PackedStringArray([
 		"Content-Type: application/json",

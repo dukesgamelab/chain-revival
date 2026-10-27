@@ -1652,6 +1652,11 @@ func _on_mission_debrief_finished() -> void:
 		EditorPlaySession.clear_return_flag()
 		get_tree().change_scene_to_file("res://scenes/editor/map_editor.tscn")
 		return
+	## Return to lobby if this was an online multiplayer match.
+	if GameModeManager.is_local_multiplayer():
+		NetworkClient.disconnect_from_server()
+		get_tree().change_scene_to_file("res://scenes/lobby_browser.tscn")
+		return
 	get_tree().change_scene_to_file("res://scenes/mode_select.tscn")
 
 

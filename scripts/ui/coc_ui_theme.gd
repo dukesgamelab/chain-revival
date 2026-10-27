@@ -17,7 +17,7 @@ const TEXT_DISABLED := Color("606060")
 const TEXT_MUTED := Color("1A1A1A")
 const TEXT_STATUS_RED := Color("C00000")
 const TEXT_CHAT_SYSTEM := Color("CC0000")
-const CHAT_BG := Color("FFFFFF")
+const CHAT_BG := Color("1A1A1A")
 const SELECTED_TINT := Color(0.92, 0.92, 0.85, 1.0)
 const FONT_PATH := "res://assets/ui/fonts/tahoma.ttf"
 const FONT_FALLBACK_PATH := "res://assets/ui/fonts/microsoft_sans_serif.ttf"
@@ -172,7 +172,7 @@ static func chat_input_style() -> StyleBoxFlat:
 		return _chat_input_cached
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = CHAT_BG
-	sb.border_color = Color("404040")
+	sb.border_color = Color("555555")
 	sb.set_border_width_all(1)
 	sb.content_margin_left = 4
 	sb.content_margin_top = 2

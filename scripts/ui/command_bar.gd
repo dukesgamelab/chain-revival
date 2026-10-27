@@ -34,6 +34,13 @@ signal retreat_requested
 
 var _status_hud: StatusHud
 
+# In-game chat
+var _chat_poll_timer: Timer
+var _chat_http_fetch: HTTPRequest
+var _chat_http_send: HTTPRequest
+var _chat_seen_ids: Dictionary = {}
+var _chat_channel: String = ""
+
 var _selected_soldier_id: int = 1
 var _move_target_soldier_id: int = -1
 var _active_movement_mode: int = MovementMode.RUN
@@ -434,7 +441,47 @@ func _setup_chat_panel() -> void:
 	chat_log.add_theme_stylebox_override("normal", CocUiTheme.chat_panel_style())
 	chat_log.clear()
 	chat_log.append_text("[color=#CC0000]ATTENTION: Scenario Running[/color]\n")
-	chat_log.append_text("[color=#CC0000]Chat is a placeholder — multiplayer messaging TBD.[/color]\n")
+
+	# Enable the chat input field.
+	var chat_input := %ChatInput as LineEdit
+	if chat_input != null:
+		chat_input.editable = true
+		chat_input.mouse_filter = Control.MOUSE_FILTER_STOP
+		chat_input.focus_mode = Control.FOCUS_ALL
+		chat_input.add_theme_color_override("font_color", Color.WHITE)
+		chat_input.add_theme_color_override("font_placeholder_color", Color(0.5, 0.5, 0.5))
+		chat_input.text_submitted.connect(_on_chat_input_submitted)
+		chat_input.focus_entered.connect(_on_chat_focus_entered)
+		chat_input.focus_exited.connect(_on_chat_focus_exited)
+
+	# Turn the "[No default]" button into a Send button.
+	var default_btn := %ChatDefaultButton as Button
+	if default_btn != null:
+		default_btn.text = "Send"
+		default_btn.disabled = false
+		default_btn.pressed.connect(func(): _on_chat_input_submitted(""))
+
+	# Set up HTTP nodes for Supabase chat.
+	_chat_http_fetch = HTTPRequest.new()
+	_chat_http_fetch.request_completed.connect(_on_chat_fetch_response)
+	add_child(_chat_http_fetch)
+
+	_chat_http_send = HTTPRequest.new()
+	_chat_http_send.request_completed.connect(_on_chat_send_response)
+	add_child(_chat_http_send)
+
+	# Poll for new messages every 3 seconds.
+	_chat_poll_timer = Timer.new()
+	_chat_poll_timer.wait_time = 3.0
+	_chat_poll_timer.timeout.connect(_on_chat_poll_timer)
+	add_child(_chat_poll_timer)
+
+	# Generate a unique channel for this game session so messages stay scoped.
+	_chat_channel = "game:%s" % _generate_session_id()
+
+	if SupabaseAuth.is_signed_in:
+		_chat_poll_timer.start()
+		_chat_fetch_messages()
 
 
 func _append_chat_system(text: String) -> void:
@@ -445,6 +492,169 @@ func _append_chat_system(text: String) -> void:
 	if text.begins_with("USA ") or text.begins_with("Germany "):
 		return
 	chat_log.append_text("[color=#CC0000]%s[/color]\n" % text)
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# In-game chat (Supabase)
+# ─────────────────────────────────────────────────────────────────────────
+
+var _chat_has_focus: bool = false
+
+
+func _on_chat_focus_entered() -> void:
+	_chat_has_focus = true
+
+
+func _on_chat_focus_exited() -> void:
+	_chat_has_focus = false
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Block all game input while the chat input is focused.
+	if _chat_has_focus and event is InputEventKey:
+		get_viewport().set_input_as_handled()
+
+
+func _on_chat_input_submitted(_text: String = "") -> void:
+	var chat_input := %ChatInput as LineEdit
+	if chat_input == null:
+		return
+	var msg := chat_input.text.strip_edges()
+	if msg.is_empty() and not _text.is_empty():
+		msg = _text.strip_edges()
+	if msg.is_empty():
+		return
+	if not SupabaseAuth.is_signed_in:
+		return
+	chat_input.text = ""
+	chat_input.grab_focus()
+	_chat_send_message(msg)
+	await get_tree().create_timer(0.3).timeout
+	_chat_fetch_messages()
+
+
+func _chat_send_message(msg: String) -> void:
+	var body := JSON.stringify({
+		"user_id": SupabaseAuth.user_id,
+		"display_name": SupabaseAuth.display_name,
+		"message": msg,
+		"channel": _chat_channel,
+	})
+	var url := "%s/rest/v1/chat_messages" % SupabaseAuth.SUPABASE_URL
+	_chat_http_send.request(url, _chat_bearer_headers(), HTTPClient.METHOD_POST, body)
+
+
+func _chat_fetch_messages() -> void:
+	if not SupabaseAuth.is_signed_in:
+		return
+	var url := "%s/rest/v1/chat_messages?channel=eq.%s&order=created_at.asc&limit=50" % [
+		SupabaseAuth.SUPABASE_URL, _chat_channel
+	]
+	_chat_http_fetch.request(url, _chat_bearer_headers(), HTTPClient.METHOD_GET)
+
+
+func _on_chat_poll_timer() -> void:
+	_chat_fetch_messages()
+
+
+func _on_chat_send_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+	pass
+
+
+func _on_chat_fetch_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		return
+	var chat_log := %ChatLog as RichTextLabel
+	if chat_log == null:
+		return
+	var parsed := _chat_parse_body_array(body)
+	var added := false
+	for msg_dict in parsed:
+		var msg: Dictionary = msg_dict
+		var msg_id: String = msg.get("id", "")
+		if msg_id.is_empty() or _chat_seen_ids.has(msg_id):
+			continue
+		_chat_seen_ids[msg_id] = true
+		added = true
+
+		var sender: String = msg.get("display_name", "???")
+		var text: String = msg.get("message", "")
+		var timestamp_str: String = msg.get("created_at", "")
+		var time_display := _chat_format_time(timestamp_str)
+
+		var msg_user_id: String = msg.get("user_id", "")
+		var is_self: bool = (msg_user_id == SupabaseAuth.user_id)
+		var name_color: String = "cyan" if is_self else "yellow"
+
+		chat_log.append_text("[color=gray]%s[/color] [color=%s][%s][/color] %s\n" % [
+			time_display, name_color, sender, text
+		])
+
+	if added:
+		await get_tree().process_frame
+		var chat_scroll := chat_log.get_parent().get_parent() as ScrollContainer
+		if chat_scroll != null:
+			chat_scroll.scroll_vertical = int(chat_scroll.get_v_scroll_bar().max_value)
+
+
+func _chat_format_time(iso_timestamp: String) -> String:
+	if iso_timestamp.is_empty():
+		return ""
+	var t_pos := iso_timestamp.find("T")
+	if t_pos < 0:
+		return ""
+	var time_part := iso_timestamp.substr(t_pos + 1, 8)
+	var parts := time_part.split(":")
+	if parts.size() < 2:
+		return time_part
+	var hour := int(parts[0])
+	var minute := int(parts[1])
+	var tz_info := Time.get_time_zone_from_system()
+	var offset_min: int = tz_info.get("bias", 0)
+	var total_min := hour * 60 + minute + offset_min
+	if total_min < 0:
+		total_min += 1440
+	elif total_min >= 1440:
+		total_min -= 1440
+	hour = total_min / 60
+	minute = total_min % 60
+	var ampm := "AM" if hour < 12 else "PM"
+	var display_hour := hour % 12
+	if display_hour == 0:
+		display_hour = 12
+	return "%d:%02d %s" % [display_hour, minute, ampm]
+
+
+func _chat_bearer_headers() -> PackedStringArray:
+	return PackedStringArray([
+		"Content-Type: application/json",
+		"apikey: %s" % SupabaseAuth.SUPABASE_ANON_KEY,
+		"Authorization: Bearer %s" % SupabaseAuth.access_token,
+	])
+
+
+func _chat_parse_body_array(body: PackedByteArray) -> Array:
+	var text := body.get_string_from_utf8()
+	if text.is_empty():
+		return []
+	var json := JSON.new()
+	var err := json.parse(text)
+	if err != OK:
+		return []
+	var data = json.data
+	if data is Array:
+		return data
+	if data is Dictionary:
+		return [data]
+	return []
+
+
+func _generate_session_id() -> String:
+	var chars := "abcdefghijklmnopqrstuvwxyz0123456789"
+	var id := ""
+	for i in 12:
+		id += chars[randi() % chars.length()]
+	return id
 
 
 func _refresh_deployment_stage_label(is_deployment: bool, remaining_sec: float = 0.0) -> void:
