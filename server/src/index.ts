@@ -20,7 +20,7 @@ import {
 } from "./side_ownership";
 import { MATCH_ID, sideToTeamId } from "./types";
 
-const PORT = 3000;
+const PORT = parseInt(process.env.PORT ?? "3000", 10);
 let match = new LocalMatch();
 
 /** Reset to a fresh match when the previous one has ended. */

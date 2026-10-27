@@ -9,6 +9,11 @@ const LOBBY_BROWSER_SCENE := "res://scenes/lobby_browser.tscn"
 const SIDE_SELECT_SCENE := "res://scenes/side_select.tscn"
 const LobbyClientClass := preload("res://scripts/network/lobby_client.gd")
 
+## Online game server URL. Set this to the Railway WebSocket URL once deployed.
+## Example: "wss://chain-revival-server-production.up.railway.app"
+## Leave empty to fall back to LAN IP detection for local hosting.
+const ONLINE_SERVER_URL := ""
+
 var _lobby_client: Node
 var _lobby_list_container: VBoxContainer
 var _status_label: Label
@@ -275,8 +280,13 @@ func _on_confirm_create() -> void:
 		match_name = "%s's Game" % SupabaseAuth.display_name
 	_create_panel.visible = false
 	_set_status("Creating lobby...", Color.WHITE)
-	var lan_ip := _get_lan_ip()
-	var server_url := "ws://%s:3000" % lan_ip
+	var server_url: String
+	if ONLINE_SERVER_URL.is_empty():
+		# No online server configured; fall back to LAN hosting.
+		var lan_ip := _get_lan_ip()
+		server_url = "ws://%s:3000" % lan_ip
+	else:
+		server_url = ONLINE_SERVER_URL
 	_lobby_client.create_lobby(match_name, server_url)
 
 
@@ -325,7 +335,13 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 			if lobby.get("id", "") == _hosted_lobby_id:
 				if lobby.get("status", "") == "in_progress":
 					_set_status("Opponent joined! Starting match...", Color.GREEN)
-					_start_multiplayer("ws://127.0.0.1:3000")
+					# Use the server_url stored in the lobby record so this
+					# works for both LAN (ws://192.168.x.x:3000) and online
+					# (wss://railway-host) hosting.
+					var host_url: String = lobby.get("server_url", "")
+					if host_url.is_empty():
+						host_url = "ws://127.0.0.1:3000"
+					_start_multiplayer(host_url)
 					return
 
 	# Count only waiting lobbies for the status (exclude our own in_progress).
