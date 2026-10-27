@@ -9,12 +9,14 @@ import {
   parseMoveIntent,
   parsePositionIntent,
 } from "./match";
+import { getUserId } from "./supabase_auth";
 import {
   parseSideName,
   registerClient,
   removeClient,
   requestSide,
   resetSides,
+  setClientUserId,
 } from "./side_ownership";
 import { MATCH_ID, sideToTeamId } from "./types";
 
@@ -70,12 +72,28 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
     const clientName =
       typeof message.clientName === "string" ? message.clientName : "Unknown client";
     console.log("Hello from %s (%s)", clientName, clientId);
+
+    // Optional Supabase auth: if the client sends an authToken, verify it
+    // and associate the user ID with this connection.  LAN play works
+    // without a token.
+    let userId: string | null = null;
+    if (typeof message.authToken === "string" && message.authToken !== "") {
+      userId = getUserId(message.authToken);
+      if (userId !== null) {
+        setClientUserId(clientId, userId);
+        console.log("Authenticated user %s (%s)", userId, clientName);
+      } else {
+        console.log("Auth token invalid for %s; continuing as guest.", clientName);
+      }
+    }
+
     match.attachClient(clientId, ws);
     sendJson(ws, {
       type: "welcome",
       message: "Hello Godot client",
       clientId,
       matchId: MATCH_ID,
+      userId,
     });
     return;
   }
@@ -228,10 +246,14 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
   }
 }
 
-const wss = new WebSocketServer({ port: PORT });
+const HOST = process.env.BIND_HOST ?? "0.0.0.0";
+const wss = new WebSocketServer({ host: HOST, port: PORT });
 
-console.log(`Chain Revival local multiplayer server running on ws://localhost:${PORT}`);
+console.log(`Chain Revival multiplayer server running on ws://${HOST}:${PORT}`);
 console.log(`Authoritative match ${MATCH_ID} ready`);
+if (HOST === "0.0.0.0") {
+  console.log("LAN enabled — other machines can connect using this PC's IP address.");
+}
 
 wss.on("connection", (ws: WebSocket) => {
   const clientId = randomUUID();

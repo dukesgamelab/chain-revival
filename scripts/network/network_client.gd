@@ -5,7 +5,9 @@ extends Node
 ##   cd server && npm run dev
 ## Then choose Multiplayer — this client connects to ws://localhost:3000.
 
-const SERVER_URL := "ws://localhost:3000"
+## Default server URL. Override with --server=ws://192.168.x.x:3000 on the command line.
+const DEFAULT_SERVER_URL := "ws://127.0.0.1:3000"
+var server_url: String = DEFAULT_SERVER_URL
 const CLIENT_NAME := "Godot Client"
 const DEFAULT_CONNECT_TIMEOUT_SEC := 5.0
 const DEFAULT_SIDE_REQUEST_TIMEOUT_SEC := 5.0
@@ -54,6 +56,11 @@ var _request_seq := 0
 
 func _ready() -> void:
 	set_process(false)
+	## Allow LAN play via command-line: --server=ws://192.168.1.100:3000
+	for arg in OS.get_cmdline_args():
+		if arg.begins_with("--server="):
+			server_url = arg.substr(9)
+			GameLog.log_system("[NetworkClient] Server URL override: %s" % server_url)
 
 
 func connect_for_local_multiplayer() -> void:
@@ -66,7 +73,7 @@ func connect_for_local_multiplayer() -> void:
 	_connect_failed = false
 	_connecting = true
 	_emit_status()
-	var err := _socket.connect_to_url(SERVER_URL)
+	var err := _socket.connect_to_url(server_url)
 	if err != OK:
 		_connecting = false
 		_connect_failed = true
@@ -77,7 +84,7 @@ func connect_for_local_multiplayer() -> void:
 		return
 
 	set_process(true)
-	GameLog.log_system("[NetworkClient] Connecting to %s..." % SERVER_URL)
+	GameLog.log_system("[NetworkClient] Connecting to %s..." % server_url)
 
 
 func connect_and_wait(timeout_sec: float = DEFAULT_CONNECT_TIMEOUT_SEC) -> bool:
@@ -363,14 +370,19 @@ func _on_disconnected() -> void:
 	elif was_connecting:
 		_connect_failed = true
 		GameLog.log_system(
-			"[NetworkClient] Could not reach server at %s — is it running?" % SERVER_URL
+			"[NetworkClient] Could not reach server at %s — is it running?" % server_url
 		)
 	_emit_status()
 	connection_changed.emit(false)
 
 
 func _send_hello() -> void:
-	send_json({"type": "hello", "clientName": CLIENT_NAME})
+	var hello := {"type": "hello", "clientName": CLIENT_NAME}
+	# Attach the Supabase auth token when the user is signed in so the
+	# server can identify them.  LAN play works fine without it.
+	if SupabaseAuth.is_signed_in and not SupabaseAuth.access_token.is_empty():
+		hello["authToken"] = SupabaseAuth.access_token
+	send_json(hello)
 	GameLog.log_system("[NetworkClient] Sent hello to server.")
 
 

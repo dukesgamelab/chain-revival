@@ -6,6 +6,8 @@ export interface ClientRecord {
   ws: WebSocket;
   clientId: string;
   assignedSide: SideName | null;
+  /** Supabase user ID, set when the client sends an authToken with hello. */
+  userId: string | null;
 }
 
 const sideOwners: Record<SideName, string | null> = {
@@ -16,9 +18,16 @@ const sideOwners: Record<SideName, string | null> = {
 const clients = new Map<string, ClientRecord>();
 
 export function registerClient(ws: WebSocket, clientId: string): ClientRecord {
-  const record: ClientRecord = { ws, clientId, assignedSide: null };
+  const record: ClientRecord = { ws, clientId, assignedSide: null, userId: null };
   clients.set(clientId, record);
   return record;
+}
+
+export function setClientUserId(clientId: string, userId: string): void {
+  const record = clients.get(clientId);
+  if (record) {
+    record.userId = userId;
+  }
 }
 
 export function getClient(clientId: string): ClientRecord | undefined {

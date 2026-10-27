@@ -6,6 +6,8 @@ const MATCH_SETUP_SCENE := "res://scenes/match_setup.tscn"
 const SIDE_SELECT_SCENE := "res://scenes/side_select.tscn"
 const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
 const ASSET_ANIM_EDITOR_SCENE := "res://scenes/editor/asset_animation_editor.tscn"
+const AUTH_SCREEN_SCENE := "res://scenes/auth_screen.tscn"
+const LOBBY_BROWSER_SCENE := "res://scenes/lobby_browser.tscn"
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 
@@ -21,6 +23,8 @@ const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd
 var _how_to_play_dialog: AcceptDialog
 
 
+var _sign_in_label: Label
+
 func _ready() -> void:
 	CocUiTheme.apply_to(self)
 	_single_player_button.pressed.connect(_on_single_player_pressed)
@@ -33,6 +37,55 @@ func _ready() -> void:
 	_asset_anim_button.pressed.connect(_on_asset_anim_editor_pressed)
 	if BuildConfig.is_survival_playtest():
 		_apply_survival_playtest_menu()
+	_add_auth_ui()
+	_add_lan_button()
+
+
+func _add_lan_button() -> void:
+	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as VBoxContainer
+	if dev_box == null:
+		return
+	var lan_btn := Button.new()
+	lan_btn.text = "LAN Multiplayer"
+	lan_btn.pressed.connect(_on_lan_multiplayer_pressed)
+	dev_box.add_child(lan_btn)
+
+
+func _add_auth_ui() -> void:
+	var vbox := get_node_or_null("Center/Panel/Margin/VBox") as VBoxContainer
+	if vbox == null:
+		return
+	# Add a sign-in/account label and button at the top of the menu
+	var auth_box := HBoxContainer.new()
+	auth_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	auth_box.add_theme_constant_override("separation", 8)
+	vbox.add_child(auth_box)
+	vbox.move_child(auth_box, 0)  # Put at the very top
+
+	_sign_in_label = Label.new()
+	_sign_in_label.add_theme_font_size_override("font_size", 12)
+	auth_box.add_child(_sign_in_label)
+
+	var auth_button := Button.new()
+	auth_button.add_theme_font_size_override("font_size", 12)
+	auth_box.add_child(auth_button)
+
+	if SupabaseAuth.is_signed_in:
+		_sign_in_label.text = "Signed in as %s" % SupabaseAuth.display_name
+		auth_button.text = "Sign Out"
+		auth_button.pressed.connect(func(): SupabaseAuth.sign_out(); get_tree().reload_current_scene())
+	else:
+		_sign_in_label.text = "Not signed in"
+		auth_button.text = "Sign In"
+		auth_button.pressed.connect(func(): get_tree().change_scene_to_file(AUTH_SCREEN_SCENE))
+
+	# If session is being restored asynchronously, refresh the UI when it completes.
+	if not SupabaseAuth.auth_state_changed.is_connected(_on_auth_state_changed):
+		SupabaseAuth.auth_state_changed.connect(_on_auth_state_changed)
+
+
+func _on_auth_state_changed(_signed_in: bool) -> void:
+	get_tree().reload_current_scene()
 
 
 func _apply_survival_playtest_menu() -> void:
@@ -58,6 +111,15 @@ func _on_single_player_pressed() -> void:
 
 
 func _on_multiplayer_pressed() -> void:
+	if BuildConfig.is_survival_playtest():
+		return
+	if SupabaseAuth.is_signed_in:
+		get_tree().change_scene_to_file(LOBBY_BROWSER_SCENE)
+	else:
+		get_tree().change_scene_to_file(AUTH_SCREEN_SCENE)
+
+
+func _on_lan_multiplayer_pressed() -> void:
 	if BuildConfig.is_survival_playtest():
 		return
 	_set_buttons_enabled(false)
