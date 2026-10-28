@@ -9,9 +9,11 @@ import {
   parseGrenadeIntent,
   parseMoveIntent,
   parsePositionIntent,
+  type MatchEndedInfo,
 } from "./match";
 import { getUserId } from "./supabase_auth";
 import {
+  getClient,
   parseSideName,
   registerClient,
   removeClient,
@@ -19,17 +21,87 @@ import {
   resetSides,
   setClientUserId,
 } from "./side_ownership";
-import { MATCH_ID, sideToTeamId } from "./types";
+import { recordMatchResult } from "./supabase_client";
+import {
+  MATCH_ID,
+  sideToTeamId,
+  teamIdToSide,
+  TEAM_USA,
+  TEAM_GERMANY,
+} from "./types";
+import {
+  WINNER_USA,
+  WINNER_GERMANY,
+  WINNER_DRAW,
+  END_CAUSE_TIME_GONE,
+  END_CAUSE_EXTERMINATION,
+} from "./scenario_rules";
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 let match = new LocalMatch();
+wireMatchCallbacks(match);
+
+/** Called by the match callback when a match ends. Records results in Supabase. */
+function handleMatchEnded(info: MatchEndedInfo): void {
+  // Find the user IDs for each team from side_ownership
+  let usaUserId: string | null = null;
+  let germanyUserId: string | null = null;
+
+  for (const [clientId, teamId] of info.clientTeams) {
+    const record = getClient(clientId);
+    if (!record?.userId) continue;
+    if (teamId === TEAM_USA) usaUserId = record.userId;
+    if (teamId === TEAM_GERMANY) germanyUserId = record.userId;
+  }
+
+  if (!usaUserId || !germanyUserId) {
+    console.log("[MatchEnd] Skipping result recording: missing authenticated player(s). USA=%s GERMANY=%s",
+      usaUserId ?? "(none)", germanyUserId ?? "(none)");
+    return;
+  }
+
+  const isDraw = info.winner === WINNER_DRAW;
+  const usaWon = info.winner === WINNER_USA;
+  const germanyWon = info.winner === WINNER_GERMANY;
+
+  const endCauseStr = info.endCause === END_CAUSE_EXTERMINATION ? "extermination" : "time";
+
+  recordMatchResult({
+    matchId: info.matchId,
+    player1Id: usaUserId,
+    player1Team: "USA",
+    player1Won: usaWon,
+    player1Draw: isDraw,
+    player1Kill: info.usaKillPoints,
+    player1Terrain: info.usaTerrainPoints,
+    player1Total: info.usaTotalPoints,
+    player1Kills: info.usaKills,
+    player2Id: germanyUserId,
+    player2Team: "GERMANY",
+    player2Won: germanyWon,
+    player2Draw: isDraw,
+    player2Kill: info.germanyKillPoints,
+    player2Terrain: info.germanyTerrainPoints,
+    player2Total: info.germanyTotalPoints,
+    player2Kills: info.germanyKills,
+    endCause: endCauseStr,
+  }).catch((err) => {
+    console.error("[MatchEnd] Failed to record result:", err);
+  });
+}
+
+/** Wire the match-ended callback on a fresh match instance. */
+function wireMatchCallbacks(m: LocalMatch): void {
+  m.onMatchEnded = handleMatchEnded;
+}
 
 /** Reset to a fresh match when the previous one has ended. */
 function ensureFreshMatch(): void {
   if (match.matchPhase === "ended") {
-    console.log("Previous match ended — creating a fresh match.");
+    console.log("Previous match ended, creating a fresh match.");
     resetSides();
     match = new LocalMatch();
+    wireMatchCallbacks(match);
   }
 }
 

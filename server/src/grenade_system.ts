@@ -9,6 +9,7 @@ import { combatRange } from "./hit_resolution";
 import { evaluate as evaluateLos, LOS_BLOCKED } from "./los";
 import type { SoldierState } from "./soldier_state";
 import { LETHALITY_MULTIPLIER } from "./hit_resolution";
+import { onSoldierKilled } from "./scenario_rules";
 import {
   chebyshev,
   POSITION_DOWN,
@@ -225,6 +226,7 @@ export function resolveGrenade(
     if (state.rng.chance(killChance)) {
       soldier.markKilled(state.rng);
       state.markPerceptionDirty();
+      onSoldierKilled(state.scenario, thrower.teamId, soldier);
       killed.push({ teamId: soldier.teamId, soldierId: soldier.soldierId });
       messages.push(
         `${teamDisplayName(soldier.teamId)} Soldier ${soldier.soldierId} killed by grenade blast.`,

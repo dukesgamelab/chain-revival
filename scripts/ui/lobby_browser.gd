@@ -7,7 +7,9 @@ extends Control
 const MODE_SELECT_SCENE := "res://scenes/mode_select.tscn"
 const LOBBY_BROWSER_SCENE := "res://scenes/lobby_browser.tscn"
 const SIDE_SELECT_SCENE := "res://scenes/side_select.tscn"
+const LEADERBOARD_SCENE := "res://scenes/leaderboard.tscn"
 const LobbyClientClass := preload("res://scripts/network/lobby_client.gd")
+const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
 
 ## Online game server URL (Fly.io).
 ## Leave empty to fall back to LAN IP detection for local hosting.
@@ -18,6 +20,7 @@ var _lobby_list_container: VBoxContainer
 var _status_label: Label
 var _create_button: Button
 var _refresh_button: Button
+var _leaderboard_button: Button
 var _back_button: Button
 var _match_name_field: LineEdit
 var _create_panel: PanelContainer
@@ -205,6 +208,8 @@ func _build_ui() -> void:
 	_match_name_field.placeholder_text = "%s's Game" % SupabaseAuth.display_name
 	_match_name_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_match_name_field.custom_minimum_size = Vector2(0, 30)
+	_match_name_field.add_theme_color_override("font_color", Color.WHITE)
+	_match_name_field.add_theme_color_override("font_placeholder_color", Color(0.6, 0.6, 0.6))
 	_match_name_field.text_submitted.connect(func(_t: String): _on_confirm_create())
 	create_hbox.add_child(_match_name_field)
 
@@ -237,6 +242,12 @@ func _build_ui() -> void:
 	_refresh_button.custom_minimum_size = Vector2(0, 34)
 	btn_row.add_child(_refresh_button)
 
+	_leaderboard_button = Button.new()
+	_leaderboard_button.text = "Leaderboard"
+	_leaderboard_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_leaderboard_button.custom_minimum_size = Vector2(0, 34)
+	btn_row.add_child(_leaderboard_button)
+
 	_back_button = Button.new()
 	_back_button.text = "Back"
 	_back_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -251,6 +262,7 @@ func _build_ui() -> void:
 func _connect_signals() -> void:
 	_create_button.pressed.connect(_on_create_pressed)
 	_refresh_button.pressed.connect(_on_refresh_pressed)
+	_leaderboard_button.pressed.connect(_on_leaderboard_pressed)
 	_back_button.pressed.connect(_on_back_pressed)
 
 	_lobby_client.lobbies_listed.connect(_on_lobbies_listed)
@@ -310,6 +322,11 @@ func _get_lan_ip() -> String:
 func _on_refresh_pressed() -> void:
 	_set_status("Refreshing...", Color.WHITE)
 	_lobby_client.list_lobbies()
+
+
+func _on_leaderboard_pressed() -> void:
+	LeaderboardScript.return_scene = LOBBY_BROWSER_SCENE
+	get_tree().change_scene_to_file(LEADERBOARD_SCENE)
 
 
 func _on_back_pressed() -> void:

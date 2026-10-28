@@ -52,6 +52,7 @@ export interface ScenarioState {
   endCause: number;
   winner: number;
   killPoints: Record<number, number>;
+  killCounts: Record<number, number>;
   terrainPoints: Record<number, number>;
   vpPollAccumSec: number;
   vpEntries: VictoryPointEntry[];
@@ -67,6 +68,7 @@ export function createScenarioState(vpEntries: VictoryPointEntry[] = []): Scenar
     endCause: END_CAUSE_NONE,
     winner: WINNER_NONE,
     killPoints: { [TEAM_USA]: 0, [TEAM_GERMANY]: 0 },
+    killCounts: { [TEAM_USA]: 0, [TEAM_GERMANY]: 0 },
     terrainPoints: { [TEAM_USA]: 0, [TEAM_GERMANY]: 0 },
     vpPollAccumSec: 0,
     vpEntries,
@@ -125,6 +127,7 @@ export function onSoldierKilled(
   }
   if (killerTeamId === TEAM_USA || killerTeamId === TEAM_GERMANY) {
     addKillPoints(scenario, killerTeamId, KILL_POINTS);
+    scenario.killCounts[killerTeamId] = (scenario.killCounts[killerTeamId] ?? 0) + 1;
   }
   addKillPoints(scenario, victim.teamId, -PP_LOST_PER_SOLDIER);
 }

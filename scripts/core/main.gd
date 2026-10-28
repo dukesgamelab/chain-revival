@@ -1651,16 +1651,19 @@ func _open_mission_debrief_dialog() -> void:
 
 func _on_mission_debrief_finished() -> void:
 	## End the match and leave the battlefield after debrief Close / countdown.
+	## Use call_deferred to avoid issues with AcceptDialog (Window) lifecycle;
+	## changing scene immediately inside a Window signal handler can cause
+	## Godot to interpret the window closure as an app quit.
 	if _return_to_editor_on_exit and BuildConfig.is_development():
 		EditorPlaySession.clear_return_flag()
-		get_tree().change_scene_to_file("res://scenes/editor/map_editor.tscn")
+		get_tree().call_deferred("change_scene_to_file", "res://scenes/editor/map_editor.tscn")
 		return
 	## Return to lobby if this was an online multiplayer match.
 	if GameModeManager.is_local_multiplayer():
 		NetworkClient.disconnect_from_server()
-		get_tree().change_scene_to_file("res://scenes/lobby_browser.tscn")
+		get_tree().call_deferred("change_scene_to_file", "res://scenes/lobby_browser.tscn")
 		return
-	get_tree().change_scene_to_file("res://scenes/mode_select.tscn")
+	get_tree().call_deferred("change_scene_to_file", "res://scenes/mode_select.tscn")
 
 
 func _on_retreat_requested() -> void:
@@ -3143,6 +3146,8 @@ func _on_network_match_ended(payload: Dictionary) -> void:
 	_game_state.team_kill_points[Team.GERMANY] = int(payload.get("germanyKillPoints", payload.get("germany_kill_points", 0)))
 	_game_state.team_terrain_points[Team.USA] = int(payload.get("usaTerrainPoints", payload.get("usa_terrain_points", 0)))
 	_game_state.team_terrain_points[Team.GERMANY] = int(payload.get("germanyTerrainPoints", payload.get("germany_terrain_points", 0)))
+	_game_state.team_kill_counts[Team.USA] = int(payload.get("usaKills", payload.get("usa_kills", 0)))
+	_game_state.team_kill_counts[Team.GERMANY] = int(payload.get("germanyKills", payload.get("germany_kills", 0)))
 	_on_scenario_ended()
 
 

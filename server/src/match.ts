@@ -62,6 +62,25 @@ import {
 
 export type MatchPhase = "created" | "running" | "paused" | "ended";
 
+/** Fired when a match ends. index.ts uses this to record results in Supabase. */
+export interface MatchEndedInfo {
+  matchId: string;
+  winner: number;
+  endCause: number;
+  usaKillPoints: number;
+  usaTerrainPoints: number;
+  usaTotalPoints: number;
+  germanyKillPoints: number;
+  germanyTerrainPoints: number;
+  germanyTotalPoints: number;
+  usaKills: number;
+  germanyKills: number;
+  /** clientId -> teamId for all connected clients */
+  clientTeams: Map<string, number | null>;
+}
+
+export type OnMatchEndedCallback = (info: MatchEndedInfo) => void;
+
 export interface MatchOptions {
   /** Production default true. Tests pass false and call advanceRealtime. */
   startDriver?: boolean;
@@ -90,6 +109,9 @@ export class LocalMatch {
 
   private waitForBothSides = true;
   private matchStarted = false;
+
+  /** Set by index.ts to record match results in Supabase. */
+  onMatchEnded: OnMatchEndedCallback | null = null;
 
   constructor(mapId = DEFAULT_MAP_ID, options: MatchOptions = {}) {
     const map = MapData.loadFromRepo(mapId);
@@ -593,9 +615,33 @@ export class LocalMatch {
           germanyKillPoints: this.gameState.scenario.killPoints[2] ?? 0,
           germanyTerrainPoints: this.gameState.scenario.terrainPoints[2] ?? 0,
           germanyTotalPoints: totalPoints(this.gameState.scenario, 2),
+          usaKills: this.gameState.scenario.killCounts[1] ?? 0,
+          germanyKills: this.gameState.scenario.killCounts[2] ?? 0,
           timeRemainingSec: this.gameState.scenario.timeRemainingSec,
         });
         this.stopDriver();
+
+        // Notify index.ts so it can record the result in Supabase
+        if (this.onMatchEnded) {
+          const clientTeams = new Map<string, number | null>();
+          for (const [cid, mc] of this.clients) {
+            clientTeams.set(cid, mc.teamId);
+          }
+          this.onMatchEnded({
+            matchId: this.matchId,
+            winner: this.gameState.scenario.winner,
+            endCause: this.gameState.scenario.endCause,
+            usaKillPoints: this.gameState.scenario.killPoints[1] ?? 0,
+            usaTerrainPoints: this.gameState.scenario.terrainPoints[1] ?? 0,
+            usaTotalPoints: totalPoints(this.gameState.scenario, 1),
+            germanyKillPoints: this.gameState.scenario.killPoints[2] ?? 0,
+            germanyTerrainPoints: this.gameState.scenario.terrainPoints[2] ?? 0,
+            germanyTotalPoints: totalPoints(this.gameState.scenario, 2),
+            usaKills: this.gameState.scenario.killCounts[1] ?? 0,
+            germanyKills: this.gameState.scenario.killCounts[2] ?? 0,
+            clientTeams,
+          });
+        }
       }
     }
   }

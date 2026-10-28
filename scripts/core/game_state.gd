@@ -48,6 +48,8 @@ var end_cause: int = 0
 var winner: int = 0
 ## team_id -> int points from kills (can go negative when losing soldiers).
 var team_kill_points: Dictionary = {}
+## team_id -> int actual kill count (soldiers killed by this team).
+var team_kill_counts: Dictionary = {}
 ## team_id -> int points from held VPs at mission end.
 var team_terrain_points: Dictionary = {}
 ## VP poll accumulator (seconds of sim time). Used by ScenarioRules.

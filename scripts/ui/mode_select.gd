@@ -8,6 +8,8 @@ const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
 const ASSET_ANIM_EDITOR_SCENE := "res://scenes/editor/asset_animation_editor.tscn"
 const AUTH_SCREEN_SCENE := "res://scenes/auth_screen.tscn"
 const LOBBY_BROWSER_SCENE := "res://scenes/lobby_browser.tscn"
+const LEADERBOARD_SCENE := "res://scenes/leaderboard.tscn"
+const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 
@@ -39,6 +41,7 @@ func _ready() -> void:
 		_apply_survival_playtest_menu()
 	_add_auth_ui()
 	_add_lan_button()
+	_add_leaderboard_button()
 
 
 func _add_lan_button() -> void:
@@ -49,6 +52,28 @@ func _add_lan_button() -> void:
 	lan_btn.text = "LAN Multiplayer"
 	lan_btn.pressed.connect(_on_lan_multiplayer_pressed)
 	dev_box.add_child(lan_btn)
+
+
+func _add_leaderboard_button() -> void:
+	var vbox := get_node_or_null("Center/Panel/Margin/VBox") as VBoxContainer
+	if vbox == null:
+		return
+	var lb_btn := Button.new()
+	lb_btn.text = "Leaderboard"
+	lb_btn.pressed.connect(_on_leaderboard_pressed)
+	# Insert before the DevBox (second-to-last major element)
+	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
+	if dev_box != null:
+		var dev_idx := dev_box.get_index()
+		vbox.add_child(lb_btn)
+		vbox.move_child(lb_btn, dev_idx)
+	else:
+		vbox.add_child(lb_btn)
+
+
+func _on_leaderboard_pressed() -> void:
+	LeaderboardScript.return_scene = "res://scenes/mode_select.tscn"
+	get_tree().change_scene_to_file(LEADERBOARD_SCENE)
 
 
 func _add_auth_ui() -> void:

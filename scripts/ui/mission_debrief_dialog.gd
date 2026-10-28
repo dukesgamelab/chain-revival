@@ -192,14 +192,14 @@ func _build_victory_points_panel() -> PanelContainer:
 	col.add_child(_header("MISSION VICTORY POINTS", 14))
 
 	var grid := GridContainer.new()
-	grid.columns = 4
+	grid.columns = 5
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 4)
 	col.add_child(grid)
 
-	var headers := ["Side", "Points for Kills", "Points for Terrain Objectives", "Total Points"]
-	var header_mins := [88.0, 110.0, 150.0, 90.0]
+	var headers := ["Side", "Kills", "Kill Points", "Terrain Points", "Total Points"]
+	var header_mins := [80.0, 50.0, 80.0, 100.0, 80.0]
 	for i in headers.size():
 		grid.add_child(_table_cell(headers[i], Color(0, 0, 0, 0), header_mins[i], true))
 
@@ -209,11 +209,12 @@ func _build_victory_points_panel() -> PanelContainer:
 
 
 func _add_score_row(grid: GridContainer, side: String, team_id: int, tint: Color) -> void:
-	var kills := int(_game_state.team_kill_points.get(team_id, 0))
+	var kill_count := int(_game_state.team_kill_counts.get(team_id, 0))
+	var kill_pts := int(_game_state.team_kill_points.get(team_id, 0))
 	var terrain := int(_game_state.team_terrain_points.get(team_id, 0))
 	var total := ScenarioRulesClass.total_points(_game_state, team_id)
-	var mins := [88.0, 110.0, 150.0, 90.0]
-	var texts := [side, str(kills), str(terrain), str(total)]
+	var mins := [80.0, 50.0, 80.0, 100.0, 80.0]
+	var texts := [side, str(kill_count), str(kill_pts), str(terrain), str(total)]
 	for i in texts.size():
 		grid.add_child(_table_cell(texts[i], tint, mins[i], false))
 

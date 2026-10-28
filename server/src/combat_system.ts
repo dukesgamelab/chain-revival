@@ -31,6 +31,7 @@ import {
   PRONE_SUPPRESSION_MULT,
   rangeSuppressionGainRuntime,
 } from "./stress_accuracy";
+import { onSoldierKilled } from "./scenario_rules";
 import { FIRE_AT_WILL, POSITION_DOWN, type CombatShotPayload, type Vec2i } from "./types";
 import { ammoCost, effectiveWeaponRange } from "./weapons";
 
@@ -393,6 +394,7 @@ function applyKill(
 ): void {
   target.markKilled(state.rng);
   state.markPerceptionDirty();
+  onSoldierKilled(state.scenario, shooter.teamId, target);
   shot.killed = true;
   shot.deathSpriteFamily = target.deathSpriteFamily;
   shot.stanceAtDeath = target.stanceAtDeath;
