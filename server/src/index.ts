@@ -37,6 +37,31 @@ import {
   END_CAUSE_EXTERMINATION,
 } from "./scenario_rules";
 
+// -- Prestige Points constants (Phase 13) --
+const PP_WIN_BONUS   = 100;
+const PP_DRAW_BONUS  = 40;
+const PP_PER_KILL    = 4;   // matches client KILL_POINTS * GPP_TO_PP
+const PP_PER_TERRAIN = 1;   // matches client SPEC_AREA_POINTS
+
+// Rank thresholds: cumulative PP required to reach each rank (index = rank)
+const RANK_THRESHOLDS = [0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500];
+
+function calculatePP(won: boolean, draw: boolean, kills: number, terrainPoints: number): number {
+  let pp = 0;
+  if (won)       pp += PP_WIN_BONUS;
+  else if (draw) pp += PP_DRAW_BONUS;
+  pp += kills * PP_PER_KILL;
+  pp += terrainPoints * PP_PER_TERRAIN;
+  return pp;
+}
+
+function rankFromPP(totalPP: number): number {
+  for (let r = RANK_THRESHOLDS.length - 1; r >= 0; r--) {
+    if (totalPP >= RANK_THRESHOLDS[r]) return r;
+  }
+  return 0;
+}
+
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 let match = new LocalMatch();
 wireMatchCallbacks(match);
@@ -66,6 +91,12 @@ function handleMatchEnded(info: MatchEndedInfo): void {
 
   const endCauseStr = info.endCause === END_CAUSE_EXTERMINATION ? "extermination" : "time";
 
+  // PP was already calculated in match.ts and included in the info
+  const usaPP = info.usaPPEarned;
+  const germanyPP = info.germanyPPEarned;
+
+  console.log("[MatchEnd] PP awarded: USA=%d GERMANY=%d", usaPP, germanyPP);
+
   recordMatchResult({
     matchId: info.matchId,
     player1Id: usaUserId,
@@ -76,6 +107,7 @@ function handleMatchEnded(info: MatchEndedInfo): void {
     player1Terrain: info.usaTerrainPoints,
     player1Total: info.usaTotalPoints,
     player1Kills: info.usaKills,
+    player1Pp: usaPP,
     player2Id: germanyUserId,
     player2Team: "GERMANY",
     player2Won: germanyWon,
@@ -84,6 +116,7 @@ function handleMatchEnded(info: MatchEndedInfo): void {
     player2Terrain: info.germanyTerrainPoints,
     player2Total: info.germanyTotalPoints,
     player2Kills: info.germanyKills,
+    player2Pp: germanyPP,
     endCause: endCauseStr,
   }).catch((err) => {
     console.error("[MatchEnd] Failed to record result:", err);

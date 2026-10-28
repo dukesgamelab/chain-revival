@@ -52,6 +52,8 @@ var team_kill_points: Dictionary = {}
 var team_kill_counts: Dictionary = {}
 ## team_id -> int points from held VPs at mission end.
 var team_terrain_points: Dictionary = {}
+## team_id -> int PP earned this match (from server, Phase 13).
+var team_pp_earned: Dictionary = {}
 ## VP poll accumulator (seconds of sim time). Used by ScenarioRules.
 var vp_poll_accum_sec: float = 0.0
 ## Set by ScenarioRules when a VP holder flips — Main clears after redraw.

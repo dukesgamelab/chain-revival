@@ -30,12 +30,15 @@ var user_email: String = ""
 var display_name: String = ""
 var user_data: Dictionary = {}
 var is_signed_in: bool = false
+var prestige_points: int = 0
+var rank: int = 0
 
 ## ── Internals ───────────────────────────────────────────────────────────
 var _http_sign_in: HTTPRequest
 var _http_sign_up: HTTPRequest
 var _http_refresh: HTTPRequest
 var _http_sign_out: HTTPRequest
+var _http_profile: HTTPRequest
 var _refresh_timer: Timer
 
 ## How many seconds before token expiry we trigger a refresh.
@@ -48,6 +51,7 @@ func _ready() -> void:
 	_http_sign_up = _make_http("_on_sign_up_response")
 	_http_refresh = _make_http("_on_refresh_response")
 	_http_sign_out = _make_http("_on_sign_out_response")
+	_http_profile = _make_http("_on_profile_response")
 
 	_refresh_timer = Timer.new()
 	_refresh_timer.one_shot = true
@@ -127,6 +131,7 @@ func _on_sign_in_response(result: int, response_code: int, _headers: PackedStrin
 		return
 	_apply_session(parsed)
 	GameLog.log_system("[SupabaseAuth] Signed in as %s" % user_email)
+	fetch_profile()
 	sign_in_succeeded.emit(user_data)
 
 
@@ -164,11 +169,39 @@ func _on_refresh_response(result: int, response_code: int, _headers: PackedStrin
 		return
 	_apply_session(parsed)
 	GameLog.log_system("[SupabaseAuth] Token refreshed.")
+	fetch_profile()
 
 
 func _on_sign_out_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
 	_clear_session()
 	GameLog.log_system("[SupabaseAuth] Signed out.")
+
+
+## Fetch rank and PP from the player_profiles table after sign-in.
+func fetch_profile() -> void:
+	if user_id.is_empty() or not _check_config():
+		return
+	var url := "%s/rest/v1/player_profiles?id=eq.%s&select=prestige_points,rank" % [SUPABASE_URL, user_id]
+	var hdrs := _bearer_headers()
+	_http_profile.request(url, hdrs, HTTPClient.METHOD_GET)
+
+
+func _on_profile_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		return
+	var text := body.get_string_from_utf8()
+	if text.is_empty():
+		return
+	var json := JSON.new()
+	if json.parse(text) != OK:
+		return
+	var arr = json.data
+	if not arr is Array or arr.is_empty():
+		return
+	var row: Dictionary = arr[0]
+	prestige_points = int(row.get("prestige_points", 0))
+	rank = int(row.get("rank", 0))
+	GameLog.log_system("[SupabaseAuth] Profile loaded: rank=%d pp=%d" % [rank, prestige_points])
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -205,6 +238,8 @@ func _clear_session() -> void:
 	user_email = ""
 	display_name = ""
 	user_data = {}
+	prestige_points = 0
+	rank = 0
 	_refresh_timer.stop()
 	var was_signed_in := is_signed_in
 	is_signed_in = false

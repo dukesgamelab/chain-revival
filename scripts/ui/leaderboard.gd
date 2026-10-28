@@ -11,6 +11,8 @@ const MODE_SELECT_SCENE := "res://scenes/mode_select.tscn"
 const SUPABASE_URL := "https://tnyaqreedvdmyworvqbw.supabase.co"
 const SUPABASE_ANON_KEY := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRueWFxcmVlZHZkbXl3b3J2cWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5NzA5MzQsImV4cCI6MjEwODU0NjkzNH0.z9P6-W9U-NsJYr5TXxeHsc8Z5_flrDZSOqkNNParqPQ"
 
+const RANK_LABELS := ["PVT", "PFC", "CPL", "SGT", "SSG", "SFC", "MSG", "2LT", "1LT", "CPT"]
+
 var _leaderboard_container: VBoxContainer
 var _history_container: VBoxContainer
 var _back_button: Button
@@ -19,6 +21,10 @@ var _content_stack: Control  # holds both panels; we show/hide by tab
 var _leaderboard_panel: Control
 var _history_panel: Control
 var _status_label: Label
+
+var _search_input: LineEdit
+var _search_http: HTTPRequest
+var _search_fetch_busy := false
 
 var _lb_http: HTTPRequest
 var _hist_http: HTTPRequest
@@ -117,8 +123,34 @@ func _build_leaderboard_panel() -> Control:
 	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	panel.add_theme_constant_override("separation", 2)
 
+	# Search bar
+	var search_row := HBoxContainer.new()
+	search_row.add_theme_constant_override("separation", 6)
+	panel.add_child(search_row)
+
+	_search_input = LineEdit.new()
+	_search_input.placeholder_text = "Search by name..."
+	_search_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_search_input.custom_minimum_size = Vector2(0, 28)
+	_search_input.add_theme_font_size_override("font_size", 12)
+	_search_input.add_theme_color_override("font_color", Color.WHITE)
+	_search_input.text_submitted.connect(_on_search_submitted)
+	search_row.add_child(_search_input)
+
+	var search_btn := Button.new()
+	search_btn.text = "Search"
+	search_btn.custom_minimum_size = Vector2(60, 28)
+	search_btn.pressed.connect(func(): _on_search_submitted(_search_input.text))
+	search_row.add_child(search_btn)
+
+	var clear_btn := Button.new()
+	clear_btn.text = "Clear"
+	clear_btn.custom_minimum_size = Vector2(50, 28)
+	clear_btn.pressed.connect(_on_search_cleared)
+	search_row.add_child(clear_btn)
+
 	# Header row
-	var header := _make_lb_row("#", "Player", "Wins", "Played", "Kills", "Win %", true)
+	var header := _make_lb_row("#", "Player", "Rank", "Wins", "Played", "Kills", "Win %", true)
 	panel.add_child(header)
 
 	# Scrollable list
@@ -141,7 +173,7 @@ func _build_history_panel() -> Control:
 	panel.add_theme_constant_override("separation", 2)
 
 	# Header row
-	var header := _make_hist_row("Result", "Team", "Kills", "Score", "Opponent", "Date", true)
+	var header := _make_hist_row("Result", "Team", "Kills", "Score", "PP", "Opponent", "Date", true)
 	panel.add_child(header)
 
 	# Scrollable list
@@ -158,21 +190,22 @@ func _build_history_panel() -> Control:
 	return panel
 
 
-func _make_lb_row(rank_text: String, name_text: String, wins_text: String,
-		played_text: String, kills_text: String, winrate_text: String, is_header: bool) -> HBoxContainer:
+func _make_lb_row(pos_text: String, name_text: String, rank_text: String,
+		wins_text: String, played_text: String, kills_text: String,
+		winrate_text: String, is_header: bool) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 
 	var font_size := 12 if is_header else 13
 	var color := Color(0.7, 0.7, 0.7) if is_header else Color.WHITE
 
-	var rank_label := Label.new()
-	rank_label.text = rank_text
-	rank_label.custom_minimum_size = Vector2(40, 0)
-	rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	rank_label.add_theme_font_size_override("font_size", font_size)
-	rank_label.add_theme_color_override("font_color", color)
-	row.add_child(rank_label)
+	var pos_label := Label.new()
+	pos_label.text = pos_text
+	pos_label.custom_minimum_size = Vector2(30, 0)
+	pos_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pos_label.add_theme_font_size_override("font_size", font_size)
+	pos_label.add_theme_color_override("font_color", color)
+	row.add_child(pos_label)
 
 	var name_label := Label.new()
 	name_label.text = name_text
@@ -181,9 +214,17 @@ func _make_lb_row(rank_text: String, name_text: String, wins_text: String,
 	name_label.add_theme_color_override("font_color", color)
 	row.add_child(name_label)
 
+	var rank_label := Label.new()
+	rank_label.text = rank_text
+	rank_label.custom_minimum_size = Vector2(45, 0)
+	rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rank_label.add_theme_font_size_override("font_size", font_size)
+	rank_label.add_theme_color_override("font_color", color)
+	row.add_child(rank_label)
+
 	var wins_label := Label.new()
 	wins_label.text = wins_text
-	wins_label.custom_minimum_size = Vector2(60, 0)
+	wins_label.custom_minimum_size = Vector2(50, 0)
 	wins_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	wins_label.add_theme_font_size_override("font_size", font_size)
 	wins_label.add_theme_color_override("font_color", color)
@@ -191,7 +232,7 @@ func _make_lb_row(rank_text: String, name_text: String, wins_text: String,
 
 	var played_label := Label.new()
 	played_label.text = played_text
-	played_label.custom_minimum_size = Vector2(60, 0)
+	played_label.custom_minimum_size = Vector2(55, 0)
 	played_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	played_label.add_theme_font_size_override("font_size", font_size)
 	played_label.add_theme_color_override("font_color", color)
@@ -199,7 +240,7 @@ func _make_lb_row(rank_text: String, name_text: String, wins_text: String,
 
 	var kills_label := Label.new()
 	kills_label.text = kills_text
-	kills_label.custom_minimum_size = Vector2(50, 0)
+	kills_label.custom_minimum_size = Vector2(45, 0)
 	kills_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	kills_label.add_theme_font_size_override("font_size", font_size)
 	kills_label.add_theme_color_override("font_color", color)
@@ -207,7 +248,7 @@ func _make_lb_row(rank_text: String, name_text: String, wins_text: String,
 
 	var winrate_label := Label.new()
 	winrate_label.text = winrate_text
-	winrate_label.custom_minimum_size = Vector2(60, 0)
+	winrate_label.custom_minimum_size = Vector2(55, 0)
 	winrate_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	winrate_label.add_theme_font_size_override("font_size", font_size)
 	winrate_label.add_theme_color_override("font_color", color)
@@ -217,8 +258,8 @@ func _make_lb_row(rank_text: String, name_text: String, wins_text: String,
 
 
 func _make_hist_row(result_text: String, team_text: String, kills_text: String,
-		score_text: String, opponent_text: String, date_text: String,
-		is_header: bool) -> HBoxContainer:
+		score_text: String, pp_text: String, opponent_text: String,
+		date_text: String, is_header: bool) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 
@@ -226,7 +267,7 @@ func _make_hist_row(result_text: String, team_text: String, kills_text: String,
 
 	var result_label := Label.new()
 	result_label.text = result_text
-	result_label.custom_minimum_size = Vector2(70, 0)
+	result_label.custom_minimum_size = Vector2(55, 0)
 	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	result_label.add_theme_font_size_override("font_size", font_size)
 	if is_header:
@@ -241,7 +282,7 @@ func _make_hist_row(result_text: String, team_text: String, kills_text: String,
 
 	var team_label := Label.new()
 	team_label.text = team_text
-	team_label.custom_minimum_size = Vector2(80, 0)
+	team_label.custom_minimum_size = Vector2(70, 0)
 	team_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	team_label.add_theme_font_size_override("font_size", font_size)
 	team_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7) if is_header else Color.WHITE)
@@ -249,7 +290,7 @@ func _make_hist_row(result_text: String, team_text: String, kills_text: String,
 
 	var kills_label := Label.new()
 	kills_label.text = kills_text
-	kills_label.custom_minimum_size = Vector2(50, 0)
+	kills_label.custom_minimum_size = Vector2(40, 0)
 	kills_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	kills_label.add_theme_font_size_override("font_size", font_size)
 	kills_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7) if is_header else Color.WHITE)
@@ -257,11 +298,19 @@ func _make_hist_row(result_text: String, team_text: String, kills_text: String,
 
 	var score_label := Label.new()
 	score_label.text = score_text
-	score_label.custom_minimum_size = Vector2(80, 0)
+	score_label.custom_minimum_size = Vector2(65, 0)
 	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	score_label.add_theme_font_size_override("font_size", font_size)
 	score_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7) if is_header else Color.WHITE)
 	row.add_child(score_label)
+
+	var pp_label := Label.new()
+	pp_label.text = pp_text
+	pp_label.custom_minimum_size = Vector2(45, 0)
+	pp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pp_label.add_theme_font_size_override("font_size", font_size)
+	pp_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7) if is_header else Color(0.4, 0.85, 1.0))
+	row.add_child(pp_label)
 
 	var opponent_label := Label.new()
 	opponent_label.text = opponent_text
@@ -272,7 +321,7 @@ func _make_hist_row(result_text: String, team_text: String, kills_text: String,
 
 	var date_label := Label.new()
 	date_label.text = date_text
-	date_label.custom_minimum_size = Vector2(100, 0)
+	date_label.custom_minimum_size = Vector2(80, 0)
 	date_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	date_label.add_theme_font_size_override("font_size", font_size)
 	date_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7) if is_header else Color(0.6, 0.6, 0.6))
@@ -288,6 +337,64 @@ func _make_hist_row(result_text: String, team_text: String, kills_text: String,
 func _on_tab_changed(tab_idx: int) -> void:
 	_leaderboard_panel.visible = (tab_idx == 0)
 	_history_panel.visible = (tab_idx == 1)
+
+
+# -----------------------------------------------------------------------
+# Search
+# -----------------------------------------------------------------------
+
+func _on_search_submitted(query: String) -> void:
+	var trimmed := query.strip_edges()
+	if trimmed.is_empty():
+		_on_search_cleared()
+		return
+	_fetch_search(trimmed)
+
+
+func _on_search_cleared() -> void:
+	_search_input.text = ""
+	_fetch_leaderboard()
+
+
+func _fetch_search(query: String) -> void:
+	if _search_fetch_busy:
+		return
+	_search_fetch_busy = true
+	_status_label.text = "Searching..."
+
+	if _search_http != null:
+		_search_http.queue_free()
+
+	_search_http = HTTPRequest.new()
+	add_child(_search_http)
+	_search_http.request_completed.connect(_on_search_response)
+
+	# Supabase ilike for case-insensitive partial match
+	var encoded := query.uri_encode()
+	var url := "%s/rest/v1/player_profiles?select=display_name,games_won,games_played,total_kills,rank&display_name=ilike.*%s*&order=games_won.desc&limit=50" % [SUPABASE_URL, encoded]
+	var hdrs := PackedStringArray([
+		"apikey: %s" % SUPABASE_ANON_KEY,
+		"Content-Type: application/json",
+	])
+	_search_http.request(url, hdrs, HTTPClient.METHOD_GET)
+
+
+func _on_search_response(_result: int, response_code: int,
+		_headers: PackedStringArray, body: PackedByteArray) -> void:
+	_search_fetch_busy = false
+
+	if response_code != 200:
+		_status_label.text = "Search failed (HTTP %d)" % response_code
+		return
+
+	var json := JSON.new()
+	if json.parse(body.get_string_from_utf8()) != OK:
+		_status_label.text = "Failed to parse search results"
+		return
+
+	var players: Array = json.data
+	_populate_leaderboard(players)
+	_status_label.text = "%d result%s" % [players.size(), "" if players.size() == 1 else "s"]
 
 
 # -----------------------------------------------------------------------
@@ -307,7 +414,7 @@ func _fetch_leaderboard() -> void:
 	_lb_http.request_completed.connect(_on_leaderboard_response)
 
 	# Fetch top 50 players sorted by games_won desc, then by games_played asc (fewer games = better)
-	var url := "%s/rest/v1/player_profiles?select=display_name,games_won,games_played,total_kills&order=games_won.desc,games_played.asc&limit=50" % SUPABASE_URL
+	var url := "%s/rest/v1/player_profiles?select=display_name,games_won,games_played,total_kills,rank&order=games_won.desc,games_played.asc&limit=50" % SUPABASE_URL
 	var hdrs := PackedStringArray([
 		"apikey: %s" % SUPABASE_ANON_KEY,
 		"Content-Type: application/json",
@@ -344,6 +451,8 @@ func _populate_leaderboard(players: Array) -> void:
 		var wins: int = int(p.get("games_won", 0))
 		var played: int = int(p.get("games_played", 0))
 		var kills: int = int(p.get("total_kills", 0))
+		var player_rank: int = int(p.get("rank", 0))
+		var rank_label: String = RANK_LABELS[clampi(player_rank, 0, RANK_LABELS.size() - 1)]
 		var winrate := 0.0
 		if played > 0:
 			winrate = float(wins) / float(played) * 100.0
@@ -351,6 +460,7 @@ func _populate_leaderboard(players: Array) -> void:
 		var row := _make_lb_row(
 			str(i + 1),
 			display_name,
+			rank_label,
 			str(wins),
 			str(played),
 			str(kills),
@@ -435,6 +545,8 @@ func _populate_history(matches: Array) -> void:
 		var match_kills: int = int(m.get("kills", 0))
 		var total: int = int(m.get("total_points", 0))
 		var score_text := str(total) + " pts"
+		var match_pp: int = int(m.get("pp_earned", 0))
+		var pp_text := "+%d" % match_pp if match_pp >= 0 else str(match_pp)
 
 		# Format the date
 		var played_at: String = m.get("played_at", "")
@@ -444,7 +556,7 @@ func _populate_history(matches: Array) -> void:
 		# We'd need a separate fetch to resolve opponent_id to display_name.
 		var opponent_text := "Opponent"
 
-		var row := _make_hist_row(result_text, team_text, str(match_kills), score_text, opponent_text, date_text, false)
+		var row := _make_hist_row(result_text, team_text, str(match_kills), score_text, pp_text, opponent_text, date_text, false)
 		_history_container.add_child(row)
 
 	# Now fetch opponent names in bulk
@@ -535,13 +647,15 @@ func _on_opponent_names_response(_result: int, response_code: int,
 		var match_kills: int = int(m.get("kills", 0))
 		var total: int = int(m.get("total_points", 0))
 		var score_text := str(total) + " pts"
+		var match_pp: int = int(m.get("pp_earned", 0))
+		var pp_text := "+%d" % match_pp if match_pp >= 0 else str(match_pp)
 		var played_at: String = m.get("played_at", "")
 		var date_text := _format_date(played_at)
 
 		var opp_id: String = m.get("opponent_id", "")
 		var opponent_text: String = name_map.get(opp_id, "Unknown")
 
-		var row := _make_hist_row(result_text, team_text, str(match_kills), score_text, opponent_text, date_text, false)
+		var row := _make_hist_row(result_text, team_text, str(match_kills), score_text, pp_text, opponent_text, date_text, false)
 		_history_container.add_child(row)
 
 

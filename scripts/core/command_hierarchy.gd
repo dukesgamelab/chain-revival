@@ -11,11 +11,20 @@ const AiOrderClass := preload("res://scripts/ai/ai_order.gd")
 const MC_PERCENT_PP := 20
 const MIN_JOIN_RANK := 0
 const MAX_JOIN_RANK := 9
-## PP to next rank (RECOVERED thresholds used for ranks 1–3; extend as needed).
+## Cumulative PP thresholds for each rank (index = rank). Rank 0 (PVT) is free.
+const RANK_PP_THRESHOLDS := [0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500]
+## PP to next rank: how many PP above the current threshold to reach the next one.
+## Used by the in-match hierarchy (local PP tracking). Kept for compatibility.
 const PP_TO_NEXT_RANK := {
 	1: 500,
 	2: 2000,
 	3: 5000,
+	4: 10000,
+	5: 18000,
+	6: 30000,
+	7: 50000,
+	8: 80000,
+	9: 120000,
 }
 ## PP lost on being killed, keyed by victim rank (RECOVERED).
 const PP_LOST_ON_KILLED := {

@@ -152,11 +152,15 @@ func _on_delete_response(result: int, response_code: int, _headers: PackedString
 	lobby_deleted.emit()
 
 
+const RANK_LABELS := ["PVT", "PFC", "CPL", "SGT", "SSG", "SFC", "MSG", "2LT", "1LT", "CPT"]
+
 func _on_cleanup_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
 	# Old lobbies cleaned up (or none existed). Now create the new one.
+	var rank_idx: int = clampi(SupabaseAuth.rank, 0, RANK_LABELS.size() - 1)
+	var ranked_name := "%s %s" % [RANK_LABELS[rank_idx], SupabaseAuth.display_name]
 	var payload := {
 		"host_id": SupabaseAuth.user_id,
-		"host_display_name": SupabaseAuth.display_name,
+		"host_display_name": ranked_name,
 		"match_name": _pending_match_name,
 		"status": "waiting",
 		"current_players": 1,

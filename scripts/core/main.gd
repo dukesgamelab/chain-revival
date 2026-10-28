@@ -3148,6 +3148,9 @@ func _on_network_match_ended(payload: Dictionary) -> void:
 	_game_state.team_terrain_points[Team.GERMANY] = int(payload.get("germanyTerrainPoints", payload.get("germany_terrain_points", 0)))
 	_game_state.team_kill_counts[Team.USA] = int(payload.get("usaKills", payload.get("usa_kills", 0)))
 	_game_state.team_kill_counts[Team.GERMANY] = int(payload.get("germanyKills", payload.get("germany_kills", 0)))
+	## PP earned this match (from server, Phase 13)
+	_game_state.team_pp_earned[Team.USA] = int(payload.get("usaPPEarned", 0))
+	_game_state.team_pp_earned[Team.GERMANY] = int(payload.get("germanyPPEarned", 0))
 	_on_scenario_ended()
 
 

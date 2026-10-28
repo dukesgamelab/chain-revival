@@ -32,6 +32,7 @@ export interface MatchResultParams {
   player1Terrain: number;
   player1Total: number;
   player1Kills: number;
+  player1Pp: number;
   player2Id: string;
   player2Team: string;
   player2Won: boolean;
@@ -40,6 +41,7 @@ export interface MatchResultParams {
   player2Terrain: number;
   player2Total: number;
   player2Kills: number;
+  player2Pp: number;
   endCause: string;
 }
 
@@ -64,6 +66,7 @@ export async function recordMatchResult(params: MatchResultParams): Promise<void
     p_player1_terrain: params.player1Terrain,
     p_player1_total: params.player1Total,
     p_player1_kills: params.player1Kills,
+    p_player1_pp: params.player1Pp,
     p_player2_id: params.player2Id,
     p_player2_team: params.player2Team,
     p_player2_won: params.player2Won,
@@ -72,6 +75,7 @@ export async function recordMatchResult(params: MatchResultParams): Promise<void
     p_player2_terrain: params.player2Terrain,
     p_player2_total: params.player2Total,
     p_player2_kills: params.player2Kills,
+    p_player2_pp: params.player2Pp,
     p_end_cause: params.endCause,
   };
 

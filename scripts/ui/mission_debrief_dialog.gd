@@ -267,27 +267,43 @@ func _build_promotion_panel() -> PanelContainer:
 	for i in pp_headers.size():
 		grid.add_child(_table_cell(pp_headers[i], Color(0, 0, 0, 0), pp_mins[i], true))
 
-	var hierarchy: CommandHierarchyClass = _game_state.command_hierarchy
 	var local_pid := _game_state.local_player_id
-	var row_texts: Array[String] = ["Commander", "PFC [0]", "PFC [0]", "500"]
-	if hierarchy != null and hierarchy.has_player(local_pid):
-		var entry := hierarchy.get_entry(local_pid)
-		var rank := int(entry.get("rank", 1))
-		var pp := int(entry.get("pp", 0))
-		@warning_ignore("shadowed_variable_base_class")
-		var name := str(entry.get("display_name", "Commander"))
-		var rank_label: String = str(
-			CommandHierarchyClass.RANK_LABELS[
-				clampi(rank, 0, CommandHierarchyClass.RANK_LABELS.size() - 1)
-			]
-		)
-		var next_need: int = int(CommandHierarchyClass.PP_TO_NEXT_RANK.get(rank, 500))
-		row_texts = [
-			name,
-			"%s [%d]" % [rank_label, 0],
-			"%s [%d]" % [rank_label, pp],
-			str(next_need),
-		]
+	var row_texts: Array[String] = ["Commander", "PVT [0]", "PVT [+0]", "500"]
+
+	## Use server-provided PP earned and SupabaseAuth's persisted rank/PP.
+	var local_team: int = _game_state.command_hierarchy.get_team_id(local_pid) if _game_state.command_hierarchy != null else 1
+	var pp_earned: int = int(_game_state.team_pp_earned.get(local_team, 0))
+	var start_pp: int = SupabaseAuth.prestige_points
+	var start_rank: int = SupabaseAuth.rank
+
+	## After this match, the new PP total (clamped to zero floor).
+	var new_pp: int = maxi(0, start_pp + pp_earned)
+	var new_rank: int = _rank_from_pp(new_pp)
+
+	var start_rank_label: String = CommandHierarchyClass.RANK_LABELS[
+		clampi(start_rank, 0, CommandHierarchyClass.RANK_LABELS.size() - 1)
+	]
+	var new_rank_label: String = CommandHierarchyClass.RANK_LABELS[
+		clampi(new_rank, 0, CommandHierarchyClass.RANK_LABELS.size() - 1)
+	]
+
+	## PP to next rank from current total
+	var next_threshold: int = _pp_for_next_rank(new_rank)
+	var pp_needed: int = next_threshold - new_pp if next_threshold > 0 else 0
+
+	@warning_ignore("shadowed_variable_base_class")
+	var name := SupabaseAuth.display_name if SupabaseAuth.is_signed_in else "Commander"
+	row_texts = [
+		name,
+		"%s [%d]" % [start_rank_label, start_pp],
+		"%s [+%d]" % [new_rank_label, pp_earned],
+		str(pp_needed),
+	]
+
+	## Update SupabaseAuth's cached values so subsequent UI reads are current.
+	if SupabaseAuth.is_signed_in and pp_earned > 0:
+		SupabaseAuth.prestige_points = new_pp
+		SupabaseAuth.rank = new_rank
 	for i in row_texts.size():
 		grid.add_child(_table_cell(row_texts[i], Color(0, 0, 0, 0), pp_mins[i], false))
 
@@ -373,3 +389,19 @@ func _spacer(h: float) -> Control:
 	var c := Control.new()
 	c.custom_minimum_size = Vector2(0, h)
 	return c
+
+
+## Cumulative PP thresholds for each rank (index = rank).
+const _RANK_THRESHOLDS := [0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500]
+
+func _rank_from_pp(total_pp: int) -> int:
+	for r in range(_RANK_THRESHOLDS.size() - 1, -1, -1):
+		if total_pp >= _RANK_THRESHOLDS[r]:
+			return r
+	return 0
+
+func _pp_for_next_rank(current_rank: int) -> int:
+	var next := current_rank + 1
+	if next >= _RANK_THRESHOLDS.size():
+		return 0  # already max rank
+	return _RANK_THRESHOLDS[next]
