@@ -48,7 +48,7 @@ static func begin_scenario(game_state) -> void:
 	game_state.end_cause = ScenarioEndCauseClass.NONE
 	game_state.winner = ScenarioWinnerClass.NONE
 	game_state.scenario_ended = false
-	game_state._vp_poll_accum_sec = 0.0
+	game_state.vp_poll_accum_sec = 0.0
 	VictoryPointSystem.ensure_holders_initialized(game_state.map_data)
 	## Seed capture timestamps so initial holders keep full value if held to the end.
 	for entry in game_state.map_data.victory_points:
@@ -85,9 +85,9 @@ static func process_tick(game_state, tick_sec: float) -> bool:
 		float(SCENARIO_TIME_SEC) - game_state.scenario_elapsed_sec,
 	)
 
-	game_state._vp_poll_accum_sec += tick_sec
-	if game_state._vp_poll_accum_sec >= VP_POLL_INTERVAL_SEC:
-		game_state._vp_poll_accum_sec = 0.0
+	game_state.vp_poll_accum_sec += tick_sec
+	if game_state.vp_poll_accum_sec >= VP_POLL_INTERVAL_SEC:
+		game_state.vp_poll_accum_sec = 0.0
 		if VictoryPointSystem.update_capture(game_state, game_state.scenario_elapsed_sec):
 			game_state.vp_holders_dirty = true
 

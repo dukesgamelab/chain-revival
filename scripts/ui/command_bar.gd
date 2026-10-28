@@ -380,6 +380,7 @@ func set_scenario_clock(remaining_sec: float) -> void:
 	if timer == null:
 		return
 	var total := int(maxi(0, int(ceil(remaining_sec))))
+	@warning_ignore("integer_division")
 	timer.text = "%02d:%02d" % [total / 60, total % 60]
 	timer.add_theme_color_override("font_color", CocUiTheme.TEXT_STATUS_RED)
 
@@ -405,6 +406,7 @@ func set_scenario_scores(
 		)
 
 
+@warning_ignore("shadowed_variable_base_class")
 func set_survival_hud_visible(is_visible: bool) -> void:
 	var survival := %SurvivalHud as Control
 	if survival == null:
@@ -428,6 +430,7 @@ func set_survival_stats(
 			next_deploy.text = "Next deployment: —"
 		else:
 			var total := int(maxi(0, int(ceil(next_deploy_sec))))
+			@warning_ignore("integer_division")
 			next_deploy.text = "Next deployment: %d:%02d" % [total / 60, total % 60]
 	if kills != null:
 		kills.text = "Enemies killed: %d" % enemies_killed
@@ -499,6 +502,7 @@ func _append_chat_system(text: String) -> void:
 # ─────────────────────────────────────────────────────────────────────────
 
 var _chat_has_focus: bool = false
+var _chat_fetch_busy: bool = false
 
 
 func _on_chat_focus_entered() -> void:
@@ -547,6 +551,9 @@ func _chat_send_message(msg: String) -> void:
 func _chat_fetch_messages() -> void:
 	if not SupabaseAuth.is_signed_in:
 		return
+	if _chat_fetch_busy:
+		return
+	_chat_fetch_busy = true
 	var url := "%s/rest/v1/chat_messages?channel=eq.%s&order=created_at.asc&limit=50" % [
 		SupabaseAuth.SUPABASE_URL, _chat_channel
 	]
@@ -562,6 +569,7 @@ func _on_chat_send_response(_result: int, _response_code: int, _headers: PackedS
 
 
 func _on_chat_fetch_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_chat_fetch_busy = false
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		return
 	var chat_log := %ChatLog as RichTextLabel
@@ -616,6 +624,7 @@ func _chat_format_time(iso_timestamp: String) -> String:
 		total_min += 1440
 	elif total_min >= 1440:
 		total_min -= 1440
+	@warning_ignore("integer_division")
 	hour = total_min / 60
 	minute = total_min % 60
 	var ampm := "AM" if hour < 12 else "PM"
@@ -665,6 +674,7 @@ func _refresh_deployment_stage_label(is_deployment: bool, remaining_sec: float =
 	if timer != null and is_deployment:
 		## remaining_sec is the deploy countdown (ceil so 0.1 still shows 00:01).
 		var total := int(maxi(0, int(ceil(remaining_sec))))
+		@warning_ignore("integer_division")
 		timer.text = "%02d:%02d" % [total / 60, total % 60]
 		timer.add_theme_color_override("font_color", CocUiTheme.TEXT_STATUS_RED)
 	_refresh_team_score_label()

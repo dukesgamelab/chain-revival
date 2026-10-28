@@ -1,4 +1,5 @@
 import { WebSocketServer, WebSocket, type RawData } from "ws";
+import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import {
   LocalMatch,
@@ -247,13 +248,22 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
 }
 
 const HOST = process.env.BIND_HOST ?? "0.0.0.0";
-const wss = new WebSocketServer({ host: HOST, port: PORT });
 
-console.log(`Chain Revival multiplayer server running on ws://${HOST}:${PORT}`);
-console.log(`Authoritative match ${MATCH_ID} ready`);
-if (HOST === "0.0.0.0") {
-  console.log("LAN enabled — other machines can connect using this PC's IP address.");
-}
+// HTTP server handles health checks; WebSocket upgrades attach to it.
+const httpServer = createServer((_req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("ok");
+});
+
+const wss = new WebSocketServer({ server: httpServer });
+
+httpServer.listen(PORT, HOST, () => {
+  console.log(`Chain Revival multiplayer server running on ws://${HOST}:${PORT}`);
+  console.log(`Authoritative match ${MATCH_ID} ready`);
+  if (HOST === "0.0.0.0") {
+    console.log("LAN enabled — other machines can connect using this PC's IP address.");
+  }
+});
 
 wss.on("connection", (ws: WebSocket) => {
   const clientId = randomUUID();

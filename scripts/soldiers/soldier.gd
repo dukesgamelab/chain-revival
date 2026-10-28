@@ -5,6 +5,7 @@ extends Node2D
 ## Does NOT mutate SoldierState. Authoritative movement advances on simulation ticks;
 ## this node only lerps toward the current sim cell / next path cell.
 
+@warning_ignore("shadowed_global_identifier")
 const UsSoldierSpriteFrames := preload("res://scripts/soldiers/us_soldier_sprite_frames.gd")
 const AiSectorObjectivesClass := preload("res://scripts/ai/ai_sector_objectives.gd")
 
@@ -24,6 +25,7 @@ const OG_SPRITE_SCALE := Vector2(1.6, 1.6)
 ## Prone/crawl art is already drawn lying down — do NOT squash Y (that flattened
 ## sprites and made roster markers look like dashes).
 
+@warning_ignore("unused_signal")
 signal movement_step_reached(team_id: int, soldier_id: int, tile: Vector2i, step_delta: Vector2i)
 signal movement_finished(team_id: int, soldier_id: int)
 ## Fired once when configured release frame is reached (presentation → gameplay hook).
@@ -223,10 +225,10 @@ func _configure_name_label_node() -> void:
 
 
 ## Map soldier_id (1–4) or roster index (0–3) → texture slot 0–3 (1–4 marks).
-static func roster_marker_index(soldier_id: int) -> int:
-	if soldier_id >= 1 and soldier_id <= 4:
-		return soldier_id - 1
-	return clampi(soldier_id, 0, 3)
+static func roster_marker_index(sid: int) -> int:
+	if sid >= 1 and sid <= 4:
+		return sid - 1
+	return clampi(sid, 0, 3)
 
 
 
@@ -704,7 +706,7 @@ func apply_idle_pose_inputs(
 	_play_locomotion(dir if not dir.is_empty() else "n", false)
 
 
-func set_selected(is_selected: bool) -> void:
+func set_selected(_is_selected: bool) -> void:
 	## Red diamond is reserved for the run-to destination overlay — never under the soldier.
 	_selection_marker.visible = false
 	if _is_dead or _blocks_action_override():

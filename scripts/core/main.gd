@@ -1387,6 +1387,7 @@ func _init_session_from_spawns() -> void:
 		for s in red_spawns:
 			gx += s.x
 			gy += s.y
+		@warning_ignore("integer_division")
 		germany_anchor = Vector2i(gx / red_spawns.size(), gy / red_spawns.size())
 	var match_cfg
 	if GameModeManager.is_local_multiplayer():
@@ -1500,6 +1501,7 @@ func _on_survival_difficulty_chosen(difficulty: int) -> void:
 		return
 	_survival_mode.apply_difficulty(difficulty)
 	_refresh_survival_hud()
+	@warning_ignore("shadowed_variable_base_class")
 	var name := SurvivalModeControllerClass.difficulty_display_name(difficulty)
 	var interval := SurvivalModeControllerClass.difficulty_interval_label(difficulty)
 	_command_bar.show_status(
@@ -1609,6 +1611,7 @@ func _vp_holder_summary() -> String:
 	for entry in _game_state.map_data.victory_points:
 		if not entry is Dictionary:
 			continue
+		@warning_ignore("shadowed_variable_base_class")
 		var name := str(entry.get("name", "VP"))
 		var holder := str(entry.get("holder", entry.get("initial_holder", "?")))
 		var short := "USA" if VictoryPointSystem.holder_is_usa(holder) else "GER"
@@ -2159,6 +2162,7 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 			_map_data,
 			fire_aim_cell,
 		)
+		@warning_ignore("int_as_enum_without_cast")
 		idle_peek = corner.peek_side
 		idle_corner_cell = corner.corner_cell
 	view.sync_from_state(
@@ -2759,7 +2763,7 @@ func _snap_cell_for_soldier(state: SoldierState) -> Vector2i:
 	return state.grid_position
 
 
-func _make_move_context(cmd: MoveCommand) -> CommandContextClass:
+func _make_move_context(_cmd: MoveCommand) -> CommandContextClass:
 	var ctx := CommandContextClass.new()
 	## Keep pathfinding grid synced to the authoritative map (shared reference).
 	if _iso_map != null and _game_state != null and _game_state.map_data != null:
@@ -3344,6 +3348,7 @@ func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int)
 				continue
 			if not _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id):
 				continue
+			@warning_ignore("confusable_local_declaration")
 			var cmd := FireControlCommandClass.new()
 			cmd.team_id = _session.active_team_id
 			cmd.soldier_id = soldier_state.soldier_id
@@ -3423,6 +3428,7 @@ func _on_position_change_requested(soldier_id: int, position_state: int) -> void
 				continue
 			if not _session.can_local_control_soldier(soldier_state.team_id, soldier_state.soldier_id):
 				continue
+			@warning_ignore("confusable_local_declaration")
 			var cmd := PositionCommand.new()
 			cmd.team_id = _session.active_team_id
 			cmd.soldier_id = soldier_state.soldier_id

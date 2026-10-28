@@ -145,8 +145,8 @@ static func display_direction(world_facing: String, camera_degrees: int) -> Stri
 	var world := world_facing.to_lower()
 	var cam_key := str(posmod(camera_degrees, 360))
 	## Snap to nearest 90°.
-	var snapped := int(round(float(posmod(camera_degrees, 360)) / 90.0) * 90) % 360
-	cam_key = str(snapped)
+	var snapped_deg := int(round(float(posmod(camera_degrees, 360)) / 90.0) * 90) % 360
+	cam_key = str(snapped_deg)
 	var maps: Dictionary = _root.get("camera_rotation_maps", {})
 	var table: Variant = maps.get(cam_key, {})
 	if table is Dictionary and table.has(world):

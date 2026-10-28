@@ -109,6 +109,7 @@ static func tick_budget() -> int:
 	var backlog := _dirty.size()
 	if backlog <= PAIRS_PER_TICK:
 		return PAIRS_PER_TICK
+	@warning_ignore("integer_division")
 	return mini(PAIRS_PER_TICK_MAX, PAIRS_PER_TICK + backlog / 4)
 
 

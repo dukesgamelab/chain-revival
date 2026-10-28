@@ -795,6 +795,7 @@ func _formation_center(game_state) -> Vector2i:
 	for s in soldiers:
 		sx += s.grid_position.x
 		sy += s.grid_position.y
+	@warning_ignore("integer_division")
 	return Vector2i(sx / soldiers.size(), sy / soldiers.size())
 
 
@@ -1488,7 +1489,7 @@ func _run_survival_germany_state(
 	submit_command: Callable,
 	visible: Array,
 	known: Array,
-	reaction: Array,
+	_reaction: Array,
 ) -> void:
 	_ensure_survival_ge_lines_objective(game_state)
 	if current_objective == null or not current_objective.is_valid():
@@ -1644,6 +1645,7 @@ func _survival_assault_one_soldier(
 	var cover := _survival_cover_bound_cell(game_state, from_cell, threat_cell, push_cell)
 	if cover.x > -900:
 		target = cover
+		@warning_ignore("int_as_enum_without_cast")
 		mode = _cover_approach_mode(game_state)
 		label = "survival-bound"
 	else:
@@ -2142,6 +2144,7 @@ func _spread_defend_posts(
 	var step := 0
 	while posts.size() < count and step < 24:
 		var side := 1 if (step % 2) == 0 else -1
+		@warning_ignore("integer_division")
 		var mag := ((step / 2) + 1) * DEFENSIVE_POST_MIN_SEP
 		var offset := Vector2i(int(round(ux * float(side * mag))), int(round(uy * float(side * mag))))
 		if offset == Vector2i.ZERO:
@@ -2159,6 +2162,7 @@ func _spread_defend_posts(
 		step += 1
 	## Last resort — allow closer posts rather than leaving soldiers unassigned.
 	while posts.size() < count:
+		@warning_ignore("integer_division")
 		var fallback := primary + Vector2i(posts.size() % 3 - 1, posts.size() / 3)
 		if map_data != null and not map_data.is_walkable(fallback):
 			fallback = primary
@@ -2414,7 +2418,7 @@ func _run_watchdog(game_state, visible: Array, now_msec: int) -> void:
 
 
 func _submit_ai(
-	game_state,
+	_game_state,
 	submit_command: Callable,
 	command: RefCounted,
 	context: CommandContextClass,

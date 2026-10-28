@@ -9,10 +9,9 @@ const LOBBY_BROWSER_SCENE := "res://scenes/lobby_browser.tscn"
 const SIDE_SELECT_SCENE := "res://scenes/side_select.tscn"
 const LobbyClientClass := preload("res://scripts/network/lobby_client.gd")
 
-## Online game server URL. Set this to the Railway WebSocket URL once deployed.
-## Example: "wss://chain-revival-server-production.up.railway.app"
+## Online game server URL (Fly.io).
 ## Leave empty to fall back to LAN IP detection for local hosting.
-const ONLINE_SERVER_URL := ""
+const ONLINE_SERVER_URL := "wss://chain-revival-ax0q1g.fly.dev"
 
 var _lobby_client: Node
 var _lobby_list_container: VBoxContainer

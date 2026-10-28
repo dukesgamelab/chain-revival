@@ -322,12 +322,14 @@ static func _team_anchor(game_state, team_id: int) -> Vector2i:
 				if state != null and not state.is_dead:
 					points.append(state.grid_position)
 	if points.is_empty():
+		@warning_ignore("integer_division")
 		return Vector2i(map_data.width / 2, map_data.height / 2)
 	var sx := 0
 	var sy := 0
 	for p in points:
 		sx += int(p.x)
 		sy += int(p.y)
+	@warning_ignore("integer_division")
 	return Vector2i(sx / points.size(), sy / points.size())
 
 

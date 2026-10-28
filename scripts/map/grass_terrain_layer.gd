@@ -83,6 +83,7 @@ func _draw_grass_at_cell(cell: Vector2i) -> void:
 	var half := texture.get_size() * 0.5
 	var center := IsometricGrid.grid_to_world(cell)
 
+	@warning_ignore("shadowed_variable_base_class")
 	var scale := Vector2(TILE_OVERLAP_SCALE, TILE_OVERLAP_SCALE)
 	if style.flip_h:
 		scale.x *= -1.0
@@ -95,16 +96,17 @@ func _draw_grass_at_cell(cell: Vector2i) -> void:
 
 
 func _grass_style_for_cell(cell: Vector2i) -> Dictionary:
-	var hash := _stable_hash(cell)
+	var cell_hash := _stable_hash(cell)
 	var variant_index := _stable_hash(Vector2i(cell.x + 9001, cell.y + 4271)) % _grass_textures.size()
 	# Isometric diamonds: mirror flips and 180° rotation only (no 90°/270°).
-	var flip_h := (hash & 1) != 0
-	var flip_v := (hash & 2) != 0
-	var rotation := PI if (hash & 4) != 0 else 0.0
+	var flip_h := (cell_hash & 1) != 0
+	var flip_v := (cell_hash & 2) != 0
+	@warning_ignore("shadowed_variable_base_class")
+	var rotation := PI if (cell_hash & 4) != 0 else 0.0
 	var tint := Color(
-		0.93 + _hash_unit(hash, 11) * TINT_SPREAD,
-		0.88 + _hash_unit(hash, 23) * TINT_SPREAD,
-		0.82 + _hash_unit(hash, 37) * TINT_SPREAD,
+		0.93 + _hash_unit(cell_hash, 11) * TINT_SPREAD,
+		0.88 + _hash_unit(cell_hash, 23) * TINT_SPREAD,
+		0.82 + _hash_unit(cell_hash, 37) * TINT_SPREAD,
 		1.0,
 	)
 	return {
@@ -122,7 +124,7 @@ static func _stable_hash(cell: Vector2i) -> int:
 	return absi(n)
 
 
-static func _hash_unit(hash: int, salt: int) -> float:
-	var mixed := hash ^ salt * 2654435761
+static func _hash_unit(hash_val: int, salt: int) -> float:
+	var mixed := hash_val ^ salt * 2654435761
 	mixed = (mixed ^ (mixed >> 15)) * 2246822519
 	return float(mixed & 0xFFFF) / 65535.0

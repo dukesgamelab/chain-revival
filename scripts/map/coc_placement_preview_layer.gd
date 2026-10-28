@@ -41,6 +41,7 @@ func _draw() -> void:
 	var texture := _get_texture(path)
 	if texture == null:
 		return
+	@warning_ignore("shadowed_variable_base_class")
 	var scale := OriginalMapProjection.map_scale()
 	var hotspot: Vector2 = info.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
 	## Match DepthSortedLayer: holder at cell world point, sprite at hotspot * scale.

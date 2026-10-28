@@ -141,6 +141,7 @@ static func _expand_spawns(spawns: Array[Vector2i], needed: int) -> Array[Vector
 		var base := Vector2i(10, 10)
 		if not out.is_empty():
 			base = out[out.size() - 1]
+		@warning_ignore("integer_division")
 		var candidate := base + Vector2i((out.size() % 4) - 1, out.size() / 4)
 		if candidate in out:
 			candidate = base + Vector2i(1 + (out.size() % 3), out.size() % 2)

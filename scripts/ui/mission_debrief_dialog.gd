@@ -41,6 +41,7 @@ func _process(delta: float) -> void:
 		return
 	_close_countdown_sec = maxf(0.0, _close_countdown_sec - delta)
 	var t := int(_close_countdown_sec)
+	@warning_ignore("integer_division")
 	_countdown_label.text = "Time Remaining: %02d:%02d" % [t / 60, t % 60]
 	if _close_countdown_sec <= 0.0:
 		hide()
@@ -103,6 +104,7 @@ func _rebuild_content() -> void:
 	root.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	parchment.add_child(root)
 
+	@warning_ignore("shadowed_variable_base_class")
 	var title := _header("Mission-End Debriefing", 20)
 	root.add_child(title)
 	root.add_child(_body_label(ScenarioEndCauseClass.display_name(_game_state.end_cause), true))
@@ -271,6 +273,7 @@ func _build_promotion_panel() -> PanelContainer:
 		var entry := hierarchy.get_entry(local_pid)
 		var rank := int(entry.get("rank", 1))
 		var pp := int(entry.get("pp", 0))
+		@warning_ignore("shadowed_variable_base_class")
 		var name := str(entry.get("display_name", "Commander"))
 		var rank_label: String = str(
 			CommandHierarchyClass.RANK_LABELS[
@@ -343,6 +346,7 @@ func _green_block_style() -> StyleBoxFlat:
 	return style
 
 
+@warning_ignore("shadowed_variable_base_class")
 func _header(text: String, size: int) -> Label:
 	var lab := Label.new()
 	lab.text = text

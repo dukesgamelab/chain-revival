@@ -140,13 +140,13 @@ func _default_controller(team_id: int, slot_on_team: int) -> int:
 
 
 ## Human seats keep short side labels; AI seats use USA AI Player N / GE Player N.
-static func default_display_name(team_id: int, slot_index: int, controller: int, match_type: int) -> String:
+static func default_display_name(team_id: int, slot_index: int, controller: int, p_match_type: int) -> String:
 	var n := slot_index + 1
 	if controller == ControllerType.AI:
 		if team_id == Team.USA:
 			return "USA AI Player %d" % n
 		return "GE Player %d" % n
-	if match_type == MatchType.TWO_V_TWO:
+	if p_match_type == MatchType.TWO_V_TWO:
 		if team_id == Team.USA:
 			return "USA-%d" % n
 		return "GER-%d" % n

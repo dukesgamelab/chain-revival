@@ -23,6 +23,7 @@ func refresh_view_rotation() -> void:
 func _draw() -> void:
 	if map_data == null or not map_data.is_original_visual_map():
 		return
+	@warning_ignore("shadowed_variable_base_class")
 	var scale := OriginalMapProjection.map_scale()
 	for entry in map_data.floors:
 		_draw_family_tile(
@@ -33,6 +34,7 @@ func _draw() -> void:
 		)
 
 
+@warning_ignore("shadowed_variable_base_class")
 func _draw_family_tile(cell: Vector2i, family: String, direction: int, scale: float) -> void:
 	if map_data == null or not map_data.is_in_bounds(cell):
 		return

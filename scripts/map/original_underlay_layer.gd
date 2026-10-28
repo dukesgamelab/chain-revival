@@ -47,6 +47,7 @@ func _ensure_tan_bases() -> void:
 func _draw() -> void:
 	if map_data == null or not map_data.is_original_visual_map():
 		return
+	@warning_ignore("shadowed_variable_base_class")
 	var scale := OriginalMapProjection.map_scale()
 	## 1) Explicit Image1 under-images (original engine property).
 	for entry in map_data.visual_placements:
@@ -77,6 +78,7 @@ func _draw() -> void:
 		_draw_half_diamond(cell, scale)
 
 
+@warning_ignore("shadowed_variable_base_class")
 func _draw_floor_sprite(cell: Vector2i, family: String, scale: float) -> void:
 	if map_data == null or not map_data.is_in_bounds(cell):
 		return
@@ -92,6 +94,7 @@ func _draw_floor_sprite(cell: Vector2i, family: String, scale: float) -> void:
 	draw_texture_rect(texture, Rect2(top_left, texture.get_size() * scale), false)
 
 
+@warning_ignore("shadowed_variable_base_class")
 func _draw_half_diamond(cell: Vector2i, scale: float) -> void:
 	var nbrs: Array[Vector2i] = []
 	var wood := false

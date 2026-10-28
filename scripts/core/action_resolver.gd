@@ -572,8 +572,8 @@ static func execute_move(
 		return ActionResult.fail(validation)
 
 	var single_target := cmd.target_cell
-	var enforce_cohesion := _should_enforce_fireteam_cohesion(game_state, context)
-	if enforce_cohesion:
+	var single_enforce_cohesion := _should_enforce_fireteam_cohesion(game_state, context)
+	if single_enforce_cohesion:
 		## Run toward the click; stop at the cohesion edge instead of ignoring the order.
 		var peer_positions := _living_fireteam_positions(fireteam, soldier_state.soldier_id)
 		single_target = _clamp_cell_to_fireteam_cohesion(single_target, peer_positions)
@@ -587,7 +587,7 @@ static func execute_move(
 			return ActionResult.fail("Soldier is already at that tile.")
 		return ActionResult.fail("No path to that tile.")
 
-	if enforce_cohesion and not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
+	if single_enforce_cohesion and not _fireteam_cohesion_holds_after_orders(fireteam, result.move_orders):
 		_rollback_move_orders(fireteam, result)
 		var quiet := ActionResult.new()
 		quiet.refresh_views = false
@@ -1072,7 +1072,7 @@ static func execute_fire_control(
 static func execute_grenade(
 	game_state: GameStateClass,
 	cmd: GrenadeCommandClass,
-	context: CommandContext,
+	_context: CommandContext,
 ) -> ActionResult:
 	var soldier: SoldierState = game_state.get_soldier(cmd.team_id, cmd.soldier_id)
 	if soldier == null or soldier.is_dead:
@@ -1272,7 +1272,7 @@ static func _assign_move_path(
 ## Co-located with the lead (common when stacked): reuse the identical path — no extra A*.
 static func _assign_translated_squad_path(
 	game_state: GameStateClass,
-	context: CommandContext,
+	_context: CommandContext,
 	fireteam: Fireteam,
 	state: SoldierState,
 	cmd: MoveCommandClass,

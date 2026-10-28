@@ -61,6 +61,7 @@ func _build_layout() -> void:
 	)
 
 
+@warning_ignore("shadowed_variable_base_class")
 func _add_choice_button(host: VBoxContainer, title: String, subtitle: String, diff: int) -> void:
 	var btn := Button.new()
 	btn.text = "%s  —  %s" % [title, subtitle]

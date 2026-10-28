@@ -35,6 +35,8 @@ var _is_open: bool = true
 
 var _http_fetch: HTTPRequest
 var _http_send: HTTPRequest
+var _fetch_busy: bool = false
+var _visibility_check_queued: bool = false
 
 
 func _ready() -> void:
@@ -160,7 +162,10 @@ func _build_ui() -> void:
 # ─────────────────────────────────────────────────────────────────────────
 
 func _is_gameplay_scene() -> bool:
-	var current := get_tree().current_scene
+	var tree := get_tree()
+	if tree == null:
+		return false
+	var current := tree.current_scene
 	if current == null:
 		return false
 	var path := current.scene_file_path
@@ -184,7 +189,16 @@ func _on_auth_changed(_signed_in: bool) -> void:
 
 
 func _on_tree_changed() -> void:
-	# Re-check visibility when scenes change.
+	# Debounce: tree_changed fires for every node add/remove. Queue a single
+	# deferred visibility check so we don't spam HTTP requests.
+	if _visibility_check_queued:
+		return
+	_visibility_check_queued = true
+	call_deferred("_deferred_visibility_check")
+
+
+func _deferred_visibility_check() -> void:
+	_visibility_check_queued = false
 	_update_visibility()
 
 
@@ -233,6 +247,9 @@ func _send_message(msg: String) -> void:
 func _fetch_messages() -> void:
 	if not SupabaseAuth.is_signed_in:
 		return
+	if _fetch_busy:
+		return
+	_fetch_busy = true
 	var url := "%s/rest/v1/chat_messages?channel=eq.global&order=created_at.asc&limit=50" % SupabaseAuth.SUPABASE_URL
 	_http_fetch.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
 
@@ -246,6 +263,7 @@ func _on_send_response(_result: int, _response_code: int, _headers: PackedString
 
 
 func _on_fetch_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_fetch_busy = false
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		return
 	var parsed := _parse_body_array(body)
@@ -329,6 +347,7 @@ func _format_chat_time(iso_timestamp: String) -> String:
 		total_min += 1440
 	elif total_min >= 1440:
 		total_min -= 1440
+	@warning_ignore("integer_division")
 	hour = total_min / 60
 	minute = total_min % 60
 	var ampm := "AM" if hour < 12 else "PM"

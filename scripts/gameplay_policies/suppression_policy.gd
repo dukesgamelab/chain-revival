@@ -153,8 +153,8 @@ func stress_initial_runtime() -> float:
 ## PROBABLE mapping: effective_tier ≈ experience − stress_on_original_scale.
 ## Documented single function — swap body if the axis is pure-stress.
 func effective_tier_from_stress(runtime_stress: float, experience: float = -999.0) -> float:
-	var exp := default_experience if experience < -900.0 else experience
-	return exp - to_original(runtime_stress)
+	var xp := default_experience if experience < -900.0 else experience
+	return xp - to_original(runtime_stress)
 
 
 ## Manhattan / Chebyshev tile distance → Range0..Range6 index.

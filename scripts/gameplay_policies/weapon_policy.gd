@@ -224,7 +224,7 @@ func range_tiles(weapon_id: String) -> int:
 	return weapon.range_tiles if weapon != null else 0
 
 
-func hit_modifier(weapon_id: String) -> float:
+func hit_modifier(_weapon_id: String) -> float:
 	## Deprecated — polynomial replaced additive hit_modifier.
 	return 0.0
 

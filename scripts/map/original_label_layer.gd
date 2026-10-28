@@ -21,6 +21,7 @@ func refresh_view_rotation() -> void:
 func _draw() -> void:
 	if map_data == null or not map_data.is_original_visual_map():
 		return
+	@warning_ignore("shadowed_variable_base_class")
 	var scale := OriginalMapProjection.map_scale()
 	for entry in map_data.labels:
 		var text := str(entry.get("text", "")).strip_edges()

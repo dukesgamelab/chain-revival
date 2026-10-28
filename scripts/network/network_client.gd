@@ -73,7 +73,10 @@ func connect_for_local_multiplayer() -> void:
 	_connect_failed = false
 	_connecting = true
 	_emit_status()
-	var err := _socket.connect_to_url(server_url)
+	var tls_opts: TLSOptions = null
+	if server_url.begins_with("wss://"):
+		tls_opts = TLSOptions.client()
+	var err := _socket.connect_to_url(server_url, tls_opts)
 	if err != OK:
 		_connecting = false
 		_connect_failed = true
