@@ -71,6 +71,7 @@ func _build_ui() -> void:
 	_display_name_field = LineEdit.new()
 	_display_name_field.placeholder_text = "Your username"
 	_display_name_field.custom_minimum_size = Vector2(0, 32)
+	_display_name_field.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(_display_name_field)
 
 	# Email
@@ -82,6 +83,7 @@ func _build_ui() -> void:
 	_email_field = LineEdit.new()
 	_email_field.placeholder_text = "you@example.com"
 	_email_field.custom_minimum_size = Vector2(0, 32)
+	_email_field.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(_email_field)
 
 	# Password
@@ -94,6 +96,7 @@ func _build_ui() -> void:
 	_password_field.placeholder_text = "Password"
 	_password_field.secret = true
 	_password_field.custom_minimum_size = Vector2(0, 32)
+	_password_field.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(_password_field)
 
 	_add_spacer(vbox, 4)

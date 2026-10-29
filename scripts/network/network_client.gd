@@ -42,6 +42,7 @@ signal grenade_explode_received(payload: Dictionary)
 signal match_ended_received(payload: Dictionary)
 signal banned_from_server(reason: String)
 signal kicked_from_server(reason: String)
+signal kick_result_received(success: bool, reason: String)
 
 var _socket := WebSocketPeer.new()
 var _connected := false
@@ -395,6 +396,8 @@ func _send_hello() -> void:
 		hello["authToken"] = SupabaseAuth.access_token
 		if SupabaseAuth.is_admin:
 			hello["isAdmin"] = true
+		if SupabaseAuth.is_moderator:
+			hello["isModerator"] = true
 	send_json(hello)
 	GameLog.log_system("[NetworkClient] Sent hello to server.")
 
@@ -480,6 +483,10 @@ func _handle_message(message: Dictionary) -> void:
 			var reason := str(message.get("reason", "No reason provided"))
 			GameLog.log_system("[NetworkClient] Banned from server: %s" % reason)
 			banned_from_server.emit(reason)
+		"kick_result":
+			var success: bool = bool(message.get("success", false))
+			var reason := str(message.get("reason", ""))
+			kick_result_received.emit(success, reason)
 		"kicked":
 			var reason := str(message.get("reason", "Kicked by admin"))
 			GameLog.log_system("[NetworkClient] Kicked from server: %s" % reason)

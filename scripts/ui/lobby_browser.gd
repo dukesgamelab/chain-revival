@@ -260,8 +260,8 @@ func _build_ui() -> void:
 	_regiments_button.custom_minimum_size = Vector2(0, 34)
 	btn_row.add_child(_regiments_button)
 
-	# Admin button (only visible for admins)
-	if SupabaseAuth.is_admin:
+	# Admin button (visible for admins and moderators)
+	if SupabaseAuth.is_admin or SupabaseAuth.is_moderator:
 		_admin_button = Button.new()
 		_admin_button.text = "Admin"
 		_admin_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL

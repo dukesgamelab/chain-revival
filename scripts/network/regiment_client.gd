@@ -25,6 +25,7 @@ signal player_search_results(players: Array)
 signal player_banned()
 signal player_unbanned()
 signal banned_list_loaded(players: Array)
+signal moderator_set()
 
 var _http_load: HTTPRequest
 var _http_members: HTTPRequest
@@ -46,6 +47,7 @@ var _http_player_search: HTTPRequest
 var _http_ban: HTTPRequest
 var _http_unban: HTTPRequest
 var _http_banned_list: HTTPRequest
+var _http_set_moderator: HTTPRequest
 
 
 func _ready() -> void:
@@ -69,6 +71,7 @@ func _ready() -> void:
 	_http_ban = _make_http("_on_ban_response")
 	_http_unban = _make_http("_on_unban_response")
 	_http_banned_list = _make_http("_on_banned_list_response")
+	_http_set_moderator = _make_http("_on_set_moderator_response")
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -576,6 +579,23 @@ func _on_banned_list_response(result: int, response_code: int, headers: PackedSt
 		regiment_error.emit("Failed to load banned players")
 		return
 	banned_list_loaded.emit(_parse_body_array(body))
+
+
+## Set or revoke moderator status on a player (admin only, RPC enforced).
+func set_moderator(target_id: String, is_mod: bool) -> void:
+	if not _check_auth():
+		return
+	var url := "%s/rest/v1/rpc/set_moderator" % SupabaseAuth.SUPABASE_URL
+	var body_text := JSON.stringify({"p_target_id": target_id, "p_is_moderator": is_mod})
+	_http_set_moderator.request(url, _bearer_headers(), HTTPClient.METHOD_POST, body_text)
+
+
+@warning_ignore("unused_parameter")
+func _on_set_moderator_response(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or (response_code != 200 and response_code != 204):
+		regiment_error.emit("Set moderator failed (HTTP %d)" % response_code)
+		return
+	moderator_set.emit()
 
 
 # ─────────────────────────────────────────────────────────────────────────

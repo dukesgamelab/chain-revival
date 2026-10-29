@@ -1,8 +1,9 @@
 extends Control
-## Admin panel for Chain Revival moderation tools.
+## Admin/Moderator panel for Chain Revival moderation tools.
 ##
-## Accessible from the lobby browser (admin only).
+## Accessible from the lobby browser (admins and moderators).
 ## Provides player search, ban/unban management, and a list of banned players.
+## Admins can additionally assign/revoke moderator status.
 
 const MODE_SELECT_SCENE := "res://scenes/mode_select.tscn"
 const RegimentClientClass := preload("res://scripts/network/regiment_client.gd")
@@ -30,7 +31,7 @@ static var return_scene: String = ""
 
 func _ready() -> void:
 	CocUiTheme.apply_to(self)
-	if not SupabaseAuth.is_admin:
+	if not SupabaseAuth.is_admin and not SupabaseAuth.is_moderator:
 		get_tree().change_scene_to_file(return_scene if not return_scene.is_empty() else MODE_SELECT_SCENE)
 		return
 
@@ -41,6 +42,7 @@ func _ready() -> void:
 	_regiment_client.player_banned.connect(_on_player_banned)
 	_regiment_client.player_unbanned.connect(_on_player_unbanned)
 	_regiment_client.banned_list_loaded.connect(_on_banned_list_loaded)
+	_regiment_client.moderator_set.connect(_on_moderator_set)
 	_regiment_client.regiment_error.connect(_on_error)
 
 	_build_ui()
@@ -69,7 +71,7 @@ func _build_ui() -> void:
 
 	# Title
 	var title := Label.new()
-	title.text = "Admin Panel"
+	title.text = "Admin Panel" if SupabaseAuth.is_admin else "Moderator Panel"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 20)
 	vbox.add_child(title)
@@ -264,12 +266,15 @@ func _process(_delta: float) -> void:
 		# Send hello on first open
 		if _kick_state == "connecting":
 			_kick_state = "authing"
-			var hello := {
+			var hello: Dictionary = {
 				"type": "hello",
 				"clientName": "AdminKick",
 				"authToken": SupabaseAuth.access_token,
-				"isAdmin": true,
 			}
+			if SupabaseAuth.is_admin:
+				hello["isAdmin"] = true
+			if SupabaseAuth.is_moderator:
+				hello["isModerator"] = true
 			_kick_socket.send_text(JSON.stringify(hello))
 
 	elif state == WebSocketPeer.STATE_CLOSED or state == WebSocketPeer.STATE_CLOSING:
@@ -303,6 +308,11 @@ func _on_unban_pressed(player_id: String) -> void:
 	_regiment_client.unban_player(player_id)
 
 
+func _on_set_mod_pressed(player_id: String, is_mod: bool) -> void:
+	_status_label.text = "Setting moderator status..."
+	_regiment_client.set_moderator(player_id, is_mod)
+
+
 # ─────────────────────────────────────────────────────────────────────────
 # Data callbacks
 # ─────────────────────────────────────────────────────────────────────────
@@ -326,17 +336,28 @@ func _on_player_search_results(players: Array) -> void:
 		var pp_text: String = str(int(p.get("prestige_points", 0)))
 		var banned: bool = bool(p.get("is_banned", false))
 		var player_is_admin: bool = bool(p.get("is_admin", false))
+		var player_is_mod: bool = bool(p.get("is_moderator", false))
 		var match_id_val = p.get("active_match_id", null)
 		var in_game: bool = match_id_val != null and str(match_id_val) != "" and str(match_id_val) != "null"
 		var status_text := "BANNED" if banned else ("In Game" if in_game else "Online")
+		if player_is_admin:
+			status_text += " [ADMIN]"
+		elif player_is_mod:
+			status_text += " [MOD]"
 
 		var card := VBoxContainer.new()
 		card.add_theme_constant_override("separation", 2)
 
 		card.add_child(_make_player_row(name_text, rank_text, pp_text, status_text, false, banned, in_game))
 
-		# Action buttons (no actions on other admins)
-		if not player_is_admin:
+		# Determine if we can act on this player
+		var can_act := true
+		if player_is_admin:
+			can_act = false
+		elif player_is_mod and SupabaseAuth.is_moderator and not SupabaseAuth.is_admin:
+			can_act = false
+
+		if can_act:
 			var btn_row := HBoxContainer.new()
 			btn_row.add_theme_constant_override("separation", 6)
 			card.add_child(btn_row)
@@ -364,6 +385,23 @@ func _on_player_search_results(players: Array) -> void:
 				kick_btn.add_theme_font_size_override("font_size", 11)
 				kick_btn.pressed.connect(_on_kick_pressed.bind(player_id))
 				btn_row.add_child(kick_btn)
+
+			# Moderator toggle (admins only, not on self or other admins)
+			if SupabaseAuth.is_admin and player_id != SupabaseAuth.user_id:
+				if player_is_mod:
+					var rm_mod_btn := Button.new()
+					rm_mod_btn.text = "Remove Mod"
+					rm_mod_btn.custom_minimum_size = Vector2(90, 24)
+					rm_mod_btn.add_theme_font_size_override("font_size", 11)
+					rm_mod_btn.pressed.connect(_on_set_mod_pressed.bind(player_id, false))
+					btn_row.add_child(rm_mod_btn)
+				else:
+					var set_mod_btn := Button.new()
+					set_mod_btn.text = "Set Mod"
+					set_mod_btn.custom_minimum_size = Vector2(90, 24)
+					set_mod_btn.add_theme_font_size_override("font_size", 11)
+					set_mod_btn.pressed.connect(_on_set_mod_pressed.bind(player_id, true))
+					btn_row.add_child(set_mod_btn)
 
 		card.add_child(HSeparator.new())
 		_results_container.add_child(card)
@@ -421,6 +459,12 @@ func _on_player_unbanned() -> void:
 	if not _search_input.text.strip_edges().is_empty():
 		_regiment_client.search_players(_search_input.text.strip_edges())
 	_regiment_client.list_banned_players()
+
+
+func _on_moderator_set() -> void:
+	_status_label.text = "Moderator status updated."
+	if not _search_input.text.strip_edges().is_empty():
+		_regiment_client.search_players(_search_input.text.strip_edges())
 
 
 func _on_error(msg: String) -> void:

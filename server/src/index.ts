@@ -168,8 +168,9 @@ function sendJson(ws: WebSocket, payload: unknown): void {
   ws.send(JSON.stringify(payload));
 }
 
-// Track which userIds are admins (set on hello, used for kick validation)
+// Track which userIds are admins or moderators (set on hello, used for kick validation)
 const adminUserIds = new Set<string>();
+const moderatorUserIds = new Set<string>();
 
 async function handleMessage(ws: WebSocket, clientId: string, raw: string): Promise<void> {
   console.log("Received message:", raw);
@@ -213,9 +214,12 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
         // Track active match in Supabase so the admin panel can see who's in a game
         setActiveMatch(userId, MATCH_ID);
 
-        // Track admin status if the client reports it (validated server-side for kicks)
+        // Track admin/moderator status if the client reports it (validated server-side for kicks)
         if (message.isAdmin === true) {
           adminUserIds.add(userId);
+        }
+        if (message.isModerator === true) {
+          moderatorUserIds.add(userId);
         }
       } else {
         console.log("Auth token invalid for %s; continuing as guest.", clientName);
@@ -236,7 +240,7 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
   // Admin: kick a player from the active game
   if (message.type === "kick_player") {
     const record = getClient(clientId);
-    if (!record?.userId || !adminUserIds.has(record.userId)) {
+    if (!record?.userId || (!adminUserIds.has(record.userId) && !moderatorUserIds.has(record.userId))) {
       sendJson(ws, { type: "kick_result", success: false, reason: "Not authorized" });
       return;
     }
@@ -255,7 +259,15 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       return;
     }
 
-    console.log("Admin %s kicking player %s: %s", record.userId, targetUserId, kickReason);
+    // Moderators cannot kick admins; admins can kick anyone
+    const kickerIsAdmin = adminUserIds.has(record.userId);
+    if (!kickerIsAdmin && adminUserIds.has(targetUserId)) {
+      sendJson(ws, { type: "kick_result", success: false, reason: "Cannot kick an admin" });
+      return;
+    }
+
+    const kickerRole = kickerIsAdmin ? "Admin" : "Moderator";
+    console.log("%s %s kicking player %s: %s", kickerRole, record.userId, targetUserId, kickReason);
     sendJson(target.ws, { type: "kicked", reason: kickReason });
 
     // Capture side and refs before removing so we can trigger forfeit
@@ -263,6 +275,8 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     const kickedWs = target.ws;
     if (target.userId) {
       clearActiveMatch(target.userId);
+      adminUserIds.delete(target.userId);
+      moderatorUserIds.delete(target.userId);
     }
     match.removeClient(target.clientId);
     removeClient(target.clientId);
@@ -465,10 +479,12 @@ wss.on("connection", (ws: WebSocket) => {
   });
 
   ws.on("close", () => {
-    // Clear active match in Supabase before removing the client record
+    // Clear active match and role tracking before removing the client record
     const record = getClient(clientId);
     if (record?.userId) {
       clearActiveMatch(record.userId);
+      adminUserIds.delete(record.userId);
+      moderatorUserIds.delete(record.userId);
     }
     // If this player had an assigned side and the match is running,
     // end the match as a forfeit so the remaining player gets a debrief.

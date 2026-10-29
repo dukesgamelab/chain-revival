@@ -95,8 +95,8 @@ func _ready() -> void:
 	%SetCommandersButton.pressed.connect(func() -> void: set_commanders_requested.emit())
 	%AssignWeaponsButton.pressed.connect(func() -> void: assign_weapons_requested.emit())
 
-	# Admin kick button in top toolbar (only for admins in multiplayer)
-	if SupabaseAuth.is_admin and GameModeManager.is_local_multiplayer():
+	# Admin/moderator kick button in top toolbar (for admins and moderators in multiplayer)
+	if (SupabaseAuth.is_admin or SupabaseAuth.is_moderator) and GameModeManager.is_local_multiplayer():
 		var weapons_btn := %AssignWeaponsButton as Button
 		if weapons_btn != null:
 			var toolbar := weapons_btn.get_parent()
@@ -993,6 +993,7 @@ var admin_popup_open: bool = false
 
 var _admin_kick_popup: AcceptDialog
 var _admin_kick_reason_input: LineEdit
+var _pending_kick_name: String = ""
 var _admin_kick_http: HTTPRequest
 var _admin_kick_container: VBoxContainer
 
@@ -1064,7 +1065,7 @@ func _fetch_active_players() -> void:
 	var match_id := NetworkClient.match_id
 	if match_id.is_empty():
 		return
-	var url := "%s/rest/v1/player_profiles?active_match_id=eq.%s&select=id,display_name&id=neq.%s" % [
+	var url := "%s/rest/v1/player_profiles?active_match_id=eq.%s&select=id,display_name,is_admin,is_moderator&id=neq.%s" % [
 		SupabaseAuth.SUPABASE_URL, match_id, SupabaseAuth.user_id
 	]
 	var hdrs := PackedStringArray([
@@ -1105,22 +1106,37 @@ func _on_active_players_response(result: int, response_code: int, headers: Packe
 	for p in players:
 		var player_id: String = str(p.get("id", ""))
 		var display_name: String = str(p.get("display_name", "???"))
+		var target_is_admin: bool = bool(p.get("is_admin", false))
+		var target_is_mod: bool = bool(p.get("is_moderator", false))
 
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 
 		var name_label := Label.new()
 		name_label.text = display_name
+		if target_is_admin:
+			name_label.text += " [ADMIN]"
+		elif target_is_mod:
+			name_label.text += " [MOD]"
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_label.add_theme_font_size_override("font_size", 13)
 		row.add_child(name_label)
 
-		var kick_btn := Button.new()
-		kick_btn.text = "Kick"
-		kick_btn.custom_minimum_size = Vector2(60, 24)
-		kick_btn.add_theme_font_size_override("font_size", 11)
-		kick_btn.pressed.connect(_on_ingame_kick.bind(player_id, display_name))
-		row.add_child(kick_btn)
+		# Don't show kick on admins (unless kicker is also admin),
+		# and moderators can't kick other moderators
+		var can_kick := true
+		if target_is_admin and not SupabaseAuth.is_admin:
+			can_kick = false
+		elif target_is_mod and SupabaseAuth.is_moderator and not SupabaseAuth.is_admin:
+			can_kick = false
+
+		if can_kick:
+			var kick_btn := Button.new()
+			kick_btn.text = "Kick"
+			kick_btn.custom_minimum_size = Vector2(60, 24)
+			kick_btn.add_theme_font_size_override("font_size", 11)
+			kick_btn.pressed.connect(_on_ingame_kick.bind(player_id, display_name))
+			row.add_child(kick_btn)
 
 		_admin_kick_container.add_child(row)
 
@@ -1131,11 +1147,22 @@ func _on_ingame_kick(player_id: String, display_name: String) -> void:
 		reason = _admin_kick_reason_input.text.strip_edges()
 	if reason.is_empty():
 		reason = "Kicked by admin"
+	if not NetworkClient.kick_result_received.is_connected(_on_kick_result):
+		NetworkClient.kick_result_received.connect(_on_kick_result)
+	_pending_kick_name = display_name
 	NetworkClient.send_json({
 		"type": "kick_player",
 		"targetUserId": player_id,
 		"reason": reason,
 	})
-	show_status("Kicked %s" % display_name)
+	show_status("Kicking %s..." % display_name)
 	if _admin_kick_popup != null:
 		_admin_kick_popup.hide()
+
+
+func _on_kick_result(success: bool, reason: String) -> void:
+	if success:
+		show_status("Kicked %s" % _pending_kick_name)
+	else:
+		show_status("Kick failed: %s" % reason)
+	_pending_kick_name = ""
