@@ -170,6 +170,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_log_fireteam_loadouts()
 	_command_bar.set_active_team(_session.active_team_id)
+	_command_bar.start_chat_channel()
 	## Side default camera (FF: USA 90° / GE 270°) + center on that fireteam.
 	_apply_team_default_camera(_session.active_team_id)
 	if _is_survival_mode():
@@ -1654,6 +1655,8 @@ func _on_mission_debrief_finished() -> void:
 	## Use call_deferred to avoid issues with AcceptDialog (Window) lifecycle;
 	## changing scene immediately inside a Window signal handler can cause
 	## Godot to interpret the window closure as an app quit.
+	if _command_bar != null:
+		_command_bar.cleanup_chat()
 	if _return_to_editor_on_exit and BuildConfig.is_development():
 		EditorPlaySession.clear_return_flag()
 		get_tree().call_deferred("change_scene_to_file", "res://scenes/editor/map_editor.tscn")

@@ -35,11 +35,12 @@ signal retreat_requested
 var _status_hud: StatusHud
 
 # In-game chat
-var _chat_poll_timer: Timer
-var _chat_http_fetch: HTTPRequest
 var _chat_http_send: HTTPRequest
 var _chat_seen_ids: Dictionary = {}
 var _chat_channel: String = ""
+var _chat_filter: String = ""
+var _chat_subscribed: bool = false
+var _ignore_list: Dictionary = {}  # user_id -> true
 
 var _selected_soldier_id: int = 1
 var _move_target_soldier_id: int = -1
@@ -464,27 +465,36 @@ func _setup_chat_panel() -> void:
 		default_btn.disabled = false
 		default_btn.pressed.connect(func(): _on_chat_input_submitted(""))
 
-	# Set up HTTP nodes for Supabase chat.
-	_chat_http_fetch = HTTPRequest.new()
-	_chat_http_fetch.request_completed.connect(_on_chat_fetch_response)
-	add_child(_chat_http_fetch)
+	# Wire up Whisper/Announce/Ignore buttons.
+	var whisper_btn := get_node_or_null("%WhisperButton") as Button
+	if whisper_btn != null:
+		whisper_btn.disabled = true  # Requires player list (Phase 16+)
 
+	var announce_btn := get_node_or_null("%AnnounceButton") as Button
+	if announce_btn != null:
+		announce_btn.disabled = true  # Team leader only, needs team sizes (Phase 18)
+
+	var ignore_btn := get_node_or_null("%IgnoreButton") as Button
+	if ignore_btn != null:
+		ignore_btn.disabled = true  # Requires player list (Phase 16+)
+
+	# Set up HTTP for sending messages (receiving uses Realtime).
 	_chat_http_send = HTTPRequest.new()
 	_chat_http_send.request_completed.connect(_on_chat_send_response)
 	add_child(_chat_http_send)
 
-	# Poll for new messages every 3 seconds.
-	_chat_poll_timer = Timer.new()
-	_chat_poll_timer.wait_time = 3.0
-	_chat_poll_timer.timeout.connect(_on_chat_poll_timer)
-	add_child(_chat_poll_timer)
 
-	# Generate a unique channel for this game session so messages stay scoped.
-	_chat_channel = "game:%s" % _generate_session_id()
-
-	if SupabaseAuth.is_signed_in:
-		_chat_poll_timer.start()
-		_chat_fetch_messages()
+## Call from main.gd after match ID and team assignment are confirmed.
+func start_chat_channel() -> void:
+	var mid := NetworkClient.match_id
+	if mid.is_empty():
+		mid = _generate_session_id()
+	var team_suffix := "usa" if PlayerSides.assigned_team_id == Team.USA else "germany"
+	_chat_channel = "game:%s:%s" % [mid, team_suffix]
+	_chat_filter = "channel=eq.%s" % _chat_channel
+	if SupabaseAuth.is_signed_in and not _chat_subscribed:
+		_chat_subscribed = true
+		SupabaseRealtime.subscribe("chat_messages", _chat_filter, _on_chat_realtime_message)
 
 
 func _append_chat_system(text: String) -> void:
@@ -502,7 +512,6 @@ func _append_chat_system(text: String) -> void:
 # ─────────────────────────────────────────────────────────────────────────
 
 var _chat_has_focus: bool = false
-var _chat_fetch_busy: bool = false
 
 
 func _on_chat_focus_entered() -> void:
@@ -533,8 +542,27 @@ func _on_chat_input_submitted(_text: String = "") -> void:
 	chat_input.text = ""
 	chat_input.grab_focus()
 	_chat_send_message(msg)
-	await get_tree().create_timer(0.3).timeout
-	_chat_fetch_messages()
+	_echo_local_message(msg)
+
+
+func _echo_local_message(msg: String) -> void:
+	var chat_log := %ChatLog as RichTextLabel
+	if chat_log == null:
+		return
+	var tagged_name := SupabaseAuth.display_name
+	if SupabaseAuth.regiment_tag != "":
+		tagged_name = "%s %s" % [SupabaseAuth.regiment_tag, tagged_name]
+	var now := Time.get_time_dict_from_system()
+	var hour: int = now.get("hour", 0)
+	var minute: int = now.get("minute", 0)
+	var ampm := "AM" if hour < 12 else "PM"
+	var display_hour := hour % 12
+	if display_hour == 0:
+		display_hour = 12
+	var time_display := "%d:%02d %s" % [display_hour, minute, ampm]
+	chat_log.append_text("[color=gray]%s[/color] [color=cyan][%s][/color] %s\n" % [
+		time_display, tagged_name, msg
+	])
 
 
 func _chat_send_message(msg: String) -> void:
@@ -551,61 +579,53 @@ func _chat_send_message(msg: String) -> void:
 	_chat_http_send.request(url, _chat_bearer_headers(), HTTPClient.METHOD_POST, body)
 
 
-func _chat_fetch_messages() -> void:
-	if not SupabaseAuth.is_signed_in:
-		return
-	if _chat_fetch_busy:
-		return
-	_chat_fetch_busy = true
-	var url := "%s/rest/v1/chat_messages?channel=eq.%s&order=created_at.asc&limit=50" % [
-		SupabaseAuth.SUPABASE_URL, _chat_channel
-	]
-	_chat_http_fetch.request(url, _chat_bearer_headers(), HTTPClient.METHOD_GET)
-
-
-func _on_chat_poll_timer() -> void:
-	_chat_fetch_messages()
-
-
 func _on_chat_send_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
 	pass
 
 
-func _on_chat_fetch_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
-	_chat_fetch_busy = false
-	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
-		return
+## Called by SupabaseRealtime when a new message arrives on this game channel.
+func _on_chat_realtime_message(record: Dictionary) -> void:
 	var chat_log := %ChatLog as RichTextLabel
 	if chat_log == null:
 		return
-	var parsed := _chat_parse_body_array(body)
-	var added := false
-	for msg_dict in parsed:
-		var msg: Dictionary = msg_dict
-		var msg_id: String = msg.get("id", "")
-		if msg_id.is_empty() or _chat_seen_ids.has(msg_id):
-			continue
-		_chat_seen_ids[msg_id] = true
-		added = true
 
-		var sender: String = msg.get("display_name", "???")
-		var text: String = msg.get("message", "")
-		var timestamp_str: String = msg.get("created_at", "")
-		var time_display := _chat_format_time(timestamp_str)
+	var msg_id := str(record.get("id", ""))
+	if msg_id.is_empty() or _chat_seen_ids.has(msg_id):
+		return
+	_chat_seen_ids[msg_id] = true
 
-		var msg_user_id: String = msg.get("user_id", "")
-		var is_self: bool = (msg_user_id == SupabaseAuth.user_id)
-		var name_color: String = "cyan" if is_self else "yellow"
+	var sender_id := str(record.get("user_id", ""))
 
-		chat_log.append_text("[color=gray]%s[/color] [color=%s][%s][/color] %s\n" % [
-			time_display, name_color, sender, text
-		])
+	# Skip own messages (already echoed locally) and ignored players.
+	if sender_id == SupabaseAuth.user_id:
+		return
+	if _ignore_list.has(sender_id):
+		return
 
-	if added:
-		await get_tree().process_frame
-		var chat_scroll := chat_log.get_parent().get_parent() as ScrollContainer
-		if chat_scroll != null:
-			chat_scroll.scroll_vertical = int(chat_scroll.get_v_scroll_bar().max_value)
+	var sender: String = record.get("display_name", "???")
+	var text: String = record.get("message", "")
+	var timestamp_str: String = record.get("created_at", "")
+	var time_display := _chat_format_time(timestamp_str)
+
+	var is_self: bool = (sender_id == SupabaseAuth.user_id)
+
+	var name_color: String = "cyan" if is_self else "yellow"
+
+	chat_log.append_text("[color=gray]%s[/color] [color=%s][%s][/color] %s\n" % [
+		time_display, name_color, sender, text
+	])
+
+	await get_tree().process_frame
+	var chat_scroll := chat_log.get_parent().get_parent() as ScrollContainer
+	if chat_scroll != null:
+		chat_scroll.scroll_vertical = int(chat_scroll.get_v_scroll_bar().max_value)
+
+
+## Call this when the match ends to clean up the Realtime subscription.
+func cleanup_chat() -> void:
+	if _chat_subscribed:
+		_chat_subscribed = false
+		SupabaseRealtime.unsubscribe("chat_messages", _chat_filter, _on_chat_realtime_message)
 
 
 func _chat_format_time(iso_timestamp: String) -> String:
@@ -645,20 +665,6 @@ func _chat_bearer_headers() -> PackedStringArray:
 	])
 
 
-func _chat_parse_body_array(body: PackedByteArray) -> Array:
-	var text := body.get_string_from_utf8()
-	if text.is_empty():
-		return []
-	var json := JSON.new()
-	var err := json.parse(text)
-	if err != OK:
-		return []
-	var data = json.data
-	if data is Array:
-		return data
-	if data is Dictionary:
-		return [data]
-	return []
 
 
 func _generate_session_id() -> String:

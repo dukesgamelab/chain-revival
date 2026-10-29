@@ -26,6 +26,7 @@ signal connection_changed(connected: bool)
 signal status_changed(status_text: String)
 signal side_assigned(side_name: String)
 signal side_denied(reason: String)
+signal match_ready
 signal match_snapshot_received(snapshot: Dictionary)
 signal move_result_received(result: ActionResultClass, request_id: String)
 signal face_result_received(result: ActionResultClass, request_id: String)
@@ -47,6 +48,7 @@ var _connect_failed := false
 var _side_request_pending := false
 var _side_request_resolved := false
 var _side_request_success := false
+var match_ready_received := false
 var client_id: String = ""
 var match_id: String = ""
 var last_snapshot: Dictionary = {}
@@ -336,6 +338,7 @@ func _reset_socket() -> void:
 	_side_request_success = false
 	client_id = ""
 	match_id = ""
+	match_ready_received = false
 	last_snapshot.clear()
 	_pending_waits.clear()
 	set_process(false)
@@ -432,6 +435,9 @@ func _handle_message(message: Dictionary) -> void:
 			_on_side_assigned(str(message.get("side", "")))
 		"side_denied":
 			_on_side_denied(str(message.get("reason", "Side denied")))
+		"match_ready":
+			match_ready_received = true
+			match_ready.emit()
 		"move_result":
 			_on_move_result(message)
 		"face_result":

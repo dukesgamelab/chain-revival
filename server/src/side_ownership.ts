@@ -83,3 +83,18 @@ export function requestSide(
   console.log("%s assigned to client %s", side, clientId);
   return { ok: true, side };
 }
+
+export function bothSidesAssigned(): boolean {
+  return sideOwners.USA !== null && sideOwners.GERMANY !== null;
+}
+
+/** Return the ClientRecord for each assigned side. */
+export function getAssignedClients(): ClientRecord[] {
+  const result: ClientRecord[] = [];
+  for (const [, record] of clients) {
+    if (record.assignedSide !== null) {
+      result.push(record);
+    }
+  }
+  return result;
+}

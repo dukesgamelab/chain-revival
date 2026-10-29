@@ -5,14 +5,15 @@ extends Node
 ## The panel sits to the right of the main content and is visible whenever
 ## the player is signed in, except during gameplay.
 ##
-## Uses the chat_messages Supabase table.
+## Uses Supabase Realtime for live message delivery (no polling).
+## Falls back to a single REST fetch for initial history on connect.
 
 const CHAT_PANEL_WIDTH := 260
 const CHAT_PANEL_MARGIN_TOP := 80
 const CHAT_PANEL_MARGIN_BOTTOM := 20
 const CHAT_PANEL_MARGIN_RIGHT := 20
-const POLL_INTERVAL := 3.0
 const MAX_VISIBLE_MESSAGES := 100
+const CHAT_FILTER := "channel=eq.global"
 
 ## Scenes where the global chat should be hidden.
 const HIDDEN_SCENES := [
@@ -29,14 +30,15 @@ var _chat_input: LineEdit
 var _chat_send_button: Button
 var _toggle_button: Button
 
-var _poll_timer: Timer
 var _seen_ids: Dictionary = {}
 var _is_open: bool = true
+var _unread_count: int = 0
 
 var _http_fetch: HTTPRequest
 var _http_send: HTTPRequest
 var _fetch_busy: bool = false
 var _visibility_check_queued: bool = false
+var _subscribed: bool = false
 
 
 func _ready() -> void:
@@ -46,7 +48,6 @@ func _ready() -> void:
 
 	_build_ui()
 	_setup_http()
-	_setup_timer()
 
 	SupabaseAuth.auth_state_changed.connect(_on_auth_changed)
 	get_tree().tree_changed.connect(_on_tree_changed)
@@ -61,13 +62,6 @@ func _setup_http() -> void:
 	_http_send = HTTPRequest.new()
 	_http_send.request_completed.connect(_on_send_response)
 	add_child(_http_send)
-
-
-func _setup_timer() -> void:
-	_poll_timer = Timer.new()
-	_poll_timer.wait_time = POLL_INTERVAL
-	_poll_timer.timeout.connect(_on_poll)
-	add_child(_poll_timer)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -177,21 +171,21 @@ func _update_visibility() -> void:
 	var show := SupabaseAuth.is_signed_in and not _is_gameplay_scene()
 	_outer_panel.visible = show
 	if show:
-		_poll_timer.start()
-		_fetch_messages()
+		_ensure_subscribed()
+		if _seen_ids.is_empty():
+			_fetch_history()
 	else:
-		_poll_timer.stop()
+		_ensure_unsubscribed()
 
 
 func _on_auth_changed(_signed_in: bool) -> void:
 	_update_visibility()
 	if not SupabaseAuth.is_signed_in:
 		_clear_messages()
+		_ensure_unsubscribed()
 
 
 func _on_tree_changed() -> void:
-	# Debounce: tree_changed fires for every node add/remove. Queue a single
-	# deferred visibility check so we don't spam HTTP requests.
 	if _visibility_check_queued:
 		return
 	_visibility_check_queued = true
@@ -214,11 +208,37 @@ func _on_toggle_pressed() -> void:
 		var input_row := vbox.get_node_or_null("ChatInputRow")
 		if input_row != null:
 			input_row.visible = _is_open
-	_toggle_button.text = "_" if _is_open else "+"
+	if _is_open:
+		_unread_count = 0
+		_toggle_button.text = "_"
+	else:
+		_toggle_button.text = "+" if _unread_count == 0 else "+ (%d)" % _unread_count
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# Chat send / fetch
+# Realtime subscription
+# ─────────────────────────────────────────────────────────────────────────
+
+func _ensure_subscribed() -> void:
+	if _subscribed:
+		return
+	_subscribed = true
+	SupabaseRealtime.subscribe("chat_messages", CHAT_FILTER, _on_realtime_message)
+
+
+func _ensure_unsubscribed() -> void:
+	if not _subscribed:
+		return
+	_subscribed = false
+	SupabaseRealtime.unsubscribe("chat_messages", CHAT_FILTER, _on_realtime_message)
+
+
+func _on_realtime_message(record: Dictionary) -> void:
+	_apply_single_message(record)
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Chat send / initial history fetch
 # ─────────────────────────────────────────────────────────────────────────
 
 func _submit_chat() -> void:
@@ -230,8 +250,6 @@ func _submit_chat() -> void:
 	_chat_input.text = ""
 	_chat_input.grab_focus()
 	_send_message(msg)
-	await get_tree().create_timer(0.3).timeout
-	_fetch_messages()
 
 
 func _send_message(msg: String) -> void:
@@ -248,7 +266,8 @@ func _send_message(msg: String) -> void:
 	_http_send.request(url, _bearer_headers(), HTTPClient.METHOD_POST, body)
 
 
-func _fetch_messages() -> void:
+## Fetch the last 50 messages on first connect (history backfill).
+func _fetch_history() -> void:
 	if not SupabaseAuth.is_signed_in:
 		return
 	if _fetch_busy:
@@ -256,10 +275,6 @@ func _fetch_messages() -> void:
 	_fetch_busy = true
 	var url := "%s/rest/v1/chat_messages?channel=eq.global&order=created_at.asc&limit=50" % SupabaseAuth.SUPABASE_URL
 	_http_fetch.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
-
-
-func _on_poll() -> void:
-	_fetch_messages()
 
 
 func _on_send_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
@@ -271,59 +286,69 @@ func _on_fetch_response(result: int, response_code: int, _headers: PackedStringA
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		return
 	var parsed := _parse_body_array(body)
-	_apply_messages(parsed)
+	for msg_dict in parsed:
+		_apply_single_message(msg_dict as Dictionary)
 
 
 # ─────────────────────────────────────────────────────────────────────────
 # Message rendering
 # ─────────────────────────────────────────────────────────────────────────
 
-func _apply_messages(messages: Array) -> void:
-	if messages.is_empty():
+func _apply_single_message(msg: Dictionary) -> void:
+	var msg_id: String = msg.get("id", "")
+	if msg_id.is_empty():
+		# Realtime may return int IDs.
+		var raw_id = msg.get("id", null)
+		if raw_id != null:
+			msg_id = str(raw_id)
+	if msg_id.is_empty() or _seen_ids.has(msg_id):
 		return
-	var added := false
-	for msg_dict in messages:
-		var msg: Dictionary = msg_dict
-		var msg_id: String = msg.get("id", "")
-		if msg_id.is_empty() or _seen_ids.has(msg_id):
-			continue
-		_seen_ids[msg_id] = true
-		added = true
+	_seen_ids[msg_id] = true
 
-		var sender: String = msg.get("display_name", "???")
-		var text: String = msg.get("message", "")
-		var timestamp_str: String = msg.get("created_at", "")
-		var time_display := _format_chat_time(timestamp_str)
+	var sender: String = msg.get("display_name", "???")
+	var text: String = msg.get("message", "")
+	var timestamp_str: String = msg.get("created_at", "")
+	var time_display := _format_chat_time(timestamp_str)
 
-		var line := RichTextLabel.new()
-		line.bbcode_enabled = true
-		line.fit_content = true
-		line.scroll_active = false
-		line.add_theme_font_size_override("normal_font_size", 11)
+	var line := RichTextLabel.new()
+	line.bbcode_enabled = true
+	line.fit_content = true
+	line.scroll_active = false
+	line.add_theme_font_size_override("normal_font_size", 11)
 
-		var msg_user_id: String = msg.get("user_id", "")
-		var is_self: bool = (msg_user_id == SupabaseAuth.user_id)
-		var name_color: String = "cyan" if is_self else "yellow"
+	var msg_user_id: String = str(msg.get("user_id", ""))
+	var is_self: bool = (msg_user_id == SupabaseAuth.user_id)
+	var name_color: String = "cyan" if is_self else "yellow"
 
-		line.text = "[color=gray]%s[/color] [color=%s][%s][/color] %s" % [
-			time_display, name_color, sender, text
-		]
-		_chat_messages_container.add_child(line)
-
-	if not added:
-		return
+	line.text = "[color=gray]%s[/color] [color=%s][%s][/color] %s" % [
+		time_display, name_color, sender, text
+	]
+	_chat_messages_container.add_child(line)
 
 	while _chat_messages_container.get_child_count() > MAX_VISIBLE_MESSAGES:
 		var oldest := _chat_messages_container.get_child(0)
 		_chat_messages_container.remove_child(oldest)
 		oldest.queue_free()
 
+	# Update unread badge if chat is minimized.
+	if not _is_open and not is_self:
+		_unread_count += 1
+		_toggle_button.text = "+ (%d)" % _unread_count
+
+	# Auto-scroll to bottom.
+	_scroll_to_bottom()
+
+
+func _scroll_to_bottom() -> void:
+	if not is_inside_tree():
+		return
 	await get_tree().process_frame
 	_chat_scroll.scroll_vertical = int(_chat_scroll.get_v_scroll_bar().max_value)
 
 
 func _clear_messages() -> void:
 	_seen_ids.clear()
+	_unread_count = 0
 	for child in _chat_messages_container.get_children():
 		child.queue_free()
 

@@ -37,15 +37,20 @@ func _request_side(side_name: String) -> void:
 	_hint.text = _HINT_REQUESTING
 
 	var assigned := await NetworkClient.request_side_and_wait(side_name)
-	if assigned and PlayerSides.has_assignment():
-		var cfg = MatchConfigClass.default_local_multiplayer_1v1()
-		cfg.local_player_id = 1 if PlayerSides.assigned_team_id == Team.USA else 2
-		MatchConfigStoreClass.set_pending(cfg)
-		get_tree().change_scene_to_file(MAIN_SCENE)
+	if not assigned or not PlayerSides.has_assignment():
+		_hint.text = _HINT_DENIED
+		_set_buttons_enabled(true)
 		return
 
-	_hint.text = _HINT_DENIED
-	_set_buttons_enabled(true)
+	# Wait until the server confirms both sides are filled.
+	if not NetworkClient.match_ready_received:
+		_hint.text = "Waiting for opponent to choose a side..."
+		await NetworkClient.match_ready
+
+	var cfg = MatchConfigClass.default_local_multiplayer_1v1()
+	cfg.local_player_id = 1 if PlayerSides.assigned_team_id == Team.USA else 2
+	MatchConfigStoreClass.set_pending(cfg)
+	get_tree().change_scene_to_file(MAIN_SCENE)
 
 
 func _set_buttons_enabled(enabled: bool) -> void:

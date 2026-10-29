@@ -13,6 +13,8 @@ import {
 } from "./match";
 import { getUserId } from "./supabase_auth";
 import {
+  bothSidesAssigned,
+  getAssignedClients,
   getClient,
   parseSideName,
   registerClient,
@@ -232,7 +234,14 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
       matchId: MATCH_ID,
       teamId,
     });
-    match.sendSnapshot(ws);
+
+    // Wait until both sides are assigned before starting.
+    if (bothSidesAssigned()) {
+      for (const rec of getAssignedClients()) {
+        sendJson(rec.ws, { type: "match_ready" });
+        match.sendSnapshot(rec.ws);
+      }
+    }
     return;
   }
 
