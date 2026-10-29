@@ -43,6 +43,7 @@ import {
   WINNER_USA,
   WINNER_GERMANY,
   WINNER_DRAW,
+  END_CAUSE_FORFEIT,
 } from "./scenario_rules";
 import { GameState } from "./game_state";
 import { MapData } from "./map_data";
@@ -50,6 +51,7 @@ import type { ClockPumpResult } from "./simulation_clock";
 import {
   DEFAULT_MAP_ID,
   MATCH_ID,
+  TEAM_USA,
   type FaceCommandIntent,
   type FireAtCommandIntent,
   type FireControlCommandIntent,
@@ -232,6 +234,73 @@ export class LocalMatch {
     this.clock.stop();
     this.gameState.timers.clear();
     this.stopDriver();
+  }
+
+  /**
+   * Force-end the match due to a player disconnect or kick.
+   * The remaining side wins by forfeit. Broadcasts match_ended to remaining clients.
+   */
+  forceEndMatchForfeit(disconnectedTeamId: number): void {
+    if (this.phase === "ended") return;
+    this.phase = "ended";
+
+    const winner = disconnectedTeamId === TEAM_USA ? WINNER_GERMANY : WINNER_USA;
+    const isDraw = false;
+    const usaWon = winner === WINNER_USA;
+    const germanyWon = winner === WINNER_GERMANY;
+
+    const usaKills = this.gameState.scenario.killCounts[1] ?? 0;
+    const germanyKills = this.gameState.scenario.killCounts[2] ?? 0;
+    const usaTerrainPts = this.gameState.scenario.terrainPoints[1] ?? 0;
+    const germanyTerrainPts = this.gameState.scenario.terrainPoints[2] ?? 0;
+
+    const usaPPEarned = calculatePP(usaWon, isDraw, usaKills, usaTerrainPts);
+    const germanyPPEarned = calculatePP(germanyWon, isDraw, germanyKills, germanyTerrainPts);
+
+    this.broadcast({
+      type: "match_ended",
+      matchId: this.matchId,
+      simMsec: this.clock.getTicksMsec(),
+      endCause: END_CAUSE_FORFEIT,
+      winner,
+      endCauseMessage: "The mission ended because a player disconnected.",
+      winnerMessage: winnerDisplayName(winner),
+      usaKillPoints: this.gameState.scenario.killPoints[1] ?? 0,
+      usaTerrainPoints: usaTerrainPts,
+      usaTotalPoints: totalPoints(this.gameState.scenario, 1),
+      germanyKillPoints: this.gameState.scenario.killPoints[2] ?? 0,
+      germanyTerrainPoints: germanyTerrainPts,
+      germanyTotalPoints: totalPoints(this.gameState.scenario, 2),
+      usaKills,
+      germanyKills,
+      usaPPEarned,
+      germanyPPEarned,
+      timeRemainingSec: this.gameState.scenario.timeRemainingSec,
+    });
+    this.stopDriver();
+
+    if (this.onMatchEnded) {
+      const clientTeams = new Map<string, number | null>();
+      for (const [cid, mc] of this.clients) {
+        clientTeams.set(cid, mc.teamId);
+      }
+      this.onMatchEnded({
+        matchId: this.matchId,
+        winner,
+        endCause: END_CAUSE_FORFEIT,
+        usaKillPoints: this.gameState.scenario.killPoints[1] ?? 0,
+        usaTerrainPoints: usaTerrainPts,
+        usaTotalPoints: totalPoints(this.gameState.scenario, 1),
+        germanyKillPoints: this.gameState.scenario.killPoints[2] ?? 0,
+        germanyTerrainPoints: germanyTerrainPts,
+        germanyTotalPoints: totalPoints(this.gameState.scenario, 2),
+        usaKills,
+        germanyKills,
+        usaPPEarned,
+        germanyPPEarned,
+        clientTeams,
+      });
+    }
   }
 
   /**

@@ -40,6 +40,8 @@ signal combat_shots_received(payload: Dictionary)
 signal grenade_thrown_received(payload: Dictionary)
 signal grenade_explode_received(payload: Dictionary)
 signal match_ended_received(payload: Dictionary)
+signal banned_from_server(reason: String)
+signal kicked_from_server(reason: String)
 
 var _socket := WebSocketPeer.new()
 var _connected := false
@@ -352,6 +354,9 @@ func _process(_delta: float) -> void:
 				_on_connected()
 			_receive_packets()
 		WebSocketPeer.STATE_CLOSING, WebSocketPeer.STATE_CLOSED:
+			# Drain any remaining packets before handling disconnect.
+			# The server may send a kicked/banned message right before closing.
+			_receive_packets()
 			if _connected or _connecting:
 				_on_disconnected()
 			set_process(false)
@@ -388,6 +393,8 @@ func _send_hello() -> void:
 	# server can identify them.  LAN play works fine without it.
 	if SupabaseAuth.is_signed_in and not SupabaseAuth.access_token.is_empty():
 		hello["authToken"] = SupabaseAuth.access_token
+		if SupabaseAuth.is_admin:
+			hello["isAdmin"] = true
 	send_json(hello)
 	GameLog.log_system("[NetworkClient] Sent hello to server.")
 
@@ -469,6 +476,14 @@ func _handle_message(message: Dictionary) -> void:
 					str(message.get("endCauseMessage", "")),
 				]
 			)
+		"banned":
+			var reason := str(message.get("reason", "No reason provided"))
+			GameLog.log_system("[NetworkClient] Banned from server: %s" % reason)
+			banned_from_server.emit(reason)
+		"kicked":
+			var reason := str(message.get("reason", "Kicked by admin"))
+			GameLog.log_system("[NetworkClient] Kicked from server: %s" % reason)
+			kicked_from_server.emit(reason)
 		_:
 			GameLog.log_system("[NetworkClient] Unhandled message type: %s" % msg_type)
 

@@ -21,6 +21,7 @@ export type { VictoryPointEntry };
 export const END_CAUSE_NONE = 0;
 export const END_CAUSE_TIME_GONE = 1;
 export const END_CAUSE_EXTERMINATION = 4;
+export const END_CAUSE_FORFEIT = 5;
 
 export const WINNER_NONE = 0;
 export const WINNER_USA = 1;
@@ -165,6 +166,8 @@ export function endCauseMessage(cause: number): string {
       return "The mission ended because the mission time is up.";
     case END_CAUSE_EXTERMINATION:
       return "The mission ended because one side was wiped out.";
+    case END_CAUSE_FORFEIT:
+      return "The mission ended because a player disconnected.";
     default:
       return "The mission has ended.";
   }

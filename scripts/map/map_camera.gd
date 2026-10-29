@@ -66,9 +66,13 @@ func center_on_world(world: Vector2) -> void:
 
 
 func _process(delta: float) -> void:
-	# Skip keyboard panning while a text input has focus (e.g. chat).
+	# Skip keyboard panning while a text input has focus (e.g. chat)
+	# or an admin popup with text fields is open (Window has its own viewport).
 	var focused := get_viewport().gui_get_focus_owner()
 	if focused is LineEdit or focused is TextEdit:
+		return
+	var cmd_bar := get_node_or_null("/root/Main/UI/CommandBar") as Control
+	if cmd_bar != null and cmd_bar.get("admin_popup_open") == true:
 		return
 
 	var move := Vector2.ZERO

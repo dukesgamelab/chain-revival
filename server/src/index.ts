@@ -16,6 +16,7 @@ import {
   bothSidesAssigned,
   getAssignedClients,
   getClient,
+  getClientByUserId,
   parseSideName,
   registerClient,
   removeClient,
@@ -23,7 +24,7 @@ import {
   resetSides,
   setClientUserId,
 } from "./side_ownership";
-import { recordMatchResult, distributeCoPP } from "./supabase_client";
+import { recordMatchResult, distributeCoPP, checkBan, setActiveMatch, clearActiveMatch } from "./supabase_client";
 import {
   MATCH_ID,
   sideToTeamId,
@@ -167,7 +168,10 @@ function sendJson(ws: WebSocket, payload: unknown): void {
   ws.send(JSON.stringify(payload));
 }
 
-function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
+// Track which userIds are admins (set on hello, used for kick validation)
+const adminUserIds = new Set<string>();
+
+async function handleMessage(ws: WebSocket, clientId: string, raw: string): Promise<void> {
   console.log("Received message:", raw);
 
   const message = safeParseJson(raw);
@@ -194,8 +198,25 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
     if (typeof message.authToken === "string" && message.authToken !== "") {
       userId = getUserId(message.authToken);
       if (userId !== null) {
+        // Check if the user is banned before allowing them in
+        const banReason = await checkBan(userId);
+        if (banReason !== null) {
+          console.log("Banned user %s (%s) rejected: %s", userId, clientName, banReason);
+          sendJson(ws, { type: "banned", reason: banReason });
+          ws.close();
+          return;
+        }
+
         setClientUserId(clientId, userId);
         console.log("Authenticated user %s (%s)", userId, clientName);
+
+        // Track active match in Supabase so the admin panel can see who's in a game
+        setActiveMatch(userId, MATCH_ID);
+
+        // Track admin status if the client reports it (validated server-side for kicks)
+        if (message.isAdmin === true) {
+          adminUserIds.add(userId);
+        }
       } else {
         console.log("Auth token invalid for %s; continuing as guest.", clientName);
       }
@@ -209,6 +230,54 @@ function handleMessage(ws: WebSocket, clientId: string, raw: string): void {
       matchId: MATCH_ID,
       userId,
     });
+    return;
+  }
+
+  // Admin: kick a player from the active game
+  if (message.type === "kick_player") {
+    const record = getClient(clientId);
+    if (!record?.userId || !adminUserIds.has(record.userId)) {
+      sendJson(ws, { type: "kick_result", success: false, reason: "Not authorized" });
+      return;
+    }
+
+    const targetUserId = typeof message.targetUserId === "string" ? message.targetUserId : "";
+    const kickReason = typeof message.reason === "string" ? message.reason : "Kicked by admin";
+
+    if (targetUserId === "") {
+      sendJson(ws, { type: "kick_result", success: false, reason: "No target specified" });
+      return;
+    }
+
+    const target = getClientByUserId(targetUserId);
+    if (!target) {
+      sendJson(ws, { type: "kick_result", success: false, reason: "Player not connected" });
+      return;
+    }
+
+    console.log("Admin %s kicking player %s: %s", record.userId, targetUserId, kickReason);
+    sendJson(target.ws, { type: "kicked", reason: kickReason });
+
+    // Capture side and refs before removing so we can trigger forfeit
+    const kickedSide = target.assignedSide;
+    const kickedWs = target.ws;
+    if (target.userId) {
+      clearActiveMatch(target.userId);
+    }
+    match.removeClient(target.clientId);
+    removeClient(target.clientId);
+
+    // Delay socket close to let the kicked message arrive before the close frame
+    setTimeout(() => { kickedWs.close(); }, 500);
+
+    // If the kicked player had an assigned side and the match is running, end as forfeit
+    if (kickedSide !== null && match.matchPhase === "running") {
+      const kickedTeamId = sideToTeamId(kickedSide);
+      console.log("Kicked player was on %s, ending match as forfeit.", kickedSide);
+      match.forceEndMatchForfeit(kickedTeamId);
+    }
+
+    sendJson(ws, { type: "kick_result", success: true });
     return;
   }
 
@@ -396,9 +465,22 @@ wss.on("connection", (ws: WebSocket) => {
   });
 
   ws.on("close", () => {
+    // Clear active match in Supabase before removing the client record
+    const record = getClient(clientId);
+    if (record?.userId) {
+      clearActiveMatch(record.userId);
+    }
+    // If this player had an assigned side and the match is running,
+    // end the match as a forfeit so the remaining player gets a debrief.
+    const disconnectedSide = record?.assignedSide ?? null;
     removeClient(clientId);
     match.removeClient(clientId);
     console.log("Client disconnected (%s)", clientId);
+    if (disconnectedSide !== null && match.matchPhase === "running") {
+      const disconnectedTeamId = sideToTeamId(disconnectedSide);
+      console.log("Player on %s disconnected during match, ending as forfeit.", disconnectedSide);
+      match.forceEndMatchForfeit(disconnectedTeamId);
+    }
   });
 
   ws.on("error", (error: Error) => {

@@ -22,6 +22,75 @@ function headers(): Record<string, string> {
   };
 }
 
+/**
+ * Check if a user is banned. Returns the ban reason if banned, null if not.
+ */
+export async function checkBan(userId: string): Promise<string | null> {
+  if (!isConfigured()) return null;
+
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/player_profiles?id=eq.${userId}&select=is_banned,ban_reason`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: headers(),
+    });
+
+    if (!res.ok) {
+      console.error("[Supabase] checkBan failed (%d)", res.status);
+      return null; // Fail open: don't block if we can't reach Supabase
+    }
+
+    const rows = await res.json() as Array<{ is_banned: boolean; ban_reason: string | null }>;
+    if (rows.length === 0) return null;
+
+    if (rows[0].is_banned) {
+      return rows[0].ban_reason ?? "No reason provided";
+    }
+    return null;
+  } catch (err) {
+    console.error("[Supabase] checkBan error:", err);
+    return null; // Fail open
+  }
+}
+
+/**
+ * Set the active_match_id for a player (called when they join a match).
+ */
+export async function setActiveMatch(playerId: string, matchId: string): Promise<void> {
+  if (!isConfigured()) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/set_active_match`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ p_player_id: playerId, p_match_id: matchId }),
+    });
+    if (!res.ok) {
+      console.error("[Supabase] set_active_match failed (%d)", res.status);
+    }
+  } catch (err) {
+    console.error("[Supabase] set_active_match error:", err);
+  }
+}
+
+/**
+ * Clear the active_match_id for a player (called when they disconnect).
+ */
+export async function clearActiveMatch(playerId: string): Promise<void> {
+  if (!isConfigured()) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/clear_active_match`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ p_player_id: playerId }),
+    });
+    if (!res.ok) {
+      console.error("[Supabase] clear_active_match failed (%d)", res.status);
+    }
+  } catch (err) {
+    console.error("[Supabase] clear_active_match error:", err);
+  }
+}
+
 export interface MatchResultParams {
   matchId: string;
   player1Id: string;

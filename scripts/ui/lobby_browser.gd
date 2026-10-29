@@ -9,9 +9,11 @@ const LOBBY_BROWSER_SCENE := "res://scenes/lobby_browser.tscn"
 const SIDE_SELECT_SCENE := "res://scenes/side_select.tscn"
 const LEADERBOARD_SCENE := "res://scenes/leaderboard.tscn"
 const REGIMENT_SCENE := "res://scenes/regiment_browser.tscn"
+const ADMIN_SCENE := "res://scenes/admin_browser.tscn"
 const LobbyClientClass := preload("res://scripts/network/lobby_client.gd")
 const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
 const RegimentBrowserScript := preload("res://scripts/ui/regiment_browser.gd")
+const AdminBrowserScript := preload("res://scripts/ui/admin_browser.gd")
 
 ## Online game server URL (Fly.io).
 ## Leave empty to fall back to LAN IP detection for local hosting.
@@ -24,6 +26,7 @@ var _create_button: Button
 var _refresh_button: Button
 var _leaderboard_button: Button
 var _regiments_button: Button
+var _admin_button: Button
 var _back_button: Button
 var _match_name_field: LineEdit
 var _create_panel: PanelContainer
@@ -257,6 +260,14 @@ func _build_ui() -> void:
 	_regiments_button.custom_minimum_size = Vector2(0, 34)
 	btn_row.add_child(_regiments_button)
 
+	# Admin button (only visible for admins)
+	if SupabaseAuth.is_admin:
+		_admin_button = Button.new()
+		_admin_button.text = "Admin"
+		_admin_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_admin_button.custom_minimum_size = Vector2(0, 34)
+		btn_row.add_child(_admin_button)
+
 	_back_button = Button.new()
 	_back_button.text = "Back"
 	_back_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -273,6 +284,8 @@ func _connect_signals() -> void:
 	_refresh_button.pressed.connect(_on_refresh_pressed)
 	_leaderboard_button.pressed.connect(_on_leaderboard_pressed)
 	_regiments_button.pressed.connect(_on_regiments_pressed)
+	if _admin_button != null:
+		_admin_button.pressed.connect(_on_admin_pressed)
 	_back_button.pressed.connect(_on_back_pressed)
 
 	_lobby_client.lobbies_listed.connect(_on_lobbies_listed)
@@ -342,6 +355,11 @@ func _on_leaderboard_pressed() -> void:
 func _on_regiments_pressed() -> void:
 	RegimentBrowserScript.return_scene = LOBBY_BROWSER_SCENE
 	get_tree().change_scene_to_file(REGIMENT_SCENE)
+
+
+func _on_admin_pressed() -> void:
+	AdminBrowserScript.return_scene = LOBBY_BROWSER_SCENE
+	get_tree().change_scene_to_file(ADMIN_SCENE)
 
 
 func _on_back_pressed() -> void:

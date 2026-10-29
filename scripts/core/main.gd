@@ -3057,6 +3057,8 @@ func _ensure_multiplayer_result_signals() -> void:
 		NetworkClient.grenade_explode_received.connect(_on_network_grenade_explode)
 	if not NetworkClient.match_ended_received.is_connected(_on_network_match_ended):
 		NetworkClient.match_ended_received.connect(_on_network_match_ended)
+	if not NetworkClient.kicked_from_server.is_connected(_on_kicked_from_server):
+		NetworkClient.kicked_from_server.connect(_on_kicked_from_server)
 
 
 func _apply_network_face_result(result: ActionResultClass) -> void:
@@ -3155,6 +3157,27 @@ func _on_network_match_ended(payload: Dictionary) -> void:
 	_game_state.team_pp_earned[Team.USA] = int(payload.get("usaPPEarned", 0))
 	_game_state.team_pp_earned[Team.GERMANY] = int(payload.get("germanyPPEarned", 0))
 	_on_scenario_ended()
+
+
+func _on_kicked_from_server(reason: String) -> void:
+	GameLog.log_system("[Main] Kicked from server: %s" % reason)
+	NetworkClient.disconnect_from_server()
+	# Set game state to ended so the debrief can open
+	if _game_state != null:
+		_game_state.scenario_ended = true
+		_game_state.end_cause = 5 # END_CAUSE_FORFEIT
+		# The kicked player loses
+		var my_team := PlayerSides.assigned_team_id
+		if my_team == Team.USA:
+			_game_state.winner = 2 # WINNER_GERMANY
+		else:
+			_game_state.winner = 1 # WINNER_USA
+		_game_state.match_phase = 2 # ENDED
+	if _command_bar != null:
+		_command_bar.append_chat_system("KICKED: %s" % reason)
+		_command_bar.show_status("You were kicked: %s" % reason)
+	# Open debrief after a short delay (same pattern as normal match end)
+	get_tree().create_timer(1.0).timeout.connect(_open_mission_debrief_dialog)
 
 
 func _on_network_target_sync(payload: Dictionary) -> void:

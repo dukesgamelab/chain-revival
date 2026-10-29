@@ -21,6 +21,7 @@ signal sign_in_succeeded(user: Dictionary)
 signal sign_in_failed(reason: String)
 signal sign_up_succeeded(user: Dictionary)
 signal sign_up_failed(reason: String)
+signal player_banned(reason: String)
 
 ## ── Public state ────────────────────────────────────────────────────────
 var access_token: String = ""
@@ -35,6 +36,8 @@ var rank: int = 0
 var regiment_id: String = ""
 var regiment_tag: String = ""
 var is_admin: bool = false
+var is_banned: bool = false
+var ban_reason: String = ""
 
 ## ── Internals ───────────────────────────────────────────────────────────
 var _http_sign_in: HTTPRequest
@@ -184,7 +187,7 @@ func _on_sign_out_response(_result: int, _response_code: int, _headers: PackedSt
 func fetch_profile() -> void:
 	if user_id.is_empty() or not _check_config():
 		return
-	var url := "%s/rest/v1/player_profiles?id=eq.%s&select=prestige_points,rank,regiment_id,is_admin,regiments(tag)" % [SUPABASE_URL, user_id]
+	var url := "%s/rest/v1/player_profiles?id=eq.%s&select=prestige_points,rank,regiment_id,is_admin,is_banned,ban_reason,regiments(tag)" % [SUPABASE_URL, user_id]
 	var hdrs := _bearer_headers()
 	_http_profile.request(url, hdrs, HTTPClient.METHOD_GET)
 
@@ -207,13 +210,18 @@ func _on_profile_response(result: int, response_code: int, _headers: PackedStrin
 	var rid = row.get("regiment_id", "")
 	regiment_id = str(rid) if rid != null else ""
 	is_admin = bool(row.get("is_admin", false))
+	is_banned = bool(row.get("is_banned", false))
+	var br = row.get("ban_reason", "")
+	ban_reason = str(br) if br != null else ""
 	# Extract regiment tag from the joined regiments object
 	var reg_data = row.get("regiments", null)
 	if reg_data is Dictionary:
 		regiment_tag = str(reg_data.get("tag", ""))
 	else:
 		regiment_tag = ""
-	GameLog.log_system("[SupabaseAuth] Profile loaded: rank=%d pp=%d regiment=%s tag=%s admin=%s" % [rank, prestige_points, regiment_id, regiment_tag, str(is_admin)])
+	GameLog.log_system("[SupabaseAuth] Profile loaded: rank=%d pp=%d regiment=%s tag=%s admin=%s banned=%s" % [rank, prestige_points, regiment_id, regiment_tag, str(is_admin), str(is_banned)])
+	if is_banned:
+		player_banned.emit(ban_reason)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -255,6 +263,8 @@ func _clear_session() -> void:
 	regiment_id = ""
 	regiment_tag = ""
 	is_admin = false
+	is_banned = false
+	ban_reason = ""
 	_refresh_timer.stop()
 	var was_signed_in := is_signed_in
 	is_signed_in = false

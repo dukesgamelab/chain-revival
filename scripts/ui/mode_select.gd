@@ -72,6 +72,9 @@ func _add_leaderboard_button() -> void:
 
 
 func _on_leaderboard_pressed() -> void:
+	if SupabaseAuth.is_signed_in and SupabaseAuth.is_banned:
+		await _recheck_ban_and_proceed(LEADERBOARD_SCENE)
+		return
 	LeaderboardScript.return_scene = "res://scenes/mode_select.tscn"
 	get_tree().change_scene_to_file(LEADERBOARD_SCENE)
 
@@ -96,7 +99,11 @@ func _add_auth_ui() -> void:
 	auth_box.add_child(auth_button)
 
 	if SupabaseAuth.is_signed_in:
-		_sign_in_label.text = "Signed in as %s" % SupabaseAuth.display_name
+		if SupabaseAuth.is_banned:
+			_sign_in_label.text = "BANNED: %s" % SupabaseAuth.display_name
+			_sign_in_label.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
+		else:
+			_sign_in_label.text = "Signed in as %s" % SupabaseAuth.display_name
 		auth_button.text = "Sign Out"
 		auth_button.pressed.connect(func(): SupabaseAuth.sign_out(); get_tree().reload_current_scene())
 	else:
@@ -139,6 +146,9 @@ func _on_multiplayer_pressed() -> void:
 	if BuildConfig.is_survival_playtest():
 		return
 	if SupabaseAuth.is_signed_in:
+		if SupabaseAuth.is_banned:
+			await _recheck_ban_and_proceed(LOBBY_BROWSER_SCENE)
+			return
 		get_tree().change_scene_to_file(LOBBY_BROWSER_SCENE)
 	else:
 		get_tree().change_scene_to_file(AUTH_SCREEN_SCENE)
@@ -370,3 +380,37 @@ func _set_buttons_enabled(enabled: bool) -> void:
 		_how_to_play_button.disabled = not enabled
 	_editor_button.disabled = not enabled
 	_asset_anim_button.disabled = not enabled
+
+
+## Re-fetch profile to check if ban was lifted. If unbanned, proceed to the target scene.
+## If still banned, show the ban notice.
+func _recheck_ban_and_proceed(target_scene: String) -> void:
+	_set_buttons_enabled(false)
+	if _sign_in_label != null:
+		_sign_in_label.text = "Checking ban status..."
+	SupabaseAuth.fetch_profile()
+	# Wait a moment for the HTTP response to update SupabaseAuth state
+	await get_tree().create_timer(1.0).timeout
+	_set_buttons_enabled(true)
+	if SupabaseAuth.is_banned:
+		_show_ban_notice()
+	else:
+		# Ban was lifted; update the menu label and proceed
+		if _sign_in_label != null:
+			_sign_in_label.text = "Signed in as %s" % SupabaseAuth.display_name
+			_sign_in_label.remove_theme_color_override("font_color")
+		if target_scene == LEADERBOARD_SCENE:
+			LeaderboardScript.return_scene = "res://scenes/mode_select.tscn"
+		get_tree().change_scene_to_file(target_scene)
+
+
+func _show_ban_notice() -> void:
+	var reason := SupabaseAuth.ban_reason
+	if reason.is_empty():
+		reason = "No reason provided"
+	var dlg := AcceptDialog.new()
+	dlg.title = "Account Banned"
+	dlg.dialog_text = "Your account has been banned from online play.\n\nReason: %s\n\nYou can still play single player." % reason
+	dlg.ok_button_text = "OK"
+	add_child(dlg)
+	dlg.popup_centered()

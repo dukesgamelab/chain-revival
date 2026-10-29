@@ -94,6 +94,22 @@ func _ready() -> void:
 	%RotateRightButton.pressed.connect(func() -> void: rotate_view_right_requested.emit())
 	%SetCommandersButton.pressed.connect(func() -> void: set_commanders_requested.emit())
 	%AssignWeaponsButton.pressed.connect(func() -> void: assign_weapons_requested.emit())
+
+	# Admin kick button in top toolbar (only for admins in multiplayer)
+	if SupabaseAuth.is_admin and GameModeManager.is_local_multiplayer():
+		var weapons_btn := %AssignWeaponsButton as Button
+		if weapons_btn != null:
+			var toolbar := weapons_btn.get_parent()
+			if toolbar != null:
+				# Push Admin button to the right with a spacer
+				var spacer := Control.new()
+				spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				toolbar.add_child(spacer)
+				var admin_btn := Button.new()
+				admin_btn.text = "Admin"
+				admin_btn.pressed.connect(_show_admin_kick_popup)
+				toolbar.add_child(admin_btn)
+
 	var retreat := %RetreatButton as Button
 	if retreat != null:
 		retreat.disabled = false
@@ -966,3 +982,160 @@ func _get_selected_weapon_name() -> String:
 	if row_index < 0 or row_index >= _soldier_weapon_names.size():
 		return ""
 	return _soldier_weapon_names[row_index]
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# In-game admin kick
+# ─────────────────────────────────────────────────────────────────────────
+
+## Set to true while a popup with text input is open (blocks camera panning).
+var admin_popup_open: bool = false
+
+var _admin_kick_popup: AcceptDialog
+var _admin_kick_reason_input: LineEdit
+var _admin_kick_http: HTTPRequest
+var _admin_kick_container: VBoxContainer
+
+func _show_admin_kick_popup() -> void:
+	if _admin_kick_popup != null:
+		_admin_kick_popup.queue_free()
+
+	_admin_kick_popup = AcceptDialog.new()
+	_admin_kick_popup.title = "Admin: Kick Player"
+	_admin_kick_popup.size = Vector2i(400, 300)
+	_admin_kick_popup.unresizable = false
+	_admin_kick_popup.ok_button_text = "Close"
+	_admin_kick_popup.confirmed.connect(func(): admin_popup_open = false)
+	_admin_kick_popup.canceled.connect(func(): admin_popup_open = false)
+	admin_popup_open = true
+	add_child(_admin_kick_popup)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	_admin_kick_popup.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	# Reason input
+	var reason_row := HBoxContainer.new()
+	reason_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(reason_row)
+
+	var reason_lbl := Label.new()
+	reason_lbl.text = "Reason:"
+	reason_lbl.add_theme_font_size_override("font_size", 12)
+	reason_row.add_child(reason_lbl)
+
+	_admin_kick_reason_input = LineEdit.new()
+	_admin_kick_reason_input.placeholder_text = "Kick reason"
+	_admin_kick_reason_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_admin_kick_reason_input.add_theme_font_size_override("font_size", 12)
+	_admin_kick_reason_input.add_theme_color_override("font_color", Color.WHITE)
+	reason_row.add_child(_admin_kick_reason_input)
+
+	# Player list
+	var list_label := Label.new()
+	list_label.text = "Connected Players:"
+	list_label.add_theme_font_size_override("font_size", 12)
+	list_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	vbox.add_child(list_label)
+
+	_admin_kick_container = VBoxContainer.new()
+	_admin_kick_container.add_theme_constant_override("separation", 4)
+	vbox.add_child(_admin_kick_container)
+
+	# Fetch connected players from Supabase (look for players with active_match_id set)
+	_fetch_active_players()
+	_admin_kick_popup.popup_centered()
+
+
+func _fetch_active_players() -> void:
+	if _admin_kick_http != null:
+		_admin_kick_http.queue_free()
+	_admin_kick_http = HTTPRequest.new()
+	add_child(_admin_kick_http)
+	_admin_kick_http.request_completed.connect(_on_active_players_response)
+
+	var match_id := NetworkClient.match_id
+	if match_id.is_empty():
+		return
+	var url := "%s/rest/v1/player_profiles?active_match_id=eq.%s&select=id,display_name&id=neq.%s" % [
+		SupabaseAuth.SUPABASE_URL, match_id, SupabaseAuth.user_id
+	]
+	var hdrs := PackedStringArray([
+		"apikey: %s" % SupabaseAuth.SUPABASE_ANON_KEY,
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % SupabaseAuth.access_token,
+	])
+	_admin_kick_http.request(url, hdrs, HTTPClient.METHOD_GET)
+
+
+@warning_ignore("unused_parameter")
+func _on_active_players_response(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	if _admin_kick_container == null:
+		return
+	if response_code != 200:
+		var err_lbl := Label.new()
+		err_lbl.text = "Failed to load players"
+		err_lbl.add_theme_font_size_override("font_size", 12)
+		err_lbl.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
+		_admin_kick_container.add_child(err_lbl)
+		return
+
+	var json := JSON.new()
+	if json.parse(body.get_string_from_utf8()) != OK:
+		return
+	if not json.data is Array:
+		return
+
+	var players: Array = json.data
+	if players.is_empty():
+		var empty := Label.new()
+		empty.text = "No other players in this match"
+		empty.add_theme_font_size_override("font_size", 12)
+		empty.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		_admin_kick_container.add_child(empty)
+		return
+
+	for p in players:
+		var player_id: String = str(p.get("id", ""))
+		var display_name: String = str(p.get("display_name", "???"))
+
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+
+		var name_label := Label.new()
+		name_label.text = display_name
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_label.add_theme_font_size_override("font_size", 13)
+		row.add_child(name_label)
+
+		var kick_btn := Button.new()
+		kick_btn.text = "Kick"
+		kick_btn.custom_minimum_size = Vector2(60, 24)
+		kick_btn.add_theme_font_size_override("font_size", 11)
+		kick_btn.pressed.connect(_on_ingame_kick.bind(player_id, display_name))
+		row.add_child(kick_btn)
+
+		_admin_kick_container.add_child(row)
+
+
+func _on_ingame_kick(player_id: String, display_name: String) -> void:
+	var reason := ""
+	if _admin_kick_reason_input != null:
+		reason = _admin_kick_reason_input.text.strip_edges()
+	if reason.is_empty():
+		reason = "Kicked by admin"
+	NetworkClient.send_json({
+		"type": "kick_player",
+		"targetUserId": player_id,
+		"reason": reason,
+	})
+	show_status("Kicked %s" % display_name)
+	if _admin_kick_popup != null:
+		_admin_kick_popup.hide()

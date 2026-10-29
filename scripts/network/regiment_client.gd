@@ -21,6 +21,10 @@ signal details_updated()
 signal my_regiment_loaded(regiment: Dictionary)
 signal regiment_list_loaded(regiments: Array)
 signal pp_log_loaded(log_entries: Array)
+signal player_search_results(players: Array)
+signal player_banned()
+signal player_unbanned()
+signal banned_list_loaded(players: Array)
 
 var _http_load: HTTPRequest
 var _http_members: HTTPRequest
@@ -38,6 +42,10 @@ var _http_my_regiment: HTTPRequest
 var _http_regiment_list: HTTPRequest
 var _http_leave: HTTPRequest
 var _http_pp_log: HTTPRequest
+var _http_player_search: HTTPRequest
+var _http_ban: HTTPRequest
+var _http_unban: HTTPRequest
+var _http_banned_list: HTTPRequest
 
 
 func _ready() -> void:
@@ -57,6 +65,10 @@ func _ready() -> void:
 	_http_regiment_list = _make_http("_on_regiment_list_response")
 	_http_leave = _make_http("_on_leave_response")
 	_http_pp_log = _make_http("_on_pp_log_response")
+	_http_player_search = _make_http("_on_player_search_response")
+	_http_ban = _make_http("_on_ban_response")
+	_http_unban = _make_http("_on_unban_response")
+	_http_banned_list = _make_http("_on_banned_list_response")
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -493,6 +505,77 @@ func _on_pp_log_response(result: int, response_code: int, headers: PackedStringA
 		regiment_error.emit("Failed to load PP log")
 		return
 	pp_log_loaded.emit(_parse_body_array(body))
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Admin: Ban Management
+# ─────────────────────────────────────────────────────────────────────────
+
+## Search players by display name (admin only, RPC enforced).
+func search_players(query: String) -> void:
+	if not _check_auth():
+		return
+	var url := "%s/rest/v1/rpc/search_players" % SupabaseAuth.SUPABASE_URL
+	var body_text := JSON.stringify({"p_query": query})
+	_http_player_search.request(url, _bearer_headers(), HTTPClient.METHOD_POST, body_text)
+
+
+@warning_ignore("unused_parameter")
+func _on_player_search_response(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		regiment_error.emit("Player search failed")
+		return
+	player_search_results.emit(_parse_body_array(body))
+
+
+## Ban a player (admin only, RPC enforced).
+func ban_player(target_id: String, reason: String) -> void:
+	if not _check_auth():
+		return
+	var url := "%s/rest/v1/rpc/ban_player" % SupabaseAuth.SUPABASE_URL
+	var body_text := JSON.stringify({"p_target_id": target_id, "p_reason": reason})
+	_http_ban.request(url, _bearer_headers(), HTTPClient.METHOD_POST, body_text)
+
+
+@warning_ignore("unused_parameter")
+func _on_ban_response(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or (response_code != 200 and response_code != 204):
+		regiment_error.emit("Ban failed (HTTP %d)" % response_code)
+		return
+	player_banned.emit()
+
+
+## Unban a player (admin only, RPC enforced).
+func unban_player(target_id: String) -> void:
+	if not _check_auth():
+		return
+	var url := "%s/rest/v1/rpc/unban_player" % SupabaseAuth.SUPABASE_URL
+	var body_text := JSON.stringify({"p_target_id": target_id})
+	_http_unban.request(url, _bearer_headers(), HTTPClient.METHOD_POST, body_text)
+
+
+@warning_ignore("unused_parameter")
+func _on_unban_response(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or (response_code != 200 and response_code != 204):
+		regiment_error.emit("Unban failed (HTTP %d)" % response_code)
+		return
+	player_unbanned.emit()
+
+
+## List all currently banned players (admin only, RPC enforced).
+func list_banned_players() -> void:
+	if not _check_auth():
+		return
+	var url := "%s/rest/v1/rpc/list_banned_players" % SupabaseAuth.SUPABASE_URL
+	_http_banned_list.request(url, _bearer_headers(), HTTPClient.METHOD_POST)
+
+
+@warning_ignore("unused_parameter")
+func _on_banned_list_response(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		regiment_error.emit("Failed to load banned players")
+		return
+	banned_list_loaded.emit(_parse_body_array(body))
 
 
 # ─────────────────────────────────────────────────────────────────────────

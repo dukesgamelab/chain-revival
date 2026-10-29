@@ -88,6 +88,14 @@ export function bothSidesAssigned(): boolean {
   return sideOwners.USA !== null && sideOwners.GERMANY !== null;
 }
 
+/** Find a client by Supabase user ID. Returns undefined if not found. */
+export function getClientByUserId(userId: string): ClientRecord | undefined {
+  for (const [, record] of clients) {
+    if (record.userId === userId) return record;
+  }
+  return undefined;
+}
+
 /** Return the ClientRecord for each assigned side. */
 export function getAssignedClients(): ClientRecord[] {
   const result: ClientRecord[] = [];
