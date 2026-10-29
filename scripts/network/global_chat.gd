@@ -147,6 +147,7 @@ func _build_ui() -> void:
 	_chat_input.placeholder_text = "Say something..."
 	_chat_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chat_input.custom_minimum_size = Vector2(0, 26)
+	_chat_input.add_theme_color_override("font_color", Color.WHITE)
 	_chat_input.text_submitted.connect(func(_t: String): _submit_chat())
 	input_row.add_child(_chat_input)
 
@@ -234,9 +235,12 @@ func _submit_chat() -> void:
 
 
 func _send_message(msg: String) -> void:
+	var tagged_name := SupabaseAuth.display_name
+	if SupabaseAuth.regiment_tag != "":
+		tagged_name = "%s %s" % [SupabaseAuth.regiment_tag, tagged_name]
 	var body := JSON.stringify({
 		"user_id": SupabaseAuth.user_id,
-		"display_name": SupabaseAuth.display_name,
+		"display_name": tagged_name,
 		"message": msg,
 		"channel": "global",
 	})

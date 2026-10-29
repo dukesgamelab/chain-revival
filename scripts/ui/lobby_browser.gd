@@ -8,8 +8,10 @@ const MODE_SELECT_SCENE := "res://scenes/mode_select.tscn"
 const LOBBY_BROWSER_SCENE := "res://scenes/lobby_browser.tscn"
 const SIDE_SELECT_SCENE := "res://scenes/side_select.tscn"
 const LEADERBOARD_SCENE := "res://scenes/leaderboard.tscn"
+const REGIMENT_SCENE := "res://scenes/regiment_browser.tscn"
 const LobbyClientClass := preload("res://scripts/network/lobby_client.gd")
 const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
+const RegimentBrowserScript := preload("res://scripts/ui/regiment_browser.gd")
 
 ## Online game server URL (Fly.io).
 ## Leave empty to fall back to LAN IP detection for local hosting.
@@ -21,6 +23,7 @@ var _status_label: Label
 var _create_button: Button
 var _refresh_button: Button
 var _leaderboard_button: Button
+var _regiments_button: Button
 var _back_button: Button
 var _match_name_field: LineEdit
 var _create_panel: PanelContainer
@@ -248,6 +251,12 @@ func _build_ui() -> void:
 	_leaderboard_button.custom_minimum_size = Vector2(0, 34)
 	btn_row.add_child(_leaderboard_button)
 
+	_regiments_button = Button.new()
+	_regiments_button.text = "Regiments"
+	_regiments_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_regiments_button.custom_minimum_size = Vector2(0, 34)
+	btn_row.add_child(_regiments_button)
+
 	_back_button = Button.new()
 	_back_button.text = "Back"
 	_back_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -263,6 +272,7 @@ func _connect_signals() -> void:
 	_create_button.pressed.connect(_on_create_pressed)
 	_refresh_button.pressed.connect(_on_refresh_pressed)
 	_leaderboard_button.pressed.connect(_on_leaderboard_pressed)
+	_regiments_button.pressed.connect(_on_regiments_pressed)
 	_back_button.pressed.connect(_on_back_pressed)
 
 	_lobby_client.lobbies_listed.connect(_on_lobbies_listed)
@@ -327,6 +337,11 @@ func _on_refresh_pressed() -> void:
 func _on_leaderboard_pressed() -> void:
 	LeaderboardScript.return_scene = LOBBY_BROWSER_SCENE
 	get_tree().change_scene_to_file(LEADERBOARD_SCENE)
+
+
+func _on_regiments_pressed() -> void:
+	RegimentBrowserScript.return_scene = LOBBY_BROWSER_SCENE
+	get_tree().change_scene_to_file(REGIMENT_SCENE)
 
 
 func _on_back_pressed() -> void:

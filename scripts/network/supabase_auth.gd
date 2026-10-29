@@ -32,6 +32,9 @@ var user_data: Dictionary = {}
 var is_signed_in: bool = false
 var prestige_points: int = 0
 var rank: int = 0
+var regiment_id: String = ""
+var regiment_tag: String = ""
+var is_admin: bool = false
 
 ## ── Internals ───────────────────────────────────────────────────────────
 var _http_sign_in: HTTPRequest
@@ -181,7 +184,7 @@ func _on_sign_out_response(_result: int, _response_code: int, _headers: PackedSt
 func fetch_profile() -> void:
 	if user_id.is_empty() or not _check_config():
 		return
-	var url := "%s/rest/v1/player_profiles?id=eq.%s&select=prestige_points,rank" % [SUPABASE_URL, user_id]
+	var url := "%s/rest/v1/player_profiles?id=eq.%s&select=prestige_points,rank,regiment_id,is_admin,regiments(tag)" % [SUPABASE_URL, user_id]
 	var hdrs := _bearer_headers()
 	_http_profile.request(url, hdrs, HTTPClient.METHOD_GET)
 
@@ -201,7 +204,16 @@ func _on_profile_response(result: int, response_code: int, _headers: PackedStrin
 	var row: Dictionary = arr[0]
 	prestige_points = int(row.get("prestige_points", 0))
 	rank = int(row.get("rank", 0))
-	GameLog.log_system("[SupabaseAuth] Profile loaded: rank=%d pp=%d" % [rank, prestige_points])
+	var rid = row.get("regiment_id", "")
+	regiment_id = str(rid) if rid != null else ""
+	is_admin = bool(row.get("is_admin", false))
+	# Extract regiment tag from the joined regiments object
+	var reg_data = row.get("regiments", null)
+	if reg_data is Dictionary:
+		regiment_tag = str(reg_data.get("tag", ""))
+	else:
+		regiment_tag = ""
+	GameLog.log_system("[SupabaseAuth] Profile loaded: rank=%d pp=%d regiment=%s tag=%s admin=%s" % [rank, prestige_points, regiment_id, regiment_tag, str(is_admin)])
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -240,6 +252,9 @@ func _clear_session() -> void:
 	user_data = {}
 	prestige_points = 0
 	rank = 0
+	regiment_id = ""
+	regiment_tag = ""
+	is_admin = false
 	_refresh_timer.stop()
 	var was_signed_in := is_signed_in
 	is_signed_in = false

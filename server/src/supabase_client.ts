@@ -50,6 +50,39 @@ export interface MatchResultParams {
  * This atomically inserts match_history rows and increments
  * games_played/games_won on player_profiles.
  */
+/**
+ * Call the distribute_co_pp RPC for a single player.
+ * Looks up the player's regiment, gives 20% of their PP to the CO,
+ * and logs it. Safe to call for players not in a regiment (no-ops).
+ */
+export async function distributeCoPP(matchId: string, playerId: string, ppEarned: number): Promise<void> {
+  if (!isConfigured()) return;
+  if (ppEarned <= 0) return;
+
+  const body = {
+    p_match_id: matchId,
+    p_player_id: playerId,
+    p_pp_earned: ppEarned,
+  };
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/distribute_co_pp`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("[Supabase] distribute_co_pp failed (%d): %s", res.status, text);
+    } else {
+      console.log("[Supabase] CO PP distributed for player %s (earned %d)", playerId, ppEarned);
+    }
+  } catch (err) {
+    console.error("[Supabase] distribute_co_pp error:", err);
+  }
+}
+
 export async function recordMatchResult(params: MatchResultParams): Promise<void> {
   if (!isConfigured()) {
     console.warn("[Supabase] Not configured (missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY). Match result not recorded.");

@@ -1,6 +1,6 @@
 ﻿class_name CommandHierarchy
 extends RefCounted
-## Player command tree (commander ↔ subordinates). IDs only — no node refs.
+## Player command tree (commander ↔ subordinates). IDs only - no node refs.
 ## Applies to players (human or AI), not individual soldiers. Separate from fireteam/squad.
 ## TODO: order issuing down the chain (OUT OF SCOPE).
 
@@ -37,12 +37,24 @@ const PP_LOST_ON_KILLED := {
 	7: 28,
 	8: 32,
 }
-## Display labels for ranks 0â€“9 (presentation).
+## Display labels for PP-based ranks 0-9 (presentation).
 const RANK_LABELS := [
 	"PVT", "PFC", "CPL", "SGT", "SSG", "SFC", "MSG", "2LT", "1LT", "CPT",
 ]
 
-## TUNED, not recovered â€” original SUBORDINATE_CAP value is unknown.
+## Regiment assigned rank labels (CO/XO can assign these to 2LT+ members).
+## Ordered by authority: 1LT < CPT < MAJ < LT COL < COL
+const ASSIGNED_RANK_LABELS := ["1LT", "CPT", "MAJ", "LT COL", "COL"]
+
+## Returns the best display rank for a player: assigned rank if they have one,
+## otherwise their PP-based rank label.
+func display_rank(pp_rank: int, assigned_rank: String = "") -> String:
+	if assigned_rank != "" and assigned_rank in ASSIGNED_RANK_LABELS:
+		return assigned_rank
+	var r := clampi(pp_rank, 0, RANK_LABELS.size() - 1)
+	return str(RANK_LABELS[r])
+
+## TUNED, not recovered â€" original SUBORDINATE_CAP value is unknown.
 const SUBORDINATE_CAP := 4
 
 const NO_COMMANDER := -1
@@ -110,10 +122,10 @@ func register_player(
 		## Phase 3 AI plans (stable string ids). Empty for humans.
 		"selected_ai_plan": "",
 		"active_ai_plan": "",
-		## Stashed when Human claims an AI slot — restored on leave → AI.
+		## Stashed when Human claims an AI slot - restored on leave → AI.
 		"stashed_selected_ai_plan": "",
 		"stashed_active_ai_plan": "",
-		## Phase 4–6 human order currently applied to this AI player.
+		## Phase 4-6 human order currently applied to this AI player.
 		"active_ai_order": "none",
 		"active_ai_order_cell": {"x": -999, "y": -999},
 	}
@@ -121,7 +133,7 @@ func register_player(
 
 
 ## Default single-player / offline roster: two players per team (commander-capable + lower rank).
-## AI players occupy slots so hierarchy works offline â€” not gated on multiplayer.
+## AI players occupy slots so hierarchy works offline â€" not gated on multiplayer.
 func bootstrap_default_match() -> void:
 	clear()
 	register_player("YOU", 3, Team.USA, false, [1, 2, 3, 4] as Array[int])
@@ -137,7 +149,7 @@ func bootstrap_default_match() -> void:
 
 
 ## Build hierarchy from MatchConfig player slots / owned fireteams (players + whole AI fireteams).
-## Each owned fireteam becomes one hierarchy player â€” never individual soldiers as commanders.
+## Each owned fireteam becomes one hierarchy player â€" never individual soldiers as commanders.
 func bootstrap_from_session(session) -> void:
 	if session == null or session.owned_fireteams.is_empty():
 		bootstrap_default_match()
@@ -247,7 +259,7 @@ func restore_ai_plans_after_human(player_id: int, human_team_id: int = Team.USA)
 	elif AiPlanClass.is_concrete_id(selected):
 		entry["active_ai_plan"] = selected
 	else:
-		## Random selected — resolve once now so gameplay can resume.
+		## Random selected - resolve once now so gameplay can resume.
 		entry["active_ai_plan"] = AiPlanClass.resolve_to_concrete(selected)
 	_players[player_id] = entry
 
@@ -499,7 +511,7 @@ func pp_lost_on_killed(rank: int) -> int:
 
 
 func to_dict() -> Dictionary:
-	## Player IDs only â€” no scene/node refs. Safe for multiplayer / dedicated server.
+	## Player IDs only â€" no scene/node refs. Safe for multiplayer / dedicated server.
 	return {"players": _players.duplicate(true), "next_player_id": _next_player_id}
 
 
@@ -545,7 +557,7 @@ func load_from_dict(data: Dictionary) -> void:
 	_next_player_id = int(data.get("next_player_id", _players.size() + 1))
 
 
-## --- Future hooks (order issuing / AI planning) â€” stubs for Phase 2 ---
+## --- Future hooks (order issuing / AI planning) â€" stubs for Phase 2 ---
 
 ## Reserved: downward order flow (attack/defend/move). Implemented for AI players via active_ai_order.
 func issue_order(from_player_id: int, to_player_id: int, order: Dictionary = {}) -> Dictionary:
@@ -661,7 +673,7 @@ func set_active_ai_plan(player_id: int, plan_id: String) -> void:
 	_players[player_id] = entry
 
 
-## Resolve Random â†’ concrete once per AI player. Skips players that already have a
+## Resolve Random â†' concrete once per AI player. Skips players that already have a
 ## concrete active plan (so match-start / UI refresh never re-rolls).
 func resolve_ai_plans() -> void:
 	for pid in all_player_ids():

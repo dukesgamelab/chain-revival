@@ -21,7 +21,7 @@ import {
   resetSides,
   setClientUserId,
 } from "./side_ownership";
-import { recordMatchResult } from "./supabase_client";
+import { recordMatchResult, distributeCoPP } from "./supabase_client";
 import {
   MATCH_ID,
   sideToTeamId,
@@ -118,6 +118,12 @@ function handleMatchEnded(info: MatchEndedInfo): void {
     player2Kills: info.germanyKills,
     player2Pp: germanyPP,
     endCause: endCauseStr,
+  }).then(() => {
+    // Distribute CO PP after match results are recorded
+    return Promise.all([
+      distributeCoPP(info.matchId, usaUserId!, usaPP),
+      distributeCoPP(info.matchId, germanyUserId!, germanyPP),
+    ]);
   }).catch((err) => {
     console.error("[MatchEnd] Failed to record result:", err);
   });
