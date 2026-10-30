@@ -1,6 +1,9 @@
 import { WebSocketServer, WebSocket, type RawData } from "ws";
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { resolve, extname, join } from "node:path";
+import { existsSync, realpathSync } from "node:fs";
 import {
   LocalMatch,
   parseFaceIntent,
@@ -508,11 +511,87 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
 
 const HOST = process.env.BIND_HOST ?? "0.0.0.0";
 
-// HTTP server handles health checks; WebSocket upgrades attach to it.
-const httpServer = createServer((_req, res) => {
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("ok");
-});
+// ── Static file serving ─────────────────────────────────────────────
+const MIME_TYPES: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".css": "text/css",
+  ".js": "application/javascript",
+  ".json": "application/json",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
+  ".woff2": "font/woff2",
+  ".woff": "font/woff",
+  ".webp": "image/webp",
+};
+
+const WEBSITE_DIR = resolve(__dirname, "../../website/dist");
+const hasWebsite = existsSync(WEBSITE_DIR);
+if (hasWebsite) {
+  console.log(`Serving website from ${WEBSITE_DIR}`);
+} else {
+  console.log(`No website directory at ${WEBSITE_DIR} — HTTP serves health check only`);
+}
+
+async function serveStatic(req: import("node:http").IncomingMessage, res: import("node:http").ServerResponse) {
+  const url = req.url ?? "/";
+
+  if (url === "/health") {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("ok");
+    return;
+  }
+
+  if (!hasWebsite) {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("ok");
+    return;
+  }
+
+  let filePath: string;
+  if (url === "/" || url === "/index.html") {
+    filePath = join(WEBSITE_DIR, "index.html");
+  } else {
+    filePath = join(WEBSITE_DIR, url);
+  }
+
+  try {
+    const realPath = realpathSync(filePath);
+    if (!realPath.startsWith(realpathSync(WEBSITE_DIR))) {
+      res.writeHead(403);
+      res.end("Forbidden");
+      return;
+    }
+  } catch {
+    // File doesn't exist — fall through to SPA fallback
+  }
+
+  try {
+    const data = await readFile(filePath);
+    const ext = extname(filePath);
+    const contentType = MIME_TYPES[ext] ?? "application/octet-stream";
+    const cacheControl = ext === ".html" || ext === ""
+      ? "no-cache"
+      : "public, max-age=31536000, immutable";
+    res.writeHead(200, { "Content-Type": contentType, "Cache-Control": cacheControl });
+    res.end(data);
+  } catch {
+    // SPA fallback: serve index.html for client-side routing
+    try {
+      const indexData = await readFile(join(WEBSITE_DIR, "index.html"));
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" });
+      res.end(indexData);
+    } catch {
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not Found");
+    }
+  }
+}
+
+// HTTP server handles website + health checks; WebSocket upgrades attach to it.
+const httpServer = createServer(serveStatic);
 
 const wss = new WebSocketServer({ server: httpServer });
 

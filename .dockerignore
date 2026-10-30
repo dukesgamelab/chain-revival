@@ -17,3 +17,5 @@ project.godot
 server/node_modules
 server/dist
 server/tests
+website/node_modules
+website/dist
