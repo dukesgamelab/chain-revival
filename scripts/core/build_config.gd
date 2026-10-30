@@ -3,6 +3,7 @@ extends RefCounted
 ## Single runtime gate for DEVELOPMENT vs SURVIVAL_PLAYTEST exports.
 ## Custom feature tag is set only on the Survival Playtest export preset.
 
+const VERSION := "0.19.0-alpha"
 const FEATURE_SURVIVAL_PLAYTEST := "survival_playtest"
 
 

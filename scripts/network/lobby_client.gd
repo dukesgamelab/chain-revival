@@ -147,7 +147,7 @@ func _on_join_response(result: int, response_code: int, _headers: PackedStringAr
 
 
 func _on_delete_response(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
-	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+	if result != HTTPRequest.RESULT_SUCCESS or (response_code != 200 and response_code != 204):
 		lobby_error.emit("Failed to delete lobby (HTTP %d)" % response_code)
 		return
 	lobby_deleted.emit()

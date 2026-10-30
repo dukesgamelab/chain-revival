@@ -42,6 +42,9 @@ func _ready() -> void:
 	_add_auth_ui()
 	_add_lan_button()
 	_add_leaderboard_button()
+	_add_version_label()
+	_add_known_issues_button()
+	_show_first_launch_hint()
 
 
 func _add_lan_button() -> void:
@@ -414,3 +417,120 @@ func _show_ban_notice() -> void:
 	dlg.ok_button_text = "OK"
 	add_child(dlg)
 	dlg.popup_centered()
+
+
+func _add_version_label() -> void:
+	var ver := Label.new()
+	ver.text = "v%s" % BuildConfig.VERSION
+	ver.add_theme_font_size_override("font_size", 11)
+	ver.add_theme_color_override("font_color", Color(0.5, 0.55, 0.5, 0.7))
+	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	ver.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	ver.anchors_preset = Control.PRESET_BOTTOM_RIGHT
+	ver.anchor_left = 1.0
+	ver.anchor_top = 1.0
+	ver.anchor_right = 1.0
+	ver.anchor_bottom = 1.0
+	ver.offset_left = -120
+	ver.offset_top = -28
+	ver.offset_right = -8
+	ver.offset_bottom = -6
+	add_child(ver)
+
+
+var _known_issues_dialog: AcceptDialog
+
+func _add_known_issues_button() -> void:
+	var vbox := get_node_or_null("Center/Panel/Margin/VBox") as VBoxContainer
+	if vbox == null:
+		return
+	var btn := Button.new()
+	btn.text = "Known Issues"
+	btn.pressed.connect(_on_known_issues_pressed)
+	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
+	if dev_box != null:
+		var dev_idx := dev_box.get_index()
+		vbox.add_child(btn)
+		vbox.move_child(btn, dev_idx)
+	else:
+		vbox.add_child(btn)
+
+
+func _on_known_issues_pressed() -> void:
+	if _known_issues_dialog != null:
+		_known_issues_dialog.popup_centered()
+		return
+	var dlg := AcceptDialog.new()
+	dlg.title = "Known Issues"
+	dlg.ok_button_text = "Close"
+	dlg.min_size = Vector2(500, 400)
+	CocUiTheme.apply_to(dlg)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	dlg.add_child(margin)
+
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(460, 300)
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	margin.add_child(scroll)
+
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", 6)
+	page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(page)
+	_fill_known_issues(page)
+
+	add_child(dlg)
+	_known_issues_dialog = dlg
+	dlg.popup_centered()
+
+
+func _fill_known_issues(page: VBoxContainer) -> void:
+	var issues := [
+		"Team games (2v2+) are new and lightly tested — expect rough edges.",
+		"No reconnection: if you disconnect mid-match, the match is lost.",
+		"Chat whisper and announce only work in team games (2v2+).",
+		"Soldiers occasionally stutter when multiple move orders overlap.",
+		"Grenade throw animation may not play on the remote client.",
+		"Leaderboard ranks update after the match ends, not in real time.",
+		"Map editor saves are local only — no cloud sync.",
+	]
+	for issue in issues:
+		var label := Label.new()
+		label.text = "• " + issue
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.add_theme_font_size_override("font_size", 13)
+		page.add_child(label)
+
+
+const _FIRST_LAUNCH_PATH := "user://first_launch_seen.flag"
+
+func _show_first_launch_hint() -> void:
+	if FileAccess.file_exists(_FIRST_LAUNCH_PATH):
+		return
+	# Delay so auth session restore doesn't reload the scene and kill the dialog.
+	await get_tree().create_timer(1.5).timeout
+	if not is_inside_tree():
+		return
+	var dlg := AcceptDialog.new()
+	dlg.title = "Welcome to Chain Revival!"
+	dlg.ok_button_text = "Got it"
+	dlg.min_size = Vector2(420, 200)
+	CocUiTheme.apply_to(dlg)
+	dlg.dialog_text = "Welcome, Commander!\n\nIf this is your first time, hit \"How to Play\" on the main menu for controls and tips.\n\nFor multiplayer, sign in first, then hit \"Multiplayer\" to find or host a game.\n\nGood luck out there."
+	add_child(dlg)
+	dlg.popup_centered()
+	# Write the flag only after the user dismisses the dialog.
+	dlg.confirmed.connect(func():
+		var f := FileAccess.open(_FIRST_LAUNCH_PATH, FileAccess.WRITE)
+		if f != null:
+			f.store_string("1")
+			f.close()
+	)
