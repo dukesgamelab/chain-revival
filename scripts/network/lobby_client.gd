@@ -24,6 +24,7 @@ var _http_chat_fetch: HTTPRequest
 var _pending_match_name: String = ""
 var _pending_server_url: String = ""
 var _pending_map_id: String = "ff_farm"
+var _pending_team_size: int = 1
 
 
 func _ready() -> void:
@@ -50,28 +51,26 @@ func list_lobbies() -> void:
 
 
 ## Create a new lobby. First deletes any existing lobbies by this host.
-func create_lobby(match_name: String, server_url: String = "", map_id: String = "ff_farm") -> void:
+func create_lobby(match_name: String, server_url: String = "", map_id: String = "ff_farm", team_size: int = 1) -> void:
 	if not _check_auth():
 		return
 	_pending_match_name = match_name
 	_pending_server_url = server_url
 	_pending_map_id = map_id
+	_pending_team_size = team_size
 	# Delete any stale lobbies by this host first.
 	var url := "%s/rest/v1/lobbies?host_id=eq.%s" % [SupabaseAuth.SUPABASE_URL, SupabaseAuth.user_id]
 	_http_cleanup.request(url, _bearer_headers(), HTTPClient.METHOD_DELETE)
 
 
-## Join an existing lobby by setting it to in_progress.
+## Join an existing lobby via atomic RPC (increments players, sets in_progress when full).
 func join_lobby(lobby_id: String) -> void:
 	if not _check_auth():
 		return
-	var body := JSON.stringify({
-		"current_players": 2,
-		"status": "in_progress",
-	})
-	var headers := _bearer_headers_prefer_return()
-	var url := "%s/rest/v1/lobbies?id=eq.%s&status=eq.waiting" % [SupabaseAuth.SUPABASE_URL, lobby_id]
-	_http_join.request(url, headers, HTTPClient.METHOD_PATCH, body)
+	var body := JSON.stringify({"p_lobby_id": lobby_id})
+	var headers := _bearer_headers()
+	var url := "%s/rest/v1/rpc/join_lobby" % SupabaseAuth.SUPABASE_URL
+	_http_join.request(url, headers, HTTPClient.METHOD_POST, body)
 
 
 ## Update lobby status (e.g. 'finished').
@@ -167,6 +166,8 @@ func _on_cleanup_response(_result: int, _response_code: int, _headers: PackedStr
 		"match_name": _pending_match_name,
 		"status": "waiting",
 		"current_players": 1,
+		"team_size": _pending_team_size,
+		"max_players": _pending_team_size * 2,
 	}
 	if not _pending_server_url.is_empty():
 		payload["server_url"] = _pending_server_url

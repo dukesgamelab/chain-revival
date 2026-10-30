@@ -10,12 +10,24 @@ export interface ClientRecord {
   userId: string | null;
 }
 
-const sideOwners: Record<SideName, string | null> = {
-  USA: null,
-  GERMANY: null,
+/** How many players each side needs before the match can start. */
+let teamSize = 1;
+
+/** Ordered lists of client IDs assigned to each side. */
+const sideSlots: Record<SideName, string[]> = {
+  USA: [],
+  GERMANY: [],
 };
 
 const clients = new Map<string, ClientRecord>();
+
+export function setTeamSize(size: number): void {
+  teamSize = Math.max(1, size);
+}
+
+export function getTeamSize(): number {
+  return teamSize;
+}
 
 export function registerClient(ws: WebSocket, clientId: string): ClientRecord {
   const record: ClientRecord = { ws, clientId, assignedSide: null, userId: null };
@@ -37,15 +49,18 @@ export function getClient(clientId: string): ClientRecord | undefined {
 export function removeClient(clientId: string): void {
   const record = clients.get(clientId);
   if (record?.assignedSide) {
-    sideOwners[record.assignedSide] = null;
-    console.log("%s released (client %s disconnected)", record.assignedSide, clientId);
+    const slots = sideSlots[record.assignedSide];
+    const idx = slots.indexOf(clientId);
+    if (idx !== -1) slots.splice(idx, 1);
+    console.log("%s released (client %s disconnected), %d/%d on that side",
+      record.assignedSide, clientId, slots.length, teamSize);
   }
   clients.delete(clientId);
 }
 
 export function resetSides(): void {
-  sideOwners.USA = null;
-  sideOwners.GERMANY = null;
+  sideSlots.USA = [];
+  sideSlots.GERMANY = [];
   for (const [, record] of clients) {
     record.assignedSide = null;
   }
@@ -71,23 +86,33 @@ export function requestSide(
     return { ok: true, side };
   }
 
-  const ownerId = sideOwners[side];
-  if (ownerId !== null && ownerId !== clientId) {
-    return { ok: false, reason: "Side already taken" };
+  const slots = sideSlots[side];
+  if (slots.length >= teamSize && !slots.includes(clientId)) {
+    return { ok: false, reason: "Side is full" };
   }
 
+  // Remove from previous side if switching.
   if (record.assignedSide && record.assignedSide !== side) {
-    sideOwners[record.assignedSide] = null;
+    const oldSlots = sideSlots[record.assignedSide];
+    const oldIdx = oldSlots.indexOf(clientId);
+    if (oldIdx !== -1) oldSlots.splice(oldIdx, 1);
   }
 
   record.assignedSide = side;
-  sideOwners[side] = clientId;
-  console.log("%s assigned to client %s", side, clientId);
+  if (!slots.includes(clientId)) {
+    slots.push(clientId);
+  }
+  console.log("%s assigned to client %s (%d/%d on that side)", side, clientId, slots.length, teamSize);
   return { ok: true, side };
 }
 
 export function bothSidesAssigned(): boolean {
-  return sideOwners.USA !== null && sideOwners.GERMANY !== null;
+  return sideSlots.USA.length >= teamSize && sideSlots.GERMANY.length >= teamSize;
+}
+
+/** Return the number of players currently assigned to a side. */
+export function sideCount(side: SideName): number {
+  return sideSlots[side].length;
 }
 
 /** Find a client by Supabase user ID. Returns undefined if not found. */

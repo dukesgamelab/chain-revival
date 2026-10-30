@@ -152,6 +152,60 @@ export async function distributeCoPP(matchId: string, playerId: string, ppEarned
   }
 }
 
+export interface PlayerResultParams {
+  matchId: string;
+  playerId: string;
+  team: string;
+  won: boolean;
+  draw: boolean;
+  kills: number;
+  killPoints: number;
+  terrainPoints: number;
+  totalPoints: number;
+  endCause: string;
+  opponentId: string | null;
+  pp: number;
+}
+
+export async function recordPlayerResult(params: PlayerResultParams): Promise<void> {
+  if (!isConfigured()) {
+    console.warn("[Supabase] Not configured. Player result not recorded.");
+    return;
+  }
+
+  const body = {
+    p_match_id: params.matchId,
+    p_player_id: params.playerId,
+    p_team: params.team,
+    p_won: params.won,
+    p_draw: params.draw,
+    p_kills: params.kills,
+    p_kill_points: params.killPoints,
+    p_terrain_points: params.terrainPoints,
+    p_total_points: params.totalPoints,
+    p_end_cause: params.endCause,
+    p_opponent_id: params.opponentId,
+    p_pp: params.pp,
+  };
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/record_player_result`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("[Supabase] record_player_result failed (%d): %s", res.status, text);
+    } else {
+      console.log("[Supabase] Player result recorded for %s in match %s", params.playerId, params.matchId);
+    }
+  } catch (err) {
+    console.error("[Supabase] record_player_result error:", err);
+  }
+}
+
 export async function recordMatchResult(params: MatchResultParams): Promise<void> {
   if (!isConfigured()) {
     console.warn("[Supabase] Not configured (missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY). Match result not recorded.");

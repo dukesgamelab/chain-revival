@@ -9,6 +9,7 @@ extends Node
 const DEFAULT_SERVER_URL := "ws://127.0.0.1:3000"
 var server_url: String = DEFAULT_SERVER_URL
 var selected_map_id: String = ""
+var selected_team_size: int = 1
 const CLIENT_NAME := "Godot Client"
 const DEFAULT_CONNECT_TIMEOUT_SEC := 5.0
 const DEFAULT_SIDE_REQUEST_TIMEOUT_SEC := 5.0
@@ -401,6 +402,8 @@ func _send_hello() -> void:
 			hello["isModerator"] = true
 	if not selected_map_id.is_empty():
 		hello["mapId"] = selected_map_id
+	if selected_team_size > 1:
+		hello["teamSize"] = selected_team_size
 	send_json(hello)
 	GameLog.log_system("[NetworkClient] Sent hello to server.")
 

@@ -21,11 +21,11 @@ const AVAILABLE_MAPS := {
 	"grand_battle": "res://maps/grand_battle.json",
 }
 const MULTIPLAYER_MAPS := [
-	{"id": "ff_farm", "display_name": "Farm Fight", "team_sizes": "1v1"},
-	{"id": "crossroads", "display_name": "Crossroads", "team_sizes": "1v1"},
-	{"id": "twin_ridges", "display_name": "Twin Ridges", "team_sizes": "1v1 - 2v2"},
-	{"id": "three_fields", "display_name": "Three Fields", "team_sizes": "1v1 - 3v3"},
-	{"id": "grand_battle", "display_name": "Grand Battle", "team_sizes": "1v1 - 5v5"},
+	{"id": "ff_farm", "display_name": "Farm Fight", "team_sizes": "1v1", "supported_sizes": [1]},
+	{"id": "crossroads", "display_name": "Crossroads", "team_sizes": "1v1", "supported_sizes": [1]},
+	{"id": "twin_ridges", "display_name": "Twin Ridges", "team_sizes": "1v1 - 2v2", "supported_sizes": [1, 2]},
+	{"id": "three_fields", "display_name": "Three Fields", "team_sizes": "1v1 - 3v3", "supported_sizes": [1, 2, 3]},
+	{"id": "grand_battle", "display_name": "Grand Battle", "team_sizes": "1v1 - 5v5", "supported_sizes": [1, 2, 3, 5]},
 ]
 const DEFAULT_WIDTH := 60
 const DEFAULT_HEIGHT := 60

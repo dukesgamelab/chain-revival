@@ -31,6 +31,7 @@ var _admin_button: Button
 var _back_button: Button
 var _match_name_field: LineEdit
 var _map_dropdown: OptionButton
+var _team_size_dropdown: OptionButton
 var _create_panel: PanelContainer
 var _refresh_timer: Timer
 
@@ -40,10 +41,12 @@ var _hosted_name_label: Label
 var _hosted_status_label: Label
 var _hosted_cancel_button: Button
 var _waiting_dots := 0
+var _waiting_base_text := ""
 
 ## The lobby we're currently hosting.
 var _hosted_lobby_id: String = ""
-## The lobby we just joined.
+## The lobby we just joined (waiting for it to fill).
+var _joined_lobby_id: String = ""
 var _joined_lobby: Dictionary = {}
 
 
@@ -66,15 +69,16 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	if not _hosted_lobby_id.is_empty():
 		_lobby_client.delete_lobby(_hosted_lobby_id)
+	_joined_lobby_id = ""
 
 
 func _process(_delta: float) -> void:
-	# Animate waiting dots on the hosted game panel.
-	if not _hosted_lobby_id.is_empty() and _hosted_status_label != null:
+	var is_waiting := not _hosted_lobby_id.is_empty() or not _joined_lobby_id.is_empty()
+	if is_waiting and _hosted_status_label != null and not _waiting_base_text.is_empty():
 		var tick := int(Time.get_ticks_msec() / 500) % 4
 		if tick != _waiting_dots:
 			_waiting_dots = tick
-			_hosted_status_label.text = "Waiting for opponent" + ".".repeat(tick)
+			_hosted_status_label.text = _waiting_base_text + ".".repeat(tick)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -249,7 +253,24 @@ func _build_ui() -> void:
 	_map_dropdown.custom_minimum_size = Vector2(0, 30)
 	for entry in MapDataClass.MULTIPLAYER_MAPS:
 		_map_dropdown.add_item("%s (%s)" % [entry["display_name"], entry["team_sizes"]])
+	_map_dropdown.item_selected.connect(_on_map_selected)
 	map_row.add_child(_map_dropdown)
+
+	# Team size row
+	var size_row := HBoxContainer.new()
+	size_row.add_theme_constant_override("separation", 8)
+	create_vbox.add_child(size_row)
+
+	var size_label := Label.new()
+	size_label.text = "Team size:"
+	size_label.add_theme_font_size_override("font_size", 13)
+	size_row.add_child(size_label)
+
+	_team_size_dropdown = OptionButton.new()
+	_team_size_dropdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_team_size_dropdown.custom_minimum_size = Vector2(0, 30)
+	size_row.add_child(_team_size_dropdown)
+	_populate_team_sizes()
 
 	# Button row
 	var btn_row_create := HBoxContainer.new()
@@ -353,7 +374,6 @@ func _on_confirm_create() -> void:
 	_set_status("Creating lobby...", Color.WHITE)
 	var server_url: String
 	if ONLINE_SERVER_URL.is_empty():
-		# No online server configured; fall back to LAN hosting.
 		var lan_ip := _get_lan_ip()
 		server_url = "ws://%s:3000" % lan_ip
 	else:
@@ -362,7 +382,8 @@ func _on_confirm_create() -> void:
 	var map_id := "ff_farm"
 	if map_idx >= 0 and map_idx < MapDataClass.MULTIPLAYER_MAPS.size():
 		map_id = MapDataClass.MULTIPLAYER_MAPS[map_idx]["id"]
-	_lobby_client.create_lobby(match_name, server_url, map_id)
+	var team_size := _get_selected_team_size()
+	_lobby_client.create_lobby(match_name, server_url, map_id, team_size)
 
 
 func _get_lan_ip() -> String:
@@ -418,24 +439,36 @@ func _on_auto_refresh() -> void:
 func _on_lobbies_listed(lobbies: Array) -> void:
 	_clear_lobby_list()
 
-	# If we're hosting, check if someone joined our game.
-	if not _hosted_lobby_id.is_empty():
+	# Check if our hosted or joined lobby went in_progress (game is full).
+	var my_lobby_id := _hosted_lobby_id if not _hosted_lobby_id.is_empty() else _joined_lobby_id
+	if not my_lobby_id.is_empty():
+		var found_my_lobby := false
 		for lobby_dict in lobbies:
 			var lobby: Dictionary = lobby_dict
-			if lobby.get("id", "") == _hosted_lobby_id:
+			if lobby.get("id", "") == my_lobby_id:
+				found_my_lobby = true
+				var current: int = lobby.get("current_players", 1)
+				var max_p: int = lobby.get("max_players", 2)
 				if lobby.get("status", "") == "in_progress":
-					_set_status("Opponent joined! Starting match...", Color.GREEN)
-					# Use the server_url stored in the lobby record so this
-					# works for both LAN (ws://192.168.x.x:3000) and online
-					# (wss://railway-host) hosting.
+					_set_status("All players joined! Starting match...", Color.GREEN)
 					var host_url: String = lobby.get("server_url", "")
 					if host_url.is_empty():
 						host_url = "ws://127.0.0.1:3000"
 					var lobby_map: String = lobby.get("map_id", "")
-					_start_multiplayer(host_url, lobby_map)
+					var lobby_team_size: int = lobby.get("team_size", 1)
+					_start_multiplayer(host_url, lobby_map, lobby_team_size)
 					return
+				else:
+					_waiting_base_text = "Waiting for players (%d/%d)" % [current, max_p]
+					_hosted_status_label.text = _waiting_base_text + "..."
+				break
+		if not found_my_lobby and not _joined_lobby_id.is_empty():
+			_joined_lobby_id = ""
+			_hosted_panel.visible = false
+			_create_button.disabled = false
+			_set_status("The lobby was cancelled by the host.", Color.ORANGE)
 
-	# Count only waiting lobbies for the status (exclude our own in_progress).
+	# Count only waiting lobbies for the status (exclude our own).
 	var waiting_count := 0
 	for lobby_dict in lobbies:
 		var lobby: Dictionary = lobby_dict
@@ -445,7 +478,7 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 			waiting_count += 1
 			_add_lobby_row(lobby)
 
-	if _hosted_lobby_id.is_empty():
+	if _hosted_lobby_id.is_empty() and _joined_lobby_id.is_empty():
 		if waiting_count == 0:
 			_set_status("No games available. Create one!", Color.WHITE)
 		else:
@@ -454,21 +487,42 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 
 func _on_lobby_created(lobby: Dictionary) -> void:
 	_hosted_lobby_id = lobby.get("id", "")
-	_set_status("Game created! Waiting for opponent...", Color.GREEN)
+	var ts: int = lobby.get("team_size", 1)
+	var max_p: int = lobby.get("max_players", 2)
+	if ts > 1:
+		_set_status("Game created! Waiting for players (1/%d)..." % max_p, Color.GREEN)
+	else:
+		_set_status("Game created! Waiting for opponent...", Color.GREEN)
 	_hosted_panel.visible = true
 	_hosted_name_label.text = lobby.get("match_name", "My Game")
+	_waiting_base_text = "Waiting for players (1/%d)" % max_p
+	_hosted_status_label.text = _waiting_base_text + "..."
 	_create_button.disabled = true
 	_lobby_client.list_lobbies()
 
 
 func _on_lobby_joined(lobby: Dictionary) -> void:
 	_joined_lobby = lobby
-	_set_status("Joined! Starting match...", Color.GREEN)
-	var server_url: String = lobby.get("server_url", "")
-	if server_url.is_empty():
-		server_url = "ws://127.0.0.1:3000"
-	var lobby_map: String = lobby.get("map_id", "")
-	_start_multiplayer(server_url, lobby_map)
+	var status: String = lobby.get("status", "waiting")
+	if status == "in_progress":
+		_set_status("Joined! Starting match...", Color.GREEN)
+		var server_url: String = lobby.get("server_url", "")
+		if server_url.is_empty():
+			server_url = "ws://127.0.0.1:3000"
+		var lobby_map: String = lobby.get("map_id", "")
+		var lobby_team_size: int = lobby.get("team_size", 1)
+		_start_multiplayer(server_url, lobby_map, lobby_team_size)
+	else:
+		# Lobby not full yet — enter waiting state.
+		_joined_lobby_id = lobby.get("id", "")
+		var current: int = lobby.get("current_players", 1)
+		var max_p: int = lobby.get("max_players", 2)
+		_set_status("Joined! Waiting for players (%d/%d)..." % [current, max_p], Color.GREEN)
+		_hosted_panel.visible = true
+		_hosted_name_label.text = lobby.get("match_name", "Game")
+		_waiting_base_text = "Waiting for players (%d/%d)" % [current, max_p]
+		_hosted_status_label.text = _waiting_base_text + "..."
+		_create_button.disabled = true
 
 
 func _on_lobby_error(msg: String) -> void:
@@ -477,6 +531,7 @@ func _on_lobby_error(msg: String) -> void:
 
 func _on_lobby_deleted() -> void:
 	_hosted_lobby_id = ""
+	_waiting_base_text = ""
 	_hosted_panel.visible = false
 	_create_button.disabled = false
 	_set_status("Game cancelled.", Color.WHITE)
@@ -484,6 +539,14 @@ func _on_lobby_deleted() -> void:
 
 
 func _on_cancel_hosted() -> void:
+	if not _joined_lobby_id.is_empty():
+		_joined_lobby_id = ""
+		_waiting_base_text = ""
+		_hosted_panel.visible = false
+		_create_button.disabled = false
+		_set_status("Left the lobby.", Color.WHITE)
+		_lobby_client.list_lobbies()
+		return
 	if _hosted_lobby_id.is_empty():
 		return
 	_lobby_client.delete_lobby(_hosted_lobby_id)
@@ -521,6 +584,9 @@ func _add_lobby_row(lobby: Dictionary) -> void:
 		if entry["id"] == lobby_map_id:
 			map_display = entry["display_name"]
 			break
+	var lobby_ts: int = lobby.get("team_size", 1)
+	if lobby_ts > 1:
+		map_display += " (%dv%d)" % [lobby_ts, lobby_ts]
 	var map_label_row := Label.new()
 	map_label_row.text = map_display
 	map_label_row.custom_minimum_size = Vector2(100, 0)
@@ -552,12 +618,13 @@ func _on_join_pressed(lobby_id: String) -> void:
 # Game transition
 # ─────────────────────────────────────────────────────────────────────────
 
-func _start_multiplayer(server_url: String, map_id: String = "") -> void:
+func _start_multiplayer(server_url: String, map_id: String = "", team_size: int = 1) -> void:
 	_refresh_timer.stop()
 	GameModeManager.set_mode(GameMode.LOCAL_MULTIPLAYER)
 	NetworkClient.disconnect_from_server()
 	NetworkClient.server_url = server_url
 	NetworkClient.selected_map_id = map_id
+	NetworkClient.selected_team_size = team_size
 	var connected := await NetworkClient.connect_and_wait()
 	if not connected:
 		_set_status("Could not connect to game server.", Color.RED)
@@ -569,6 +636,32 @@ func _start_multiplayer(server_url: String, map_id: String = "") -> void:
 # ─────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────
+
+func _populate_team_sizes() -> void:
+	_team_size_dropdown.clear()
+	var map_idx := _map_dropdown.selected
+	if map_idx < 0 or map_idx >= MapDataClass.MULTIPLAYER_MAPS.size():
+		_team_size_dropdown.add_item("1v1")
+		return
+	var sizes: Array = MapDataClass.MULTIPLAYER_MAPS[map_idx].get("supported_sizes", [1])
+	for s: int in sizes:
+		_team_size_dropdown.add_item("%dv%d" % [s, s])
+
+
+func _on_map_selected(_idx: int) -> void:
+	_populate_team_sizes()
+
+
+func _get_selected_team_size() -> int:
+	var map_idx := _map_dropdown.selected
+	if map_idx < 0 or map_idx >= MapDataClass.MULTIPLAYER_MAPS.size():
+		return 1
+	var sizes: Array = MapDataClass.MULTIPLAYER_MAPS[map_idx].get("supported_sizes", [1])
+	var size_idx := _team_size_dropdown.selected
+	if size_idx < 0 or size_idx >= sizes.size():
+		return 1
+	return sizes[size_idx]
+
 
 func _set_status(text: String, color: Color) -> void:
 	_status_label.text = text

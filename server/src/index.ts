@@ -17,14 +17,17 @@ import {
   getAssignedClients,
   getClient,
   getClientByUserId,
+  getTeamSize,
   parseSideName,
   registerClient,
   removeClient,
   requestSide,
   resetSides,
   setClientUserId,
+  setTeamSize,
+  sideCount,
 } from "./side_ownership";
-import { recordMatchResult, distributeCoPP, checkBan, setActiveMatch, clearActiveMatch } from "./supabase_client";
+import { recordMatchResult, recordPlayerResult, distributeCoPP, checkBan, setActiveMatch, clearActiveMatch } from "./supabase_client";
 import {
   MATCH_ID,
   sideToTeamId,
@@ -47,20 +50,19 @@ wireMatchCallbacks(match);
 
 /** Called by the match callback when a match ends. Records results in Supabase. */
 function handleMatchEnded(info: MatchEndedInfo): void {
-  // Find the user IDs for each team from side_ownership
-  let usaUserId: string | null = null;
-  let germanyUserId: string | null = null;
+  const usaUserIds: string[] = [];
+  const germanyUserIds: string[] = [];
 
   for (const [clientId, teamId] of info.clientTeams) {
     const record = getClient(clientId);
     if (!record?.userId) continue;
-    if (teamId === TEAM_USA) usaUserId = record.userId;
-    if (teamId === TEAM_GERMANY) germanyUserId = record.userId;
+    if (teamId === TEAM_USA) usaUserIds.push(record.userId);
+    if (teamId === TEAM_GERMANY) germanyUserIds.push(record.userId);
   }
 
-  if (!usaUserId || !germanyUserId) {
+  if (usaUserIds.length === 0 || germanyUserIds.length === 0) {
     console.log("[MatchEnd] Skipping result recording: missing authenticated player(s). USA=%s GERMANY=%s",
-      usaUserId ?? "(none)", germanyUserId ?? "(none)");
+      usaUserIds.join(",") || "(none)", germanyUserIds.join(",") || "(none)");
     return;
   }
 
@@ -71,43 +73,89 @@ function handleMatchEnded(info: MatchEndedInfo): void {
   const endCauseStr = info.endCause === END_CAUSE_FORFEIT ? "forfeit"
     : info.endCause === END_CAUSE_EXTERMINATION ? "extermination" : "time";
 
-  // PP was already calculated in match.ts and included in the info
   const usaPP = info.usaPPEarned;
   const germanyPP = info.germanyPPEarned;
+  const currentTeamSize = getTeamSize();
 
-  console.log("[MatchEnd] cause=%s winner=%d PP: USA=%d GERMANY=%d userIds: USA=%s GERMANY=%s",
-    endCauseStr, info.winner, usaPP, germanyPP, usaUserId, germanyUserId);
+  console.log("[MatchEnd] cause=%s winner=%d teamSize=%d PP: USA=%d GERMANY=%d userIds: USA=[%s] GERMANY=[%s]",
+    endCauseStr, info.winner, currentTeamSize, usaPP, germanyPP,
+    usaUserIds.join(","), germanyUserIds.join(","));
 
-  recordMatchResult({
-    matchId: info.matchId,
-    player1Id: usaUserId,
-    player1Team: "USA",
-    player1Won: usaWon,
-    player1Draw: isDraw,
-    player1Kill: info.usaKillPoints,
-    player1Terrain: info.usaTerrainPoints,
-    player1Total: info.usaTotalPoints,
-    player1Kills: info.usaKills,
-    player1Pp: usaPP,
-    player2Id: germanyUserId,
-    player2Team: "GERMANY",
-    player2Won: germanyWon,
-    player2Draw: isDraw,
-    player2Kill: info.germanyKillPoints,
-    player2Terrain: info.germanyTerrainPoints,
-    player2Total: info.germanyTotalPoints,
-    player2Kills: info.germanyKills,
-    player2Pp: germanyPP,
-    endCause: endCauseStr,
-  }).then(() => {
-    // Distribute CO PP after match results are recorded
-    return Promise.all([
-      distributeCoPP(info.matchId, usaUserId!, usaPP),
-      distributeCoPP(info.matchId, germanyUserId!, germanyPP),
-    ]);
-  }).catch((err) => {
-    console.error("[MatchEnd] Failed to record result:", err);
-  });
+  if (currentTeamSize <= 1 && usaUserIds.length === 1 && germanyUserIds.length === 1) {
+    // 1v1: use the existing paired RPC for backward compatibility.
+    recordMatchResult({
+      matchId: info.matchId,
+      player1Id: usaUserIds[0],
+      player1Team: "USA",
+      player1Won: usaWon,
+      player1Draw: isDraw,
+      player1Kill: info.usaKillPoints,
+      player1Terrain: info.usaTerrainPoints,
+      player1Total: info.usaTotalPoints,
+      player1Kills: info.usaKills,
+      player1Pp: usaPP,
+      player2Id: germanyUserIds[0],
+      player2Team: "GERMANY",
+      player2Won: germanyWon,
+      player2Draw: isDraw,
+      player2Kill: info.germanyKillPoints,
+      player2Terrain: info.germanyTerrainPoints,
+      player2Total: info.germanyTotalPoints,
+      player2Kills: info.germanyKills,
+      player2Pp: germanyPP,
+      endCause: endCauseStr,
+    }).then(() => {
+      return Promise.all([
+        distributeCoPP(info.matchId, usaUserIds[0], usaPP),
+        distributeCoPP(info.matchId, germanyUserIds[0], germanyPP),
+      ]);
+    }).catch((err) => {
+      console.error("[MatchEnd] Failed to record result:", err);
+    });
+  } else {
+    // Team game: record each player individually. Each player on a team
+    // gets the full team PP (kills and terrain are team-wide for now).
+    const promises: Promise<void>[] = [];
+    for (const uid of usaUserIds) {
+      const opponentId = germanyUserIds[0] ?? null;
+      promises.push(recordPlayerResult({
+        matchId: info.matchId,
+        playerId: uid,
+        team: "USA",
+        won: usaWon,
+        draw: isDraw,
+        kills: info.usaKills,
+        killPoints: info.usaKillPoints,
+        terrainPoints: info.usaTerrainPoints,
+        totalPoints: info.usaTotalPoints,
+        endCause: endCauseStr,
+        opponentId: opponentId,
+        pp: usaPP,
+      }));
+      promises.push(distributeCoPP(info.matchId, uid, usaPP));
+    }
+    for (const uid of germanyUserIds) {
+      const opponentId = usaUserIds[0] ?? null;
+      promises.push(recordPlayerResult({
+        matchId: info.matchId,
+        playerId: uid,
+        team: "GERMANY",
+        won: germanyWon,
+        draw: isDraw,
+        kills: info.germanyKills,
+        killPoints: info.germanyKillPoints,
+        terrainPoints: info.germanyTerrainPoints,
+        totalPoints: info.germanyTotalPoints,
+        endCause: endCauseStr,
+        opponentId: opponentId,
+        pp: germanyPP,
+      }));
+      promises.push(distributeCoPP(info.matchId, uid, germanyPP));
+    }
+    Promise.all(promises).catch((err) => {
+      console.error("[MatchEnd] Failed to record team result:", err);
+    });
+  }
 }
 
 /** Wire the match-ended callback on a fresh match instance. */
@@ -120,6 +168,7 @@ function ensureFreshMatch(): void {
   if (match.matchPhase === "ended") {
     console.log("Previous match ended, creating a fresh match.");
     resetSides();
+    setTeamSize(1);
     match = new LocalMatch();
     wireMatchCallbacks(match);
   }
@@ -216,6 +265,19 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       }
     }
 
+    // Team size: first client to connect with a teamSize sets it.
+    const requestedTeamSize = typeof message.teamSize === "number" ? message.teamSize : 0;
+    if (requestedTeamSize > 0 && match.matchPhase === "created") {
+      const supported = match.gameState.map.metadata.supportedTeamSizes;
+      if (supported.includes(requestedTeamSize)) {
+        setTeamSize(requestedTeamSize);
+        console.log("Team size set to %d by client request", requestedTeamSize);
+      } else {
+        console.log("Requested team size %d not supported by map %s (supported: %s)",
+          requestedTeamSize, match.gameState.map.mapId, supported.join(","));
+      }
+    }
+
     match.attachClient(clientId, ws);
     sendJson(ws, {
       type: "welcome",
@@ -223,6 +285,7 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       clientId,
       matchId: MATCH_ID,
       userId,
+      teamSize: getTeamSize(),
     });
     return;
   }
@@ -306,6 +369,9 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       side: result.side,
       matchId: MATCH_ID,
       teamId,
+      usaCount: sideCount("USA"),
+      germanyCount: sideCount("GERMANY"),
+      teamSize: getTeamSize(),
     });
 
     // Wait until both sides are assigned before starting.

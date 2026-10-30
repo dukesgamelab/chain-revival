@@ -5,9 +5,9 @@ const MAIN_SCENE := "res://scenes/main.tscn"
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 
-const _HINT_DEFAULT := "Choose your team. Each side can only be taken by one player."
+const _HINT_DEFAULT := "Choose your team."
 const _HINT_REQUESTING := "Requesting side from server..."
-const _HINT_DENIED := "That side is already taken. Choose the other team."
+const _HINT_DENIED := "That side is full. Choose the other team."
 
 @onready var _usa_button: Button = $Center/Panel/Margin/VBox/UsaButton
 @onready var _germany_button: Button = $Center/Panel/Margin/VBox/GermanyButton
@@ -21,7 +21,7 @@ func _ready() -> void:
 	PlayerSides.clear()
 	_usa_button.pressed.connect(_on_usa_pressed)
 	_germany_button.pressed.connect(_on_germany_pressed)
-	_hint.text = _HINT_DEFAULT
+	_update_hint_default()
 
 
 func _on_usa_pressed() -> void:
@@ -44,7 +44,11 @@ func _request_side(side_name: String) -> void:
 
 	# Wait until the server confirms both sides are filled.
 	if not NetworkClient.match_ready_received:
-		_hint.text = "Waiting for opponent to choose a side..."
+		var ts: int = NetworkClient.selected_team_size
+		if ts > 1:
+			_hint.text = "Waiting for all players to choose sides..."
+		else:
+			_hint.text = "Waiting for opponent to choose a side..."
 		await NetworkClient.match_ready
 
 	var cfg = MatchConfigClass.default_local_multiplayer_1v1()
@@ -56,3 +60,11 @@ func _request_side(side_name: String) -> void:
 func _set_buttons_enabled(enabled: bool) -> void:
 	_usa_button.disabled = not enabled
 	_germany_button.disabled = not enabled
+
+
+func _update_hint_default() -> void:
+	var ts: int = NetworkClient.selected_team_size
+	if ts > 1:
+		_hint.text = "Choose your team (%dv%d). Each side needs %d player(s)." % [ts, ts, ts]
+	else:
+		_hint.text = _HINT_DEFAULT

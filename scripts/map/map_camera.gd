@@ -72,7 +72,7 @@ func _process(delta: float) -> void:
 	if focused is LineEdit or focused is TextEdit:
 		return
 	var cmd_bar := get_node_or_null("/root/Main/UI/CommandBar") as Control
-	if cmd_bar != null and cmd_bar.get("admin_popup_open") == true:
+	if cmd_bar != null and (cmd_bar.get("admin_popup_open") == true or cmd_bar.get("_ignore_popup_open") == true):
 		return
 
 	var move := Vector2.ZERO

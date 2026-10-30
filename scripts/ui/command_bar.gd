@@ -41,6 +41,8 @@ var _chat_channel: String = ""
 var _chat_filter: String = ""
 var _chat_subscribed: bool = false
 var _ignore_list: Dictionary = {}  # user_id -> true
+var _chat_mode: String = ""  # "", "whisper", or "announce"
+var _recent_senders: Dictionary = {}  # user_id -> display_name
 
 var _selected_soldier_id: int = 1
 var _move_target_soldier_id: int = -1
@@ -484,15 +486,26 @@ func _setup_chat_panel() -> void:
 	# Wire up Whisper/Announce/Ignore buttons.
 	var whisper_btn := get_node_or_null("%WhisperButton") as Button
 	if whisper_btn != null:
-		whisper_btn.disabled = true  # Requires player list (Phase 16+)
+		if NetworkClient.selected_team_size > 1:
+			whisper_btn.disabled = false
+			whisper_btn.toggle_mode = true
+			whisper_btn.toggled.connect(_on_whisper_toggled)
+		else:
+			whisper_btn.disabled = true
 
 	var announce_btn := get_node_or_null("%AnnounceButton") as Button
 	if announce_btn != null:
-		announce_btn.disabled = true  # Team leader only, needs team sizes (Phase 18)
+		if NetworkClient.selected_team_size > 1:
+			announce_btn.disabled = false
+			announce_btn.toggle_mode = true
+			announce_btn.toggled.connect(_on_announce_toggled)
+		else:
+			announce_btn.disabled = true
 
 	var ignore_btn := get_node_or_null("%IgnoreButton") as Button
 	if ignore_btn != null:
-		ignore_btn.disabled = true  # Requires player list (Phase 16+)
+		ignore_btn.disabled = false
+		ignore_btn.pressed.connect(_on_ignore_pressed)
 
 	# Set up HTTP for sending messages (receiving uses Realtime).
 	_chat_http_send = HTTPRequest.new()
@@ -557,6 +570,10 @@ func _on_chat_input_submitted(_text: String = "") -> void:
 		return
 	chat_input.text = ""
 	chat_input.grab_focus()
+	if _chat_mode == "announce":
+		msg = "[ANNOUNCE] " + msg
+	elif _chat_mode == "whisper":
+		msg = "[WHISPER] " + msg
 	_chat_send_message(msg)
 	_echo_local_message(msg)
 
@@ -612,6 +629,11 @@ func _on_chat_realtime_message(record: Dictionary) -> void:
 
 	var sender_id := str(record.get("user_id", ""))
 
+	# Track senders for the Ignore popup.
+	if sender_id != SupabaseAuth.user_id:
+		var sender_name: String = record.get("display_name", "???")
+		_recent_senders[sender_id] = sender_name
+
 	# Skip own messages (already echoed locally) and ignored players.
 	if sender_id == SupabaseAuth.user_id:
 		return
@@ -642,6 +664,81 @@ func cleanup_chat() -> void:
 	if _chat_subscribed:
 		_chat_subscribed = false
 		SupabaseRealtime.unsubscribe("chat_messages", _chat_filter, _on_chat_realtime_message)
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Whisper / Announce / Ignore
+# ─────────────────────────────────────────────────────────────────────────
+
+func _on_whisper_toggled(pressed: bool) -> void:
+	if pressed:
+		_chat_mode = "whisper"
+		var announce_btn := get_node_or_null("%AnnounceButton") as Button
+		if announce_btn != null:
+			announce_btn.set_pressed_no_signal(false)
+	else:
+		_chat_mode = ""
+
+
+func _on_announce_toggled(pressed: bool) -> void:
+	if pressed:
+		_chat_mode = "announce"
+		var whisper_btn := get_node_or_null("%WhisperButton") as Button
+		if whisper_btn != null:
+			whisper_btn.set_pressed_no_signal(false)
+	else:
+		_chat_mode = ""
+
+
+var _ignore_popup: AcceptDialog = null
+var _ignore_popup_open: bool = false
+
+func _on_ignore_pressed() -> void:
+	if _ignore_popup != null and is_instance_valid(_ignore_popup):
+		_ignore_popup.queue_free()
+	_ignore_popup = AcceptDialog.new()
+	_ignore_popup.title = "Ignore Players"
+	_ignore_popup.ok_button_text = "Close"
+	_ignore_popup.min_size = Vector2i(300, 200)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+
+	if _recent_senders.is_empty():
+		var lbl := Label.new()
+		lbl.text = "No players to ignore yet."
+		vbox.add_child(lbl)
+	else:
+		for uid: String in _recent_senders:
+			var sender_name: String = _recent_senders[uid]
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override("separation", 8)
+			var name_lbl := Label.new()
+			name_lbl.text = sender_name
+			name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(name_lbl)
+			var btn := Button.new()
+			btn.text = "Unignore" if _ignore_list.has(uid) else "Ignore"
+			btn.custom_minimum_size = Vector2(80, 24)
+			btn.pressed.connect(_toggle_ignore.bind(uid, btn))
+			row.add_child(btn)
+			vbox.add_child(row)
+
+	_ignore_popup.add_child(vbox)
+	_ignore_popup.confirmed.connect(func(): _ignore_popup_open = false)
+	_ignore_popup.canceled.connect(func(): _ignore_popup_open = false)
+	add_child(_ignore_popup)
+	_ignore_popup.popup_centered()
+	_ignore_popup_open = true
+
+
+func _toggle_ignore(uid: String, btn: Button) -> void:
+	if _ignore_list.has(uid):
+		_ignore_list.erase(uid)
+		btn.text = "Ignore"
+	else:
+		_ignore_list[uid] = true
+		btn.text = "Unignore"
 
 
 func _chat_format_time(iso_timestamp: String) -> String:
