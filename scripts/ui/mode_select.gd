@@ -18,6 +18,7 @@ const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd
 @onready var _offline_quick_button: Button = $Center/Panel/Margin/VBox/DevBox/OfflineQuickButton
 @onready var _offline_quick_ai_button: Button = $Center/Panel/Margin/VBox/DevBox/OfflineQuickAiButton
 @onready var _survival_mode_button: Button = $Center/Panel/Margin/VBox/SurvivalModeButton
+@onready var _tutorial_button: Button = $Center/Panel/Margin/VBox/TutorialButton
 @onready var _how_to_play_button: Button = $Center/Panel/Margin/VBox/HowToPlayButton
 @onready var _editor_button: Button = $Center/Panel/Margin/VBox/DevBox/EditorButton
 @onready var _asset_anim_button: Button = $Center/Panel/Margin/VBox/DevBox/AssetAnimEditorButton
@@ -34,6 +35,7 @@ func _ready() -> void:
 	_offline_quick_button.pressed.connect(_on_offline_quick_pressed)
 	_offline_quick_ai_button.pressed.connect(_on_offline_quick_ai_pressed)
 	_survival_mode_button.pressed.connect(_on_survival_mode_pressed)
+	_tutorial_button.pressed.connect(_on_tutorial_pressed)
 	_how_to_play_button.pressed.connect(_on_how_to_play_pressed)
 	_editor_button.pressed.connect(_on_editor_pressed)
 	_asset_anim_button.pressed.connect(_on_asset_anim_editor_pressed)
@@ -127,6 +129,8 @@ func _apply_survival_playtest_menu() -> void:
 	## Stay on this menu. Survival is the only playable mode.
 	if _single_player_button != null:
 		_single_player_button.visible = false
+	if _tutorial_button != null:
+		_tutorial_button.visible = false
 	if _multiplayer_button != null:
 		_multiplayer_button.visible = false
 	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
@@ -204,6 +208,13 @@ func _on_survival_mode_pressed() -> void:
 	PlayerSides.clear()
 	GameModeManager.set_mode(GameMode.OFFLINE_DEV)
 	MatchConfigStoreClass.set_pending(MatchConfigClass.default_survival_1v_all())
+	get_tree().change_scene_to_file(MAIN_SCENE)
+
+
+func _on_tutorial_pressed() -> void:
+	PlayerSides.clear()
+	GameModeManager.set_mode(GameMode.OFFLINE_DEV)
+	MatchConfigStoreClass.set_pending(MatchConfigClass.default_tutorial())
 	get_tree().change_scene_to_file(MAIN_SCENE)
 
 
@@ -379,6 +390,8 @@ func _set_buttons_enabled(enabled: bool) -> void:
 	_offline_quick_button.disabled = not enabled
 	_offline_quick_ai_button.disabled = not enabled
 	_survival_mode_button.disabled = not enabled
+	if _tutorial_button != null:
+		_tutorial_button.disabled = not enabled
 	if _how_to_play_button != null:
 		_how_to_play_button.disabled = not enabled
 	_editor_button.disabled = not enabled

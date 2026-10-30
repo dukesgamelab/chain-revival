@@ -311,6 +311,18 @@ func set_soldier_row_interactive(row_index: int, enabled: bool) -> void:
 	_rows[row_index].set_row_enabled(enabled)
 
 
+func apply_tutorial_button_mask(row_index: int, mask: Dictionary) -> void:
+	if row_index < 0 or row_index >= _rows.size():
+		return
+	_rows[row_index].set_button_mask(mask)
+
+
+func set_squad_row_enabled(enabled: bool) -> void:
+	for child in _squad_row.get_children():
+		if child is Button:
+			child.disabled = not enabled
+
+
 func update_hit_columns(hit_pcts: Array) -> void:
 	for i in range(min(_rows.size(), hit_pcts.size())):
 		_rows[i].set_hit_pct(float(hit_pcts[i]))

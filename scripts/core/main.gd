@@ -38,6 +38,10 @@ const ScenarioEndCauseClass := preload("res://scripts/enums/scenario_end_cause.g
 const ScenarioWinnerClass := preload("res://scripts/enums/scenario_winner.gd")
 const MissionDebriefDialogClass := preload("res://scripts/ui/mission_debrief_dialog.gd")
 const SurvivalDifficultyDialogClass := preload("res://scripts/ui/survival_difficulty_dialog.gd")
+const TutorialControllerClass := preload("res://scripts/core/tutorial_controller.gd")
+const TutorialOverlayClass := preload("res://scripts/ui/tutorial_overlay.gd")
+const TutorialWelcomeDialogClass := preload("res://scripts/ui/tutorial_welcome_dialog.gd")
+const TutorialCompleteDialogClass := preload("res://scripts/ui/tutorial_complete_dialog.gd")
 const AuthoritativeSyncClass := preload("res://scripts/network/authoritative_sync.gd")
 
 @onready var _world: MapWorldView = $World
@@ -89,6 +93,8 @@ var _last_scenario_hud_sec: int = -1
 var _grass_layer_visible: bool = true
 var _ai_framework: AiCommanderFrameworkClass = null
 var _survival_mode: SurvivalModeControllerClass = null
+var _tutorial_controller: TutorialControllerClass = null
+var _tutorial_overlay: TutorialOverlayClass = null
 var _fire_at_preview_accum_sec: float = 0.0
 var _fire_at_hit_accum_sec: float = 0.0
 var _last_fire_at_preview_cell: Vector2i = Vector2i(-999999, -999999)
@@ -190,6 +196,14 @@ func _ready() -> void:
 		_configure_survival_ge_commanders()
 		_refresh_survival_hud()
 		_command_bar.show_status("Survival Mode: choose a difficulty to begin waves.")
+	elif _is_tutorial_mode():
+		_tutorial_controller = TutorialControllerClass.new()
+		_tutorial_controller.reset()
+		_game_state.begin_running_phase()
+		_on_timed_deployment_finished()
+		_configure_tutorial_ge_commanders()
+		_setup_tutorial_overlay()
+		_command_bar.set_squad_row_enabled(false)
 	else:
 		_ensure_command_dialog()
 	## Let the first heavy draw frames finish while the overlay still covers them.
@@ -200,6 +214,8 @@ func _ready() -> void:
 	_hide_loading_overlay()
 	if _is_survival_mode():
 		call_deferred("_open_survival_difficulty_dialog")
+	elif _is_tutorial_mode():
+		call_deferred("_open_tutorial_welcome_dialog")
 	else:
 		call_deferred("_open_command_dialog_for_deployment")
 
@@ -588,6 +604,7 @@ func _step_simulation_tick(skip_ai: bool = false) -> void:
 				_last_scenario_hud_sec = rem_i
 				_refresh_scenario_hud()
 			_tick_survival_mode()
+			_tick_tutorial_mode()
 
 	## Warm dirty perception pairs every sim tick (budgeted; combat scan flushes).
 	if _game_state != null and not _game_state.is_deployment_phase() and not _game_state.is_ended_phase():
@@ -1427,6 +1444,8 @@ func _init_session_from_spawns() -> void:
 	_game_state = _session.create_game_state(_map_data)
 	if match_cfg.is_survival_1v_all():
 		_game_state.survival_mode = true
+	if match_cfg.is_tutorial():
+		_game_state.tutorial_mode = true
 	VictoryPointSystem.ensure_holders_initialized(_map_data)
 	ActionResolverClass.apply_match_start_setup(_game_state)
 	if match_cfg.is_survival_1v_all():
@@ -1622,6 +1641,8 @@ func _vp_holder_summary() -> String:
 
 func _on_scenario_ended() -> void:
 	if _game_state == null:
+		return
+	if _is_tutorial_mode():
 		return
 	_refresh_scenario_hud()
 	var cause_text := ScenarioEndCauseClass.display_name(_game_state.end_cause)
@@ -1855,6 +1876,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _switch_active_team(team_id: int) -> void:
+	if _is_tutorial_mode():
+		_command_bar.show_status("Team switching is disabled during the tutorial.")
+		return
 	if not PlayerSides.can_control_team(team_id):
 		_command_bar.show_status(
 			"You control %s only." % PlayerSides.display_side_name()
@@ -2007,6 +2031,10 @@ func _is_survival_mode() -> bool:
 	return _game_state != null and _game_state.survival_mode
 
 
+func _is_tutorial_mode() -> bool:
+	return _game_state != null and _game_state.tutorial_mode
+
+
 func _apply_survival_camera_rotation() -> void:
 	## Survival uses the map default, then two extra quarter-turns vs other modes.
 	IsometricGrid.rotate_view_right()
@@ -2057,6 +2085,109 @@ func _configure_survival_ge_commanders() -> void:
 		if _game_state.command_hierarchy.get_team_id(player_id) != Team.GERMANY:
 			continue
 		_enable_survival_ai_commander(player_id)
+
+
+## ─── Tutorial Mode ──────────────────────────────────────────────────────────
+
+
+func _setup_tutorial_overlay() -> void:
+	_tutorial_overlay = TutorialOverlayClass.new()
+	_tutorial_overlay.skip_requested.connect(_on_tutorial_skip)
+	$UI.add_child(_tutorial_overlay)
+	_tutorial_overlay.set_visible_overlay(false)
+	_tutorial_controller.step_changed.connect(_on_tutorial_step_changed)
+	_tutorial_controller.tutorial_completed.connect(_on_tutorial_completed)
+
+
+func _open_tutorial_welcome_dialog() -> void:
+	var dialog := TutorialWelcomeDialogClass.new()
+	dialog.tutorial_started.connect(_on_tutorial_started)
+	$UI.add_child(dialog)
+	dialog.popup_centered()
+
+
+func _on_tutorial_started() -> void:
+	_tutorial_controller.advance()
+	## Soldier 1 is already selected by default — skip SELECT_SOLDIER automatically.
+	_tutorial_controller.notify_soldier_selected(TutorialControllerClass.TUTORIAL_SOLDIER_ID)
+	if _tutorial_overlay != null:
+		_tutorial_overlay.set_visible_overlay(true)
+		_tutorial_overlay.update_step(
+			_tutorial_controller.current_step,
+			TutorialControllerClass.STEP_COUNT,
+			_tutorial_controller.step_instruction(),
+		)
+	_apply_tutorial_button_mask()
+
+
+func _on_tutorial_skip() -> void:
+	_return_to_mode_select()
+
+
+func _on_tutorial_step_changed(new_step: int) -> void:
+	if _tutorial_overlay != null:
+		_tutorial_overlay.update_step(
+			new_step,
+			TutorialControllerClass.STEP_COUNT,
+			_tutorial_controller.step_instruction(),
+		)
+	_apply_tutorial_button_mask()
+
+
+func _on_tutorial_completed() -> void:
+	if _tutorial_overlay != null:
+		_tutorial_overlay.set_visible_overlay(false)
+	_open_tutorial_complete_dialog()
+
+
+func _open_tutorial_complete_dialog() -> void:
+	var dialog := TutorialCompleteDialogClass.new()
+	dialog.finished.connect(_return_to_mode_select)
+	$UI.add_child(dialog)
+	dialog.popup_centered()
+
+
+func _return_to_mode_select() -> void:
+	if _command_bar != null:
+		_command_bar.cleanup_chat()
+	get_tree().call_deferred("change_scene_to_file", "res://scenes/mode_select.tscn")
+
+
+func _apply_tutorial_button_mask() -> void:
+	if _tutorial_controller == null:
+		return
+	var mask: Dictionary = _tutorial_controller.allowed_buttons()
+	var fireteam: Fireteam = _control_fireteam()
+	for i in range(fireteam.soldiers.size()):
+		var soldier_state: SoldierState = fireteam.soldiers[i]
+		if soldier_state.soldier_id == TutorialControllerClass.TUTORIAL_SOLDIER_ID:
+			_command_bar.apply_tutorial_button_mask(i, mask)
+		else:
+			_command_bar.apply_tutorial_button_mask(i, {})
+
+
+func _configure_tutorial_ge_commanders() -> void:
+	if _ai_framework == null or _game_state == null or _game_state.command_hierarchy == null:
+		return
+	for pid in _game_state.command_hierarchy.all_player_ids():
+		var player_id := int(pid)
+		if not _game_state.command_hierarchy.is_ai_player(player_id):
+			continue
+		if _game_state.command_hierarchy.get_team_id(player_id) != Team.GERMANY:
+			continue
+		_ai_framework.enable_commander(player_id)
+		var commander = _ai_framework.get_commander(player_id)
+		if commander != null:
+			commander.aggression = 0.5
+			commander.request_replan("tutorial_defend")
+
+
+func _tick_tutorial_mode() -> void:
+	if _tutorial_controller == null or _game_state == null or _session == null:
+		return
+	if _game_state.scenario_ended or _game_state.is_deployment_phase():
+		return
+	_tutorial_controller.process_tick(_game_state, _session)
 
 
 func _refresh_all_views() -> void:
@@ -2350,6 +2481,7 @@ func _refresh_command_bar() -> void:
 			i,
 			owned and soldier_state.is_alive(),
 		)
+	_apply_tutorial_button_mask()
 
 
 ## Combat-scan path: ammo/stress/status only — skip expensive hit% LOS unless needed.
@@ -2368,6 +2500,7 @@ func _refresh_command_bar_light() -> void:
 			i,
 			owned and soldier_state.is_alive(),
 		)
+	_apply_tutorial_button_mask()
 
 
 func _update_command_bar_hit_columns() -> void:
@@ -2582,6 +2715,8 @@ func _on_soldier_selected(soldier_id: int) -> void:
 		return
 	_control_fireteam().select_soldier(soldier_id)
 	_refresh_all_views()
+	if _tutorial_controller != null:
+		_tutorial_controller.notify_soldier_selected(soldier_id)
 
 
 ## Apply ActionResult to views, overlays, and status (presentation only).
@@ -2902,6 +3037,8 @@ func _apply_grenade_command(target_cell: Vector2i) -> void:
 		_make_grenade_context(soldier_state),
 	)
 	_present_action_result(result)
+	if result.success and _tutorial_controller != null:
+		_tutorial_controller.notify_grenade_command(cmd.soldier_id)
 
 
 func _apply_squad_grenade_command(target_cell: Vector2i) -> void:
@@ -2996,6 +3133,8 @@ func _apply_move_command(cmd: MoveCommand) -> void:
 		var soldier_state: SoldierState = _game_state.get_soldier(order.team_id, order.soldier_id)
 		_log_move_order(cmd.target_cell, order.path, soldier_state)
 	_present_action_result(result)
+	if result.success and _tutorial_controller != null:
+		_tutorial_controller.notify_move_command(cmd.soldier_id, cmd.movement_mode)
 
 
 func _on_network_move_result(result: ActionResultClass, _request_id: String) -> void:
@@ -3202,6 +3341,8 @@ func _apply_face_command(cmd: FaceCommand) -> void:
 	var result: ActionResultClass = CommandRouter.submit_command(_game_state, cmd)
 	if result.success:
 		_sync_face_soldier_views()
+		if _tutorial_controller != null:
+			_tutorial_controller.notify_face_command(cmd.soldier_id)
 	_present_action_result(result)
 
 
@@ -3263,6 +3404,8 @@ func _apply_face_at_tile(target_cell: Vector2i, aim_world: Vector2) -> void:
 			_face_manual_aim_world = aim_world
 		if GameModeManager.is_local_multiplayer():
 			_sync_face_soldier_views()
+		if _tutorial_controller != null:
+			_tutorial_controller.notify_face_command(face_cmd.soldier_id)
 
 
 func _apply_face_enemy_fire(aim_world: Vector2, clicked_soldier: SoldierState) -> void:
@@ -3295,6 +3438,8 @@ func _apply_face_enemy_fire(aim_world: Vector2, clicked_soldier: SoldierState) -
 		_face_manual_aim_cell = clicked_soldier.grid_position
 		_face_manual_aim_world = aim_world
 		_sync_face_soldier_views()
+		if _tutorial_controller != null:
+			_tutorial_controller.notify_face_command(face_cmd.soldier_id)
 
 	var fire_shooters: Array[SoldierState] = []
 	for soldier_state in soldiers:
@@ -3367,6 +3512,8 @@ func _apply_position_command(cmd: PositionCommand) -> void:
 			_move_targeting = false
 			_squad_move_targeting = false
 	_present_action_result(result)
+	if result.success and _tutorial_controller != null:
+		_tutorial_controller.notify_position_changed(cmd.soldier_id, cmd.position_state)
 
 
 func _on_fire_control_change_requested(soldier_id: int, fire_control_state: int) -> void:
@@ -3444,6 +3591,8 @@ func _apply_fire_control_command(cmd: FireControlCommandClass) -> void:
 		return
 	var result: ActionResultClass = CommandRouter.submit_command(_game_state, cmd)
 	_present_action_result(result)
+	if result.success and _tutorial_controller != null:
+		_tutorial_controller.notify_fire_control_changed(cmd.soldier_id, cmd.fire_control_state)
 
 
 func _on_position_change_requested(soldier_id: int, position_state: int) -> void:
@@ -3594,6 +3743,8 @@ func _apply_fire_at_aim(
 		_keep_fire_at_targeting()
 		if not result.status_message.is_empty():
 			_command_bar.show_status(result.status_message)
+		if _tutorial_controller != null:
+			_tutorial_controller.notify_fire_at_command(cmd.soldier_id)
 
 
 func _keep_fire_at_targeting() -> void:
@@ -3635,6 +3786,8 @@ func _finalize_shot_result(
 		if target != null:
 			_spawn_shot_tracers(shooter, target, maxi(result.tracer_count, 1))
 			result.messages.append("Tracer created")
+		if _tutorial_controller != null and shooter != null:
+			_tutorial_controller.notify_soldier_fired(shooter.soldier_id)
 
 	if result.killed and target != null:
 		var threat_step := shooter.grid_position - target.grid_position

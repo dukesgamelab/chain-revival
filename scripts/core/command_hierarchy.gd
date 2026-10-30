@@ -136,7 +136,7 @@ func register_player(
 ## AI players occupy slots so hierarchy works offline â€" not gated on multiplayer.
 func bootstrap_default_match() -> void:
 	clear()
-	register_player("YOU", 3, Team.USA, false, [1, 2, 3, 4] as Array[int])
+	register_player("YOU", maxi(SupabaseAuth.rank, 3), Team.USA, false, [1, 2, 3, 4] as Array[int])
 	register_player("FTD", 1, Team.USA, true, [5, 6, 7, 8] as Array[int])
 	register_player("HANS", 3, Team.GERMANY, true, [1, 2, 3, 4] as Array[int])
 	register_player("FRITZ", 1, Team.GERMANY, true, [5, 6, 7, 8] as Array[int])
@@ -187,8 +187,10 @@ func bootstrap_from_session(session) -> void:
 		var soldier_ids: Array[int] = []
 		for state in ft.soldiers:
 			soldier_ids.append(int(state.soldier_id))
-		## Lead slot on a side starts higher rank so they can command allied AI fireteams.
+		## Human players use their profile rank; AI slots use slot-based defaults.
 		var rank := 3 if slot_index == 0 else 1
+		if not is_ai and player_id == local_id:
+			rank = maxi(SupabaseAuth.rank, rank)
 		register_player(display_name, rank, team_id, is_ai, soldier_ids, player_id)
 		if is_ai:
 			var selected_plan := AiPlanClass.normalize_id(selected_from_config)

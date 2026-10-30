@@ -2043,4 +2043,3 @@ static func execute_adjust_ammo(
 	return result.set_status(
 		"Soldier %d ammo: %d" % [cmd.soldier_id, soldier.ammo_current]
 	)
-

@@ -210,6 +210,17 @@ func apply_coc_inset_wells(inset: StyleBox) -> void:
 			panel.add_theme_stylebox_override("panel", inset)
 
 
+func set_button_mask(mask: Dictionary) -> void:
+	_run_to_button.disabled = not bool(mask.get("run_to", false))
+	_crawl_to_button.disabled = not bool(mask.get("crawl_to", false))
+	_fire_at_button.disabled = not bool(mask.get("fire_at", false))
+	_face_button.disabled = not bool(mask.get("face", false))
+	_position_button.disabled = not bool(mask.get("position", false))
+	_grenade_button.disabled = not bool(mask.get("grenade", false))
+	_fire_at_will_button.disabled = not bool(mask.get("fire_at_will", false))
+	_hold_fire_button.disabled = not bool(mask.get("hold_fire", false))
+
+
 func set_move_button_enabled(movement_mode: int, enabled: bool) -> void:
 	var button: Button = _move_buttons.get(movement_mode) as Button
 	if button == null:

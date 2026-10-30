@@ -7,7 +7,7 @@ const AiPlanClass := preload("res://scripts/ai/ai_plan.gd")
 
 enum GameModeKind { SINGLE_PLAYER, MULTIPLAYER }
 enum MatchType { ONE_V_ONE, TWO_V_TWO }
-enum MatchScenario { STANDARD, SURVIVAL_1V_ALL }
+enum MatchScenario { STANDARD, SURVIVAL_1V_ALL, TUTORIAL }
 enum ControllerType { HUMAN, AI, OPEN }
 
 const MAP_FARM_FIGHT := "ff_farm"
@@ -113,6 +113,20 @@ static func default_survival_1v_all() -> RefCounted:
 
 func is_survival_1v_all() -> bool:
 	return scenario == MatchScenario.SURVIVAL_1V_ALL
+
+
+func is_tutorial() -> bool:
+	return scenario == MatchScenario.TUTORIAL
+
+
+static func default_tutorial() -> RefCounted:
+	## Tutorial: guided training on Farm Fight. USA human vs Germany AI (Defend).
+	var cfg = new(GameModeKind.SINGLE_PLAYER, MatchType.ONE_V_ONE)
+	cfg.scenario = MatchScenario.TUTORIAL
+	cfg.map_id = MAP_FARM_FIGHT
+	cfg.local_player_id = 1
+	cfg.timed_deployment = false
+	return cfg
 
 
 func rebuild_default_slots() -> void:

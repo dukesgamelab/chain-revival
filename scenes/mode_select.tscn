@@ -68,6 +68,11 @@ custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
 text = "Survival Mode: 1 v All"
 
+[node name="TutorialButton" type="Button" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(320, 48)
+layout_mode = 2
+text = "Tutorial"
+
 [node name="HowToPlayButton" type="Button" parent="Center/Panel/Margin/VBox"]
 custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
