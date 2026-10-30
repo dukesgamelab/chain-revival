@@ -95,6 +95,8 @@ export class GameState {
       type: "match_snapshot",
       matchId: this.matchId,
       mapId: this.map.mapId,
+      mapDisplayName: this.map.metadata.displayName,
+      supportedTeamSizes: this.map.metadata.supportedTeamSizes,
       simMsec: this.clock.getTicksMsec(),
       tickId: this.clock.getTickId(),
       simRunning: this.clock.isRunning(),

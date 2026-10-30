@@ -23,6 +23,7 @@ var _http_chat_fetch: HTTPRequest
 ## Stashed create args while we clean up old lobbies first.
 var _pending_match_name: String = ""
 var _pending_server_url: String = ""
+var _pending_map_id: String = "ff_farm"
 
 
 func _ready() -> void:
@@ -49,11 +50,12 @@ func list_lobbies() -> void:
 
 
 ## Create a new lobby. First deletes any existing lobbies by this host.
-func create_lobby(match_name: String, server_url: String = "") -> void:
+func create_lobby(match_name: String, server_url: String = "", map_id: String = "ff_farm") -> void:
 	if not _check_auth():
 		return
 	_pending_match_name = match_name
 	_pending_server_url = server_url
+	_pending_map_id = map_id
 	# Delete any stale lobbies by this host first.
 	var url := "%s/rest/v1/lobbies?host_id=eq.%s" % [SupabaseAuth.SUPABASE_URL, SupabaseAuth.user_id]
 	_http_cleanup.request(url, _bearer_headers(), HTTPClient.METHOD_DELETE)
@@ -168,6 +170,8 @@ func _on_cleanup_response(_result: int, _response_code: int, _headers: PackedStr
 	}
 	if not _pending_server_url.is_empty():
 		payload["server_url"] = _pending_server_url
+	if not _pending_map_id.is_empty():
+		payload["map_id"] = _pending_map_id
 	var body := JSON.stringify(payload)
 	var headers := _bearer_headers_prefer_return()
 	var url := "%s/rest/v1/lobbies" % SupabaseAuth.SUPABASE_URL

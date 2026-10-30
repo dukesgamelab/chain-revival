@@ -20,6 +20,13 @@ import {
 } from "./map_objects";
 import { type Vec2i, vec, vecKey } from "./types";
 
+export interface MapMetadata {
+  displayName: string;
+  description: string;
+  supportedTeamSizes: number[];
+  soldiersPerPlayer: number;
+}
+
 export interface TileGameplay {
   typeId: string;
   family: string;
@@ -36,6 +43,7 @@ export class MapData {
   readonly height: number;
   readonly team1Spawns: Vec2i[];
   readonly team2Spawns: Vec2i[];
+  readonly metadata: MapMetadata;
   readonly victoryPoints: Array<{
     x: number;
     y: number;
@@ -61,6 +69,7 @@ export class MapData {
     this.height = height;
     this.team1Spawns = team1Spawns;
     this.team2Spawns = team2Spawns;
+    this.metadata = { displayName: mapId, description: "", supportedTeamSizes: [1], soldiersPerPlayer: 4 };
     this.victoryPoints = [];
     for (const cell of blockedTiles) {
       this.blocked.add(vecKey(cell));
@@ -88,6 +97,19 @@ export class MapData {
     const team1 = cellsFromJson(raw.team_1_spawn_points);
     const team2 = cellsFromJson(raw.team_2_spawn_points);
     const map = new MapData(mapId, width, height, blockedTiles, team1, team2);
+    // Parse metadata from map JSON.
+    const meta = raw.metadata;
+    if (typeof meta === "object" && meta !== null) {
+      const m = meta as Record<string, unknown>;
+      map.metadata.displayName = String(m.display_name ?? mapId);
+      map.metadata.description = String(m.description ?? "");
+      if (Array.isArray(m.supported_team_sizes)) {
+        map.metadata.supportedTeamSizes = m.supported_team_sizes.map(Number);
+      }
+      if (m.soldiers_per_player !== undefined) {
+        map.metadata.soldiersPerPlayer = Number(m.soldiers_per_player);
+      }
+    }
     // Parse victory points from map JSON.
     const vpRaw = raw.victory_points;
     if (Array.isArray(vpRaw)) {

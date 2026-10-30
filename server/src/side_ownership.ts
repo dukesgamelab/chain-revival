@@ -46,7 +46,9 @@ export function removeClient(clientId: string): void {
 export function resetSides(): void {
   sideOwners.USA = null;
   sideOwners.GERMANY = null;
-  clients.clear();
+  for (const [, record] of clients) {
+    record.assignedSide = null;
+  }
 }
 
 export function parseSideName(value: unknown): SideName | null {

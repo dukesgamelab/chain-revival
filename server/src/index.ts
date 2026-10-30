@@ -38,32 +38,8 @@ import {
   WINNER_DRAW,
   END_CAUSE_TIME_GONE,
   END_CAUSE_EXTERMINATION,
+  END_CAUSE_FORFEIT,
 } from "./scenario_rules";
-
-// -- Prestige Points constants (Phase 13) --
-const PP_WIN_BONUS   = 100;
-const PP_DRAW_BONUS  = 40;
-const PP_PER_KILL    = 4;   // matches client KILL_POINTS * GPP_TO_PP
-const PP_PER_TERRAIN = 1;   // matches client SPEC_AREA_POINTS
-
-// Rank thresholds: cumulative PP required to reach each rank (index = rank)
-const RANK_THRESHOLDS = [0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500];
-
-function calculatePP(won: boolean, draw: boolean, kills: number, terrainPoints: number): number {
-  let pp = 0;
-  if (won)       pp += PP_WIN_BONUS;
-  else if (draw) pp += PP_DRAW_BONUS;
-  pp += kills * PP_PER_KILL;
-  pp += terrainPoints * PP_PER_TERRAIN;
-  return pp;
-}
-
-function rankFromPP(totalPP: number): number {
-  for (let r = RANK_THRESHOLDS.length - 1; r >= 0; r--) {
-    if (totalPP >= RANK_THRESHOLDS[r]) return r;
-  }
-  return 0;
-}
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 let match = new LocalMatch();
@@ -92,13 +68,15 @@ function handleMatchEnded(info: MatchEndedInfo): void {
   const usaWon = info.winner === WINNER_USA;
   const germanyWon = info.winner === WINNER_GERMANY;
 
-  const endCauseStr = info.endCause === END_CAUSE_EXTERMINATION ? "extermination" : "time";
+  const endCauseStr = info.endCause === END_CAUSE_FORFEIT ? "forfeit"
+    : info.endCause === END_CAUSE_EXTERMINATION ? "extermination" : "time";
 
   // PP was already calculated in match.ts and included in the info
   const usaPP = info.usaPPEarned;
   const germanyPP = info.germanyPPEarned;
 
-  console.log("[MatchEnd] PP awarded: USA=%d GERMANY=%d", usaPP, germanyPP);
+  console.log("[MatchEnd] cause=%s winner=%d PP: USA=%d GERMANY=%d userIds: USA=%s GERMANY=%s",
+    endCauseStr, info.winner, usaPP, germanyPP, usaUserId, germanyUserId);
 
   recordMatchResult({
     matchId: info.matchId,
@@ -226,6 +204,18 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       }
     }
 
+    const requestedMap = typeof message.mapId === "string" ? message.mapId : "";
+    if (requestedMap !== "" && match.matchPhase === "created" && requestedMap !== match.gameState.map.mapId) {
+      try {
+        resetSides();
+        match = new LocalMatch(requestedMap);
+        wireMatchCallbacks(match);
+        console.log("Map changed to %s by client request", requestedMap);
+      } catch (err) {
+        console.error("Failed to load requested map %s, keeping %s: %s", requestedMap, match.gameState.map.mapId, (err as Error).message);
+      }
+    }
+
     match.attachClient(clientId, ws);
     sendJson(ws, {
       type: "welcome",
@@ -270,9 +260,16 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     console.log("%s %s kicking player %s: %s", kickerRole, record.userId, targetUserId, kickReason);
     sendJson(target.ws, { type: "kicked", reason: kickReason });
 
-    // Capture side and refs before removing so we can trigger forfeit
+    // Trigger forfeit BEFORE removing records so handleMatchEnded can look up
+    // both players' userIds for PP recording.
     const kickedSide = target.assignedSide;
     const kickedWs = target.ws;
+    if (kickedSide !== null && match.matchPhase === "running") {
+      const kickedTeamId = sideToTeamId(kickedSide);
+      console.log("Kicked player was on %s, ending match as forfeit.", kickedSide);
+      match.forceEndMatchForfeit(kickedTeamId);
+    }
+    // Now clean up
     if (target.userId) {
       clearActiveMatch(target.userId);
       adminUserIds.delete(target.userId);
@@ -283,13 +280,6 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
 
     // Delay socket close to let the kicked message arrive before the close frame
     setTimeout(() => { kickedWs.close(); }, 500);
-
-    // If the kicked player had an assigned side and the match is running, end as forfeit
-    if (kickedSide !== null && match.matchPhase === "running") {
-      const kickedTeamId = sideToTeamId(kickedSide);
-      console.log("Kicked player was on %s, ending match as forfeit.", kickedSide);
-      match.forceEndMatchForfeit(kickedTeamId);
-    }
 
     sendJson(ws, { type: "kick_result", success: true });
     return;
@@ -479,24 +469,25 @@ wss.on("connection", (ws: WebSocket) => {
   });
 
   ws.on("close", () => {
-    // Clear active match and role tracking before removing the client record
     const record = getClient(clientId);
-    if (record?.userId) {
-      clearActiveMatch(record.userId);
-      adminUserIds.delete(record.userId);
-      moderatorUserIds.delete(record.userId);
-    }
     // If this player had an assigned side and the match is running,
-    // end the match as a forfeit so the remaining player gets a debrief.
+    // end the match as a forfeit BEFORE removing records so handleMatchEnded
+    // can still look up both players' userIds for PP recording.
     const disconnectedSide = record?.assignedSide ?? null;
-    removeClient(clientId);
-    match.removeClient(clientId);
-    console.log("Client disconnected (%s)", clientId);
     if (disconnectedSide !== null && match.matchPhase === "running") {
       const disconnectedTeamId = sideToTeamId(disconnectedSide);
       console.log("Player on %s disconnected during match, ending as forfeit.", disconnectedSide);
       match.forceEndMatchForfeit(disconnectedTeamId);
     }
+    // Now clean up the client record
+    if (record?.userId) {
+      clearActiveMatch(record.userId);
+      adminUserIds.delete(record.userId);
+      moderatorUserIds.delete(record.userId);
+    }
+    removeClient(clientId);
+    match.removeClient(clientId);
+    console.log("Client disconnected (%s)", clientId);
   });
 
   ws.on("error", (error: Error) => {

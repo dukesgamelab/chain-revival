@@ -14,6 +14,7 @@ const LobbyClientClass := preload("res://scripts/network/lobby_client.gd")
 const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
 const RegimentBrowserScript := preload("res://scripts/ui/regiment_browser.gd")
 const AdminBrowserScript := preload("res://scripts/ui/admin_browser.gd")
+const MapDataClass := preload("res://scripts/map/map_data.gd")
 
 ## Online game server URL (Fly.io).
 ## Leave empty to fall back to LAN IP detection for local hosting.
@@ -29,6 +30,7 @@ var _regiments_button: Button
 var _admin_button: Button
 var _back_button: Button
 var _match_name_field: LineEdit
+var _map_dropdown: OptionButton
 var _create_panel: PanelContainer
 var _refresh_timer: Timer
 
@@ -82,10 +84,11 @@ func _process(_delta: float) -> void:
 func _build_ui() -> void:
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.offset_right = -280  # avoid chat panel (260 width + 20 margin)
 	add_child(center)
 
 	var outer_panel := PanelContainer.new()
-	outer_panel.custom_minimum_size = Vector2(650, 460)
+	outer_panel.custom_minimum_size = Vector2(750, 480)
 	center.add_child(outer_panel)
 
 	var margin := MarginContainer.new()
@@ -165,6 +168,13 @@ func _build_ui() -> void:
 	col_host.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	header.add_child(col_host)
 
+	var col_map := Label.new()
+	col_map.text = "Map"
+	col_map.custom_minimum_size = Vector2(100, 0)
+	col_map.add_theme_font_size_override("font_size", 12)
+	col_map.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	header.add_child(col_map)
+
 	var col_players := Label.new()
 	col_players.text = "Players"
 	col_players.custom_minimum_size = Vector2(60, 0)
@@ -201,14 +211,19 @@ func _build_ui() -> void:
 	create_margin.add_theme_constant_override("margin_bottom", 8)
 	_create_panel.add_child(create_margin)
 
-	var create_hbox := HBoxContainer.new()
-	create_hbox.add_theme_constant_override("separation", 8)
-	create_margin.add_child(create_hbox)
+	var create_vbox := VBoxContainer.new()
+	create_vbox.add_theme_constant_override("separation", 6)
+	create_margin.add_child(create_vbox)
+
+	# Name row
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 8)
+	create_vbox.add_child(name_row)
 
 	var name_label := Label.new()
 	name_label.text = "Game name:"
 	name_label.add_theme_font_size_override("font_size", 13)
-	create_hbox.add_child(name_label)
+	name_row.add_child(name_label)
 
 	_match_name_field = LineEdit.new()
 	_match_name_field.placeholder_text = "%s's Game" % SupabaseAuth.display_name
@@ -217,19 +232,41 @@ func _build_ui() -> void:
 	_match_name_field.add_theme_color_override("font_color", Color.WHITE)
 	_match_name_field.add_theme_color_override("font_placeholder_color", Color(0.6, 0.6, 0.6))
 	_match_name_field.text_submitted.connect(func(_t: String): _on_confirm_create())
-	create_hbox.add_child(_match_name_field)
+	name_row.add_child(_match_name_field)
+
+	# Map row
+	var map_row := HBoxContainer.new()
+	map_row.add_theme_constant_override("separation", 8)
+	create_vbox.add_child(map_row)
+
+	var map_label := Label.new()
+	map_label.text = "Map:"
+	map_label.add_theme_font_size_override("font_size", 13)
+	map_row.add_child(map_label)
+
+	_map_dropdown = OptionButton.new()
+	_map_dropdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_map_dropdown.custom_minimum_size = Vector2(0, 30)
+	for entry in MapDataClass.MULTIPLAYER_MAPS:
+		_map_dropdown.add_item("%s (%s)" % [entry["display_name"], entry["team_sizes"]])
+	map_row.add_child(_map_dropdown)
+
+	# Button row
+	var btn_row_create := HBoxContainer.new()
+	btn_row_create.add_theme_constant_override("separation", 8)
+	create_vbox.add_child(btn_row_create)
 
 	var confirm_btn := Button.new()
 	confirm_btn.text = "Host"
 	confirm_btn.custom_minimum_size = Vector2(60, 30)
 	confirm_btn.pressed.connect(_on_confirm_create)
-	create_hbox.add_child(confirm_btn)
+	btn_row_create.add_child(confirm_btn)
 
 	var cancel_create_btn := Button.new()
 	cancel_create_btn.text = "Cancel"
 	cancel_create_btn.custom_minimum_size = Vector2(60, 30)
 	cancel_create_btn.pressed.connect(func(): _create_panel.visible = false)
-	create_hbox.add_child(cancel_create_btn)
+	btn_row_create.add_child(cancel_create_btn)
 
 	# ── Bottom buttons ──────────────────────────────────────────────────
 	var btn_row := HBoxContainer.new()
@@ -321,7 +358,11 @@ func _on_confirm_create() -> void:
 		server_url = "ws://%s:3000" % lan_ip
 	else:
 		server_url = ONLINE_SERVER_URL
-	_lobby_client.create_lobby(match_name, server_url)
+	var map_idx := _map_dropdown.selected
+	var map_id := "ff_farm"
+	if map_idx >= 0 and map_idx < MapDataClass.MULTIPLAYER_MAPS.size():
+		map_id = MapDataClass.MULTIPLAYER_MAPS[map_idx]["id"]
+	_lobby_client.create_lobby(match_name, server_url, map_id)
 
 
 func _get_lan_ip() -> String:
@@ -390,7 +431,8 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 					var host_url: String = lobby.get("server_url", "")
 					if host_url.is_empty():
 						host_url = "ws://127.0.0.1:3000"
-					_start_multiplayer(host_url)
+					var lobby_map: String = lobby.get("map_id", "")
+					_start_multiplayer(host_url, lobby_map)
 					return
 
 	# Count only waiting lobbies for the status (exclude our own in_progress).
@@ -425,7 +467,8 @@ func _on_lobby_joined(lobby: Dictionary) -> void:
 	var server_url: String = lobby.get("server_url", "")
 	if server_url.is_empty():
 		server_url = "ws://127.0.0.1:3000"
-	_start_multiplayer(server_url)
+	var lobby_map: String = lobby.get("map_id", "")
+	_start_multiplayer(server_url, lobby_map)
 
 
 func _on_lobby_error(msg: String) -> void:
@@ -472,6 +515,18 @@ func _add_lobby_row(lobby: Dictionary) -> void:
 	host_label.add_theme_font_size_override("font_size", 13)
 	row.add_child(host_label)
 
+	var lobby_map_id: String = lobby.get("map_id", "ff_farm")
+	var map_display := lobby_map_id
+	for entry in MapDataClass.MULTIPLAYER_MAPS:
+		if entry["id"] == lobby_map_id:
+			map_display = entry["display_name"]
+			break
+	var map_label_row := Label.new()
+	map_label_row.text = map_display
+	map_label_row.custom_minimum_size = Vector2(100, 0)
+	map_label_row.add_theme_font_size_override("font_size", 13)
+	row.add_child(map_label_row)
+
 	var current: int = lobby.get("current_players", 1)
 	var max_p: int = lobby.get("max_players", 2)
 	var players_label := Label.new()
@@ -497,10 +552,12 @@ func _on_join_pressed(lobby_id: String) -> void:
 # Game transition
 # ─────────────────────────────────────────────────────────────────────────
 
-func _start_multiplayer(server_url: String) -> void:
+func _start_multiplayer(server_url: String, map_id: String = "") -> void:
 	_refresh_timer.stop()
 	GameModeManager.set_mode(GameMode.LOCAL_MULTIPLAYER)
+	NetworkClient.disconnect_from_server()
 	NetworkClient.server_url = server_url
+	NetworkClient.selected_map_id = map_id
 	var connected := await NetworkClient.connect_and_wait()
 	if not connected:
 		_set_status("Could not connect to game server.", Color.RED)

@@ -8,6 +8,7 @@ extends Node
 ## Default server URL. Override with --server=ws://192.168.x.x:3000 on the command line.
 const DEFAULT_SERVER_URL := "ws://127.0.0.1:3000"
 var server_url: String = DEFAULT_SERVER_URL
+var selected_map_id: String = ""
 const CLIENT_NAME := "Godot Client"
 const DEFAULT_CONNECT_TIMEOUT_SEC := 5.0
 const DEFAULT_SIDE_REQUEST_TIMEOUT_SEC := 5.0
@@ -398,6 +399,8 @@ func _send_hello() -> void:
 			hello["isAdmin"] = true
 		if SupabaseAuth.is_moderator:
 			hello["isModerator"] = true
+	if not selected_map_id.is_empty():
+		hello["mapId"] = selected_map_id
 	send_json(hello)
 	GameLog.log_system("[NetworkClient] Sent hello to server.")
 

@@ -113,6 +113,8 @@ export interface MatchSnapshot {
   type: "match_snapshot";
   matchId: string;
   mapId: string;
+  mapDisplayName?: string;
+  supportedTeamSizes?: number[];
   simMsec: number;
   tickId: number;
   simRunning: boolean;

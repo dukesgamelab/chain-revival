@@ -15,7 +15,18 @@ const AVAILABLE_MAPS := {
 	"ff_farm_survival": "res://maps/ff_farm_survival.json",
 	"the_fortress": FORTRESS_MAP_FILE,
 	"test_map": DEFAULT_FILE,
+	"crossroads": "res://maps/crossroads.json",
+	"twin_ridges": "res://maps/twin_ridges.json",
+	"three_fields": "res://maps/three_fields.json",
+	"grand_battle": "res://maps/grand_battle.json",
 }
+const MULTIPLAYER_MAPS := [
+	{"id": "ff_farm", "display_name": "Farm Fight", "team_sizes": "1v1"},
+	{"id": "crossroads", "display_name": "Crossroads", "team_sizes": "1v1"},
+	{"id": "twin_ridges", "display_name": "Twin Ridges", "team_sizes": "1v1 - 2v2"},
+	{"id": "three_fields", "display_name": "Three Fields", "team_sizes": "1v1 - 3v3"},
+	{"id": "grand_battle", "display_name": "Grand Battle", "team_sizes": "1v1 - 5v5"},
+]
 const DEFAULT_WIDTH := 60
 const DEFAULT_HEIGHT := 60
 const MapObjectRegistryClass := preload("res://scripts/map/map_object_registry.gd")
@@ -74,6 +85,12 @@ var extra_fields: Dictionary = {}
 
 ## Legacy list kept in sync with movement-blocking objects for older saves.
 var blocked_tiles: Array[Vector2i] = []
+
+## Map metadata parsed from JSON (Phase 18).
+var metadata_display_name: String = ""
+var metadata_description: String = ""
+var metadata_supported_team_sizes: Array[int] = [1]
+var metadata_soldiers_per_player: int = 4
 
 var _object_lookup: Dictionary = {}
 var _object_meta: Dictionary = {}
@@ -932,6 +949,16 @@ static func from_dict(data: Dictionary) -> MapData:
 		else {}
 	)
 	map_data.unresolved = data.get("unresolved", []) if data.get("unresolved", []) is Array else []
+	var meta: Variant = data.get("metadata", {})
+	if meta is Dictionary:
+		map_data.metadata_display_name = str(meta.get("display_name", ""))
+		map_data.metadata_description = str(meta.get("description", ""))
+		var sizes: Variant = meta.get("supported_team_sizes", [1])
+		if sizes is Array:
+			map_data.metadata_supported_team_sizes.clear()
+			for s in sizes:
+				map_data.metadata_supported_team_sizes.append(int(s))
+		map_data.metadata_soldiers_per_player = int(meta.get("soldiers_per_player", 4))
 	map_data._object_lookup.clear()
 	map_data._object_meta.clear()
 	map_data.visual_placements.clear()
@@ -955,6 +982,7 @@ static func from_dict(data: Dictionary) -> MapData:
 		"starting_points": true,
 		"team_camera_degrees": true,
 		"unresolved": true,
+		"metadata": true,
 	}
 	for key in data.keys():
 		if not known.has(key):
