@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
 
@@ -24,7 +24,9 @@ interface AuthState {
   signOut: () => Promise<void>
 }
 
-export function useAuth(): AuthState {
+const AuthContext = createContext<AuthState | null>(null)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -94,5 +96,15 @@ export function useAuth(): AuthState {
     setProfile(null)
   }
 
-  return { user, session, profile, loading, signIn, signUp, signOut }
+  return (
+    <AuthContext value={{ user, session, profile, loading, signIn, signUp, signOut }}>
+      {children}
+    </AuthContext>
+  )
+}
+
+export function useAuth(): AuthState {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
 }

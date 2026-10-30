@@ -22,35 +22,49 @@ function headers(): Record<string, string> {
   };
 }
 
+export interface PlayerFlags {
+  is_banned: boolean;
+  ban_reason: string | null;
+  is_admin: boolean;
+  is_moderator: boolean;
+}
+
 /**
- * Check if a user is banned. Returns the ban reason if banned, null if not.
+ * Fetch a player's ban status and role flags from Supabase.
+ * Returns null if the player doesn't exist or Supabase is unreachable.
  */
-export async function checkBan(userId: string): Promise<string | null> {
+export async function getPlayerFlags(userId: string): Promise<PlayerFlags | null> {
   if (!isConfigured()) return null;
 
   try {
-    const url = `${SUPABASE_URL}/rest/v1/player_profiles?id=eq.${userId}&select=is_banned,ban_reason`;
+    const url = `${SUPABASE_URL}/rest/v1/player_profiles?id=eq.${userId}&select=is_banned,ban_reason,is_admin,is_moderator`;
     const res = await fetch(url, {
       method: "GET",
       headers: headers(),
     });
 
     if (!res.ok) {
-      console.error("[Supabase] checkBan failed (%d)", res.status);
-      return null; // Fail open: don't block if we can't reach Supabase
+      console.error("[Supabase] getPlayerFlags failed (%d)", res.status);
+      return null;
     }
 
-    const rows = await res.json() as Array<{ is_banned: boolean; ban_reason: string | null }>;
+    const rows = await res.json() as PlayerFlags[];
     if (rows.length === 0) return null;
-
-    if (rows[0].is_banned) {
-      return rows[0].ban_reason ?? "No reason provided";
-    }
-    return null;
+    return rows[0];
   } catch (err) {
-    console.error("[Supabase] checkBan error:", err);
-    return null; // Fail open
+    console.error("[Supabase] getPlayerFlags error:", err);
+    return null;
   }
+}
+
+/**
+ * Check if a user is banned. Returns the ban reason if banned, null if not.
+ */
+export async function checkBan(userId: string): Promise<string | null> {
+  const flags = await getPlayerFlags(userId);
+  if (!flags) return null;
+  if (flags.is_banned) return flags.ban_reason ?? "No reason provided";
+  return null;
 }
 
 /**

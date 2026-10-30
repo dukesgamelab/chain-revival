@@ -30,7 +30,7 @@ import {
   setTeamSize,
   sideCount,
 } from "./side_ownership";
-import { recordMatchResult, recordPlayerResult, distributeCoPP, checkBan, setActiveMatch, clearActiveMatch } from "./supabase_client";
+import { recordMatchResult, recordPlayerResult, distributeCoPP, getPlayerFlags, setActiveMatch, clearActiveMatch } from "./supabase_client";
 import {
   MATCH_ID,
   sideToTeamId,
@@ -229,9 +229,10 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     if (typeof message.authToken === "string" && message.authToken !== "") {
       userId = getUserId(message.authToken);
       if (userId !== null) {
-        // Check if the user is banned before allowing them in
-        const banReason = await checkBan(userId);
-        if (banReason !== null) {
+        const flags = await getPlayerFlags(userId);
+
+        if (flags?.is_banned) {
+          const banReason = flags.ban_reason ?? "No reason provided";
           console.log("Banned user %s (%s) rejected: %s", userId, clientName, banReason);
           sendJson(ws, { type: "banned", reason: banReason });
           ws.close();
@@ -241,16 +242,10 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
         setClientUserId(clientId, userId);
         console.log("Authenticated user %s (%s)", userId, clientName);
 
-        // Track active match in Supabase so the admin panel can see who's in a game
         setActiveMatch(userId, MATCH_ID);
 
-        // Track admin/moderator status if the client reports it (validated server-side for kicks)
-        if (message.isAdmin === true) {
-          adminUserIds.add(userId);
-        }
-        if (message.isModerator === true) {
-          moderatorUserIds.add(userId);
-        }
+        if (flags?.is_admin) adminUserIds.add(userId);
+        if (flags?.is_moderator) moderatorUserIds.add(userId);
       } else {
         console.log("Auth token invalid for %s; continuing as guest.", clientName);
       }

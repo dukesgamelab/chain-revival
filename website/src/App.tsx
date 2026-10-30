@@ -2,7 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { Nav } from './components/Nav'
 import { Footer } from './components/Footer'
 import { GlobalChat } from './components/GlobalChat'
-import { useAuth } from './hooks/useAuth'
+import { useAuth } from './hooks/AuthProvider'
 import { useSiteSettings } from './hooks/useSiteSettings'
 
 export default function App() {
