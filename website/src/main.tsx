@@ -11,6 +11,7 @@ import { Download } from './pages/Download'
 import { Appeal } from './pages/Appeal'
 import { Admin } from './pages/Admin'
 import { RegimentManage } from './pages/RegimentManage'
+import { MatchDetail } from './pages/MatchDetail'
 import { BugReport } from './pages/BugReport'
 import { Feedback } from './pages/Feedback'
 import { Privacy } from './pages/Privacy'
@@ -29,6 +30,7 @@ function AppRoutes() {
         <Route path="login" element={<Login onSignIn={signIn} onSignUp={signUp} registrationEnabled={settings.registration_enabled} />} />
         <Route path="leaderboard" element={<Leaderboard userId={user?.id ?? null} />} />
         <Route path="player/:id" element={<Player />} />
+        <Route path="match/:id" element={<MatchDetail />} />
         <Route path="regiments" element={<Regiments />} />
         {user && <Route path="regiment/manage" element={<RegimentManage />} />}
         <Route path="download" element={<Download />} />

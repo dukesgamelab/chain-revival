@@ -11,6 +11,7 @@
  * setInterval is only a wake — gameplay steps come from monotonic elapsed time.
  */
 
+import { randomUUID } from "node:crypto";
 import type { WebSocket } from "ws";
 import {
   executeFace,
@@ -64,6 +65,7 @@ import {
   type CombatShotsPayload,
   type VisibilityUpdatePayload,
 } from "./types";
+import { ReplayRecorder, type ReplayData } from "./replay_recorder";
 
 export type MatchPhase = "created" | "running" | "paused" | "ended";
 
@@ -85,6 +87,10 @@ function calculatePP(won: boolean, draw: boolean, kills: number, terrainPoints: 
 /** Fired when a match ends. index.ts uses this to record results in Supabase. */
 export interface MatchEndedInfo {
   matchId: string;
+  dbMatchId: string;
+  mapId: string;
+  teamSize: number;
+  durationMs: number;
   winner: number;
   endCause: number;
   usaKillPoints: number;
@@ -99,6 +105,7 @@ export interface MatchEndedInfo {
   germanyPPEarned: number;
   /** clientId -> teamId for all connected clients */
   clientTeams: Map<string, number | null>;
+  replayData: ReplayData | null;
 }
 
 export type OnMatchEndedCallback = (info: MatchEndedInfo) => void;
@@ -118,6 +125,7 @@ export interface MatchClient {
 
 export class LocalMatch {
   readonly matchId = MATCH_ID;
+  readonly dbMatchId: string;
   readonly gameState: GameState;
   private readonly clients = new Map<string, MatchClient>();
   private tickTimer: NodeJS.Timeout | null = null;
@@ -128,12 +136,13 @@ export class LocalMatch {
   movementTickSends = 0;
   visibilitySends = 0;
   private aiFramework: AiCommanderFramework | null = null;
+  private readonly replay = new ReplayRecorder();
 
   private waitForBothSides = true;
   private matchStarted = false;
   private deploymentRemainingSec = 0;
   private static readonly DEPLOYMENT_TIME_SEC = 15;
-  private static readonly CLIENT_READY_TIMEOUT_MS = 15_000;
+  private static readonly CLIENT_READY_TIMEOUT_MS = 60_000;
   private readyClients: Set<string> = new Set();
   private clientReadyTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -141,8 +150,10 @@ export class LocalMatch {
   onMatchEnded: OnMatchEndedCallback | null = null;
 
   constructor(mapId = DEFAULT_MAP_ID, options: MatchOptions = {}) {
+    this.dbMatchId = randomUUID();
     const map = MapData.loadFromRepo(mapId);
     this.gameState = new GameState(map);
+    this.replay.captureInitialState(this.gameState);
     // Start paused, waiting for both sides to connect.
     this.phase = "created";
     this.waitForBothSides = true;
@@ -342,6 +353,10 @@ export class LocalMatch {
       }
       this.onMatchEnded({
         matchId: this.matchId,
+        dbMatchId: this.dbMatchId,
+        mapId: this.gameState.map.mapId,
+        teamSize: 0,
+        durationMs: this.clock.getTicksMsec(),
         winner,
         endCause: END_CAUSE_FORFEIT,
         usaKillPoints: this.gameState.scenario.killPoints[1] ?? 0,
@@ -355,6 +370,7 @@ export class LocalMatch {
         usaPPEarned,
         germanyPPEarned,
         clientTeams,
+        replayData: this.replay.getReplayData(),
       });
     }
   }
@@ -821,6 +837,10 @@ export class LocalMatch {
           }
           this.onMatchEnded({
             matchId: this.matchId,
+            dbMatchId: this.dbMatchId,
+            mapId: this.gameState.map.mapId,
+            teamSize: 0,
+            durationMs: this.clock.getTicksMsec(),
             winner,
             endCause: this.gameState.scenario.endCause,
             usaKillPoints: this.gameState.scenario.killPoints[1] ?? 0,
@@ -834,6 +854,7 @@ export class LocalMatch {
             usaPPEarned,
             germanyPPEarned,
             clientTeams,
+            replayData: this.replay.getReplayData(),
           });
         }
       }
@@ -902,6 +923,7 @@ export class LocalMatch {
   }
 
   private broadcast(payload: unknown): void {
+    this.replay.recordBroadcast(payload);
     const text = JSON.stringify(payload);
     for (const client of this.clients.values()) {
       if (client.ws.readyState === client.ws.OPEN) {

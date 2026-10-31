@@ -126,6 +126,9 @@ export interface MatchResultParams {
   player2Kills: number;
   player2Pp: number;
   endCause: string;
+  mapId?: string;
+  teamSize?: number;
+  durationSeconds?: number;
 }
 
 /**
@@ -179,6 +182,9 @@ export interface PlayerResultParams {
   endCause: string;
   opponentId: string | null;
   pp: number;
+  mapId?: string;
+  teamSize?: number;
+  durationSeconds?: number;
 }
 
 export async function recordPlayerResult(params: PlayerResultParams): Promise<void> {
@@ -187,7 +193,7 @@ export async function recordPlayerResult(params: PlayerResultParams): Promise<vo
     return;
   }
 
-  const body = {
+  const body: Record<string, unknown> = {
     p_match_id: params.matchId,
     p_player_id: params.playerId,
     p_team: params.team,
@@ -200,6 +206,9 @@ export async function recordPlayerResult(params: PlayerResultParams): Promise<vo
     p_end_cause: params.endCause,
     p_opponent_id: params.opponentId,
     p_pp: params.pp,
+    p_map_id: params.mapId ?? null,
+    p_team_size: params.teamSize ?? null,
+    p_duration_seconds: params.durationSeconds ?? null,
   };
 
   try {
@@ -226,7 +235,7 @@ export async function recordMatchResult(params: MatchResultParams): Promise<void
     return;
   }
 
-  const body = {
+  const body: Record<string, unknown> = {
     p_match_id: params.matchId,
     p_player1_id: params.player1Id,
     p_player1_team: params.player1Team,
@@ -247,6 +256,9 @@ export async function recordMatchResult(params: MatchResultParams): Promise<void
     p_player2_kills: params.player2Kills,
     p_player2_pp: params.player2Pp,
     p_end_cause: params.endCause,
+    p_map_id: params.mapId ?? null,
+    p_team_size: params.teamSize ?? null,
+    p_duration_seconds: params.durationSeconds ?? null,
   };
 
   try {
@@ -264,5 +276,54 @@ export async function recordMatchResult(params: MatchResultParams): Promise<void
     }
   } catch (err) {
     console.error("[Supabase] record_match_result error:", err);
+  }
+}
+
+export interface SaveReplayParams {
+  matchId: string;
+  mapId: string;
+  mapWidth: number;
+  mapHeight: number;
+  teamSize: number;
+  initialState: unknown;
+  events: unknown;
+  durationMs: number;
+  eventCount: number;
+}
+
+export async function saveReplay(params: SaveReplayParams): Promise<void> {
+  if (!isConfigured()) {
+    console.warn("[Supabase] Not configured. Replay not saved.");
+    return;
+  }
+
+  const body = {
+    match_id: params.matchId,
+    map_id: params.mapId,
+    map_width: params.mapWidth,
+    map_height: params.mapHeight,
+    team_size: params.teamSize,
+    initial_state: params.initialState,
+    events: params.events,
+    duration_ms: params.durationMs,
+    event_count: params.eventCount,
+  };
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/match_replays`, {
+      method: "POST",
+      headers: { ...headers(), Prefer: "return=minimal" },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("[Supabase] saveReplay failed (%d): %s", res.status, text);
+    } else {
+      console.log("[Supabase] Replay saved for match %s (%d events, %dms)",
+        params.matchId, params.eventCount, params.durationMs);
+    }
+  } catch (err) {
+    console.error("[Supabase] saveReplay error:", err);
   }
 }

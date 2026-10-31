@@ -16,6 +16,7 @@ interface PlayerRow {
 
 interface MatchHistoryRow {
   id: number
+  match_id: string
   won: boolean
   draw: boolean
   team: string
@@ -26,10 +27,17 @@ interface MatchHistoryRow {
   played_at: string
 }
 
+interface AllMatchRow {
+  match_id: string
+  played_at: string
+  players: Array<{ player_id: string; display_name: string; team: string; won: boolean; draw: boolean; kills: number; total_points: number }>
+}
+
 export function Leaderboard({ userId }: { userId: string | null }) {
-  const [tab, setTab] = useState<'top' | 'matches'>('top')
+  const [tab, setTab] = useState<'top' | 'matches' | 'all'>('top')
   const [players, setPlayers] = useState<PlayerRow[]>([])
   const [matches, setMatches] = useState<MatchHistoryRow[]>([])
+  const [allMatches, setAllMatches] = useState<AllMatchRow[]>([])
   const [opponentNames, setOpponentNames] = useState<Record<string, string>>({})
   const [assignedRanks, setAssignedRanks] = useState<Record<string, string>>({})
   const [search, setSearch] = useState('')
@@ -95,7 +103,7 @@ export function Leaderboard({ userId }: { userId: string | null }) {
     if (!userId) return
     const { data } = await supabase
       .from('match_history')
-      .select('id,won,draw,team,kills,total_points,pp_earned,opponent_id,played_at')
+      .select('id,match_id,won,draw,team,kills,total_points,pp_earned,opponent_id,played_at')
       .eq('player_id', userId)
       .order('played_at', { ascending: false })
       .limit(20)
@@ -117,8 +125,49 @@ export function Leaderboard({ userId }: { userId: string | null }) {
     }
   }
 
+  async function fetchAllMatches() {
+    setLoading(true)
+    const { data } = await supabase
+      .from('match_history')
+      .select('match_id,player_id,won,draw,team,kills,total_points,played_at')
+      .neq('match_id', 'local-mp-1')
+      .order('played_at', { ascending: false })
+      .limit(200)
+
+    if (data && data.length > 0) {
+      const playerIds = [...new Set(data.map(r => r.player_id))]
+      const { data: profiles } = await supabase
+        .from('player_profiles')
+        .select('id,display_name')
+        .in('id', playerIds)
+      const nameMap: Record<string, string> = {}
+      if (profiles) for (const p of profiles) nameMap[p.id] = p.display_name
+
+      const grouped: Record<string, AllMatchRow> = {}
+      for (const row of data) {
+        if (!grouped[row.match_id]) {
+          grouped[row.match_id] = { match_id: row.match_id, played_at: row.played_at, players: [] }
+        }
+        grouped[row.match_id].players.push({
+          player_id: row.player_id,
+          display_name: nameMap[row.player_id] ?? 'Unknown',
+          team: row.team,
+          won: row.won,
+          draw: row.draw,
+          kills: row.kills,
+          total_points: row.total_points,
+        })
+      }
+      setAllMatches(Object.values(grouped))
+    } else {
+      setAllMatches([])
+    }
+    setLoading(false)
+  }
+
   useEffect(() => {
     if (tab === 'matches' && userId) fetchMatches()
+    if (tab === 'all') fetchAllMatches()
   }, [tab, userId])
 
   return (
@@ -134,6 +183,14 @@ export function Leaderboard({ userId }: { userId: string | null }) {
             }`}
           >
             Top Players
+          </button>
+          <button
+            onClick={() => setTab('all')}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              tab === 'all' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            All Matches
           </button>
           {userId && (
             <button
@@ -201,6 +258,72 @@ export function Leaderboard({ userId }: { userId: string | null }) {
         </div>
       )}
 
+      {tab === 'all' && (
+        <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-700 text-slate-400 text-left">
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Player 1</th>
+                <th className="px-4 py-3 text-center">Score</th>
+                <th className="px-4 py-3">Player 2</th>
+                <th className="px-4 py-3 text-center">Result</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Loading...</td></tr>
+              ) : allMatches.length === 0 ? (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">No matches yet</td></tr>
+              ) : (
+                allMatches.map(m => {
+                  const p1 = m.players[0]
+                  const p2 = m.players[1]
+                  const date = new Date(m.played_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                  const resultText = p1?.draw ? 'Draw' : p1?.won ? `${p1.display_name} wins` : p2 ? `${p2.display_name} wins` : '—'
+                  const resultColor = p1?.draw ? 'text-yellow-400' : 'text-green-400'
+
+                  return (
+                    <tr key={m.match_id} className="border-b border-slate-800 hover:bg-slate-800/40 transition-colors">
+                      <td className="px-4 py-3 text-slate-500 text-sm">{date}</td>
+                      <td className="px-4 py-3">
+                        {p1 ? (
+                          <Link to={`/player/${p1.player_id}`} className="text-sky-400 hover:text-sky-300 hover:underline">
+                            {p1.display_name}
+                          </Link>
+                        ) : '—'}
+                        {p1 && <span className="text-slate-600 text-xs ml-1">({p1.team})</span>}
+                      </td>
+                      <td className="px-4 py-3 text-center text-slate-300 font-mono">
+                        {p1?.total_points ?? 0} — {p2?.total_points ?? 0}
+                      </td>
+                      <td className="px-4 py-3">
+                        {p2 ? (
+                          <Link to={`/player/${p2.player_id}`} className="text-sky-400 hover:text-sky-300 hover:underline">
+                            {p2.display_name}
+                          </Link>
+                        ) : '—'}
+                        {p2 && <span className="text-slate-600 text-xs ml-1">({p2.team})</span>}
+                      </td>
+                      <td className={`px-4 py-3 text-center text-sm font-medium ${resultColor}`}>{resultText}</td>
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          to={`/match/${m.match_id}`}
+                          className="text-sky-400 hover:text-sky-300 underline decoration-dotted hover:decoration-solid text-sm"
+                        >
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {tab === 'matches' && (
         <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl overflow-hidden">
           <table className="w-full text-sm">
@@ -222,6 +345,7 @@ export function Leaderboard({ userId }: { userId: string | null }) {
                 matches.map(m => (
                   <MatchRow
                     key={m.id}
+                    matchId={m.match_id}
                     won={m.won}
                     draw={m.draw}
                     team={m.team}

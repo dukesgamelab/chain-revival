@@ -111,8 +111,70 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | 31 | Sound effects (combat audio, footsteps, grenade throw, ambient wind, volume controls) |
 | 32 | Settings & keybinds (tabbed settings menu, fullscreen/resolution/vsync, remappable keybinds) |
 | 33 | Bug fixes & testing (multiplayer grenades, DZ countdown, client-ready handshake, GDScript warnings) |
+| 34 | Code signing & CI pipeline (GitHub Actions automated Godot build, Certum code signing deferred) |
+| 35 | Match history & replay (event recording, replay viewer with zoom/pan, match detail page, All Matches tab) |
 
-## Phase 34 Details (In Progress — Code Signing & CI Pipeline)
+## Phase 35 Details (Complete — Match History & Replay)
+
+**Goal:** Record match events for replay, add match detail pages with a visual replay viewer to the website.
+
+### Server-Side Event Recording
+
+- **ReplayRecorder** (`server/src/replay_recorder.ts`):
+  - Hooks into `LocalMatch.broadcast()` — records every game event as it happens, zero game logic changes
+  - Captures initial state (map layout, blocked tiles with terrain types, soldier positions, victory points)
+  - Records: `move_result`, `face_result`, `position_result`, `fire_at_result`, `fire_control_result`, `grenade_result`, `grenade_explode`, `combat_shots`, `deployment_ended`, `match_ended`
+  - Skips high-frequency noise: `movement_tick`, `visibility_update`, `scenario_time`
+  - Single JSONB blob per match (~100-300KB for a typical 1v1)
+
+- **Unique match IDs**: Each `LocalMatch` now generates a UUID (`dbMatchId`) for database operations. Game protocol `matchId` stays `"local-mp-1"` for backward compatibility — no Godot client changes needed.
+
+- **Match metadata**: `MatchEndedInfo` now includes `mapId`, `teamSize`, `durationMs`, and `replayData`
+
+- **DZ timing fix**: `CLIENT_READY_TIMEOUT_MS` increased from 15s to 60s — prevents deployment countdown from starting before both players have loaded in
+
+### Database (Migration 022)
+
+- `match_history` gets: `map_id`, `team_size`, `duration_seconds` columns
+- New `match_replays` table: `match_id` (PK), `map_id`, `map_width`, `map_height`, `team_size`, `initial_state` (jsonb), `events` (jsonb), `duration_ms`, `event_count`
+- RPCs `record_match_result` and `record_player_result` updated with optional metadata params (backward-compatible defaults)
+- `saveReplay()` function in `supabase_client.ts` — direct REST insert into `match_replays`
+
+### Website — Match Detail Page
+
+- **Route:** `/match/:id` — `website/src/pages/MatchDetail.tsx`
+- **Header:** map name, end cause, duration, team size badges
+- **Scoreboard:** two team cards with per-player kills, points, PP, links to player profiles
+- **Share button:** copies match URL to clipboard
+- **Combat log:** filterable event timeline showing kills, grenade explosions, deployment/match markers
+
+### Website — Replay Viewer
+
+- **Component:** `website/src/components/ReplayViewer.tsx`
+- **Canvas-based minimap:** top-down view of the map grid with terrain tiles color-coded by type (trees=green, walls=brown, bushes=light green, etc.)
+- **Soldier tokens:** numbered colored circles (blue=USA, red=Germany) with facing indicators and X markers for dead
+- **Victory points:** gold ring markers
+- **Zoom/pan:** scroll-to-zoom (fit view to 2x), click-drag to pan, Fit button resets. Canvas renders at full 18px/cell detail; CSS transforms handle zoom/pan
+- **Playback controls:** play/pause, step forward/back, reset, jump-to-end
+- **Speed control:** 1x/2x/4x playback
+- **Timeline scrubber:** range input from event 0 to N, shows current time and event count
+- **Dynamic cell sizing:** maps range from 80x80 to 140x120 tiles — canvas renders at 18px/cell for detail, CSS transform scales to fit the 700px viewport
+
+### Website — Integration
+
+- **MatchRow** component updated: new matches (UUID match_id) show clickable result links with dotted underline to `/match/:id`; old matches (`local-mp-1`) show plain text — no broken links
+- **Player page** and **Leaderboard** queries now fetch `match_id` and pass it to MatchRow
+- **Leaderboard "All Matches" tab:** new tab showing every match (filters out old `local-mp-1` entries), one row per match with both players, teams, score comparison, result, and View link to match detail page
+- Route added in `main.tsx`
+
+### Not Yet Done
+
+- Godot "View Match" button on mission debrief (link to website match page)
+- OG meta tags for social link previews
+- Movement animation in replay (currently shows end positions per event, not animated paths)
+- DZ boundary enforcement (players can leave DZ before timer expires)
+
+## Phase 34 Details (Code Signing & CI Pipeline)
 
 **Goal:** Set up code signing for the Godot Windows export and a CI pipeline for automated builds.
 
@@ -125,26 +187,29 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 - **GitHub Actions workflow** (`.github/workflows/build-and-sign.yml`):
   - Triggers on manual dispatch (version input) or tag push (`v*`)
   - **Build job**: `barichello/godot-ci:4.7-stable` Docker image, cross-compiles Windows exe on Linux
-  - **Sign job**: Azure Trusted Signing via `azure/trusted-signing-action@v0.5.0` on Windows runner, timestamps with `http://timestamp.acs.microsoft.com`
-  - **Release job**: Zips build, creates draft GitHub Release via `softprops/action-gh-release@v2`
-  - Sign job only runs if `AZURE_SIGNING_ACCOUNT` repo variable is set; release falls back to unsigned if signing is skipped
+  - **Sign job**: Certum SimplySign on Windows runner, timestamps with `http://time.certum.pl` — only runs if signing secrets are configured
+  - **Release job**: Zips build, creates draft GitHub Release via `softprops/action-gh-release@v2` — falls back to unsigned if signing is skipped
 - **Export preset renamed** from `"Chain Revival - 0.1.0-alpha"` to `"Windows Desktop"` so CI doesn't break on version bumps
 
-### Azure Trusted Signing (Pending Identity Verification)
+### Code Signing (Deferred — waiting for more polished product)
 
-- **Azure account**: Pay-As-You-Go subscription (`57009ceb-317f-45ae-9677-3d55a74ccd96`)
-- **Artifact Signing account**: `dukesgamelab-signing` in resource group `dukesgamelab-signing`, East US, Basic tier
-- **Account URI**: `https://cus.codesigning.azure.net/`
-- **Identity validation**: "Dukes Game Lab", Public trust, status In Progress
-- **Roles assigned**: Owner (inherited), Artifact Signing Identity Verifier, Artifact Signing Certificate Profile Signer
+**Plan:** Certum Individual Cloud Code Signing cert (~$115/yr via SSLmentor)
+- Purchase from [SSLmentor](https://www.sslmentor.com/certum/certumcodecloudindividual)
+- Identity verification: driver's license or passport (1-3 business days)
+- No business registration required — individual developer cert
+- Cloud-based via **SimplySign** — private key in Certum's HSM, no USB token or PFX file
 
-### Remaining Steps (after identity verification)
+**Azure Trusted Signing was attempted and abandoned:**
+- Identity validation failed — requires a registered business for Public trust certs
+- Azure subscription canceled
 
-1. Create certificate profile in Azure (Public Trust, linked to validated identity)
-2. Create Entra ID app registration with federated credential for GitHub repo
-3. Assign Certificate Profile Signer role to the app registration
-4. Add GitHub repo secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_CLIENT_SECRET`
-5. Add GitHub repo variables: `AZURE_SIGNING_ACCOUNT` = `dukesgamelab-signing`, `AZURE_CERT_PROFILE` = (profile name)
+### When ready to enable signing
+
+1. Purchase Certum cert from SSLmentor (~$115/yr)
+2. Complete identity verification (photo ID, 1-3 days)
+3. Install SimplySign Desktop locally for local signing
+4. For CI: set up `signing` GitHub Environment with approval gate
+5. Add GitHub secret: `SIMPLYSIGN_TOTP_SEED` (from SimplySign TOTP setup)
 6. Test the full pipeline: manual dispatch → build → sign → draft release
 7. Re-enable auto-updater to pull from GitHub Releases
 
@@ -318,8 +383,7 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| 34 | Code signing & CI pipeline | Azure Trusted Signing + GitHub Actions, automated Godot build export, signed Windows exe |
-| 35 | Match history & replay | Detailed match replay viewer, turn-by-turn playback, shareable match links on website |
+| 35 | Match history & replay | *(Complete)* Event recording, replay viewer with zoom/pan, match detail page, All Matches tab |
 | 36 | Announcements & community | Website: news/announcements page, release notes feed, opt-in email newsletter signup |
 | 37 | Lobby overhaul | OG-style persistent room list (Open Game, Regimental, Training), join-room skirmish briefing dialog (map, side, match length, AI difficulty) |
 | 38 | Named objectives & field report | Named capture zones on maps (yellow labels), victory points bar, separate Field Report combat log panel (right side, timestamped events) |
@@ -328,13 +392,11 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 
 ## Code Signing
 
-Using **Azure Trusted Signing** (formerly Azure Artifact Signing) — ~$10/month, OV-level cert managed by Microsoft.
+**Not yet active.** Deferred until the product is more polished. Plan is **Certum Individual Cloud Code Signing** (~$115/yr via SSLmentor). See Phase 34 details for full setup steps.
 
-- **Account**: `dukesgamelab-signing` on Azure (East US, Basic tier)
-- **Identity**: "Dukes Game Lab", Public trust — pending verification
-- **CI integration**: `azure/trusted-signing-action` in GitHub Actions, signs .exe on Windows runner
-- **Timestamping**: `http://timestamp.acs.microsoft.com` (certs are short-lived, timestamps make signatures permanent)
-- Once verified: SmartScreen trust accrues over download volume (OV, not EV)
+- **Local signing**: Install SimplySign Desktop → `signtool sign /fd SHA256 /tr http://time.certum.pl /td SHA256 /a ChainRevival.exe`
+- **CI signing**: GitHub Actions workflow already configured, just needs `SIMPLYSIGN_TOTP_SEED` secret
+- SmartScreen trust accrues over download volume (OV cert, not EV)
 
 ## Game Updates
 
@@ -344,21 +406,21 @@ Auto-updater is built in (Phase 27). On every launch the game checks `site_setti
 
 1. Bump `BuildConfig.VERSION` in `scripts/core/build_config.gd`
 2. Commit and push, then tag: `git tag v0.20.0-alpha && git push origin v0.20.0-alpha`
-3. GitHub Actions builds the exe, signs it via Azure Trusted Signing, creates a draft GitHub Release
+3. GitHub Actions builds the exe, signs it via Certum SimplySign (if configured), creates a draft GitHub Release
 4. Review the draft on GitHub, publish when ready
 5. Set `game_version` and `download_url` (GitHub Release asset URL) in admin site settings
 6. All running clients will see the update on next launch
 
-### Local Release (fallback — manual build, requires local signing setup)
+### Local Release (fallback — manual build, optional signing)
 
 1. Bump `BuildConfig.VERSION` in `scripts/core/build_config.gd`
 2. Export from Godot (Project → Export → Windows Desktop)
-3. Sign the exe: `signtool sign /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 ChainRevival.exe` (requires Azure CLI login)
+3. *(Optional, requires Certum cert)* Sign the exe: `signtool sign /fd SHA256 /tr http://time.certum.pl /td SHA256 /a ChainRevival.exe`
 4. Zip the build, upload to `/builds/` on the server
 5. Set `game_version` and `download_url` in admin site settings
 6. All running clients will see the update on next launch
 
-**Without signing** (current state until Azure verification clears): same as local release but skip step 3. Players will see SmartScreen/Chrome download warnings.
+**Without signing** (current state): same as local release but skip step 3. Players will see SmartScreen/Chrome download warnings.
 
 ## Known Bugs
 

@@ -52,13 +52,11 @@ jobs:
           retention-days: 30
 
   sign:
-    name: Sign with Azure Trusted Signing
+    name: Sign with Certum SimplySign
     needs: build
-    if: vars.AZURE_SIGNING_ACCOUNT != ''
+    if: secrets.SIMPLYSIGN_TOTP_SEED != ''
     runs-on: windows-latest
-    permissions:
-      id-token: write
-      contents: read
+    environment: signing
     steps:
       - name: Download unsigned build
         uses: actions/download-artifact@v4
@@ -66,27 +64,15 @@ jobs:
           name: windows-unsigned
           path: build/windows/
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Install Certum SimplySign
+        run: |
+          Invoke-WebRequest -Uri "https://simplysign.certum.eu/SimplySign_Desktop.exe" -OutFile SimplySign.exe
+          Start-Process -Wait -FilePath .\SimplySign.exe -ArgumentList "/S"
 
-      - name: Sign exe with Trusted Signing
-        uses: azure/trusted-signing-action@v0.5.0
-        with:
-          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-          endpoint: https://eus.codesigning.azure.net/
-          trusted-signing-account-name: ${{ vars.AZURE_SIGNING_ACCOUNT }}
-          certificate-profile-name: ${{ vars.AZURE_CERT_PROFILE }}
-          files-folder: build/windows/
-          files-folder-filter: exe
-          file-digest: SHA256
-          timestamp-rfc3161: http://timestamp.acs.microsoft.com
-          timestamp-digest: SHA256
+      - name: Sign exe with signtool
+        run: |
+          $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe"
+          & $signtool sign /fd SHA256 /tr http://time.certum.pl /td SHA256 /a build/windows/${{ env.GAME_NAME }}.exe
 
       - name: Upload signed build
         uses: actions/upload-artifact@v4

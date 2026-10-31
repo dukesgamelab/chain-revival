@@ -31,7 +31,7 @@ import {
   setTeamSize,
   sideCount,
 } from "./side_ownership";
-import { recordMatchResult, recordPlayerResult, distributeCoPP, getPlayerFlags, setActiveMatch, clearActiveMatch } from "./supabase_client";
+import { recordMatchResult, recordPlayerResult, distributeCoPP, getPlayerFlags, setActiveMatch, clearActiveMatch, saveReplay } from "./supabase_client";
 import {
   MATCH_ID,
   sideToTeamId,
@@ -85,15 +85,32 @@ function handleMatchEnded(info: MatchEndedInfo): void {
   const usaPP = info.usaPPEarned;
   const germanyPP = info.germanyPPEarned;
   const currentTeamSize = getTeamSize();
+  const dbMatchId = info.dbMatchId;
+  const durationSec = Math.round(info.durationMs / 1000);
+  const metadata = { mapId: info.mapId, teamSize: currentTeamSize, durationSeconds: durationSec };
 
-  console.log("[MatchEnd] cause=%s winner=%d teamSize=%d PP: USA=%d GERMANY=%d userIds: USA=[%s] GERMANY=[%s]",
-    endCauseStr, info.winner, currentTeamSize, usaPP, germanyPP,
-    usaUserIds.join(","), germanyUserIds.join(","));
+  console.log("[MatchEnd] id=%s cause=%s winner=%d map=%s teamSize=%d duration=%ds PP: USA=%d GERMANY=%d",
+    dbMatchId, endCauseStr, info.winner, info.mapId, currentTeamSize, durationSec, usaPP, germanyPP);
+
+  // Save replay data (non-blocking)
+  if (info.replayData) {
+    const rd = info.replayData;
+    saveReplay({
+      matchId: dbMatchId,
+      mapId: info.mapId,
+      mapWidth: rd.initialState.map.width,
+      mapHeight: rd.initialState.map.height,
+      teamSize: currentTeamSize,
+      initialState: rd.initialState,
+      events: rd.events,
+      durationMs: rd.durationMs,
+      eventCount: rd.events.length,
+    }).catch(err => console.error("[MatchEnd] Replay save failed:", err));
+  }
 
   if (currentTeamSize <= 1 && usaUserIds.length === 1 && germanyUserIds.length === 1) {
-    // 1v1: use the existing paired RPC for backward compatibility.
     recordMatchResult({
-      matchId: info.matchId,
+      matchId: dbMatchId,
       player1Id: usaUserIds[0],
       player1Team: "USA",
       player1Won: usaWon,
@@ -113,22 +130,21 @@ function handleMatchEnded(info: MatchEndedInfo): void {
       player2Kills: info.germanyKills,
       player2Pp: germanyPP,
       endCause: endCauseStr,
+      ...metadata,
     }).then(() => {
       return Promise.all([
-        distributeCoPP(info.matchId, usaUserIds[0], usaPP),
-        distributeCoPP(info.matchId, germanyUserIds[0], germanyPP),
+        distributeCoPP(dbMatchId, usaUserIds[0], usaPP),
+        distributeCoPP(dbMatchId, germanyUserIds[0], germanyPP),
       ]);
     }).catch((err) => {
       console.error("[MatchEnd] Failed to record result:", err);
     });
   } else {
-    // Team game: record each player individually. Each player on a team
-    // gets the full team PP (kills and terrain are team-wide for now).
     const promises: Promise<void>[] = [];
     for (const uid of usaUserIds) {
       const opponentId = germanyUserIds[0] ?? null;
       promises.push(recordPlayerResult({
-        matchId: info.matchId,
+        matchId: dbMatchId,
         playerId: uid,
         team: "USA",
         won: usaWon,
@@ -140,13 +156,14 @@ function handleMatchEnded(info: MatchEndedInfo): void {
         endCause: endCauseStr,
         opponentId: opponentId,
         pp: usaPP,
+        ...metadata,
       }));
-      promises.push(distributeCoPP(info.matchId, uid, usaPP));
+      promises.push(distributeCoPP(dbMatchId, uid, usaPP));
     }
     for (const uid of germanyUserIds) {
       const opponentId = usaUserIds[0] ?? null;
       promises.push(recordPlayerResult({
-        matchId: info.matchId,
+        matchId: dbMatchId,
         playerId: uid,
         team: "GERMANY",
         won: germanyWon,
@@ -158,8 +175,9 @@ function handleMatchEnded(info: MatchEndedInfo): void {
         endCause: endCauseStr,
         opponentId: opponentId,
         pp: germanyPP,
+        ...metadata,
       }));
-      promises.push(distributeCoPP(info.matchId, uid, germanyPP));
+      promises.push(distributeCoPP(dbMatchId, uid, germanyPP));
     }
     Promise.all(promises).catch((err) => {
       console.error("[MatchEnd] Failed to record team result:", err);

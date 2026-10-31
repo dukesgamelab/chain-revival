@@ -20,6 +20,7 @@ interface PlayerProfile {
 
 interface MatchHistoryRow {
   id: number
+  match_id: string
   won: boolean
   draw: boolean
   team: string
@@ -65,7 +66,7 @@ export function Player() {
 
       const { data: matchData } = await supabase
         .from('match_history')
-        .select('id,won,draw,team,kills,total_points,pp_earned,opponent_id,played_at')
+        .select('id,match_id,won,draw,team,kills,total_points,pp_earned,opponent_id,played_at')
         .eq('player_id', id)
         .order('played_at', { ascending: false })
         .limit(20)
@@ -193,6 +194,7 @@ export function Player() {
               matches.map(m => (
                 <MatchRow
                   key={m.id}
+                  matchId={m.match_id}
                   won={m.won}
                   draw={m.draw}
                   team={m.team}
