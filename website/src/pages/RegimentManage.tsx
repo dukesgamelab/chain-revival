@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/AuthProvider'
+import { getDisplayRank } from '../lib/ranks'
 import { RankBadge } from '../components/RankBadge'
 
 interface Regiment {
@@ -396,7 +397,7 @@ export function RegimentManage() {
                         {m.display_name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3"><RankBadge rank={m.rank} /></td>
+                    <td className="px-4 py-3"><RankBadge rank={getDisplayRank(m.rank, m.assigned_rank)} /></td>
                     <td className="px-4 py-3">
                       {isMemberCO && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-900/50 text-amber-300">CO</span>}
                       {isMemberXO && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-900/50 text-amber-300">XO</span>}

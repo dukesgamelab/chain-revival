@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { getDisplayRank } from '../lib/ranks'
 import { RankBadge } from '../components/RankBadge'
 import { MatchRow } from '../components/MatchRow'
 
@@ -30,6 +31,7 @@ export function Leaderboard({ userId }: { userId: string | null }) {
   const [players, setPlayers] = useState<PlayerRow[]>([])
   const [matches, setMatches] = useState<MatchHistoryRow[]>([])
   const [opponentNames, setOpponentNames] = useState<Record<string, string>>({})
+  const [assignedRanks, setAssignedRanks] = useState<Record<string, string>>({})
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null)
@@ -47,7 +49,22 @@ export function Leaderboard({ userId }: { userId: string | null }) {
     req = req.order('games_won', { ascending: false }).order('games_played', { ascending: true }).limit(50)
 
     const { data } = await req
-    if (data) setPlayers(data)
+    if (data) {
+      setPlayers(data)
+      const ids = data.map(p => p.id)
+      if (ids.length > 0) {
+        const { data: regMembers } = await supabase
+          .from('regiment_members')
+          .select('player_id,assigned_rank')
+          .in('player_id', ids)
+          .not('assigned_rank', 'is', null)
+        if (regMembers) {
+          const map: Record<string, string> = {}
+          for (const m of regMembers) if (m.assigned_rank) map[m.player_id] = m.assigned_rank
+          setAssignedRanks(map)
+        }
+      }
+    }
     setLoading(false)
   }, [])
 
@@ -169,7 +186,7 @@ export function Leaderboard({ userId }: { userId: string | null }) {
                         {p.display_name || 'Unknown'}
                       </Link>
                     </td>
-                    <td className="px-4 py-3"><RankBadge rank={p.rank} /></td>
+                    <td className="px-4 py-3"><RankBadge rank={getDisplayRank(p.rank, assignedRanks[p.id] ?? null)} /></td>
                     <td className="px-4 py-3 text-center text-white font-medium">{p.games_won}</td>
                     <td className="px-4 py-3 text-center text-slate-300">{p.games_played}</td>
                     <td className="px-4 py-3 text-center text-slate-300">{p.total_kills}</td>

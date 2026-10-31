@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { RankBadge } from '../components/RankBadge'
 import { StatCard } from '../components/StatCard'
 import { MatchRow } from '../components/MatchRow'
-import { getRankLabel, getNextRankPP, getPPProgress } from '../lib/ranks'
+import { getRankLabel, getNextRankPP, getPPProgress, getDisplayRank } from '../lib/ranks'
 
 interface PlayerProfile {
   id: string
@@ -35,6 +35,7 @@ export function Player() {
   const [player, setPlayer] = useState<PlayerProfile | null>(null)
   const [matches, setMatches] = useState<MatchHistoryRow[]>([])
   const [opponentNames, setOpponentNames] = useState<Record<string, string>>({})
+  const [assignedRank, setAssignedRank] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -47,7 +48,20 @@ export function Player() {
         .eq('id', id)
         .single()
 
-      if (data) setPlayer(data as unknown as PlayerProfile)
+      if (data) {
+        setPlayer(data as unknown as PlayerProfile)
+        if (data.regiment_id) {
+          const { data: memData } = await supabase
+            .from('regiment_members')
+            .select('assigned_rank')
+            .eq('regiment_id', data.regiment_id)
+            .eq('player_id', id)
+            .single()
+          setAssignedRank(memData?.assigned_rank ?? null)
+        } else {
+          setAssignedRank(null)
+        }
+      }
 
       const { data: matchData } = await supabase
         .from('match_history')
@@ -107,6 +121,7 @@ export function Player() {
     return <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-500">Player not found</div>
   }
 
+  const displayRank = getDisplayRank(player.rank, assignedRank)
   const winRate = player.games_played > 0 ? Math.round((player.games_won / player.games_played) * 100) : 0
   const nextPP = getNextRankPP(player.rank)
   const progress = getPPProgress(player.prestige_points, player.rank)
@@ -118,7 +133,7 @@ export function Player() {
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold">{player.display_name}</h1>
-              <RankBadge rank={player.rank} size="lg" />
+              <RankBadge rank={displayRank} size="lg" />
             </div>
             {player.regiments && (
               <Link
@@ -131,13 +146,13 @@ export function Player() {
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-sky-400">{player.prestige_points.toLocaleString()} PP</div>
-            <div className="text-sm text-slate-400">{getRankLabel(player.rank)}</div>
+            <div className="text-sm text-slate-400">{getRankLabel(displayRank)}</div>
           </div>
         </div>
 
         <div className="mb-4">
           <div className="flex justify-between text-xs text-slate-400 mb-1">
-            <span>{getRankLabel(player.rank)}</span>
+            <span>{getRankLabel(displayRank)}</span>
             <span>{nextPP ? `${getRankLabel(player.rank + 1)} at ${nextPP.toLocaleString()} PP` : 'Max Rank'}</span>
           </div>
           <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
