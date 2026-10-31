@@ -1,0 +1,141 @@
+name: Build & Sign Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag (e.g. 0.19.0-alpha)"
+        required: true
+  push:
+    tags:
+      - "v*"
+
+env:
+  GODOT_VERSION: "4.7"
+  EXPORT_PRESET: "Windows Desktop"
+  GAME_NAME: "ChainRevival"
+
+jobs:
+  build:
+    name: Export Windows Build
+    runs-on: ubuntu-latest
+    container: barichello/godot-ci:4.7-stable
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup export directory
+        run: mkdir -p build/windows
+
+      - name: Import Godot assets
+        run: godot --headless --import 2>&1 || true
+
+      - name: Export Windows build
+        run: |
+          godot --headless --export-release \
+            "${{ env.EXPORT_PRESET }}" \
+            build/windows/${{ env.GAME_NAME }}.exe
+
+      - name: Upload unsigned build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-unsigned
+          path: build/windows/
+          retention-days: 30
+
+  sign:
+    name: Sign with Azure Trusted Signing
+    needs: build
+    if: vars.AZURE_SIGNING_ACCOUNT != ''
+    runs-on: windows-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Download unsigned build
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-unsigned
+          path: build/windows/
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign exe with Trusted Signing
+        uses: azure/trusted-signing-action@v0.5.0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: https://eus.codesigning.azure.net/
+          trusted-signing-account-name: ${{ vars.AZURE_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.AZURE_CERT_PROFILE }}
+          files-folder: build/windows/
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Upload signed build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-signed
+          path: build/windows/
+          retention-days: 90
+
+  release:
+    name: Create GitHub Release
+    needs: [build, sign]
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download signed build
+        if: needs.sign.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-signed
+          path: release/
+
+      - name: Download unsigned build (fallback)
+        if: needs.sign.result != 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-unsigned
+          path: release/
+
+      - name: Create release zip
+        run: |
+          cd release
+          zip -r ../${{ env.GAME_NAME }}-${{ steps.version.outputs.version }}.zip .
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Chain Revival v${{ steps.version.outputs.version }}
+          files: ${{ env.GAME_NAME }}-${{ steps.version.outputs.version }}.zip
+          draft: true
+          generate_release_notes: true

@@ -112,16 +112,41 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | 32 | Settings & keybinds (tabbed settings menu, fullscreen/resolution/vsync, remappable keybinds) |
 | 33 | Bug fixes & testing (multiplayer grenades, DZ countdown, client-ready handshake, GDScript warnings) |
 
-## Phase 34 Plan (Next Up — Code Signing & CI Pipeline)
+## Phase 34 Details (In Progress — Code Signing & CI Pipeline)
 
 **Goal:** Set up code signing for the Godot Windows export and a CI pipeline for automated builds.
 
 ### Carried Over from Phase 33
 
-- **Reconnect on game close (BROKEN)**: Closing the game window triggers `player_disconnected` and shows "90s" message, but: (1) countdown never ticks down visually, (2) match forfeits way before 90 seconds, (3) disconnected player's PC shows "no games available" within ~5 seconds. Needs investigation in `server/src/index.ts` disconnect handler and `match.ts` reconnect logic.
-- **Settings display issues**: Fullscreen toggle and resolution dropdown don't behave correctly on Windows. Fullscreen enters but doesn't exit properly. Resolution changes don't apply as expected.
-- **Chat**: Not implemented in global lobby yet, can't test in multiplayer yet.
 - **Auto-updater**: Deferred until code signing is completed.
+
+### CI Pipeline (Done)
+
+- **GitHub Actions workflow** (`.github/workflows/build-and-sign.yml`):
+  - Triggers on manual dispatch (version input) or tag push (`v*`)
+  - **Build job**: `barichello/godot-ci:4.7-stable` Docker image, cross-compiles Windows exe on Linux
+  - **Sign job**: Azure Trusted Signing via `azure/trusted-signing-action@v0.5.0` on Windows runner, timestamps with `http://timestamp.acs.microsoft.com`
+  - **Release job**: Zips build, creates draft GitHub Release via `softprops/action-gh-release@v2`
+  - Sign job only runs if `AZURE_SIGNING_ACCOUNT` repo variable is set; release falls back to unsigned if signing is skipped
+- **Export preset renamed** from `"Chain Revival - 0.1.0-alpha"` to `"Windows Desktop"` so CI doesn't break on version bumps
+
+### Azure Trusted Signing (Pending Identity Verification)
+
+- **Azure account**: Pay-As-You-Go subscription (`57009ceb-317f-45ae-9677-3d55a74ccd96`)
+- **Artifact Signing account**: `dukesgamelab-signing` in resource group `dukesgamelab-signing`, East US, Basic tier
+- **Account URI**: `https://cus.codesigning.azure.net/`
+- **Identity validation**: "Dukes Game Lab", Public trust, status In Progress
+- **Roles assigned**: Owner (inherited), Artifact Signing Identity Verifier, Artifact Signing Certificate Profile Signer
+
+### Remaining Steps (after identity verification)
+
+1. Create certificate profile in Azure (Public Trust, linked to validated identity)
+2. Create Entra ID app registration with federated credential for GitHub repo
+3. Assign Certificate Profile Signer role to the app registration
+4. Add GitHub repo secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_CLIENT_SECRET`
+5. Add GitHub repo variables: `AZURE_SIGNING_ACCOUNT` = `dukesgamelab-signing`, `AZURE_CERT_PROFILE` = (profile name)
+6. Test the full pipeline: manual dispatch → build → sign → draft release
+7. Re-enable auto-updater to pull from GitHub Releases
 
 ## Phase 33 Details (Just Completed)
 
@@ -293,45 +318,51 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| 33 | Testing & bug fixes | Full testing pass, fix menu overflow, escape menu, quit button, dev tools hiding, settings issues |
-| 34 | Spectator mode | Watch live matches without participating, camera controls, player perspective switching |
-| 35 | Code signing & CI pipeline | SignPath integration via GitHub Actions, automated build export, signed Windows exe |
-| 36 | Match history & replay | Detailed match replay viewer, turn-by-turn playback, shareable match links on website |
-| 37 | Announcements & community | Website: news/announcements page, release notes feed, opt-in email newsletter signup |
-| 38 | Lobby overhaul | OG-style persistent room list (Open Game, Regimental, Training), join-room skirmish briefing dialog (map, side, match length, AI difficulty) |
-| 39 | Named objectives & field report | Named capture zones on maps (yellow labels), victory points bar, separate Field Report combat log panel (right side, timestamped events) |
-| 40 | Chat channels | Regiment chat channels, whisper/DM in global chat, player-created custom channels |
+| 34 | Code signing & CI pipeline | Azure Trusted Signing + GitHub Actions, automated Godot build export, signed Windows exe |
+| 35 | Match history & replay | Detailed match replay viewer, turn-by-turn playback, shareable match links on website |
+| 36 | Announcements & community | Website: news/announcements page, release notes feed, opt-in email newsletter signup |
+| 37 | Lobby overhaul | OG-style persistent room list (Open Game, Regimental, Training), join-room skirmish briefing dialog (map, side, match length, AI difficulty) |
+| 38 | Named objectives & field report | Named capture zones on maps (yellow labels), victory points bar, separate Field Report combat log panel (right side, timestamped events) |
+| 39 | Chat channels | Regiment chat channels, whisper/DM in global chat, player-created custom channels |
+| 40 | Spectator mode | Watch live matches without participating, camera controls, player perspective switching |
 
-## Code Signing (Not Yet Done)
+## Code Signing
 
-The Windows build is not code-signed, so Chrome flags the download as suspicious and Windows SmartScreen warns on first run. Users can click through both warnings to install.
+Using **Azure Trusted Signing** (formerly Azure Artifact Signing) — ~$10/month, OV-level cert managed by Microsoft.
 
-### Best option: SignPath (free for open-source)
-
-[SignPath.io](https://signpath.io/) provides free code signing for open-source projects. The public GitHub repo qualifies.
-
-1. Hook GitHub repo to SignPath
-2. Set up a GitHub Actions workflow to build the Godot export (e.g. `firebelley/godot-export`)
-3. Integrate the [SignPath GitHub Action](https://docs.signpath.io/trusted-build-systems/github) into the pipeline
-4. On new release/tag: GitHub builds the binary → SignPath signs it → signed `.exe` attached to the release
-
-### Alternative: Certum Open-Source ID (~€30-50)
-
-Manual signing via SignTool/PowerShell. [Certum](https://support.certum.eu/en/how-to-activate-a-code-signing-certificate/) offers a cheap code signing cert for individual open-source developers. Requires identity verification.
-
-### Legacy option: OV certificate ($150-220/yr)
-
-OV is sufficient. EV ($400-600/yr) gets instant SmartScreen trust; with OV, warnings disappear after enough users download without issues.
+- **Account**: `dukesgamelab-signing` on Azure (East US, Basic tier)
+- **Identity**: "Dukes Game Lab", Public trust — pending verification
+- **CI integration**: `azure/trusted-signing-action` in GitHub Actions, signs .exe on Windows runner
+- **Timestamping**: `http://timestamp.acs.microsoft.com` (certs are short-lived, timestamps make signatures permanent)
+- Once verified: SmartScreen trust accrues over download volume (OV, not EV)
 
 ## Game Updates
 
 Auto-updater is built in (Phase 27). On every launch the game checks `site_settings.game_version` against `BuildConfig.VERSION`. If a newer version exists, it prompts the user, downloads the zip from `download_url`, extracts it, and self-updates via a batch script.
 
-To release an update:
+### CI Release (preferred — automated build + signing)
+
 1. Bump `BuildConfig.VERSION` in `scripts/core/build_config.gd`
-2. Export the Godot build, zip it, upload to `/builds/` on the server
-3. Set `game_version` and `download_url` in admin site settings
-4. All running clients will see the update on next launch
+2. Commit and push, then tag: `git tag v0.20.0-alpha && git push origin v0.20.0-alpha`
+3. GitHub Actions builds the exe, signs it via Azure Trusted Signing, creates a draft GitHub Release
+4. Review the draft on GitHub, publish when ready
+5. Set `game_version` and `download_url` (GitHub Release asset URL) in admin site settings
+6. All running clients will see the update on next launch
+
+### Local Release (fallback — manual build, requires local signing setup)
+
+1. Bump `BuildConfig.VERSION` in `scripts/core/build_config.gd`
+2. Export from Godot (Project → Export → Windows Desktop)
+3. Sign the exe: `signtool sign /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 ChainRevival.exe` (requires Azure CLI login)
+4. Zip the build, upload to `/builds/` on the server
+5. Set `game_version` and `download_url` in admin site settings
+6. All running clients will see the update on next launch
+
+**Without signing** (current state until Azure verification clears): same as local release but skip step 3. Players will see SmartScreen/Chrome download warnings.
+
+## Known Bugs
+
+- **Reconnect on game close (BROKEN)**: Closing the game window triggers `player_disconnected` and shows "90s" message, but: (1) countdown never ticks down visually, (2) match forfeits way before 90 seconds, (3) disconnected player's PC shows "no games available" within ~5 seconds. Needs investigation in `server/src/index.ts` disconnect handler and `match.ts` reconnect logic.
 
 ## Known Gotchas
 
