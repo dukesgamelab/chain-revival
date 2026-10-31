@@ -132,18 +132,23 @@ func _apply_display_settings() -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		var res := RESOLUTIONS[resolution_index]
-		DisplayServer.window_set_size(res)
-		_center_window()
+		_apply_windowed_size.call_deferred()
 	if vsync:
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED)
 	else:
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 
 
+func _apply_windowed_size() -> void:
+	var res := RESOLUTIONS[resolution_index]
+	DisplayServer.window_set_size(res)
+	_center_window()
+
+
 func _center_window() -> void:
 	var screen_size := DisplayServer.screen_get_size()
 	var win_size := DisplayServer.window_get_size()
+	@warning_ignore("integer_division")
 	var pos := (screen_size - win_size) / 2
 	DisplayServer.window_set_position(pos)
 
@@ -162,11 +167,11 @@ func _apply_action_bindings(action: String) -> void:
 		InputMap.action_add_event(action, ev)
 
 
-static func key_name(keycode: int) -> String:
+func key_name(keycode: int) -> String:
 	if keycode == 0:
 		return "None"
 	var k := keycode as Key
-	var name := OS.get_keycode_string(k)
-	if name != "":
-		return name
+	var key_str := OS.get_keycode_string(k)
+	if key_str != "":
+		return key_str
 	return "Key %d" % keycode

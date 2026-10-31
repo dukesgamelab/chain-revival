@@ -131,6 +131,11 @@ export class LocalMatch {
 
   private waitForBothSides = true;
   private matchStarted = false;
+  private deploymentRemainingSec = 0;
+  private static readonly DEPLOYMENT_TIME_SEC = 15;
+  private static readonly CLIENT_READY_TIMEOUT_MS = 15_000;
+  private readyClients: Set<string> = new Set();
+  private clientReadyTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Set by index.ts to record match results in Supabase. */
   onMatchEnded: OnMatchEndedCallback | null = null;
@@ -192,15 +197,62 @@ export class LocalMatch {
     }
     if (hasUsa && hasGermany) {
       this.matchStarted = true;
-      this.phase = "running";
-      this.startDriver();
-      console.log("Both sides connected — match starting!");
+      console.log("Both sides connected — waiting for clients to finish loading…");
       this.broadcast({
         type: "match_starting",
         matchId: this.matchId,
-        message: "Both sides connected. Match starting!",
+        message: "Both sides connected. Deploy your soldiers!",
+        deploymentTimeSec: LocalMatch.DEPLOYMENT_TIME_SEC,
       });
+      this.checkAllClientsReady();
+      if (this.phase === "created") {
+        this.clientReadyTimer = setTimeout(() => {
+          this.forceStartDeployment();
+        }, LocalMatch.CLIENT_READY_TIMEOUT_MS);
+      }
     }
+  }
+
+  handleClientReady(clientId: string): void {
+    const client = this.clients.get(clientId);
+    if (client === undefined || client.teamId === null) {
+      return;
+    }
+    this.readyClients.add(clientId);
+    console.log("Client ready: %s (team %d) — %d/%d", clientId, client.teamId, this.readyClients.size, this.clients.size);
+    this.checkAllClientsReady();
+  }
+
+  private checkAllClientsReady(): void {
+    if (this.phase !== "created" || !this.matchStarted) {
+      return;
+    }
+    for (const client of this.clients.values()) {
+      if (client.teamId !== null && !this.readyClients.has(client.clientId)) {
+        return;
+      }
+    }
+    if (this.clientReadyTimer) {
+      clearTimeout(this.clientReadyTimer);
+      this.clientReadyTimer = null;
+    }
+    this.deploymentRemainingSec = LocalMatch.DEPLOYMENT_TIME_SEC;
+    this.phase = "running";
+    this.startDriver();
+    console.log("All clients ready — deployment phase (%ds)!", LocalMatch.DEPLOYMENT_TIME_SEC);
+  }
+
+  private forceStartDeployment(): void {
+    this.clientReadyTimer = null;
+    if (this.phase !== "created" || !this.matchStarted) {
+      return;
+    }
+    const assigned = [...this.clients.values()].filter(c => c.teamId !== null).length;
+    console.log("Client-ready timeout (%ds) — starting deployment with %d/%d ready",
+      LocalMatch.CLIENT_READY_TIMEOUT_MS / 1000, this.readyClients.size, assigned);
+    this.deploymentRemainingSec = LocalMatch.DEPLOYMENT_TIME_SEC;
+    this.phase = "running";
+    this.startDriver();
   }
 
   removeClient(clientId: string): void {
@@ -231,6 +283,10 @@ export class LocalMatch {
 
   endMatch(): void {
     this.phase = "ended";
+    if (this.clientReadyTimer) {
+      clearTimeout(this.clientReadyTimer);
+      this.clientReadyTimer = null;
+    }
     this.clock.stop();
     this.gameState.timers.clear();
     this.stopDriver();
@@ -647,6 +703,29 @@ export class LocalMatch {
       };
       this.broadcast(targets);
     }
+    // Deployment phase: count down, broadcast time, skip combat/scenario.
+    if (this.deploymentRemainingSec > 0) {
+      const deployTickSec = 1 / this.gameState.clock.tickHz;
+      this.deploymentRemainingSec = Math.max(0, this.deploymentRemainingSec - deployTickSec);
+      if (tickId % COMBAT_SCAN_TICKS === 0) {
+        this.broadcast({
+          type: "scenario_time",
+          matchId: this.matchId,
+          simMsec: this.clock.getTicksMsec(),
+          timeRemainingSec: this.gameState.scenario.timeRemainingSec,
+          deployTimeRemainingSec: this.deploymentRemainingSec,
+        });
+      }
+      if (this.deploymentRemainingSec <= 0) {
+        console.log("Deployment phase ended — scenario running!");
+        this.broadcast({
+          type: "deployment_ended",
+          matchId: this.matchId,
+          simMsec: this.clock.getTicksMsec(),
+        });
+      }
+      return;
+    }
     // AI commanders think on a staggered schedule (every ~4 ticks).
     if (this.aiFramework !== null) {
       this.aiFramework.tick(this.gameState);
@@ -688,6 +767,14 @@ export class LocalMatch {
       // Scenario clock + victory point capture + end conditions
       const tickSec = 0.5; // COMBAT_SCAN_TICKS * 50ms
       const scenarioEnded = processScenarioTick(this.gameState, this.gameState.scenario, tickSec);
+      if (!scenarioEnded) {
+        this.broadcast({
+          type: "scenario_time",
+          matchId: this.matchId,
+          simMsec: this.clock.getTicksMsec(),
+          timeRemainingSec: this.gameState.scenario.timeRemainingSec,
+        });
+      }
       if (scenarioEnded) {
         this.phase = "ended";
 

@@ -94,6 +94,7 @@ func _route(action_label: String, resolver_call: Callable) -> ActionResultClass:
 		or action_label == "command:PositionCommand"
 		or action_label == "command:FireControlCommand"
 		or action_label == "command:FireCommand"
+		or action_label == "command:GrenadeCommand"
 	):
 		GameLog.log_system("[CommandRouter] refused local %s — server is authoritative" % action_label)
 		return ActionResultClass.fail("That command must be resolved by the match server.")

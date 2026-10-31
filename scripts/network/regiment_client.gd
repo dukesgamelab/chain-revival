@@ -173,6 +173,7 @@ func approve_application(application_id: String) -> void:
 func reject_application(application_id: String, note: String = "") -> void:
 	if not _check_auth():
 		return
+	@warning_ignore("incompatible_ternary")
 	var body := JSON.stringify({
 		"p_application_id": application_id,
 		"p_admin_id": SupabaseAuth.user_id,
@@ -277,6 +278,7 @@ func leave_regiment(regiment_id: String) -> void:
 func assign_rank(regiment_id: String, target_id: String, rank_name: String) -> void:
 	if not _check_auth():
 		return
+	@warning_ignore("incompatible_ternary")
 	var body := JSON.stringify({
 		"p_regiment_id": regiment_id,
 		"p_target_id": target_id,
@@ -291,6 +293,7 @@ func assign_rank(regiment_id: String, target_id: String, rank_name: String) -> v
 func set_xo(regiment_id: String, xo_id: String) -> void:
 	if not _check_auth():
 		return
+	@warning_ignore("incompatible_ternary")
 	var body := JSON.stringify({
 		"p_regiment_id": regiment_id,
 		"p_caller_id": SupabaseAuth.user_id,

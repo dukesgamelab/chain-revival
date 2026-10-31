@@ -613,6 +613,11 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       return;
     }
     match.handleGrenade(clientId, intent);
+    return;
+  }
+
+  if (message.type === "client_ready") {
+    match.handleClientReady(clientId);
   }
 }
 

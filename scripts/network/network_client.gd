@@ -41,6 +41,8 @@ signal target_sync_received(payload: Dictionary)
 signal combat_shots_received(payload: Dictionary)
 signal grenade_thrown_received(result: ActionResultClass)
 signal grenade_explode_received(payload: Dictionary)
+signal scenario_time_received(payload: Dictionary)
+signal deployment_ended_received
 signal match_ended_received(payload: Dictionary)
 signal banned_from_server(reason: String)
 signal kicked_from_server(reason: String)
@@ -511,6 +513,12 @@ func _handle_message(message: Dictionary) -> void:
 			_on_grenade_thrown(message)
 		"grenade_explode":
 			grenade_explode_received.emit(message)
+		"scenario_time":
+			scenario_time_received.emit(message)
+		"deployment_ended":
+			deployment_ended_received.emit()
+		"match_starting":
+			pass
 		"match_ended":
 			match_ended_received.emit(message)
 			GameLog.log_system(
@@ -682,6 +690,13 @@ func _on_grenade_thrown(payload: Dictionary) -> void:
 	_resolve_command_wait(request_id, result)
 	if not waiting:
 		grenade_thrown_received.emit(result)
+
+
+func send_client_ready() -> void:
+	if not _connected:
+		return
+	send_json({"type": "client_ready"})
+	GameLog.log_system("[NetworkClient] Sent client_ready to server.")
 
 
 func send_leave_match() -> void:

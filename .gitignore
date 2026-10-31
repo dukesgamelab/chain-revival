@@ -25,6 +25,9 @@ supabase/.temp/
 # Godot import files in non-game directories
 website/**/*.import
 
+# Testing screenshots
+testing/
+
 # Exported playtest / release binaries (preset writes here)
 /export/
 /ChainRevivalSurvivalPlaytest.exe

@@ -75,6 +75,7 @@ func _exit_tree() -> void:
 func _process(_delta: float) -> void:
 	var is_waiting := not _hosted_lobby_id.is_empty() or not _joined_lobby_id.is_empty()
 	if is_waiting and _hosted_status_label != null and not _waiting_base_text.is_empty():
+		@warning_ignore("integer_division")
 		var tick := int(Time.get_ticks_msec() / 500) % 4
 		if tick != _waiting_dots:
 			_waiting_dots = tick

@@ -210,6 +210,21 @@ static func apply_grenade_explode(game_state: GameStateClass, payload: Dictionar
 		grenade_result.blast_radius = float(
 			payload.get("blastRadius", payload.get("blast_radius", 2.0))
 		)
+		for raw in payload.get("killed", []):
+			if raw is Dictionary:
+				grenade_result.killed.append({
+					"team_id": int(raw.get("teamId", raw.get("team_id", -1))),
+					"soldier_id": int(raw.get("soldierId", raw.get("soldier_id", -1))),
+				})
+		for raw in payload.get("stunned", []):
+			if raw is Dictionary:
+				grenade_result.stunned.append({
+					"team_id": int(raw.get("teamId", raw.get("team_id", -1))),
+					"soldier_id": int(raw.get("soldierId", raw.get("soldier_id", -1))),
+					"duration_sec": float(raw.get("durationSec", raw.get("duration_sec", 6.0))),
+				})
+		for msg in payload.get("messages", []):
+			grenade_result.messages.append(str(msg))
 		result.grenade_explosions.append(grenade_result)
 	return result
 

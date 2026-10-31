@@ -110,40 +110,30 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | 30 | Chat improvements (whisper/announce in all game modes, chat history persistence, mute/block) |
 | 31 | Sound effects (combat audio, footsteps, grenade throw, ambient wind, volume controls) |
 | 32 | Settings & keybinds (tabbed settings menu, fullscreen/resolution/vsync, remappable keybinds) |
+| 33 | Bug fixes & testing (multiplayer grenades, DZ countdown, client-ready handshake, GDScript warnings) |
 
-## Phase 33 Plan (Next Up — Testing & Bug Fixes)
+## Phase 34 Plan (Next Up — Code Signing & CI Pipeline)
 
-**Goal:** Full testing pass across single-player and multiplayer modes. Fix UI and gameplay bugs found during testing.
+**Goal:** Set up code signing for the Godot Windows export and a CI pipeline for automated builds.
 
-### Known Bugs
+### Carried Over from Phase 33
 
-- **Main menu overflow**: menu items extend beyond 1280x720 viewport — bottom items and sign-in/out bar are cut off. Need to either reduce button/spacing sizes, consolidate menu items, or rethink menu layout.
-- **Settings display issues**: Phase 32 fullscreen toggle and resolution dropdown don't behave correctly on Windows. Fullscreen enters but doesn't exit properly. Resolution changes don't apply as expected. Needs a proper implementation approach.
-- **Dev tools visible when not signed in**: `_hide_dev_tools_unless_signed_in()` added but needs testing to confirm it works (checks `BuildConfig.is_development() and SupabaseAuth.is_signed_in`).
+- **Reconnect on game close (BROKEN)**: Closing the game window triggers `player_disconnected` and shows "90s" message, but: (1) countdown never ticks down visually, (2) match forfeits way before 90 seconds, (3) disconnected player's PC shows "no games available" within ~5 seconds. Needs investigation in `server/src/index.ts` disconnect handler and `match.ts` reconnect logic.
+- **Settings display issues**: Fullscreen toggle and resolution dropdown don't behave correctly on Windows. Fullscreen enters but doesn't exit properly. Resolution changes don't apply as expected.
+- **Chat**: Not implemented in global lobby yet, can't test in multiplayer yet.
+- **Auto-updater**: Deferred until code signing is completed.
 
-### Bug Fixes Already Applied (Uncommitted → Now Committed)
+## Phase 33 Details (Just Completed)
 
-- **Escape/pause menu** (`scripts/core/main.gd`): Escape opens a CocUiTheme "Paused" dialog with Resume and Quit to Menu. Quit to Menu disconnects from multiplayer if applicable.
-- **Quit button** (`scripts/ui/mode_select.gd`): "Quit" button added to main menu before Developer section. Calls `get_tree().quit()`.
-- **Dev tools hiding** (`scripts/ui/mode_select.gd`): Developer section hidden unless `BuildConfig.is_development() and SupabaseAuth.is_signed_in`.
+### Bug Fixes
 
-### Testing Checklist
-
-- [ ] Single player: start game, issue commands, complete match, return to menu
-- [ ] Escape menu: opens/closes, Resume works, Quit to Menu works
-- [ ] Quit button: exits the game from main menu
-- [ ] Multiplayer: create match, opponent joins, play through, match ends correctly
-- [ ] Multiplayer disconnect/reconnect: test 90s reconnect window
-- [ ] Chat: global chat and in-game chat work, whisper/announce
-- [ ] Settings: audio sliders persist, graphics settings apply correctly
-- [ ] Dev tools: hidden when not signed in, visible when signed in as developer
-- [ ] Menu overflow: verify all buttons accessible at 1280x720
-- [ ] Leaderboard: displays correctly, search works
-- [ ] Auto-updater: version check runs on startup (skip in dev)
-
-### Not in Scope (Phase 33)
-- New features — this is a stabilization phase
-- Settings rework (defer display settings fixes to Phase 34 if needed)
+- **Multiplayer grenades**: GrenadeCommand was resolving locally but `_step_simulation_tick()` returns immediately in multiplayer, so fuse timer was never checked. Fixed by routing through `NetworkClient.submit_grenade_and_wait()` and adding GrenadeCommand to server-authoritative refuse list in `command_router.gd`.
+- **DZ countdown not visible**: `_on_network_scenario_time()` checked `is_deployment_phase()` which was already true from initialization. Changed to check `timed_deployment` flag instead.
+- **Client-ready handshake**: Server now waits for all clients to send `client_ready` after scene boot before starting the 15s deployment timer. Safety timeout of 15s starts the match even if older clients don't send `client_ready`. Adjust `DEPLOYMENT_TIME_SEC` or `CLIENT_READY_TIMEOUT_MS` in `server/src/match.ts`.
+- **GDScript warnings**: Fixed 17 debugger warnings — integer division, shadowed variables, static-called-on-instance, unused vars/params, incompatible ternary types across `settings_manager.gd`, `regiment_client.gd`, `regiment_browser.gd`, `lobby_browser.gd`.
+- **Escape/pause menu**: Opens CocUiTheme "Paused" dialog with Resume and Quit to Menu.
+- **Quit button**: Added to main menu, calls `get_tree().quit()`.
+- **Dev tools hiding**: Developer section hidden unless `BuildConfig.is_development() and SupabaseAuth.is_signed_in`.
 
 ## Phase 32 Details (Just Completed)
 
@@ -155,7 +145,7 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
   - Window auto-centers after resolution change
   - **Keybind remapping**: stores per-action key bindings, applies them to InputMap at startup
   - `set_binding()` / `clear_binding()` / `reset_keybinds()` for runtime rebinding
-  - `key_name()` static helper converts keycodes to display strings via `OS.get_keycode_string()`
+  - `key_name()` helper converts keycodes to display strings via `OS.get_keycode_string()`
   - Default bindings match project.godot: WASD + arrows for movement, Q/E for rotation
 - **Tabbed settings dialog** (`scripts/ui/mode_select.gd`):
   - Replaced the audio-only settings popup with a 3-tab `TabContainer` (Audio, Graphics, Controls)
@@ -310,6 +300,7 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | 37 | Announcements & community | Website: news/announcements page, release notes feed, opt-in email newsletter signup |
 | 38 | Lobby overhaul | OG-style persistent room list (Open Game, Regimental, Training), join-room skirmish briefing dialog (map, side, match length, AI difficulty) |
 | 39 | Named objectives & field report | Named capture zones on maps (yellow labels), victory points bar, separate Field Report combat log panel (right side, timestamped events) |
+| 40 | Chat channels | Regiment chat channels, whisper/DM in global chat, player-created custom channels |
 
 ## Code Signing (Not Yet Done)
 

@@ -34,13 +34,13 @@ layout_mode = 2
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
 layout_mode = 2
 theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 28
+theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 28
+theme_override_constants/margin_bottom = 16
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 6
 
 [node name="Title" type="Label" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
@@ -55,31 +55,31 @@ text = "Main Menu"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 8)
+custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
 [node name="SinglePlayerButton" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(320, 48)
+custom_minimum_size = Vector2(320, 36)
 layout_mode = 2
 text = "Single Player"
 
 [node name="SurvivalModeButton" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(320, 48)
+custom_minimum_size = Vector2(320, 36)
 layout_mode = 2
 text = "Survival Mode: 1 v All"
 
 [node name="TutorialButton" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(320, 48)
+custom_minimum_size = Vector2(320, 36)
 layout_mode = 2
 text = "Tutorial"
 
 [node name="HowToPlayButton" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(320, 48)
+custom_minimum_size = Vector2(320, 36)
 layout_mode = 2
 text = "How to Play"
 
 [node name="MultiplayerButton" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(320, 48)
+custom_minimum_size = Vector2(320, 36)
 layout_mode = 2
 text = "Multiplayer"
 
@@ -94,21 +94,21 @@ text = "Developer"
 horizontal_alignment = 1
 
 [node name="OfflineQuickButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
-custom_minimum_size = Vector2(320, 40)
+custom_minimum_size = Vector2(320, 30)
 layout_mode = 2
 text = "Offline Quick Start (1v1, hotseat — no AI)"
 
 [node name="OfflineQuickAiButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
-custom_minimum_size = Vector2(320, 40)
+custom_minimum_size = Vector2(320, 30)
 layout_mode = 2
 text = "Offline Quick Start (1v1 vs AI)"
 
 [node name="EditorButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
-custom_minimum_size = Vector2(320, 40)
+custom_minimum_size = Vector2(320, 30)
 layout_mode = 2
 text = "Map Editor"
 
 [node name="AssetAnimEditorButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
-custom_minimum_size = Vector2(320, 40)
+custom_minimum_size = Vector2(320, 30)
 layout_mode = 2
 text = "Asset & Animation Editor"

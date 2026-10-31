@@ -214,6 +214,8 @@ func _ready() -> void:
 	_boot_complete = true
 	_hide_loading_overlay()
 	AudioManager.start_ambient()
+	if GameModeManager.is_local_multiplayer():
+		NetworkClient.send_client_ready()
 	if _is_survival_mode():
 		call_deferred("_open_survival_difficulty_dialog")
 	elif _is_tutorial_mode():
@@ -3075,6 +3077,12 @@ func _apply_grenade_command(target_cell: Vector2i) -> void:
 	cmd.soldier_id = _grenade_soldier_id
 	cmd.target_cell = target_cell
 
+	if GameModeManager.is_local_multiplayer():
+		_ensure_multiplayer_result_signals()
+		var net_result: ActionResultClass = await NetworkClient.submit_grenade_and_wait(cmd)
+		_on_network_grenade_thrown_result(net_result)
+		return
+
 	var result: ActionResultClass = CommandRouter.submit_command(
 		_game_state,
 		cmd,
@@ -3106,11 +3114,16 @@ func _apply_squad_grenade_command(target_cell: Vector2i) -> void:
 		cmd.team_id = _session.active_team_id
 		cmd.soldier_id = soldier_state.soldier_id
 		cmd.target_cell = target_cell
-		var result: ActionResultClass = CommandRouter.submit_command(
-			_game_state,
-			cmd,
-			_make_grenade_context(soldier_state),
-		)
+		var result: ActionResultClass
+		if GameModeManager.is_local_multiplayer():
+			_ensure_multiplayer_result_signals()
+			result = await NetworkClient.submit_grenade_and_wait(cmd)
+		else:
+			result = CommandRouter.submit_command(
+				_game_state,
+				cmd,
+				_make_grenade_context(soldier_state),
+			)
 		last_result = result
 		if result.success:
 			thrown += 1
@@ -3240,6 +3253,10 @@ func _ensure_multiplayer_result_signals() -> void:
 		NetworkClient.grenade_thrown_received.connect(_on_network_grenade_thrown)
 	if not NetworkClient.grenade_explode_received.is_connected(_on_network_grenade_explode):
 		NetworkClient.grenade_explode_received.connect(_on_network_grenade_explode)
+	if not NetworkClient.scenario_time_received.is_connected(_on_network_scenario_time):
+		NetworkClient.scenario_time_received.connect(_on_network_scenario_time)
+	if not NetworkClient.deployment_ended_received.is_connected(_on_network_deployment_ended):
+		NetworkClient.deployment_ended_received.connect(_on_network_deployment_ended)
 	if not NetworkClient.match_ended_received.is_connected(_on_network_match_ended):
 		NetworkClient.match_ended_received.connect(_on_network_match_ended)
 	if not NetworkClient.kicked_from_server.is_connected(_on_kicked_from_server):
@@ -3325,7 +3342,13 @@ func _on_network_combat_shots(payload: Dictionary) -> void:
 
 
 func _on_network_grenade_thrown(result: ActionResultClass) -> void:
+	_on_network_grenade_thrown_result(result)
+
+
+func _on_network_grenade_thrown_result(result: ActionResultClass) -> void:
 	if result == null or not result.success:
+		if result != null and not result.status_message.is_empty():
+			_command_bar.show_status(result.status_message)
 		return
 	for update in result.face_updates:
 		var soldier: SoldierState = _game_state.get_soldier(
@@ -3352,6 +3375,34 @@ func _on_network_grenade_explode(payload: Dictionary) -> void:
 	_invalidate_fog_cache()
 	_refresh_enemy_spotting_visuals()
 	_refresh_command_bar()
+
+
+func _on_network_deployment_ended() -> void:
+	if _game_state == null:
+		return
+	if _game_state.is_deployment_phase():
+		_game_state.begin_running_phase()
+		_on_timed_deployment_finished()
+
+
+func _on_network_scenario_time(payload: Dictionary) -> void:
+	if _game_state == null:
+		return
+	_game_state.scenario_time_remaining_sec = float(payload.get("timeRemainingSec", 0.0))
+	var deploy_time := float(payload.get("deployTimeRemainingSec", -1.0))
+	if deploy_time > 0.0:
+		if not _game_state.timed_deployment:
+			_game_state.begin_timed_deployment(deploy_time)
+		else:
+			_game_state.deployment_time_remaining_sec = deploy_time
+		_sync_deployment_hud()
+	elif _game_state.is_deployment_phase() and _game_state.timed_deployment:
+		_game_state.begin_running_phase()
+		_on_timed_deployment_finished()
+	var rem_i := int(floor(_game_state.time_remaining()))
+	if rem_i != _last_scenario_hud_sec:
+		_last_scenario_hud_sec = rem_i
+		_refresh_scenario_hud()
 
 
 func _on_network_match_ended(payload: Dictionary) -> void:
@@ -3863,6 +3914,7 @@ func _finalize_shot_result(
 	if result.fired:
 		GameplayPolicies.fire_anim.note_authoritative_shot()
 		if shooter != null:
+			AudioManager.play_weapon_fire(shooter.weapon_id)
 			var shooter_view: Soldier = _get_view(shooter.team_id, shooter.soldier_id)
 			if shooter_view != null:
 				var fire_aim := (

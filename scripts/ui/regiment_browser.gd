@@ -33,7 +33,6 @@ var _submit_create_button: Button
 var _cancel_create_button: Button
 
 # My Regiment tab
-var _my_reg_container: VBoxContainer
 var _my_reg_info_label: Label
 var _roster_container: VBoxContainer
 var _join_requests_container: VBoxContainer
@@ -509,12 +508,6 @@ func _make_member_row(display_name: String, rank_text: String, assigned_rank: St
 
 	# CO/XO: rank assignment (only for 2LT+ members, not CO/XO themselves)
 	if (_is_co or _is_xo) and player_id != SupabaseAuth.user_id and role_text == "":
-		var pp_rank_idx := 0
-		var profile = {}
-		# Find this member's PP rank from the roster data
-		for child in _roster_container.get_children():
-			pass  # rank is already in rank_text param
-		# Only show rank button if player is 2LT+ (rank index 7+)
 		if rank_text in ["2LT", "1LT", "CPT"]:
 			var rank_btn := OptionButton.new()
 			rank_btn.add_theme_font_size_override("font_size", 11)
@@ -1253,7 +1246,7 @@ func _format_date(iso_str: String) -> String:
 	return "%s %s" % [month_names[month_idx], str(int(parts[2]))]
 
 
-func _on_rank_selected(index: int, player_id: String, btn: OptionButton) -> void:
+func _on_rank_selected(index: int, player_id: String, _btn: OptionButton) -> void:
 	if _current_regiment.is_empty():
 		return
 	var rank_names := ["", "1LT", "CPT", "MAJ", "LT COL", "COL"]
@@ -1261,10 +1254,10 @@ func _on_rank_selected(index: int, player_id: String, btn: OptionButton) -> void
 	_regiment_client.assign_rank(str(_current_regiment.get("id", "")), player_id, selected_rank)
 
 
-func _show_edit_controls(show: bool, current_desc: String, current_website: String) -> void:
+func _show_edit_controls(visible_flag: bool, current_desc: String, current_website: String) -> void:
 	_clear_container(_edit_container)
-	_edit_container.visible = show
-	if not show:
+	_edit_container.visible = visible_flag
+	if not visible_flag:
 		return
 
 	var edit_title := Label.new()
