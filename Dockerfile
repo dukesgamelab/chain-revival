@@ -38,6 +38,11 @@ COPY --from=build-website /app/dist /website/dist
 # __dirname = /app/dist, so ../../maps = /maps
 COPY maps/ /maps/
 
+# Game builds: server resolves from __dirname/../../builds/
+# __dirname = /app/dist, so ../../builds = /builds
+# Use a wildcard so the build doesn't fail if no builds exist yet
+COPY build[s]/ /builds/
+
 EXPOSE 3000
 
 CMD ["node", "dist/index.js"]

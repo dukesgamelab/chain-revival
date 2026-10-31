@@ -15,6 +15,12 @@ _tmp_fortress/
 _tmp_fortress_handoff/
 _tmp_fortress_v2/
 
+# Supabase CLI
+supabase/.temp/
+
+# Godot import files in non-game directories
+website/**/*.import
+
 # Exported playtest / release binaries (preset writes here)
 /export/
 /ChainRevivalSurvivalPlaytest.exe

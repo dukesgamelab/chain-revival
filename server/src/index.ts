@@ -520,14 +520,22 @@ const MIME_TYPES: Record<string, string> = {
   ".woff2": "font/woff2",
   ".woff": "font/woff",
   ".webp": "image/webp",
+  ".zip": "application/zip",
+  ".exe": "application/octet-stream",
+  ".pck": "application/octet-stream",
 };
 
 const WEBSITE_DIR = resolve(__dirname, "../../website/dist");
+const BUILDS_DIR = resolve(__dirname, "../../builds");
 const hasWebsite = existsSync(WEBSITE_DIR);
+const hasBuilds = existsSync(BUILDS_DIR);
 if (hasWebsite) {
   console.log(`Serving website from ${WEBSITE_DIR}`);
 } else {
   console.log(`No website directory at ${WEBSITE_DIR} — HTTP serves health check only`);
+}
+if (hasBuilds) {
+  console.log(`Serving game builds from ${BUILDS_DIR}`);
 }
 
 async function serveStatic(req: import("node:http").IncomingMessage, res: import("node:http").ServerResponse) {
@@ -536,6 +544,33 @@ async function serveStatic(req: import("node:http").IncomingMessage, res: import
   if (url === "/health") {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("ok");
+    return;
+  }
+
+  if (hasBuilds && url.startsWith("/builds/")) {
+    const buildFile = join(BUILDS_DIR, url.slice("/builds/".length));
+    try {
+      const realPath = realpathSync(buildFile);
+      if (!realPath.startsWith(realpathSync(BUILDS_DIR))) {
+        res.writeHead(403);
+        res.end("Forbidden");
+        return;
+      }
+      const data = await readFile(buildFile);
+      const ext = extname(buildFile);
+      const contentType = MIME_TYPES[ext] ?? "application/octet-stream";
+      const filename = buildFile.split(/[\\/]/).pop() ?? "download";
+      res.writeHead(200, {
+        "Content-Type": contentType,
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Length": data.byteLength.toString(),
+        "Cache-Control": "public, max-age=3600",
+      });
+      res.end(data);
+    } catch {
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not Found");
+    }
     return;
   }
 

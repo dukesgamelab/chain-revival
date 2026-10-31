@@ -77,7 +77,7 @@ PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500
 - **Remote:** GitHub, user `dukesgamelab`
 - **Commit style:** `Phase N: Title` for phase work
 
-## Completed Phases (1-22)
+## Completed Phases (1-23)
 
 | Phase | Name |
 |-------|------|
@@ -98,33 +98,54 @@ PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500
 | 20 | Game polish |
 | 21 | Tutorial mode & rank fix |
 | 22 | Website integration (React SPA, admin dashboard, forgot password, ban notification Edge Function) |
+| 23 | Build & distribution (Godot Windows export, download page, build serving, admin version/URL config) |
 
-## Phase 22 Details (Just Completed)
+## Phase 23 Details (Just Completed)
 
-- React + Vite + Tailwind SPA served from the game server
-- Pages: Home, Login (with forgot password), Leaderboard, Player profiles, Regiments, Download (placeholder), Ban Appeal, Admin Dashboard
-- Admin dashboard: 6 feature toggles (stored in `site_settings`), site stats, ban appeal review
-- Global chat widget (bottom-right, signed-in users only)
-- Real-time updates via Supabase Realtime (stats update live when games end)
-- Multi-stage Docker build (server + website + runtime)
-- Static file serving with SPA fallback in `server/src/index.ts`
-- Ban notification Edge Function (`supabase/functions/ban-notification/`) — sends email via Resend when a player is banned
-- SQL migrations: `016_website.sql` (site_settings, ban_appeals, Realtime publications), `017_ban_webhook.sql` (trigger for ban notification)
+- Godot Windows x86_64 export preset configured, outputs to `builds/ChainRevival-0.1.0-alpha.zip`
+- Download page with version badge, system requirements, 4-step install guide, SmartScreen warning
+- Download button activates when admin sets `download_url` in the admin dashboard
+- Admin dashboard: Game Distribution section with `game_version` and `download_url` fields
+- Server serves game builds from `/builds` directory with `Content-Disposition: attachment` headers
+- Dockerfile copies `builds/` into the container (wildcard pattern so build doesn't fail if empty)
+- SQL migration `018_download_settings.sql` seeds `game_version` and `download_url` in `site_settings`
+- Ban notification Edge Function deployed to Supabase with Resend integration
+- Server admin/moderator verification now done server-side via Supabase (was client-trusted)
+- Auth consolidated into single AuthProvider context (was duplicated across components)
+- 404 catch-all route added
 
-### Ban Notification Setup (Not Yet Deployed)
+### Build & Deploy Workflow
 
-The Edge Function and SQL trigger are written but require:
-1. Resend account + API key (free tier)
-2. `npx supabase functions deploy ban-notification --project-ref tnyaqreedvdmyworvqbw`
-3. `npx supabase secrets set RESEND_API_KEY=re_xxx SITE_URL=https://chain-revival-ax0q1g.fly.dev --project-ref tnyaqreedvdmyworvqbw`
-4. Run `017_ban_webhook.sql` in Supabase SQL Editor (or use Dashboard → Database → Webhooks)
+1. Export from Godot: Project > Export > "Chain Revival 0.1.0-alpha" > Export Project
+2. Build lands in `builds/ChainRevival-0.1.0-alpha.zip` (gitignored, picked up by Dockerfile)
+3. Deploy: `fly deploy -a chain-revival-ax0q1g --remote-only`
+4. Set version and download URL in admin dashboard
 
 ## Upcoming Phases
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| 23 | Build & Distribution | Godot Windows export. Versioned build pipeline (.exe + .pck). Download hosted on the website. Install/first-run instructions. |
 | 24 | Alpha Launch | Bug reporting channel. Minimal privacy policy/ToS. Server capacity check. Invite testers, collect feedback. |
+
+## Code Signing (Not Yet Done)
+
+The Windows build is not code-signed, so Chrome flags the download as suspicious and Windows SmartScreen warns on first run. Users can click through both warnings to install.
+
+To eliminate the warnings:
+1. Buy an OV code signing certificate (~$150-220/year) from a reseller like CodeSigningStore or CheapSSLSecurity (can be issued to individuals with a photo ID)
+2. Install the Windows SDK (for `signtool.exe`)
+3. In Godot: Editor > Editor Settings > Export > Windows — set Sign Tool path to `signtool.exe`
+4. In the export preset: Options > Code Signing — enable and set the certificate
+5. Godot signs automatically on export
+
+OV is sufficient. EV ($400-600/yr) gets instant SmartScreen trust; with OV, warnings disappear after enough users download without issues.
+
+## Game Update Options
+
+Currently players re-download the full build manually. Future options:
+
+1. **Custom launcher/updater** — a small exe that checks your server for new versions and downloads them automatically
+2. **Steam / itch.io** — handles updates automatically, but adds platform dependency
 
 ## Known Gotchas
 

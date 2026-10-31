@@ -8,6 +8,8 @@ interface SiteSettings {
   leaderboard_enabled: boolean
   registration_enabled: boolean
   appeal_enabled: boolean
+  game_version: string
+  download_url: string
 }
 
 const DEFAULTS: SiteSettings = {
@@ -17,6 +19,8 @@ const DEFAULTS: SiteSettings = {
   leaderboard_enabled: true,
   registration_enabled: true,
   appeal_enabled: true,
+  game_version: '',
+  download_url: '',
 }
 
 export function useSiteSettings() {
@@ -50,7 +54,7 @@ export function useSiteSettings() {
         schema: 'public',
         table: 'site_settings',
       } as never, (payload) => {
-        const { key, value } = payload.new as { key: string; value: boolean }
+        const { key, value } = payload.new as { key: string; value: boolean | string }
         setSettings(prev => {
           if (key in prev) {
             return { ...prev, [key]: value }
@@ -63,7 +67,7 @@ export function useSiteSettings() {
     return () => { supabase.removeChannel(channel) }
   }, [])
 
-  async function updateSetting(key: keyof SiteSettings, value: boolean) {
+  async function updateSetting(key: keyof SiteSettings, value: boolean | string) {
     setSettings(prev => ({ ...prev, [key]: value }))
     await supabase
       .from('site_settings')
