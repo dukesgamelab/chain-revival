@@ -76,8 +76,9 @@ PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500
 - **Branch:** `multiplayer-complete`
 - **Remote:** GitHub, user `dukesgamelab`
 - **Commit style:** `Phase N: Title` for phase work
+- **No Claude attribution.** Never add `Co-Authored-By` lines or any Claude/Anthropic references to commits or PRs. All commits must appear as solely by `dukesgamelab`.
 
-## Completed Phases (1-23)
+## Completed Phases (1-25)
 
 | Phase | Name |
 |-------|------|
@@ -100,60 +101,45 @@ PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500
 | 22 | Website integration (React SPA, admin dashboard, forgot password, ban notification Edge Function) |
 | 23 | Build & distribution (Godot Windows export, download page, build serving, admin version/URL config) |
 | 24 | Alpha launch (bug reports, feedback, privacy policy, ToS, server capacity bump) |
+| 25 | Regiment management (CO/XO dashboard, player interactions, admin oversight) |
 
-## Phase 24 Details (Just Completed)
+## Phase 25 Details (Just Completed)
 
-- Bug report system: `/bugs` page with title, description, category (gameplay/ui/multiplayer/performance/crash/other), severity, steps to reproduce
-- Feedback system: `/feedback` page with star rating, category (general/gameplay/balance/ui/maps/feature-request), freeform message
-- Privacy Policy page at `/privacy` — data collection, third-party services, cookies, children's privacy, contact
-- Terms of Service page at `/terms` — accounts, conduct, moderation, alpha status disclaimer, IP, liability
-- Admin dashboard: new Bugs and Feedback tabs for reviewing submissions, status management on bug reports (open/in-progress/closed)
-- Admin toggles: `bugreports_enabled` and `feedback_enabled` site settings
-- Nav updated with Bug Report and Feedback links (toggle-controlled)
-- Footer updated with Privacy Policy and Terms of Service links
-- SQL migration `019_alpha_launch.sql`: `bug_reports` and `feedback` tables with RLS policies
-- Fly.io VM bumped from 1 to 2 shared CPUs for alpha tester capacity
-- Both new tables have Supabase Realtime enabled
+- **CO/XO Management Dashboard** at `/regiment/manage` (authenticated CO/XO only):
+  - Members tab: roster with kick, assign regiment rank (1LT/CPT/MAJ/LT COL/COL), set/remove XO (CO-only)
+  - Requests tab: view and accept/reject pending join requests
+  - Invites tab: search players by name and send invites, view pending invites
+  - Settings tab (CO-only): edit regiment description and website URL
+  - Disband tab (CO-only): submit disbandment request for admin review
+- **Player Regiment Interactions** on `/regiments` page:
+  - "Create Regiment" button: application form (name, tag, description) submitted for admin review
+  - "Apply to Join" button on regiment detail (with cancel application)
+  - "Leave Regiment" button for members (CO cannot leave — must transfer or disband)
+  - Pending invites banner at top of regiments list with accept/decline
+  - Pending applications tracker with cancel option
+- **Admin Regiment Oversight** — new "Regiments" tab in admin dashboard:
+  - Pending regiment applications (create/disband) with approve/reject
+  - Active regiments table with force-disband override
+  - All pending join requests across all regiments
+- SQL migration `020_regiment_management.sql`:
+  - `leave_regiment` RPC (atomically removes member, clears profile regiment_id, clears XO if needed)
+  - `reject_regiment_join` RPC (CO/XO rejects player request, or player rejects invite)
+  - `admin_kick_member`, `admin_transfer_co`, `admin_force_disband` RPCs
+  - RLS policies: admin view all join requests, player cancel own pending requests, admin view pending regiments
+- New page: `website/src/pages/RegimentManage.tsx`
+- Route: `/regiment/manage` (authenticated users only)
 
-### Alpha Launch Checklist
+### Phase 25 Checklist
 
-1. Run migration `019_alpha_launch.sql` in Supabase SQL Editor
+1. Run migration `020_regiment_management.sql` in Supabase SQL Editor
 2. Deploy: `fly deploy -a chain-revival-ax0q1g --remote-only`
-3. Verify bug report and feedback forms work
-4. Share download link and site URL with alpha testers
-5. Monitor bug reports and feedback in the admin dashboard
+3. Test: create regiment application, approve in admin, join/leave/invite/kick flows
+4. Verify admin oversight tab shows all regiment data
 
 ## Upcoming Phases
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| 25 | Regiment Management | CO/XO management dashboard on website. Player regiment interactions (apply, leave). Admin regiment oversight. |
-
-### Phase 25: Regiment Management (Detailed Scope)
-
-**CO/XO Management Dashboard** (website page, visible to CO/XO of their regiment):
-- View pending join requests and accept/reject them (RPC `accept_regiment_join` exists)
-- Kick members (RPC `kick_regiment_member` exists)
-- Promote/demote members — assign regiment ranks: 1LT, CPT, MAJ, LT COL, COL (RPC `assign_regiment_rank` exists, requires player PP rank >= 2LT)
-- Set/remove XO (RPC `set_regiment_xo` exists, CO-only)
-- Edit regiment description and website URL (RPC `update_regiment_details` exists, CO-only)
-- Send invites to players (RLS policy `CO and XO can send invites` exists on `regiment_join_requests`)
-- Request regiment disbandment (RLS policy `CO can submit disband applications` exists on `regiment_applications`)
-
-**Player Regiment Interactions** (on regiments page or player profile):
-- Apply to join a regiment (RLS policy `Users can request to join a regiment` exists on `regiment_join_requests`)
-- View status of pending applications
-- Accept/reject invites received from regiments (RLS policy `Users can resolve invites sent to them` exists)
-- Leave current regiment (RLS policy `Members can leave their regiment` exists on `regiment_members`, also need to clear `regiment_id` on `player_profiles`)
-- Apply to create a new regiment (RLS policy `Users can submit create applications` exists on `regiment_applications`)
-
-**Admin Regiment Oversight** (in admin dashboard):
-- View and approve/reject regiment creation applications (RPCs `approve_regiment_application` and `reject_regiment_application` exist)
-- View and approve/reject regiment disbandment requests
-- View all regiment join requests across all regiments
-- Override: kick members, transfer CO, force-disband
-
-**Backend Status:** All Supabase RPC functions and RLS policies already exist in migration `009_regiments.sql`. This phase is purely website UI work — no new migrations needed unless admin override functions are added.
 
 ## Code Signing (Not Yet Done)
 

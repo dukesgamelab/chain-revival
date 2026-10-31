@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/AuthProvider'
 import { RankBadge } from '../components/RankBadge'
 
 interface Regiment {
@@ -22,7 +23,17 @@ interface Member {
   prestige_points: number
 }
 
+interface JoinRequest {
+  id: string
+  regiment_id: string
+  direction: string
+  status: string
+  created_at: string
+  regiment_name?: string
+}
+
 export function Regiments() {
+  const { user, profile } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedId = searchParams.get('id')
   const [regiments, setRegiments] = useState<Regiment[]>([])
@@ -31,6 +42,23 @@ export function Regiments() {
   const [selected, setSelected] = useState<Regiment | null>(null)
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
+
+  const [myRequests, setMyRequests] = useState<JoinRequest[]>([])
+  const [myInvites, setMyInvites] = useState<JoinRequest[]>([])
+
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [createName, setCreateName] = useState('')
+  const [createTag, setCreateTag] = useState('')
+  const [createDesc, setCreateDesc] = useState('')
+  const [createError, setCreateError] = useState('')
+  const [createSuccess, setCreateSuccess] = useState('')
+
+  const [actionError, setActionError] = useState('')
+  const [actionSuccess, setActionSuccess] = useState('')
+
+  const hasRegiment = !!profile?.regiment_id
+  const isCOorXO = selected && user && (selected.co_id === user.id || selected.xo_id === user.id)
+  const isMember = selected && profile?.regiment_id === selected.id
 
   useEffect(() => {
     async function loadRegiments() {
@@ -70,6 +98,38 @@ export function Regiments() {
 
     loadRegiments()
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+
+    async function loadMyActivity() {
+      const { data } = await supabase
+        .from('regiment_join_requests')
+        .select('id,regiment_id,direction,status,created_at')
+        .eq('player_id', user!.id)
+        .eq('status', 'pending')
+
+      if (data) {
+        const regIds = [...new Set(data.map(r => r.regiment_id))]
+        let regNames: Record<string, string> = {}
+        if (regIds.length > 0) {
+          const { data: regs } = await supabase
+            .from('regiments')
+            .select('id,name')
+            .in('id', regIds)
+          if (regs) {
+            for (const r of regs) regNames[r.id] = r.name
+          }
+        }
+
+        const enriched = data.map(r => ({ ...r, regiment_name: regNames[r.regiment_id] ?? 'Unknown' }))
+        setMyRequests(enriched.filter(r => r.direction === 'request'))
+        setMyInvites(enriched.filter(r => r.direction === 'invite'))
+      }
+    }
+
+    loadMyActivity()
+  }, [user])
 
   useEffect(() => {
     if (!selectedId) { setSelected(null); return }
@@ -120,6 +180,105 @@ export function Regiments() {
     loadDetail()
   }, [selectedId, regiments])
 
+  function flashAction(msg: string, isError = false) {
+    if (isError) { setActionError(msg); setActionSuccess('') }
+    else { setActionSuccess(msg); setActionError('') }
+    setTimeout(() => { setActionError(''); setActionSuccess('') }, 3000)
+  }
+
+  async function handleApplyToJoin(regimentId: string) {
+    const { error } = await supabase
+      .from('regiment_join_requests')
+      .insert({
+        regiment_id: regimentId,
+        player_id: user!.id,
+        direction: 'request',
+      })
+    if (error) { flashAction(error.message, true); return }
+    setMyRequests(prev => [...prev, {
+      id: crypto.randomUUID(),
+      regiment_id: regimentId,
+      direction: 'request',
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      regiment_name: selected?.name ?? regiments.find(r => r.id === regimentId)?.name,
+    }])
+    flashAction('Application submitted!')
+  }
+
+  async function handleCancelRequest(requestId: string) {
+    const { error } = await supabase
+      .from('regiment_join_requests')
+      .update({ status: 'cancelled', resolved_at: new Date().toISOString() })
+      .eq('id', requestId)
+    if (error) { flashAction(error.message, true); return }
+    setMyRequests(prev => prev.filter(r => r.id !== requestId))
+    flashAction('Application cancelled')
+  }
+
+  async function handleAcceptInvite(requestId: string) {
+    const { error } = await supabase.rpc('accept_regiment_join', {
+      p_request_id: requestId,
+      p_user_id: user!.id,
+    })
+    if (error) { flashAction(error.message, true); return }
+    setMyInvites(prev => prev.filter(r => r.id !== requestId))
+    flashAction('Invite accepted! Reloading...')
+    setTimeout(() => window.location.reload(), 1000)
+  }
+
+  async function handleRejectInvite(requestId: string) {
+    const { error } = await supabase.rpc('reject_regiment_join', {
+      p_request_id: requestId,
+      p_user_id: user!.id,
+    })
+    if (error) { flashAction(error.message, true); return }
+    setMyInvites(prev => prev.filter(r => r.id !== requestId))
+    flashAction('Invite declined')
+  }
+
+  async function handleLeaveRegiment() {
+    if (!confirm('Are you sure you want to leave this regiment?')) return
+    const { error } = await supabase.rpc('leave_regiment', {
+      p_player_id: user!.id,
+    })
+    if (error) { flashAction(error.message, true); return }
+    flashAction('You have left the regiment. Reloading...')
+    setTimeout(() => window.location.reload(), 1000)
+  }
+
+  async function handleCreateApplication() {
+    setCreateError('')
+    if (!createName.trim() || !createTag.trim()) {
+      setCreateError('Name and tag are required')
+      return
+    }
+    if (createTag.length > 5) {
+      setCreateError('Tag must be 5 characters or less')
+      return
+    }
+
+    const { error } = await supabase
+      .from('regiment_applications')
+      .insert({
+        type: 'create',
+        applicant_id: user!.id,
+        regiment_name: createName.trim(),
+        regiment_tag: createTag.trim().toUpperCase(),
+        description: createDesc.trim(),
+      })
+    if (error) { setCreateError(error.message); return }
+    setCreateSuccess('Regiment application submitted! An admin will review it.')
+    setCreateName('')
+    setCreateTag('')
+    setCreateDesc('')
+    setShowCreateForm(false)
+  }
+
+  const hasPendingRequestFor = (regimentId: string) =>
+    myRequests.some(r => r.regiment_id === regimentId)
+
+  // Detail view
   if (selected) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -129,6 +288,12 @@ export function Regiments() {
         >
           &larr; Back to Regiments
         </button>
+
+        {(actionError || actionSuccess) && (
+          <div className={`mb-4 px-4 py-2 rounded-lg text-sm ${actionError ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+            {actionError || actionSuccess}
+          </div>
+        )}
 
         <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-6 mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -145,7 +310,45 @@ export function Regiments() {
           )}
           <div className="flex gap-6 mt-4 text-sm text-slate-400">
             <span>Members: {members.length}/{selected.max_members}</span>
-            {selected.co_id && <span>CO: {coNames[selected.co_id] ?? 'Unknown'}</span>}
+            {selected.co_id && <span>CO: {coNames[selected.co_id] ?? members.find(m => m.player_id === selected.co_id)?.display_name ?? 'Unknown'}</span>}
+          </div>
+
+          <div className="flex gap-2 mt-4">
+            {isCOorXO && (
+              <Link
+                to="/regiment/manage"
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-lg transition-colors inline-block"
+              >
+                Manage Regiment
+              </Link>
+            )}
+            {user && !hasRegiment && !hasPendingRequestFor(selected.id) && (
+              <button
+                onClick={() => handleApplyToJoin(selected.id)}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Apply to Join
+              </button>
+            )}
+            {user && !hasRegiment && hasPendingRequestFor(selected.id) && (
+              <button
+                onClick={() => {
+                  const req = myRequests.find(r => r.regiment_id === selected.id)
+                  if (req) handleCancelRequest(req.id)
+                }}
+                className="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Cancel Application
+              </button>
+            )}
+            {isMember && !isCOorXO && selected.co_id !== user?.id && (
+              <button
+                onClick={handleLeaveRegiment}
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Leave Regiment
+              </button>
+            )}
           </div>
         </div>
 
@@ -195,9 +398,123 @@ export function Regiments() {
     )
   }
 
+  // List view
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Regiments</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Regiments</h1>
+        {user && !hasRegiment && (
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {showCreateForm ? 'Cancel' : 'Create Regiment'}
+          </button>
+        )}
+      </div>
+
+      {(actionError || actionSuccess || createSuccess) && (
+        <div className={`mb-4 px-4 py-2 rounded-lg text-sm ${actionError ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+          {actionError || actionSuccess || createSuccess}
+        </div>
+      )}
+
+      {showCreateForm && (
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 mb-6">
+          <h2 className="text-lg font-bold text-white mb-4">Apply to Create a Regiment</h2>
+          <p className="text-sm text-slate-400 mb-4">Submit an application for admin review. Once approved, you will become the Commanding Officer.</p>
+          {createError && <div className="mb-3 px-3 py-2 bg-red-500/20 text-red-400 rounded text-sm">{createError}</div>}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Regiment Name</label>
+              <input
+                type="text"
+                value={createName}
+                onChange={e => setCreateName(e.target.value)}
+                placeholder="1st Infantry Division"
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-sky-500 placeholder-slate-600"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Tag (max 5 chars)</label>
+              <input
+                type="text"
+                value={createTag}
+                onChange={e => setCreateTag(e.target.value.slice(0, 5))}
+                placeholder="1ID"
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-sky-500 placeholder-slate-600 uppercase"
+              />
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
+            <textarea
+              value={createDesc}
+              onChange={e => setCreateDesc(e.target.value)}
+              rows={3}
+              placeholder="Tell us about your regiment..."
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-sky-500 placeholder-slate-600 resize-none"
+            />
+          </div>
+          <button
+            onClick={handleCreateApplication}
+            className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Submit Application
+          </button>
+        </div>
+      )}
+
+      {myInvites.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-amber-400 mb-2">Pending Invites</h2>
+          <div className="space-y-2">
+            {myInvites.map(inv => (
+              <div key={inv.id} className="bg-amber-900/20 border border-amber-700/30 rounded-lg p-3 flex items-center justify-between">
+                <span className="text-sm text-white">
+                  You've been invited to join <strong>{inv.regiment_name}</strong>
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAcceptInvite(inv.id)}
+                    className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition-colors"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleRejectInvite(inv.id)}
+                    className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white text-xs font-medium rounded-lg transition-colors"
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {myRequests.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-sky-400 mb-2">Your Pending Applications</h2>
+          <div className="space-y-2">
+            {myRequests.map(req => (
+              <div key={req.id} className="bg-sky-900/20 border border-sky-700/30 rounded-lg p-3 flex items-center justify-between">
+                <span className="text-sm text-white">
+                  Applied to <strong>{req.regiment_name}</strong>
+                  <span className="text-slate-500 ml-2">{new Date(req.created_at).toLocaleDateString()}</span>
+                </span>
+                <button
+                  onClick={() => handleCancelRequest(req.id)}
+                  className="px-3 py-1 bg-slate-600 hover:bg-slate-500 text-white text-xs font-medium rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center text-slate-500 py-16">Loading...</div>
