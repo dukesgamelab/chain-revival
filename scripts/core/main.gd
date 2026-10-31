@@ -212,6 +212,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_boot_complete = true
 	_hide_loading_overlay()
+	AudioManager.start_ambient()
 	if _is_survival_mode():
 		call_deferred("_open_survival_difficulty_dialog")
 	elif _is_tutorial_mode():
@@ -1676,6 +1677,7 @@ func _on_mission_debrief_finished() -> void:
 	## Use call_deferred to avoid issues with AcceptDialog (Window) lifecycle;
 	## changing scene immediately inside a Window signal handler can cause
 	## Godot to interpret the window closure as an app quit.
+	AudioManager.stop_ambient()
 	if _command_bar != null:
 		_command_bar.cleanup_chat()
 	if _return_to_editor_on_exit and BuildConfig.is_development():
@@ -2151,6 +2153,7 @@ func _open_tutorial_complete_dialog() -> void:
 
 
 func _return_to_mode_select() -> void:
+	AudioManager.stop_ambient()
 	if _command_bar != null:
 		_command_bar.cleanup_chat()
 	get_tree().call_deferred("change_scene_to_file", "res://scenes/mode_select.tscn")
@@ -2845,6 +2848,7 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		var thrower: SoldierState = _game_state.get_soldier(int(order.team_id), int(order.soldier_id))
 		if throw_view != null and thrower != null:
 			throw_view.play_throw_grenade(thrower.position_state, thrower.facing_direction)
+			AudioManager.play_grenade_throw()
 
 	if result.sync_fire_at_ui:
 		_sync_fire_at_ui_from_engagements()

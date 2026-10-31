@@ -949,6 +949,7 @@ func _arrive_at_chase_cell() -> void:
 	var step_delta := _path[_path_index] - _previous_grid_pos
 	_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
 	_update_locomotion_visual(step_delta, true)
+	AudioManager.play_footstep(_applied_position_state == PositionState.DOWN)
 
 
 ## Align visual chase target with authoritative simulation state (presentation only).

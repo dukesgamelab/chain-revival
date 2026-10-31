@@ -107,8 +107,40 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | 27 | Auto-updater (startup version check, self-updating game client) |
 | 28 | Match reconnection (90s reconnect window, ghost client, Leave Match button) |
 | 29 | Movement & animation polish (stutter fix, grenade throw on remote, path smoothing) |
+| 30 | Chat improvements (whisper/announce in all game modes, chat history persistence, mute/block) |
+| 31 | Sound effects (combat audio, footsteps, grenade throw, ambient wind, volume controls) |
 
-## Phase 29 Details (Just Completed)
+## Phase 31 Details (Just Completed)
+
+- **Audio bus system** (`scripts/core/audio_manager.gd`):
+  - Added SFX and Ambient buses routed to Master, created programmatically at startup
+  - All combat/footstep/throw players routed to SFX bus; ambient player to Ambient bus
+  - Volume control via `master_volume`, `sfx_volume`, `ambient_volume` properties (0.0–1.0 linear)
+  - Settings saved to `user://audio_settings.cfg` and loaded on startup
+- **Footstep sounds** (`scripts/soldiers/soldier.gd`):
+  - `AudioManager.play_footstep()` called in `_arrive_at_chase_cell()` each time a soldier reaches a grid cell
+  - Walk vs crawl distinction: crawling uses wider pitch variation and lower volume
+  - Throttled to 100ms minimum interval to prevent audio spam from many soldiers moving
+  - Uses OG `Mdwn.wav`/`Mup.wav` with generated fallback (short noise+thump burst)
+- **Grenade throw sound** (`scripts/core/main.gd`):
+  - `AudioManager.play_grenade_throw()` called when throw orders are presented
+  - Generated whoosh sound (noise + frequency sweep, 0.25s)
+- **Ambient wind layer** (`scripts/core/main.gd`):
+  - `AudioManager.start_ambient()` called after match boot completes
+  - `AudioManager.stop_ambient()` called on mission debrief finish and return to menu
+  - 8-second procedural wind loop (low-pass filtered noise with volume swell)
+  - Loops continuously via `finished` signal reconnect
+- **Volume controls** (`scripts/ui/mode_select.gd`):
+  - "Settings" button added to main menu
+  - Dialog with Master, SFX, and Ambient sliders (0–100%, step 5%)
+  - Changes apply immediately and persist across sessions
+- **Generated fallback audio**: all new sound categories (footsteps, throw, ambient) have procedural fallback samples, matching the existing pattern for weapons/death
+
+## Phase 30 Details
+
+- Phase 30 content was completed in a previous session.
+
+## Phase 29 Details
 
 - **Grenade throw animation on remote client** (`scripts/core/main.gd`, `scripts/network/network_client.gd`):
   - Root cause: `grenade_thrown_received` signal was never connected in `main.gd` — remote clients saw the explosion but not the throw
@@ -211,8 +243,6 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| 30 | Chat improvements | Whisper/announce in all game modes (not just 2v2+), chat history persistence, mute/block players |
-| 31 | Sound & music | Sound effects for combat (gunfire, grenades, movement), ambient sounds, background music, volume controls |
 | 32 | Settings & keybinds | In-game settings menu (graphics, audio, controls), remappable keybinds, resolution/fullscreen options |
 | 33 | Spectator mode | Watch live matches without participating, camera controls, player perspective switching |
 | 34 | Code signing & CI pipeline | SignPath integration via GitHub Actions, automated build export, signed Windows exe |

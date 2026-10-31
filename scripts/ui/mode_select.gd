@@ -50,6 +50,7 @@ func _ready() -> void:
 	_add_leaderboard_button()
 	_add_version_label()
 	_add_known_issues_button()
+	_add_settings_button()
 	_show_first_launch_hint()
 	_check_for_updates()
 
@@ -372,6 +373,110 @@ func _howto_spacer(page: VBoxContainer) -> void:
 	page.add_child(spacer)
 
 
+var _settings_dialog: AcceptDialog
+
+func _add_settings_button() -> void:
+	var vbox := get_node_or_null("Center/Panel/Margin/VBox") as VBoxContainer
+	if vbox == null:
+		return
+	var btn := Button.new()
+	btn.text = "Settings"
+	btn.pressed.connect(_on_settings_pressed)
+	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
+	if dev_box != null:
+		var dev_idx := dev_box.get_index()
+		vbox.add_child(btn)
+		vbox.move_child(btn, dev_idx)
+	else:
+		vbox.add_child(btn)
+
+
+func _on_settings_pressed() -> void:
+	if _settings_dialog != null:
+		_sync_settings_sliders()
+		_settings_dialog.popup_centered()
+		return
+	var dlg := AcceptDialog.new()
+	dlg.title = "Settings"
+	dlg.ok_button_text = "Close"
+	dlg.min_size = Vector2(340, 220)
+	CocUiTheme.apply_to(dlg)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	dlg.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	margin.add_child(vbox)
+
+	var heading := Label.new()
+	heading.text = "Volume"
+	heading.add_theme_font_size_override("font_size", 14)
+	heading.add_theme_color_override("font_color", Color(0.18, 0.16, 0.12))
+	vbox.add_child(heading)
+
+	_master_slider = _add_volume_row(vbox, "Master", AudioManager.master_volume)
+	_master_slider.value_changed.connect(func(v: float):
+		AudioManager.master_volume = v
+		AudioManager.save_settings()
+	)
+	_sfx_slider = _add_volume_row(vbox, "SFX", AudioManager.sfx_volume)
+	_sfx_slider.value_changed.connect(func(v: float):
+		AudioManager.sfx_volume = v
+		AudioManager.save_settings()
+	)
+	_ambient_slider = _add_volume_row(vbox, "Ambient", AudioManager.ambient_volume)
+	_ambient_slider.value_changed.connect(func(v: float):
+		AudioManager.ambient_volume = v
+		AudioManager.save_settings()
+	)
+
+	add_child(dlg)
+	_settings_dialog = dlg
+	dlg.popup_centered()
+
+
+var _master_slider: HSlider
+var _sfx_slider: HSlider
+var _ambient_slider: HSlider
+
+func _sync_settings_sliders() -> void:
+	if _master_slider != null:
+		_master_slider.set_value_no_signal(AudioManager.master_volume)
+	if _sfx_slider != null:
+		_sfx_slider.set_value_no_signal(AudioManager.sfx_volume)
+	if _ambient_slider != null:
+		_ambient_slider.set_value_no_signal(AudioManager.ambient_volume)
+
+
+func _add_volume_row(parent: VBoxContainer, label_text: String, initial: float) -> HSlider:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var label := Label.new()
+	label.text = label_text
+	label.custom_minimum_size = Vector2(60, 0)
+	label.add_theme_font_size_override("font_size", 12)
+	row.add_child(label)
+
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = initial
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.custom_minimum_size = Vector2(160, 0)
+	row.add_child(slider)
+
+	parent.add_child(row)
+	return slider
+
+
 func _on_editor_pressed() -> void:
 	if BuildConfig.is_survival_playtest():
 		return
@@ -513,9 +618,6 @@ func _fill_known_issues(page: VBoxContainer) -> void:
 	var issues := [
 		"Team games (2v2+) are new and lightly tested — expect rough edges.",
 		"Reconnection: if you disconnect mid-match, you have 90 seconds to reconnect.",
-		"Chat whisper and announce only work in team games (2v2+).",
-		"Soldiers occasionally stutter when multiple move orders overlap.",
-		"Grenade throw animation may not play on the remote client.",
 		"Leaderboard ranks update after the match ends, not in real time.",
 		"Map editor saves are local only — no cloud sync.",
 	]
