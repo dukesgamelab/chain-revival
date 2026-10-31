@@ -374,6 +374,16 @@ func _howto_spacer(page: VBoxContainer) -> void:
 
 
 var _settings_dialog: AcceptDialog
+var _master_slider: HSlider
+var _sfx_slider: HSlider
+var _ambient_slider: HSlider
+var _fullscreen_check: CheckButton
+var _vsync_check: CheckButton
+var _resolution_option: OptionButton
+var _keybind_buttons: Dictionary = {}
+var _rebinding_action: String = ""
+var _rebinding_slot: int = -1
+var _rebinding_button: Button
 
 func _add_settings_button() -> void:
 	var vbox := get_node_or_null("Center/Panel/Margin/VBox") as VBoxContainer
@@ -393,21 +403,38 @@ func _add_settings_button() -> void:
 
 func _on_settings_pressed() -> void:
 	if _settings_dialog != null:
-		_sync_settings_sliders()
+		_sync_settings_ui()
 		_settings_dialog.popup_centered()
 		return
 	var dlg := AcceptDialog.new()
 	dlg.title = "Settings"
 	dlg.ok_button_text = "Close"
-	dlg.min_size = Vector2(340, 220)
+	dlg.min_size = Vector2(460, 340)
 	CocUiTheme.apply_to(dlg)
 
+	var tabs := TabContainer.new()
+	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tabs.add_theme_font_size_override("font_size", 11)
+	dlg.add_child(tabs)
+
+	_build_audio_tab(tabs)
+	_build_graphics_tab(tabs)
+	_build_controls_tab(tabs)
+
+	add_child(dlg)
+	_settings_dialog = dlg
+	dlg.popup_centered()
+
+
+func _build_audio_tab(tabs: TabContainer) -> void:
 	var margin := MarginContainer.new()
+	margin.name = "Audio"
 	margin.add_theme_constant_override("margin_left", 16)
 	margin.add_theme_constant_override("margin_top", 12)
 	margin.add_theme_constant_override("margin_right", 16)
 	margin.add_theme_constant_override("margin_bottom", 8)
-	dlg.add_child(margin)
+	tabs.add_child(margin)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 10)
@@ -435,22 +462,188 @@ func _on_settings_pressed() -> void:
 		AudioManager.save_settings()
 	)
 
-	add_child(dlg)
-	_settings_dialog = dlg
-	dlg.popup_centered()
+
+func _build_graphics_tab(tabs: TabContainer) -> void:
+	var margin := MarginContainer.new()
+	margin.name = "Graphics"
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	tabs.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	margin.add_child(vbox)
+
+	_fullscreen_check = CheckButton.new()
+	_fullscreen_check.text = "Fullscreen"
+	_fullscreen_check.button_pressed = SettingsManager.fullscreen
+	_fullscreen_check.toggled.connect(func(on: bool):
+		SettingsManager.set_fullscreen(on)
+		_resolution_option.disabled = on
+	)
+	vbox.add_child(_fullscreen_check)
+
+	_vsync_check = CheckButton.new()
+	_vsync_check.text = "VSync"
+	_vsync_check.button_pressed = SettingsManager.vsync
+	_vsync_check.toggled.connect(func(on: bool):
+		SettingsManager.set_vsync(on)
+	)
+	vbox.add_child(_vsync_check)
+
+	var res_row := HBoxContainer.new()
+	res_row.add_theme_constant_override("separation", 8)
+	var res_label := Label.new()
+	res_label.text = "Resolution"
+	res_label.custom_minimum_size = Vector2(80, 0)
+	res_label.add_theme_font_size_override("font_size", 12)
+	res_row.add_child(res_label)
+	_resolution_option = OptionButton.new()
+	_resolution_option.custom_minimum_size = Vector2(160, 0)
+	for res in SettingsManager.RESOLUTIONS:
+		_resolution_option.add_item("%d x %d" % [res.x, res.y])
+	_resolution_option.selected = SettingsManager.resolution_index
+	_resolution_option.disabled = SettingsManager.fullscreen
+	_resolution_option.item_selected.connect(func(idx: int):
+		SettingsManager.set_resolution_index(idx)
+	)
+	res_row.add_child(_resolution_option)
+	vbox.add_child(res_row)
 
 
-var _master_slider: HSlider
-var _sfx_slider: HSlider
-var _ambient_slider: HSlider
+func _build_controls_tab(tabs: TabContainer) -> void:
+	var margin := MarginContainer.new()
+	margin.name = "Controls"
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	tabs.add_child(margin)
 
-func _sync_settings_sliders() -> void:
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 10)
+	margin.add_child(outer)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 180)
+	outer.add_child(scroll)
+
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 6)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(grid)
+
+	for action in SettingsManager.REMAPPABLE_ACTIONS:
+		var label := Label.new()
+		label.text = SettingsManager.ACTION_LABELS.get(action, action)
+		label.custom_minimum_size = Vector2(90, 0)
+		label.add_theme_font_size_override("font_size", 11)
+		grid.add_child(label)
+
+		var binds: Array = SettingsManager.get_bindings(action)
+		var btn_primary := Button.new()
+		btn_primary.custom_minimum_size = Vector2(80, 24)
+		btn_primary.text = SettingsManager.key_name(binds[0] if binds.size() > 0 else 0)
+		btn_primary.add_theme_font_size_override("font_size", 10)
+		btn_primary.pressed.connect(_start_rebind.bind(action, 0, btn_primary))
+		grid.add_child(btn_primary)
+
+		var btn_secondary := Button.new()
+		btn_secondary.custom_minimum_size = Vector2(80, 24)
+		btn_secondary.text = SettingsManager.key_name(binds[1] if binds.size() > 1 else 0)
+		btn_secondary.add_theme_font_size_override("font_size", 10)
+		btn_secondary.pressed.connect(_start_rebind.bind(action, 1, btn_secondary))
+		grid.add_child(btn_secondary)
+
+		_keybind_buttons[action] = [btn_primary, btn_secondary]
+
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 8)
+	var reset_btn := Button.new()
+	reset_btn.text = "Reset Defaults"
+	reset_btn.add_theme_font_size_override("font_size", 10)
+	reset_btn.pressed.connect(_on_reset_keybinds)
+	btn_row.add_child(reset_btn)
+	outer.add_child(btn_row)
+
+
+func _start_rebind(action: String, slot: int, btn: Button) -> void:
+	if _rebinding_button != null:
+		_cancel_rebind()
+	_rebinding_action = action
+	_rebinding_slot = slot
+	_rebinding_button = btn
+	btn.text = "..."
+
+
+func _cancel_rebind() -> void:
+	if _rebinding_button == null:
+		return
+	var binds: Array = SettingsManager.get_bindings(_rebinding_action)
+	var keycode: int = binds[_rebinding_slot] if _rebinding_slot < binds.size() else 0
+	_rebinding_button.text = SettingsManager.key_name(keycode)
+	_rebinding_action = ""
+	_rebinding_slot = -1
+	_rebinding_button = null
+
+
+func _input(event: InputEvent) -> void:
+	if _rebinding_action == "":
+		return
+	if not event is InputEventKey:
+		return
+	var key_event := event as InputEventKey
+	if not key_event.pressed:
+		return
+	get_viewport().set_input_as_handled()
+	if key_event.keycode == KEY_ESCAPE:
+		_cancel_rebind()
+		return
+	var keycode := int(key_event.physical_keycode) if key_event.physical_keycode != KEY_NONE else int(key_event.keycode)
+	SettingsManager.set_binding(_rebinding_action, _rebinding_slot, keycode)
+	_rebinding_button.text = SettingsManager.key_name(keycode)
+	_rebinding_action = ""
+	_rebinding_slot = -1
+	_rebinding_button = null
+
+
+func _on_reset_keybinds() -> void:
+	SettingsManager.reset_keybinds()
+	_refresh_keybind_buttons()
+
+
+func _refresh_keybind_buttons() -> void:
+	for action in SettingsManager.REMAPPABLE_ACTIONS:
+		if not _keybind_buttons.has(action):
+			continue
+		var btns: Array = _keybind_buttons[action]
+		var binds: Array = SettingsManager.get_bindings(action)
+		if btns.size() > 0 and btns[0] is Button:
+			(btns[0] as Button).text = SettingsManager.key_name(binds[0] if binds.size() > 0 else 0)
+		if btns.size() > 1 and btns[1] is Button:
+			(btns[1] as Button).text = SettingsManager.key_name(binds[1] if binds.size() > 1 else 0)
+
+
+func _sync_settings_ui() -> void:
 	if _master_slider != null:
 		_master_slider.set_value_no_signal(AudioManager.master_volume)
 	if _sfx_slider != null:
 		_sfx_slider.set_value_no_signal(AudioManager.sfx_volume)
 	if _ambient_slider != null:
 		_ambient_slider.set_value_no_signal(AudioManager.ambient_volume)
+	if _fullscreen_check != null:
+		_fullscreen_check.set_pressed_no_signal(SettingsManager.fullscreen)
+	if _vsync_check != null:
+		_vsync_check.set_pressed_no_signal(SettingsManager.vsync)
+	if _resolution_option != null:
+		_resolution_option.selected = SettingsManager.resolution_index
+		_resolution_option.disabled = SettingsManager.fullscreen
+	_refresh_keybind_buttons()
 
 
 func _add_volume_row(parent: VBoxContainer, label_text: String, initial: float) -> HSlider:

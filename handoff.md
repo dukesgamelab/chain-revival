@@ -79,7 +79,7 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 - **Commit style:** `Phase N: Title` for phase work
 - **No Claude attribution.** Never add `Co-Authored-By` lines or any Claude/Anthropic references to commits or PRs. All commits must appear as solely by `dukesgamelab`.
 
-## Completed Phases (1-27)
+## Completed Phases (1-32)
 
 | Phase | Name |
 |-------|------|
@@ -109,8 +109,34 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | 29 | Movement & animation polish (stutter fix, grenade throw on remote, path smoothing) |
 | 30 | Chat improvements (whisper/announce in all game modes, chat history persistence, mute/block) |
 | 31 | Sound effects (combat audio, footsteps, grenade throw, ambient wind, volume controls) |
+| 32 | Settings & keybinds (tabbed settings menu, fullscreen/resolution/vsync, remappable keybinds) |
 
-## Phase 31 Details (Just Completed)
+## Phase 32 Details (Just Completed)
+
+- **SettingsManager autoload** (`scripts/core/settings_manager.gd`):
+  - New singleton registered in `project.godot`, manages display and keybind settings
+  - Persists all settings to `user://settings.cfg` via ConfigFile
+  - **Display settings**: fullscreen toggle (via `DisplayServer.WINDOW_MODE_FULLSCREEN`), VSync toggle, resolution picker
+  - Supported resolutions: 1280x720, 1366x768, 1600x900, 1920x1080, 2560x1440, 3840x2160
+  - Window auto-centers after resolution change
+  - **Keybind remapping**: stores per-action key bindings, applies them to InputMap at startup
+  - `set_binding()` / `clear_binding()` / `reset_keybinds()` for runtime rebinding
+  - `key_name()` static helper converts keycodes to display strings via `OS.get_keycode_string()`
+  - Default bindings match project.godot: WASD + arrows for movement, Q/E for rotation
+- **Tabbed settings dialog** (`scripts/ui/mode_select.gd`):
+  - Replaced the audio-only settings popup with a 3-tab `TabContainer` (Audio, Graphics, Controls)
+  - **Audio tab**: same Master/SFX/Ambient volume sliders as before (unchanged behavior)
+  - **Graphics tab**: Fullscreen checkbox, VSync checkbox, Resolution dropdown (disabled when fullscreen)
+  - **Controls tab**: grid showing all 6 remappable actions with primary + secondary key buttons
+  - Click any key button → shows "..." → press a key to rebind (Escape cancels)
+  - "Reset Defaults" button restores all keybinds to WASD/arrows/Q/E
+  - All settings sync when dialog is reopened (`_sync_settings_ui()`)
+  - Keybind capture uses `_input()` with `set_input_as_handled()` to intercept during rebinding
+- **6 remappable actions**: Pan Up/Down/Left/Right (camera WASD), Rotate Left/Right (Q/E)
+  - Each action supports primary and secondary bindings
+  - Uses `physical_keycode` for layout-independent binding (same physical key regardless of keyboard layout)
+
+## Phase 31 Details
 
 - **Audio bus system** (`scripts/core/audio_manager.gd`):
   - Added SFX and Ambient buses routed to Master, created programmatically at startup
@@ -243,11 +269,12 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| 32 | Settings & keybinds | In-game settings menu (graphics, audio, controls), remappable keybinds, resolution/fullscreen options |
 | 33 | Spectator mode | Watch live matches without participating, camera controls, player perspective switching |
 | 34 | Code signing & CI pipeline | SignPath integration via GitHub Actions, automated build export, signed Windows exe |
 | 35 | Match history & replay | Detailed match replay viewer, turn-by-turn playback, shareable match links on website |
 | 36 | Announcements & community | Website: news/announcements page, release notes feed, opt-in email newsletter signup |
+| 37 | Lobby overhaul | OG-style persistent room list (Open Game, Regimental, Training), join-room skirmish briefing dialog (map, side, match length, AI difficulty) |
+| 38 | Named objectives & field report | Named capture zones on maps (yellow labels), victory points bar, separate Field Report combat log panel (right side, timestamped events) |
 
 ## Code Signing (Not Yet Done)
 
