@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ReactMarkdown from 'react-markdown'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/AuthProvider'
 import { useSiteSettings } from '../hooks/useSiteSettings'
@@ -82,6 +83,43 @@ interface AdminJoinRequest {
   regiment_name?: string
 }
 
+interface AdminAnnouncement {
+  id: string
+  title: string
+  body: string
+  category: string
+  version: string | null
+  is_pinned: boolean
+  is_published: boolean
+  author_id: string
+  created_at: string
+  updated_at: string
+}
+
+interface AnnouncementComment {
+  id: string
+  announcement_id: string
+  user_id: string
+  display_name: string
+  body: string
+  created_at: string
+}
+
+const EMPTY_FORM = { title: '', body: '', category: 'news', version: '', is_pinned: false, is_published: false }
+
+const MD_PREVIEW_COMPONENTS = {
+  h1: ({ children }: { children?: React.ReactNode }) => <h1 className="text-2xl font-bold text-white mt-4 mb-2">{children}</h1>,
+  h2: ({ children }: { children?: React.ReactNode }) => <h2 className="text-lg font-bold text-white mt-4 mb-2">{children}</h2>,
+  h3: ({ children }: { children?: React.ReactNode }) => <h3 className="text-base font-semibold text-white mt-3 mb-1">{children}</h3>,
+  p: ({ children }: { children?: React.ReactNode }) => <p className="text-slate-300 mb-2">{children}</p>,
+  ul: ({ children }: { children?: React.ReactNode }) => <ul className="list-disc list-inside text-slate-300 mb-2 space-y-1">{children}</ul>,
+  ol: ({ children }: { children?: React.ReactNode }) => <ol className="list-decimal list-inside text-slate-300 mb-2 space-y-1">{children}</ol>,
+  li: ({ children }: { children?: React.ReactNode }) => <li className="text-slate-300">{children}</li>,
+  strong: ({ children }: { children?: React.ReactNode }) => <strong className="text-white font-semibold">{children}</strong>,
+  code: ({ children }: { children?: React.ReactNode }) => <code className="bg-slate-900 px-1.5 py-0.5 rounded text-sky-300 text-sm font-mono">{children}</code>,
+  a: ({ href, children }: { href?: string; children?: React.ReactNode }) => <a href={href} className="text-sky-400 hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+}
+
 export function Admin() {
   const { user } = useAuth()
   const { settings, updateSetting } = useSiteSettings()
@@ -94,7 +132,15 @@ export function Admin() {
   const [adminJoinRequests, setAdminJoinRequests] = useState<AdminJoinRequest[]>([])
   const [regimentError, setRegimentError] = useState('')
   const [regimentSuccess, setRegimentSuccess] = useState('')
-  const [tab, setTab] = useState<'toggles' | 'stats' | 'appeals' | 'bugs' | 'feedback' | 'regiments'>('toggles')
+  const [adminAnnouncements, setAdminAnnouncements] = useState<AdminAnnouncement[]>([])
+  const [announcementForm, setAnnouncementForm] = useState(EMPTY_FORM)
+  const [editingAnnouncementId, setEditingAnnouncementId] = useState<string | null>(null)
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
+  const [previewMode, setPreviewMode] = useState(false)
+  const [announcementComments, setAnnouncementComments] = useState<Record<string, AnnouncementComment[]>>({})
+  const [expandedAnnouncementComments, setExpandedAnnouncementComments] = useState<Set<string>>(new Set())
+  const [newsletterCount, setNewsletterCount] = useState(0)
+  const [tab, setTab] = useState<'toggles' | 'stats' | 'appeals' | 'bugs' | 'feedback' | 'regiments' | 'announcements'>('toggles')
 
   useEffect(() => {
     async function loadStats() {
@@ -247,11 +293,30 @@ export function Admin() {
       }
     }
 
+    async function loadAnnouncements() {
+      const { data } = await supabase
+        .from('announcements')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100)
+      if (data) setAdminAnnouncements(data)
+    }
+
+    async function loadNewsletterCount() {
+      const { count } = await supabase
+        .from('newsletter_subscribers')
+        .select('id', { count: 'exact', head: true })
+        .is('unsubscribed_at', null)
+      setNewsletterCount(count ?? 0)
+    }
+
     loadStats()
     loadAppeals()
     loadBugReports()
     loadFeedback()
     loadRegimentData()
+    loadAnnouncements()
+    loadNewsletterCount()
   }, [])
 
   async function resolveAppeal(id: string, status: 'approved' | 'denied') {
@@ -308,6 +373,87 @@ export function Admin() {
     flashRegiment(`${name} has been disbanded`)
   }
 
+  async function saveAnnouncement() {
+    if (!announcementForm.title.trim() || !announcementForm.body.trim()) return
+    const payload = {
+      title: announcementForm.title.trim(),
+      body: announcementForm.body.trim(),
+      category: announcementForm.category,
+      version: announcementForm.version.trim() || null,
+      is_pinned: announcementForm.is_pinned,
+      is_published: announcementForm.is_published,
+      author_id: user!.id,
+      updated_at: new Date().toISOString(),
+    }
+    if (editingAnnouncementId) {
+      const { error } = await supabase.from('announcements').update(payload).eq('id', editingAnnouncementId)
+      if (!error) {
+        setAdminAnnouncements(prev => prev.map(a => a.id === editingAnnouncementId ? { ...a, ...payload } : a))
+      }
+    } else {
+      const { data, error } = await supabase.from('announcements').insert(payload).select().single()
+      if (!error && data) {
+        setAdminAnnouncements(prev => [data, ...prev])
+      }
+    }
+    setShowAnnouncementForm(false)
+    setEditingAnnouncementId(null)
+    setAnnouncementForm(EMPTY_FORM)
+    setPreviewMode(false)
+  }
+
+  function startEditAnnouncement(a: AdminAnnouncement) {
+    setAnnouncementForm({
+      title: a.title,
+      body: a.body,
+      category: a.category,
+      version: a.version ?? '',
+      is_pinned: a.is_pinned,
+      is_published: a.is_published,
+    })
+    setEditingAnnouncementId(a.id)
+    setShowAnnouncementForm(true)
+    setPreviewMode(false)
+  }
+
+  async function deleteAnnouncement(id: string) {
+    if (!confirm('Delete this announcement? This cannot be undone.')) return
+    await supabase.from('announcements').delete().eq('id', id)
+    setAdminAnnouncements(prev => prev.filter(a => a.id !== id))
+  }
+
+  async function loadAnnouncementComments(announcementId: string) {
+    if (announcementComments[announcementId]) return
+    const { data } = await supabase
+      .from('announcement_comments')
+      .select('*')
+      .eq('announcement_id', announcementId)
+      .order('created_at', { ascending: true })
+    if (data) setAnnouncementComments(prev => ({ ...prev, [announcementId]: data }))
+  }
+
+  function toggleAnnouncementComments(announcementId: string) {
+    setExpandedAnnouncementComments(prev => {
+      const next = new Set(prev)
+      if (next.has(announcementId)) {
+        next.delete(announcementId)
+      } else {
+        next.add(announcementId)
+        loadAnnouncementComments(announcementId)
+      }
+      return next
+    })
+  }
+
+  async function deleteComment(commentId: string, announcementId: string) {
+    if (!confirm('Delete this comment?')) return
+    await supabase.from('announcement_comments').delete().eq('id', commentId)
+    setAnnouncementComments(prev => ({
+      ...prev,
+      [announcementId]: (prev[announcementId] ?? []).filter(c => c.id !== commentId),
+    }))
+  }
+
   const toggles: { key: keyof typeof settings; label: string; desc: string }[] = [
     { key: 'leaderboard_enabled', label: 'Leaderboard', desc: 'Show leaderboard page and nav link' },
     { key: 'regiments_enabled', label: 'Regiments', desc: 'Show regiments page and nav link' },
@@ -317,6 +463,7 @@ export function Admin() {
     { key: 'appeal_enabled', label: 'Ban Appeals', desc: 'Allow ban appeal form submissions' },
     { key: 'bugreports_enabled', label: 'Bug Reports', desc: 'Show bug report form for testers' },
     { key: 'feedback_enabled', label: 'Feedback', desc: 'Show feedback form for testers' },
+    { key: 'announcements_enabled', label: 'Announcements', desc: 'Show news/announcements page and nav link' },
   ]
 
   return (
@@ -324,7 +471,7 @@ export function Admin() {
       <h1 className="text-3xl font-bold mb-6 text-amber-400">Admin Dashboard</h1>
 
       <div className="flex flex-wrap rounded-lg bg-slate-800 p-1 mb-6 w-fit gap-0.5">
-        {(['toggles', 'stats', 'appeals', 'bugs', 'feedback', 'regiments'] as const).map(t => {
+        {(['toggles', 'stats', 'appeals', 'bugs', 'feedback', 'regiments', 'announcements'] as const).map(t => {
           const labels: Record<string, string> = {
             toggles: 'Toggles',
             stats: 'Stats',
@@ -332,6 +479,7 @@ export function Admin() {
             bugs: `Bugs (${bugReports.filter(b => b.status === 'open').length})`,
             feedback: `Feedback (${feedbackList.length})`,
             regiments: `Regiments (${regimentApps.length})`,
+            announcements: `News (${adminAnnouncements.length})`,
           }
           return (
             <button
@@ -427,6 +575,10 @@ export function Admin() {
           <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-6 text-center">
             <div className="text-3xl font-bold text-emerald-400">{stats.feedbackCount}</div>
             <div className="text-sm text-slate-400 mt-1">Feedback Received</div>
+          </div>
+          <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-6 text-center">
+            <div className="text-3xl font-bold text-violet-400">{newsletterCount}</div>
+            <div className="text-sm text-slate-400 mt-1">Newsletter Subscribers</div>
           </div>
         </div>
       )}
@@ -710,6 +862,232 @@ export function Admin() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {tab === 'announcements' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-slate-400">
+                {newsletterCount} newsletter subscriber{newsletterCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setAnnouncementForm(EMPTY_FORM)
+                setEditingAnnouncementId(null)
+                setShowAnnouncementForm(true)
+                setPreviewMode(false)
+              }}
+              className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              Create New
+            </button>
+          </div>
+
+          {showAnnouncementForm && (
+            <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-6 space-y-4">
+              <h3 className="text-lg font-bold text-white">
+                {editingAnnouncementId ? 'Edit Announcement' : 'New Announcement'}
+              </h3>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Title</label>
+                <input
+                  type="text"
+                  value={announcementForm.title}
+                  onChange={e => setAnnouncementForm(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Announcement title"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white outline-none focus:ring-2 focus:ring-sky-500 placeholder-slate-600"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
+                  <select
+                    value={announcementForm.category}
+                    onChange={e => setAnnouncementForm(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    <option value="news">News</option>
+                    <option value="patch-notes">Patch Notes</option>
+                    <option value="community">Community</option>
+                  </select>
+                </div>
+                {announcementForm.category === 'patch-notes' && (
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Version</label>
+                    <input
+                      type="text"
+                      value={announcementForm.version}
+                      onChange={e => setAnnouncementForm(prev => ({ ...prev, version: e.target.value }))}
+                      placeholder="v0.1.0"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white outline-none focus:ring-2 focus:ring-sky-500 placeholder-slate-600 font-mono"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium text-slate-300">Body</label>
+                  <div className="flex rounded-lg bg-slate-800 p-0.5">
+                    <button
+                      onClick={() => setPreviewMode(false)}
+                      className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${!previewMode ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setPreviewMode(true)}
+                      className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${previewMode ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`}
+                    >
+                      Preview
+                    </button>
+                  </div>
+                </div>
+                {previewMode ? (
+                  <div className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 min-h-[200px]">
+                    {announcementForm.body ? (
+                      <ReactMarkdown components={MD_PREVIEW_COMPONENTS}>{announcementForm.body}</ReactMarkdown>
+                    ) : (
+                      <p className="text-slate-500 text-sm italic">Nothing to preview</p>
+                    )}
+                  </div>
+                ) : (
+                  <textarea
+                    value={announcementForm.body}
+                    onChange={e => setAnnouncementForm(prev => ({ ...prev, body: e.target.value }))}
+                    placeholder="Write your announcement... (supports Markdown)"
+                    rows={10}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white outline-none focus:ring-2 focus:ring-sky-500 placeholder-slate-600 resize-y font-mono text-sm"
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={announcementForm.is_pinned}
+                    onChange={e => setAnnouncementForm(prev => ({ ...prev, is_pinned: e.target.checked }))}
+                    className="w-4 h-4 rounded border-slate-600 bg-slate-900"
+                  />
+                  <span className="text-sm text-slate-300">Pinned</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={announcementForm.is_published}
+                    onChange={e => setAnnouncementForm(prev => ({ ...prev, is_published: e.target.checked }))}
+                    className="w-4 h-4 rounded border-slate-600 bg-slate-900"
+                  />
+                  <span className="text-sm text-slate-300">Published</span>
+                </label>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={saveAnnouncement}
+                  disabled={!announcementForm.title.trim() || !announcementForm.body.trim()}
+                  className="px-5 py-2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg transition-colors"
+                >
+                  {editingAnnouncementId ? 'Update' : 'Create'}
+                </button>
+                <button
+                  onClick={() => { setShowAnnouncementForm(false); setEditingAnnouncementId(null); setAnnouncementForm(EMPTY_FORM); setPreviewMode(false) }}
+                  className="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {adminAnnouncements.length === 0 && !showAnnouncementForm ? (
+            <div className="text-center text-slate-500 py-16">No announcements yet. Create your first one!</div>
+          ) : (
+            adminAnnouncements.map(a => {
+              const cmts = announcementComments[a.id] ?? []
+              const isExpanded = expandedAnnouncementComments.has(a.id)
+              return (
+                <div key={a.id} className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        a.category === 'news' ? 'bg-sky-500/20 text-sky-400' :
+                        a.category === 'patch-notes' ? 'bg-amber-500/20 text-amber-400' :
+                        'bg-emerald-500/20 text-emerald-400'
+                      }`}>
+                        {a.category === 'patch-notes' ? 'Patch Notes' : a.category === 'news' ? 'News' : 'Community'}
+                      </span>
+                      {a.version && <span className="text-xs text-sky-300 font-mono">{a.version}</span>}
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        a.is_published ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                      }`}>
+                        {a.is_published ? 'Published' : 'Draft'}
+                      </span>
+                      {a.is_pinned && <span className="text-xs text-sky-400">Pinned</span>}
+                    </div>
+                    <span className="text-xs text-slate-500">{new Date(a.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <h3 className="text-white font-medium mb-2">{a.title}</h3>
+                  <p className="text-slate-400 text-sm line-clamp-2">{a.body}</p>
+
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/30">
+                    <button
+                      onClick={() => toggleAnnouncementComments(a.id)}
+                      className="text-xs text-slate-400 hover:text-slate-300 transition-colors"
+                    >
+                      {isExpanded ? 'Hide' : 'Show'} Comments{cmts.length > 0 ? ` (${cmts.length})` : ''}
+                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditAnnouncement(a)}
+                        className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded-lg transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteAnnouncement(a.id)}
+                        className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white text-xs rounded-lg transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="mt-3 space-y-2">
+                      {cmts.length === 0 ? (
+                        <p className="text-slate-500 text-xs">No comments on this announcement.</p>
+                      ) : (
+                        cmts.map(c => (
+                          <div key={c.id} className="bg-slate-900/50 rounded-lg px-3 py-2 flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <Link to={`/player/${c.user_id}`} className="text-xs font-medium text-sky-400 hover:underline">{c.display_name}</Link>
+                                <span className="text-xs text-slate-500">{new Date(c.created_at).toLocaleDateString()}</span>
+                              </div>
+                              <p className="text-sm text-slate-300">{c.body}</p>
+                            </div>
+                            <button
+                              onClick={() => deleteComment(c.id, a.id)}
+                              className="text-red-400 hover:text-red-300 text-xs ml-3 shrink-0"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          )}
         </div>
       )}
     </div>

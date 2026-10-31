@@ -14,6 +14,7 @@ import { RegimentManage } from './pages/RegimentManage'
 import { MatchDetail } from './pages/MatchDetail'
 import { BugReport } from './pages/BugReport'
 import { Feedback } from './pages/Feedback'
+import { Announcements } from './pages/Announcements'
 import { Privacy } from './pages/Privacy'
 import { Terms } from './pages/Terms'
 import { AuthProvider, useAuth } from './hooks/AuthProvider'
@@ -34,6 +35,7 @@ function AppRoutes() {
         <Route path="regiments" element={<Regiments />} />
         {user && <Route path="regiment/manage" element={<RegimentManage />} />}
         <Route path="download" element={<Download />} />
+        <Route path="news" element={<Announcements />} />
         <Route path="appeal" element={<Appeal />} />
         {user && <Route path="bugs" element={<BugReport />} />}
         {user && <Route path="feedback" element={<Feedback />} />}

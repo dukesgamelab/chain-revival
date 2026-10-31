@@ -15,6 +15,7 @@ export function Nav({ user, profile, onSignOut }: NavProps) {
 
   const links = [
     { to: '/', label: 'Home', always: true },
+    { to: '/news', label: 'News', always: false, setting: 'announcements_enabled' as const },
     { to: '/leaderboard', label: 'Leaderboard', always: false, setting: 'leaderboard_enabled' as const },
     { to: '/regiments', label: 'Regiments', always: false, setting: 'regiments_enabled' as const },
     { to: '/download', label: 'Download', always: false, setting: 'download_enabled' as const },

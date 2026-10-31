@@ -79,7 +79,7 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 - **Commit style:** `Phase N: Title` for phase work
 - **No Claude attribution.** Never add `Co-Authored-By` lines or any Claude/Anthropic references to commits or PRs. All commits must appear as solely by `dukesgamelab`.
 
-## Completed Phases (1-32)
+## Completed Phases (1-36)
 
 | Phase | Name |
 |-------|------|
@@ -113,6 +113,152 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | 33 | Bug fixes & testing (multiplayer grenades, DZ countdown, client-ready handshake, GDScript warnings) |
 | 34 | Code signing & CI pipeline (GitHub Actions automated Godot build, Certum code signing deferred) |
 | 35 | Match history & replay (event recording, replay viewer with zoom/pan, match detail page, All Matches tab) |
+| 36 | Announcements & community (news page with comments, release notes feed, newsletter signup, admin management) |
+
+## Phase 37 Details (Upcoming — Lobby Overhaul)
+
+**Goal:** Replace the flat create-and-join lobby flow with OG-style persistent game rooms. Players see a fixed list of always-available rooms and join one to enter a skirmish briefing dialog where they pick map, side, match length, and AI difficulty.
+
+### What Changes
+
+**Current system** (`scripts/ui/lobby_browser.gd` + `scripts/network/lobby_client.gd`):
+- Player-created lobbies stored in Supabase `lobbies` table
+- "Create Game" opens a form (name, map, team size) → inserts a row → polls for opponent
+- Other players see the lobby list and click "Join" → RPC `join_lobby` atomically fills the slot
+- Lobby deleted when match starts or host cancels
+
+**New system** — persistent rooms:
+- 8 pre-defined rooms always visible (no create/delete by players)
+- Room types: **Open Game** (public 1v1/2v2), **Regimental** (regiment-only matches), **Training** (vs AI)
+- Columns: Room #, Room Description, Mode, Players (current/max), Room Info, Play Now
+- Clicking "Play Now" on an empty room → opens **skirmish briefing dialog** (map dropdown, your side, match length, AI difficulty for Training rooms)
+- Clicking "Play Now" on a room with a waiting player → joins that game, match starts
+
+### Database Changes (Migration 024)
+
+**Option A — Server-side rooms (recommended):**
+- New `game_rooms` table: `id` int PK, `room_number` int UNIQUE, `room_name` text, `room_type` text CHECK ('open_game', 'regimental', 'training'), `description` text, `max_players` int, `current_host_id` uuid nullable FK, `current_match_settings` jsonb nullable, `status` text CHECK ('empty', 'waiting', 'in_progress'), `updated_at` timestamptz
+- Seed 8 rows on migration (rooms are permanent, not player-created)
+- RLS: public SELECT, authenticated UPDATE (join/leave), admin-only INSERT/DELETE
+- Realtime enabled so the room list updates live without polling
+- **Keep `lobbies` table** for backward compatibility during transition, remove in a later phase
+
+**Option B — Client-side only:**
+- No new tables; rooms are a UI concept in the Godot client
+- Still uses `lobbies` table under the hood — room number stored as a lobby field
+- Simpler migration but less control over room state
+
+### Godot Client Changes
+
+**`scripts/ui/lobby_browser.gd` (major rewrite):**
+- Replace the scrollable lobby list with a fixed 8-row room grid
+- Each row: room number, description, type badge (colored), player count, "Join" or "View" button
+- Remove "Create Game" button and the create panel entirely
+- Add "Join Room" → skirmish briefing dialog:
+  - Map dropdown (from `MapDataClass.MULTIPLAYER_MAPS`)
+  - Side selection (US / DE / Random)
+  - Match length (Short / Medium / Long — maps to scenario time)
+  - AI difficulty dropdown (Easy / Normal / Hard — for Training rooms only)
+  - "Enter Battlefield" button → creates the lobby/match under that room
+- Left sidebar (future): player card with rank + regiment, Edit Soldier Record
+
+**`scripts/network/lobby_client.gd` (adapt):**
+- `create_lobby()` → becomes `claim_room(room_id, settings)` — updates the room row instead of inserting a lobby
+- `join_lobby()` → becomes `join_room(room_id)` — joins the claimed room
+- `list_lobbies()` → becomes `list_rooms()` — fetches all 8 rooms with their status
+- Replace 5-second polling timer with Supabase Realtime subscription on `game_rooms`
+
+### Server Changes
+
+- **None required** if rooms are a Supabase/client concept (the game server just needs a WebSocket connection, which hasn't changed)
+- Match creation on the Fly.io server continues to work as-is — the lobby client connects to the same `ONLINE_SERVER_URL`
+
+### UI Reference (OG Community Preview 0.4)
+
+Per the OG screenshots: 8 rooms displayed in a table, bottom buttons for Leaderboard / Regiments / Back (keep existing). Lobby chat stays on the right side (already handled by `GlobalChat` autoload). The OG also shows "My Forums" and "Rank Legend" tabs at the bottom — defer those to later phases.
+
+### Not In Scope (Phase 37)
+
+- Left sidebar player card (defer to a later polish phase)
+- Room type restrictions (e.g., regimental rooms requiring same regiment) — placeholder for now
+- Match length / AI difficulty server enforcement — client sends settings, server trusts them initially
+- More than 8 rooms — fixed count for now, expandable later
+
+### Phase 37 Checklist
+
+1. Run migration `024_game_rooms.sql` in Supabase SQL Editor
+2. Rewrite `lobby_browser.gd` — persistent room grid, briefing dialog
+3. Update `lobby_client.gd` — room-based API, Realtime subscription
+4. Test: rooms visible on load, join empty room → briefing → match starts
+5. Test: join waiting room → match starts immediately
+6. Test: Training room with AI settings
+7. Deploy: `fly deploy -a chain-revival-ax0q1g --remote-only` (if server changes needed)
+
+## Phase 36 Details (Complete — Announcements & Community)
+
+**Goal:** Add a public news/announcements page with user comments, release notes feed, and newsletter signup to the website.
+
+### Database (Migration 023)
+
+- **`announcements` table**: `id`, `title`, `body` (markdown), `category` (news/patch-notes/community), `version` (nullable, for patch notes), `is_pinned`, `is_published` (draft/published), `author_id`, timestamps
+  - RLS: public SELECT for published posts + admin sees all; admin-only INSERT/UPDATE/DELETE
+  - Realtime enabled
+
+- **`announcement_comments` table**: `id`, `announcement_id` (FK CASCADE), `user_id`, `display_name`, `body`, `created_at`
+  - RLS: public SELECT, authenticated INSERT (own user_id), admin DELETE (moderation)
+  - Realtime enabled for live comment updates
+
+- **`newsletter_subscribers` table**: `id`, `email` (UNIQUE), `is_confirmed` (future double opt-in), `player_id` (nullable), `subscribed_at`, `unsubscribed_at` (soft unsubscribe)
+  - RLS: public INSERT, admin-only SELECT/UPDATE
+
+- New `announcements_enabled` site setting (default: true)
+
+### Website — News Page
+
+- **Route:** `/news` — `website/src/pages/Announcements.tsx`
+- **Tab filtering:** All | News | Patch Notes | Community
+- **Announcement cards:** category badge (colored), date, title, optional version badge, markdown body rendered via `react-markdown`
+- **Pinned posts** shown first with sky-blue accent border
+- **Comments:** expandable per-announcement, realtime subscription for live updates, logged-in users can post, "Sign in to comment" for guests, display name links to player profile
+- **Newsletter signup:** email input + subscribe button at bottom of page; upsert on email for idempotent re-subscribe
+- **Empty state:** "No announcements yet. Check back soon!"
+
+### Website — Admin Tab
+
+- New "News" tab in Admin dashboard (`website/src/pages/Admin.tsx`)
+- **Create/Edit form:** title, category dropdown, version (for patch-notes), markdown body textarea with Edit/Preview toggle, pinned and published checkboxes
+- **Announcement list:** all posts (including drafts) with category badge, status badge, edit/delete buttons
+- **Comment moderation:** expand comments per announcement, delete button on each
+- **Newsletter count:** shown in both the News tab header and the Stats tab grid
+- **Toggle:** `announcements_enabled` added to admin toggles
+
+### Website — Footer Newsletter
+
+- Compact inline email signup row in `website/src/components/Footer.tsx` above copyright
+- Same upsert logic; "Subscribed!" confirmation replaces the form
+
+### Nav
+
+- "News" link added to nav bar, feature-toggled via `announcements_enabled`
+
+### New Dependency
+
+- `react-markdown` for rendering announcement body content
+
+### Not Yet Done
+
+- Email newsletter sending (emails collected, Resend infrastructure exists, compose/send UI deferred)
+- Double opt-in confirmation emails
+- Announcement notification push to game client
+
+### Phase 36 Checklist
+
+1. Run migration `023_announcements.sql` in Supabase SQL Editor
+2. Deploy: `fly deploy -a chain-revival-ax0q1g --remote-only`
+3. Test: create announcement in admin (draft → publish), verify on /news page
+4. Test: category filtering, pinned posts, markdown rendering
+5. Test: post comments as logged-in user, delete as admin
+6. Test: newsletter signup from both /news page and footer
 
 ## Phase 35 Details (Complete — Match History & Replay)
 
@@ -384,11 +530,12 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | Phase | Name | Scope |
 |-------|------|-------|
 | 35 | Match history & replay | *(Complete)* Event recording, replay viewer with zoom/pan, match detail page, All Matches tab |
-| 36 | Announcements & community | Website: news/announcements page, release notes feed, opt-in email newsletter signup |
+| 36 | Announcements & community | *(Complete)* News page with comments, release notes feed, newsletter signup, admin management |
 | 37 | Lobby overhaul | OG-style persistent room list (Open Game, Regimental, Training), join-room skirmish briefing dialog (map, side, match length, AI difficulty) |
 | 38 | Named objectives & field report | Named capture zones on maps (yellow labels), victory points bar, separate Field Report combat log panel (right side, timestamped events) |
 | 39 | Chat channels | Regiment chat channels, whisper/DM in global chat, player-created custom channels |
 | 40 | Spectator mode | Watch live matches without participating, camera controls, player perspective switching |
+| 41 | Community forum | Torn-style threaded forum — categories (General, Trading, Faction, Q&A, etc.), paginated thread lists, thread/reply views, last poster tracking, admin-pinned announcements section; nav tab right after Home |
 
 ## Code Signing
 

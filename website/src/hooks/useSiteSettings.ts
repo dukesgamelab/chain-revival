@@ -10,6 +10,7 @@ interface SiteSettings {
   appeal_enabled: boolean
   bugreports_enabled: boolean
   feedback_enabled: boolean
+  announcements_enabled: boolean
   game_version: string
   download_url: string
 }
@@ -23,6 +24,7 @@ const DEFAULTS: SiteSettings = {
   appeal_enabled: true,
   bugreports_enabled: true,
   feedback_enabled: true,
+  announcements_enabled: true,
   game_version: '',
   download_url: '',
 }
