@@ -102,8 +102,24 @@ PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500
 | 23 | Build & distribution (Godot Windows export, download page, build serving, admin version/URL config) |
 | 24 | Alpha launch (bug reports, feedback, privacy policy, ToS, server capacity bump) |
 | 25 | Regiment management (CO/XO dashboard, player interactions, admin oversight) |
+| 26 | Map overhaul (visual terrain for all multiplayer maps) |
 
-## Phase 25 Details (Just Completed)
+## Phase 26 Details (Just Completed)
+
+- **Problem:** 4 of 5 multiplayer maps (Crossroads, Twin Ridges, Three Fields, Grand Battle) had zero visual map_objects — only invisible blocked_tiles that the engine defaulted to "tree" type. Players saw flat ground with invisible walls.
+- **Solution:** Generated visual terrain objects for all 4 maps using spatial cluster analysis:
+  - Identified blocked tile clusters (isolated, lines, small/medium/large groups)
+  - Assigned thematically appropriate sprites per map:
+    - **Crossroads** (farmland): field walls (WH*), hay bales, bushes, scattered trees
+    - **Twin Ridges** (ridgelines): dense tree lines on ridges, bushes in valleys
+    - **Three Fields** (tree-line fields): tree line barriers, hay bales, bushes in open areas
+    - **Grand Battle** (battlefield): mixed terrain — stone/wood walls, tree clusters, field walls, bushes
+  - Linear clusters get consistent wall/fence types; dense clusters get tree groves
+- **Object counts:** Crossroads 292, Twin Ridges 457, Three Fields 544, Grand Battle 622
+- Available sprite families used: TR01/TR02 (trees), BH01/BH02 (bushes), BG01 (hay), CW01 (cow), WH00-WH11 (field walls), SWAL (stone wall), WWAL (wood wall)
+- Gameplay properties preserved from asset registry: trees block LOS/movement (COMPLETE cover), bushes/field walls block movement only (MODERATE cover)
+
+## Phase 25 Details
 
 - **CO/XO Management Dashboard** at `/regiment/manage` (authenticated CO/XO only):
   - Members tab: roster with kick, assign regiment rank (1LT/CPT/MAJ/LT COL/COL), set/remove XO (CO-only)
@@ -145,12 +161,20 @@ PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500
 
 The Windows build is not code-signed, so Chrome flags the download as suspicious and Windows SmartScreen warns on first run. Users can click through both warnings to install.
 
-To eliminate the warnings:
-1. Buy an OV code signing certificate (~$150-220/year) from a reseller like CodeSigningStore or CheapSSLSecurity (can be issued to individuals with a photo ID)
-2. Install the Windows SDK (for `signtool.exe`)
-3. In Godot: Editor > Editor Settings > Export > Windows — set Sign Tool path to `signtool.exe`
-4. In the export preset: Options > Code Signing — enable and set the certificate
-5. Godot signs automatically on export
+### Best option: SignPath (free for open-source)
+
+[SignPath.io](https://signpath.io/) provides free code signing for open-source projects. The public GitHub repo qualifies.
+
+1. Hook GitHub repo to SignPath
+2. Set up a GitHub Actions workflow to build the Godot export (e.g. `firebelley/godot-export`)
+3. Integrate the [SignPath GitHub Action](https://docs.signpath.io/trusted-build-systems/github) into the pipeline
+4. On new release/tag: GitHub builds the binary → SignPath signs it → signed `.exe` attached to the release
+
+### Alternative: Certum Open-Source ID (~€30-50)
+
+Manual signing via SignTool/PowerShell. [Certum](https://support.certum.eu/en/how-to-activate-a-code-signing-certificate/) offers a cheap code signing cert for individual open-source developers. Requires identity verification.
+
+### Legacy option: OV certificate ($150-220/yr)
 
 OV is sufficient. EV ($400-600/yr) gets instant SmartScreen trust; with OV, warnings disappear after enough users download without issues.
 
