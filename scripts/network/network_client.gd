@@ -39,7 +39,7 @@ signal movement_tick_received(payload: Dictionary)
 signal visibility_update_received(payload: Dictionary)
 signal target_sync_received(payload: Dictionary)
 signal combat_shots_received(payload: Dictionary)
-signal grenade_thrown_received(payload: Dictionary)
+signal grenade_thrown_received(result: ActionResultClass)
 signal grenade_explode_received(payload: Dictionary)
 signal match_ended_received(payload: Dictionary)
 signal banned_from_server(reason: String)
@@ -681,7 +681,7 @@ func _on_grenade_thrown(payload: Dictionary) -> void:
 	var waiting := _is_waiting_for(request_id)
 	_resolve_command_wait(request_id, result)
 	if not waiting:
-		grenade_thrown_received.emit(payload)
+		grenade_thrown_received.emit(result)
 
 
 func send_leave_match() -> void:

@@ -48,6 +48,7 @@ var _move_target_world: Vector2 = Vector2.ZERO
 var _is_moving: bool = false
 ## Last ordered destination — ignore sim catch-up once the visual has arrived.
 var _settled_path_end: Vector2i = Vector2i(-999, -999)
+const _look_ahead_threshold: float = 30.0
 var _previous_grid_pos: Vector2i = Vector2i.ZERO
 var _is_dead: bool = false
 var _speed_multiplier: float = 1.0
@@ -862,17 +863,27 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 		return
 
 	_speed_multiplier = speed_multiplier
+	var was_moving := _is_moving
 	_path = path
-	_path_index = 1
-	_is_moving = true
 	_settled_path_end = _path[_path.size() - 1]
-	_previous_grid_pos = _path[0]
-	position = IsometricGrid.grid_to_world(_path[0])
-	## Chase the next authoritative cell; sync_from_state keeps this aligned with sim.
+
+	## When already moving, pick up the new path from the closest cell ahead of
+	## the current visual position instead of snapping back to path[0].
+	var start_idx := 0
+	if was_moving:
+		start_idx = _find_nearest_path_cell_ahead(path)
+
+	_path_index = start_idx + 1
+	if _path_index >= _path.size():
+		_path_index = _path.size() - 1
+	_previous_grid_pos = _path[start_idx]
+	_is_moving = true
+	if not was_moving:
+		position = IsometricGrid.grid_to_world(_path[0])
 	_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
-	var first_step := _path[1] - _path[0]
-	_apply_facing(FacingDirection.from_step(first_step), _previous_grid_pos)
-	_update_locomotion_visual(first_step, true)
+	var step_delta := _path[_path_index] - _previous_grid_pos
+	_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
+	_update_locomotion_visual(step_delta, true)
 	set_process(true)
 
 
@@ -910,7 +921,16 @@ func _process(delta: float) -> void:
 	if move_amount >= distance:
 		_arrive_at_chase_cell()
 	else:
-		position += to_target.normalized() * move_amount
+		var direction := to_target.normalized()
+		## Look-ahead blending: when close to the current target and a next cell
+		## exists, blend movement toward the next cell for smoother corners.
+		var next_idx := _path_index + 1
+		if chasing_path and next_idx < _path.size() and distance < _look_ahead_threshold:
+			var next_world := IsometricGrid.grid_to_world(_path[next_idx])
+			var next_dir := (next_world - _move_target_world).normalized()
+			var blend := 1.0 - (distance / _look_ahead_threshold)
+			direction = (direction + next_dir * blend * 0.5).normalized()
+		position += direction * move_amount
 
 
 ## Consume the current chase cell and keep running to the next one.
@@ -954,12 +974,22 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 			set_process(true)
 			return
 		_path = state.current_path.duplicate()
-		_path_index = state.path_index
-		_previous_grid_pos = state.grid_position
-		_move_target_world = IsometricGrid.grid_to_world(state.current_path[state.path_index])
+		_settled_path_end = _path[_path.size() - 1]
+		## When already moving on a different route, pick up from the nearest cell
+		## to the current visual position instead of snapping back to the sim's cell.
+		if _is_moving:
+			var nearest := _find_nearest_path_cell_ahead(_path)
+			_path_index = nearest + 1
+			if _path_index >= _path.size():
+				_path_index = _path.size() - 1
+			_previous_grid_pos = _path[nearest]
+		else:
+			_path_index = state.path_index
+			_previous_grid_pos = state.grid_position
+		_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
 		_is_moving = true
-		var step_delta := state.current_path[state.path_index] - state.grid_position
-		_apply_facing(FacingDirection.from_step(step_delta), state.grid_position)
+		var step_delta := _path[_path_index] - _previous_grid_pos
+		_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
 		## Only play run while actually translating — early arrivals stay idle (no run-in-place).
 		var need_translate := position.distance_to(_move_target_world) > 0.5
 		_update_locomotion_visual(step_delta, need_translate)
@@ -997,6 +1027,20 @@ func presentation_destination_cell() -> Vector2i:
 	if not _path.is_empty():
 		return _path[_path.size() - 1]
 	return Vector2i(-999, -999)
+
+
+func _find_nearest_path_cell_ahead(path: Array[Vector2i]) -> int:
+	var best_idx := 0
+	var best_dist := INF
+	for i in range(path.size()):
+		var cell_world := IsometricGrid.grid_to_world(path[i])
+		var dist := position.distance_to(cell_world)
+		if dist < best_dist:
+			best_dist = dist
+			best_idx = i
+	if best_idx >= path.size() - 1:
+		best_idx = maxi(path.size() - 2, 0)
+	return best_idx
 
 
 func _chase_is_same_route(state: SoldierState) -> bool:

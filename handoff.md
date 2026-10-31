@@ -106,8 +106,25 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | 26 | Map overhaul (visual terrain for all multiplayer maps) |
 | 27 | Auto-updater (startup version check, self-updating game client) |
 | 28 | Match reconnection (90s reconnect window, ghost client, Leave Match button) |
+| 29 | Movement & animation polish (stutter fix, grenade throw on remote, path smoothing) |
 
-## Phase 28 Details (Just Completed)
+## Phase 29 Details (Just Completed)
+
+- **Grenade throw animation on remote client** (`scripts/core/main.gd`, `scripts/network/network_client.gd`):
+  - Root cause: `grenade_thrown_received` signal was never connected in `main.gd` — remote clients saw the explosion but not the throw
+  - Changed signal to emit the pre-built `ActionResult` (with `throw_orders`, `face_updates`, `movement_halts`) instead of raw payload
+  - Added `_on_network_grenade_thrown` handler that applies authoritative state (facing, halt, grid position) and calls `_present_action_result` to play the throw animation
+- **Soldier stutter on overlapping move orders** (`scripts/soldiers/soldier.gd`):
+  - Root cause: `follow_path()` and `sync_movement_chase_from_state()` snapped the visual position back to the sim's grid cell when a new path arrived mid-move, causing a visible jump
+  - Added `_find_nearest_path_cell_ahead()` helper — finds the closest cell in the new path to the current visual position
+  - Both `follow_path()` and `sync_movement_chase_from_state()` now use the nearest-cell lookup when redirecting mid-move instead of snapping backward
+  - Visual position is preserved during redirect; only soldiers starting fresh movement snap to path[0]
+- **Smoother pathfinding presentation** (`scripts/soldiers/soldier.gd`):
+  - Added look-ahead blending in `_process()`: when within 30px of the current target cell and a next cell exists, movement direction blends toward the next cell
+  - Creates gentle curves at direction changes instead of sharp 90°/45° snaps
+  - Authoritative sim unchanged — smoothing is purely visual
+
+## Phase 28 Details
 
 - **Server** (`server/src/index.ts`):
   - Ghost client pattern: disconnected player's side_ownership record stays to block their slot
@@ -194,13 +211,13 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| 29 | Movement & animation polish | Fix soldier stutter on overlapping move orders, fix grenade throw animation not playing on remote client, smoother pathfinding |
 | 30 | Chat improvements | Whisper/announce in all game modes (not just 2v2+), chat history persistence, mute/block players |
 | 31 | Sound & music | Sound effects for combat (gunfire, grenades, movement), ambient sounds, background music, volume controls |
 | 32 | Settings & keybinds | In-game settings menu (graphics, audio, controls), remappable keybinds, resolution/fullscreen options |
 | 33 | Spectator mode | Watch live matches without participating, camera controls, player perspective switching |
 | 34 | Code signing & CI pipeline | SignPath integration via GitHub Actions, automated build export, signed Windows exe |
 | 35 | Match history & replay | Detailed match replay viewer, turn-by-turn playback, shareable match links on website |
+| 36 | Announcements & community | Website: news/announcements page, release notes feed, opt-in email newsletter signup |
 
 ## Code Signing (Not Yet Done)
 

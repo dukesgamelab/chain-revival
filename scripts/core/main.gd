@@ -3195,6 +3195,8 @@ func _ensure_multiplayer_result_signals() -> void:
 		NetworkClient.target_sync_received.connect(_on_network_target_sync)
 	if not NetworkClient.combat_shots_received.is_connected(_on_network_combat_shots):
 		NetworkClient.combat_shots_received.connect(_on_network_combat_shots)
+	if not NetworkClient.grenade_thrown_received.is_connected(_on_network_grenade_thrown):
+		NetworkClient.grenade_thrown_received.connect(_on_network_grenade_thrown)
 	if not NetworkClient.grenade_explode_received.is_connected(_on_network_grenade_explode):
 		NetworkClient.grenade_explode_received.connect(_on_network_grenade_explode)
 	if not NetworkClient.match_ended_received.is_connected(_on_network_match_ended):
@@ -3278,6 +3280,28 @@ func _on_network_combat_shots(payload: Dictionary) -> void:
 	_present_action_result(result)
 	_invalidate_fog_cache()
 	_refresh_enemy_spotting_visuals()
+	_refresh_command_bar()
+
+
+func _on_network_grenade_thrown(result: ActionResultClass) -> void:
+	if result == null or not result.success:
+		return
+	for update in result.face_updates:
+		var soldier: SoldierState = _game_state.get_soldier(
+			int(update.get("team_id", -1)), int(update.get("soldier_id", -1))
+		)
+		if soldier != null:
+			soldier.facing_direction = update.get("facing", soldier.facing_direction)
+	for halt in result.movement_halts:
+		var soldier: SoldierState = _game_state.get_soldier(
+			int(halt.get("team_id", -1)), int(halt.get("soldier_id", -1))
+		)
+		if soldier != null:
+			var snap: Variant = halt.get("snap_cell", null)
+			if snap is Vector2i:
+				soldier.grid_position = snap as Vector2i
+				soldier.clear_path()
+	_present_action_result(result)
 	_refresh_command_bar()
 
 
