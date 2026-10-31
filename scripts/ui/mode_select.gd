@@ -12,6 +12,7 @@ const LEADERBOARD_SCENE := "res://scenes/leaderboard.tscn"
 const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
+const AutoUpdaterClass := preload("res://scripts/network/auto_updater.gd")
 
 @onready var _single_player_button: Button = $Center/Panel/Margin/VBox/SinglePlayerButton
 @onready var _multiplayer_button: Button = $Center/Panel/Margin/VBox/MultiplayerButton
@@ -24,6 +25,9 @@ const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd
 @onready var _asset_anim_button: Button = $Center/Panel/Margin/VBox/DevBox/AssetAnimEditorButton
 
 var _how_to_play_dialog: AcceptDialog
+var _updater: Node
+var _update_dialog: AcceptDialog
+var _update_progress_label: Label
 
 
 var _sign_in_label: Label
@@ -47,6 +51,7 @@ func _ready() -> void:
 	_add_version_label()
 	_add_known_issues_button()
 	_show_first_launch_hint()
+	_check_for_updates()
 
 
 func _add_lan_button() -> void:
@@ -547,3 +552,65 @@ func _show_first_launch_hint() -> void:
 			f.store_string("1")
 			f.close()
 	)
+
+
+func _check_for_updates() -> void:
+	_updater = AutoUpdaterClass.new()
+	add_child(_updater)
+	_updater.update_check_complete.connect(_on_update_check_complete)
+	_updater.update_progress.connect(_on_update_progress)
+	_updater.update_failed.connect(_on_update_failed)
+
+
+func _on_update_check_complete(update_available: bool) -> void:
+	if not update_available:
+		return
+	_update_dialog = AcceptDialog.new()
+	_update_dialog.title = "Update Available"
+	_update_dialog.ok_button_text = "Update Now"
+	_update_dialog.min_size = Vector2(400, 180)
+	CocUiTheme.apply_to(_update_dialog)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+
+	var msg := Label.new()
+	msg.text = "A new version of Chain Revival is available!\n\nCurrent: v%s\nLatest: v%s" % [BuildConfig.VERSION, _updater.remote_version]
+	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	msg.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(msg)
+
+	_update_progress_label = Label.new()
+	_update_progress_label.text = ""
+	_update_progress_label.add_theme_font_size_override("font_size", 12)
+	_update_progress_label.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0))
+	vbox.add_child(_update_progress_label)
+
+	_update_dialog.add_child(vbox)
+	_update_dialog.add_cancel_button("Skip")
+	add_child(_update_dialog)
+	_update_dialog.confirmed.connect(_on_update_confirmed)
+	_update_dialog.popup_centered()
+
+
+func _on_update_confirmed() -> void:
+	if _updater == null:
+		return
+	_update_dialog.get_ok_button().disabled = true
+	_update_progress_label.text = "Downloading update..."
+	# Reshow dialog since confirmed auto-hides it
+	_update_dialog.popup_centered()
+	_updater.start_download()
+
+
+func _on_update_progress(percent: float) -> void:
+	if _update_progress_label != null:
+		_update_progress_label.text = "Downloading... %d%%" % int(percent)
+
+
+func _on_update_failed(reason: String) -> void:
+	if _update_progress_label != null:
+		_update_progress_label.text = "Update failed: %s" % reason
+		_update_progress_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
+	if _update_dialog != null:
+		_update_dialog.get_ok_button().disabled = false

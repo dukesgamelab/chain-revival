@@ -14,9 +14,9 @@ chain-revival/
     src/index.ts    Main server — WebSocket handler + static file serving
     src/match.ts    Authoritative match simulation
     src/supabase_auth.ts  Auth verification
-    sql/            Numbered migrations (001-017)
+    sql/            Numbered migrations (001-020)
   website/          React + Vite + Tailwind SPA
-    src/pages/      Home, Login, Leaderboard, Player, Regiments, Download, Appeal, Admin
+    src/pages/      Home, Login, Leaderboard, Player, Regiments, RegimentManage, Download, Appeal, Admin
     src/hooks/      useAuth, useRealtimeQuery, useSiteSettings
     src/components/ Nav, GlobalChat, RankBadge, StatCard, MatchRow, Footer
   supabase/         Edge Functions (ban-notification)
@@ -60,8 +60,9 @@ Enabled on: `player_profiles`, `match_history`, `regiments`, `regiment_members`,
 
 ### Rank System
 
-10 ranks: PVT(0), PFC(1), CPL(2), SGT(3), SSG(4), SFC(5), MSG(6), 2LT(7), 1LT(8), CPT(9).
-PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500]`.
+13 ranks: PVT(0), PFC(1), CPL(2), SGT(3), SSG(4), SFC(5), MSG(6), 2LT(7), 1LT(8), CPT(9), MAJ(10), LT COL(11), COL(12).
+PP thresholds (ranks 0-9): `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500]`.
+Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. Display rank uses assigned rank when set, falls back to PP rank.
 
 ## Fly.io
 
@@ -78,7 +79,7 @@ PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500
 - **Commit style:** `Phase N: Title` for phase work
 - **No Claude attribution.** Never add `Co-Authored-By` lines or any Claude/Anthropic references to commits or PRs. All commits must appear as solely by `dukesgamelab`.
 
-## Completed Phases (1-25)
+## Completed Phases (1-27)
 
 | Phase | Name |
 |-------|------|
@@ -103,8 +104,23 @@ PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500
 | 24 | Alpha launch (bug reports, feedback, privacy policy, ToS, server capacity bump) |
 | 25 | Regiment management (CO/XO dashboard, player interactions, admin oversight) |
 | 26 | Map overhaul (visual terrain for all multiplayer maps) |
+| 27 | Auto-updater (startup version check, self-updating game client) |
 
-## Phase 26 Details (Just Completed)
+## Phase 27 Details (Just Completed)
+
+- **AutoUpdater** (`scripts/network/auto_updater.gd`):
+  - On game startup, queries Supabase `site_settings` for `game_version` and `download_url`
+  - Compares remote version against `BuildConfig.VERSION` using semantic version parsing
+  - If newer version available: shows dialog with current vs latest version
+  - User clicks "Update Now" → downloads zip → extracts → launches batch updater → quits
+  - Batch script waits for game process to exit, copies new files over old, relaunches
+  - "Skip" button lets user play the current version
+  - Progress bar shows download percentage
+  - Skipped in editor (development) builds
+- **Version workflow**: bump `BuildConfig.VERSION` in `scripts/core/build_config.gd`, set matching `game_version` in admin site settings, upload new zip to `/builds/`
+- Hooked into `mode_select.gd` — runs automatically on every game launch
+
+## Phase 26 Details
 
 - **Problem:** 4 of 5 multiplayer maps (Crossroads, Twin Ridges, Three Fields, Grand Battle) had zero visual map_objects — only invisible blocked_tiles that the engine defaulted to "tree" type. Players saw flat ground with invisible walls.
 - **Solution:** Generated visual terrain objects for all 4 maps using spatial cluster analysis:
@@ -156,6 +172,14 @@ PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500
 
 | Phase | Name | Scope |
 |-------|------|-------|
+| 28 | Match reconnection | Reconnect to a match after disconnect instead of losing it — session persistence, server-side match state hold, client rejoin flow |
+| 29 | Movement & animation polish | Fix soldier stutter on overlapping move orders, fix grenade throw animation not playing on remote client, smoother pathfinding |
+| 30 | Chat improvements | Whisper/announce in all game modes (not just 2v2+), chat history persistence, mute/block players |
+| 31 | Sound & music | Sound effects for combat (gunfire, grenades, movement), ambient sounds, background music, volume controls |
+| 32 | Settings & keybinds | In-game settings menu (graphics, audio, controls), remappable keybinds, resolution/fullscreen options |
+| 33 | Spectator mode | Watch live matches without participating, camera controls, player perspective switching |
+| 34 | Code signing & CI pipeline | SignPath integration via GitHub Actions, automated build export, signed Windows exe |
+| 35 | Match history & replay | Detailed match replay viewer, turn-by-turn playback, shareable match links on website |
 
 ## Code Signing (Not Yet Done)
 
@@ -178,12 +202,15 @@ Manual signing via SignTool/PowerShell. [Certum](https://support.certum.eu/en/ho
 
 OV is sufficient. EV ($400-600/yr) gets instant SmartScreen trust; with OV, warnings disappear after enough users download without issues.
 
-## Game Update Options
+## Game Updates
 
-Currently players re-download the full build manually. Future options:
+Auto-updater is built in (Phase 27). On every launch the game checks `site_settings.game_version` against `BuildConfig.VERSION`. If a newer version exists, it prompts the user, downloads the zip from `download_url`, extracts it, and self-updates via a batch script.
 
-1. **Custom launcher/updater** — a small exe that checks your server for new versions and downloads them automatically
-2. **Steam / itch.io** — handles updates automatically, but adds platform dependency
+To release an update:
+1. Bump `BuildConfig.VERSION` in `scripts/core/build_config.gd`
+2. Export the Godot build, zip it, upload to `/builds/` on the server
+3. Set `game_version` and `download_url` in admin site settings
+4. All running clients will see the update on next launch
 
 ## Known Gotchas
 
