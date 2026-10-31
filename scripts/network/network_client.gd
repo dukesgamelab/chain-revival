@@ -45,6 +45,10 @@ signal match_ended_received(payload: Dictionary)
 signal banned_from_server(reason: String)
 signal kicked_from_server(reason: String)
 signal kick_result_received(success: bool, reason: String)
+signal player_disconnected_received(side: String, reconnect_window_sec: int)
+signal player_reconnected_received(side: String)
+signal reconnect_failed
+signal reconnect_started
 
 var _socket := WebSocketPeer.new()
 var _connected := false
@@ -59,6 +63,12 @@ var match_id: String = ""
 var last_snapshot: Dictionary = {}
 var _pending_waits: Dictionary = {}
 var _request_seq := 0
+var _reconnecting := false
+var _reconnect_attempts := 0
+const MAX_RECONNECT_ATTEMPTS := 6
+const RECONNECT_INTERVAL_SEC := 3.0
+const CLIENT_RECONNECT_WINDOW_SEC := 120.0
+var _reconnect_deadline_msec: int = 0
 
 
 func _ready() -> void:
@@ -153,7 +163,10 @@ func is_connected_to_server() -> bool:
 func get_multiplayer_status_lines() -> PackedStringArray:
 	var lines := PackedStringArray()
 	lines.append("Mode: LOCAL_MULTIPLAYER")
-	lines.append("Connected: %s" % ("Yes" if _connected else "No"))
+	if _reconnecting:
+		lines.append("Reconnecting... (%d/%d)" % [_reconnect_attempts, MAX_RECONNECT_ATTEMPTS])
+	else:
+		lines.append("Connected: %s" % ("Yes" if _connected else "No"))
 	if not match_id.is_empty():
 		lines.append("Match: %s" % match_id)
 	if PlayerSides.has_assignment():
@@ -326,6 +339,8 @@ func send_json(data: Dictionary) -> void:
 
 
 func disconnect_from_server() -> void:
+	_reconnecting = false
+	_reconnect_attempts = 0
 	_reset_socket()
 	PlayerSides.clear()
 	_emit_status()
@@ -368,7 +383,12 @@ func _process(_delta: float) -> void:
 func _on_connected() -> void:
 	_connected = true
 	_connecting = false
-	GameLog.log_system("[NetworkClient] Connected to server.")
+	if _reconnecting:
+		GameLog.log_system("[NetworkClient] Reconnected to server.")
+		_reconnecting = false
+		_reconnect_attempts = 0
+	else:
+		GameLog.log_system("[NetworkClient] Connected to server.")
 	_emit_status()
 	_send_hello()
 
@@ -378,6 +398,21 @@ func _on_disconnected() -> void:
 	var was_connecting := _connecting
 	_connected = false
 	_connecting = false
+
+	if was_connected and match_ready_received and PlayerSides.has_assignment() and not _reconnecting:
+		GameLog.log_system("[NetworkClient] Disconnected during match — starting reconnect.")
+		_start_reconnect_loop()
+		return
+
+	if _reconnecting and was_connecting:
+		_reconnect_attempts += 1
+		GameLog.log_system("[NetworkClient] Reconnect attempt %d/%d failed." % [_reconnect_attempts, MAX_RECONNECT_ATTEMPTS])
+		if _reconnect_attempts >= MAX_RECONNECT_ATTEMPTS or Time.get_ticks_msec() > _reconnect_deadline_msec:
+			_abort_reconnect()
+		else:
+			_schedule_reconnect_retry()
+		return
+
 	PlayerSides.clear()
 	if was_connected:
 		GameLog.log_system("[NetworkClient] Disconnected from server.")
@@ -497,6 +532,17 @@ func _handle_message(message: Dictionary) -> void:
 			var reason := str(message.get("reason", "Kicked by admin"))
 			GameLog.log_system("[NetworkClient] Kicked from server: %s" % reason)
 			kicked_from_server.emit(reason)
+		"player_disconnected":
+			var disc_side := str(message.get("side", ""))
+			var window_sec := int(message.get("reconnectWindowSec", 90))
+			GameLog.log_system("[NetworkClient] Opponent (%s) disconnected. Reconnect window: %ds." % [disc_side, window_sec])
+			player_disconnected_received.emit(disc_side, window_sec)
+		"player_reconnected":
+			var recon_side := str(message.get("side", ""))
+			GameLog.log_system("[NetworkClient] Opponent (%s) reconnected." % recon_side)
+			player_reconnected_received.emit(recon_side)
+		"leave_confirmed":
+			GameLog.log_system("[NetworkClient] Leave confirmed by server.")
 		_:
 			GameLog.log_system("[NetworkClient] Unhandled message type: %s" % msg_type)
 
@@ -636,6 +682,66 @@ func _on_grenade_thrown(payload: Dictionary) -> void:
 	_resolve_command_wait(request_id, result)
 	if not waiting:
 		grenade_thrown_received.emit(payload)
+
+
+func send_leave_match() -> void:
+	if not _connected:
+		return
+	send_json({"type": "leave_match"})
+	GameLog.log_system("[NetworkClient] Sent leave_match to server.")
+
+
+func is_reconnecting() -> bool:
+	return _reconnecting
+
+
+func _start_reconnect_loop() -> void:
+	_reconnecting = true
+	_reconnect_attempts = 0
+	_reconnect_deadline_msec = Time.get_ticks_msec() + int(CLIENT_RECONNECT_WINDOW_SEC * 1000.0)
+	reconnect_started.emit()
+	_emit_status()
+	_schedule_reconnect_retry()
+
+
+func _schedule_reconnect_retry() -> void:
+	_socket = WebSocketPeer.new()
+	_connect_failed = false
+	get_tree().create_timer(RECONNECT_INTERVAL_SEC).timeout.connect(_attempt_reconnect)
+
+
+func _attempt_reconnect() -> void:
+	if not _reconnecting:
+		return
+	if Time.get_ticks_msec() > _reconnect_deadline_msec:
+		_abort_reconnect()
+		return
+	GameLog.log_system("[NetworkClient] Reconnect attempt %d..." % (_reconnect_attempts + 1))
+	_connecting = true
+	var tls_opts: TLSOptions = null
+	if server_url.begins_with("wss://"):
+		tls_opts = TLSOptions.client()
+	var err := _socket.connect_to_url(server_url, tls_opts)
+	if err != OK:
+		_connecting = false
+		_reconnect_attempts += 1
+		if _reconnect_attempts >= MAX_RECONNECT_ATTEMPTS:
+			_abort_reconnect()
+		else:
+			_schedule_reconnect_retry()
+		return
+	set_process(true)
+
+
+func _abort_reconnect() -> void:
+	GameLog.log_system("[NetworkClient] Reconnect failed — giving up.")
+	_reconnecting = false
+	_reconnect_attempts = 0
+	PlayerSides.clear()
+	_reset_socket()
+	_emit_status()
+	connection_changed.emit(false)
+	reconnect_failed.emit()
 
 
 func _emit_status() -> void:

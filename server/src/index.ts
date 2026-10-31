@@ -16,6 +16,7 @@ import {
 } from "./match";
 import { getUserId } from "./supabase_auth";
 import {
+  type SideName,
   bothSidesAssigned,
   getAssignedClients,
   getClient,
@@ -53,6 +54,11 @@ wireMatchCallbacks(match);
 
 /** Called by the match callback when a match ends. Records results in Supabase. */
 function handleMatchEnded(info: MatchEndedInfo): void {
+  for (const [, reconnect] of pendingReconnects) {
+    clearTimeout(reconnect.timer);
+  }
+  pendingReconnects.clear();
+
   const usaUserIds: string[] = [];
   const germanyUserIds: string[] = [];
 
@@ -169,6 +175,14 @@ function wireMatchCallbacks(m: LocalMatch): void {
 /** Reset to a fresh match when the previous one has ended. */
 function ensureFreshMatch(): void {
   if (match.matchPhase === "ended") {
+    for (const [userId, reconnect] of pendingReconnects) {
+      clearTimeout(reconnect.timer);
+      clearActiveMatch(userId);
+      adminUserIds.delete(userId);
+      moderatorUserIds.delete(userId);
+      removeClient(reconnect.oldClientId);
+    }
+    pendingReconnects.clear();
     console.log("Previous match ended, creating a fresh match.");
     resetSides();
     setTeamSize(1);
@@ -195,12 +209,35 @@ function safeParseJson(raw: string): IncomingMessage | null {
 }
 
 function sendJson(ws: WebSocket, payload: unknown): void {
-  ws.send(JSON.stringify(payload));
+  if (ws.readyState === ws.OPEN) {
+    ws.send(JSON.stringify(payload));
+  }
 }
 
 // Track which userIds are admins or moderators (set on hello, used for kick validation)
 const adminUserIds = new Set<string>();
 const moderatorUserIds = new Set<string>();
+
+const RECONNECT_WINDOW_SEC = 90;
+
+interface PendingReconnect {
+  userId: string;
+  side: SideName;
+  teamId: number;
+  oldClientId: string;
+  timer: NodeJS.Timeout;
+  disconnectedAt: number;
+}
+
+const pendingReconnects = new Map<string, PendingReconnect>();
+
+function broadcastToAssigned(payload: unknown, excludeClientId?: string): void {
+  for (const rec of getAssignedClients()) {
+    if (rec.clientId !== excludeClientId) {
+      sendJson(rec.ws, payload);
+    }
+  }
+}
 
 async function handleMessage(ws: WebSocket, clientId: string, raw: string): Promise<void> {
   console.log("Received message:", raw);
@@ -249,6 +286,49 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       } else {
         console.log("Auth token invalid for %s; continuing as guest.", clientName);
       }
+    }
+
+    // --- Reconnect detection ---
+    if (userId !== null && pendingReconnects.has(userId)) {
+      const reconnect = pendingReconnects.get(userId)!;
+      clearTimeout(reconnect.timer);
+      pendingReconnects.delete(userId);
+
+      // Remove ghost client, reassign side/team to new connection
+      match.removeClient(reconnect.oldClientId);
+      removeClient(reconnect.oldClientId);
+
+      const sideResult = requestSide(clientId, reconnect.side);
+      if (sideResult.ok) {
+        match.setClientTeam(clientId, reconnect.teamId);
+        console.log("[Reconnect] Player %s reconnected as %s (new clientId=%s)", userId, reconnect.side, clientId);
+
+        sendJson(ws, {
+          type: "welcome",
+          message: "Reconnected to match",
+          clientId,
+          matchId: MATCH_ID,
+          userId,
+          teamSize: getTeamSize(),
+          reconnected: true,
+        });
+        sendJson(ws, {
+          type: "side_assigned",
+          side: reconnect.side,
+          matchId: MATCH_ID,
+          teamId: reconnect.teamId,
+          usaCount: sideCount("USA"),
+          germanyCount: sideCount("GERMANY"),
+          teamSize: getTeamSize(),
+        });
+        sendJson(ws, { type: "match_ready" });
+        match.sendSnapshot(ws);
+
+        broadcastToAssigned({ type: "player_reconnected", side: reconnect.side }, clientId);
+      } else {
+        console.error("[Reconnect] Failed to reassign side %s for %s: %s", reconnect.side, userId, sideResult.reason);
+      }
+      return;
     }
 
     const requestedMap = typeof message.mapId === "string" ? message.mapId : "";
@@ -343,6 +423,38 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     setTimeout(() => { kickedWs.close(); }, 500);
 
     sendJson(ws, { type: "kick_result", success: true });
+    return;
+  }
+
+  if (message.type === "leave_match") {
+    const record = getClient(clientId);
+    if (!record) return;
+
+    // Cancel any pending reconnect for this player
+    if (record.userId && pendingReconnects.has(record.userId)) {
+      const reconnect = pendingReconnects.get(record.userId)!;
+      clearTimeout(reconnect.timer);
+      pendingReconnects.delete(record.userId);
+    }
+
+    // Intentional quit — immediate forfeit, no reconnect window
+    const leaveSide = record.assignedSide;
+    if (leaveSide !== null && match.matchPhase === "running") {
+      const leaveTeamId = sideToTeamId(leaveSide);
+      console.log("[LeaveMatch] Player %s (%s) intentionally left, ending as forfeit.", record.userId ?? clientId, leaveSide);
+      match.forceEndMatchForfeit(leaveTeamId);
+    }
+
+    if (record.userId) {
+      clearActiveMatch(record.userId);
+      adminUserIds.delete(record.userId);
+      moderatorUserIds.delete(record.userId);
+    }
+    removeClient(clientId);
+    match.removeClient(clientId);
+
+    sendJson(ws, { type: "leave_confirmed" });
+    setTimeout(() => { ws.close(); }, 500);
     return;
   }
 
@@ -645,16 +757,57 @@ wss.on("connection", (ws: WebSocket) => {
 
   ws.on("close", () => {
     const record = getClient(clientId);
-    // If this player had an assigned side and the match is running,
-    // end the match as a forfeit BEFORE removing records so handleMatchEnded
-    // can still look up both players' userIds for PP recording.
     const disconnectedSide = record?.assignedSide ?? null;
+    const disconnectedUserId = record?.userId ?? null;
+
+    // Authenticated player disconnects during a running match → reconnect window
+    if (disconnectedUserId && disconnectedSide !== null && match.matchPhase === "running") {
+      const disconnectedTeamId = sideToTeamId(disconnectedSide);
+      console.log("[Disconnect] Player %s (%s) disconnected during match. Holding slot for %ds.",
+        disconnectedUserId, disconnectedSide, RECONNECT_WINDOW_SEC);
+
+      // Detach from match broadcasts but keep side_ownership record (ghost blocks slot)
+      match.removeClient(clientId);
+
+      // Notify remaining players
+      broadcastToAssigned({
+        type: "player_disconnected",
+        side: disconnectedSide,
+        reconnectWindowSec: RECONNECT_WINDOW_SEC,
+      });
+
+      const timer = setTimeout(() => {
+        pendingReconnects.delete(disconnectedUserId);
+        console.log("[Reconnect] Window expired for %s (%s). Forfeiting.", disconnectedUserId, disconnectedSide);
+
+        if (match.matchPhase === "running") {
+          match.forceEndMatchForfeit(disconnectedTeamId);
+        }
+
+        clearActiveMatch(disconnectedUserId);
+        adminUserIds.delete(disconnectedUserId);
+        moderatorUserIds.delete(disconnectedUserId);
+        removeClient(clientId);
+      }, RECONNECT_WINDOW_SEC * 1000);
+
+      pendingReconnects.set(disconnectedUserId, {
+        userId: disconnectedUserId,
+        side: disconnectedSide as SideName,
+        teamId: disconnectedTeamId,
+        oldClientId: clientId,
+        timer,
+        disconnectedAt: Date.now(),
+      });
+      return;
+    }
+
+    // Unauthenticated player or non-running match: immediate cleanup
     if (disconnectedSide !== null && match.matchPhase === "running") {
       const disconnectedTeamId = sideToTeamId(disconnectedSide);
       console.log("Player on %s disconnected during match, ending as forfeit.", disconnectedSide);
       match.forceEndMatchForfeit(disconnectedTeamId);
     }
-    // Now clean up the client record
+
     if (record?.userId) {
       clearActiveMatch(record.userId);
       adminUserIds.delete(record.userId);

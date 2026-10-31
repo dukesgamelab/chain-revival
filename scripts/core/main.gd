@@ -1693,6 +1693,9 @@ func _on_mission_debrief_finished() -> void:
 func _on_retreat_requested() -> void:
 	if _game_state == null or _game_state.scenario_ended or _game_state.is_deployment_phase():
 		return
+	if GameModeManager.is_local_multiplayer():
+		NetworkClient.send_leave_match()
+		return
 	var team_id := _game_state.local_team_id()
 	if ScenarioRulesClass.request_retreat(_game_state, team_id):
 		_on_scenario_ended()
@@ -3198,6 +3201,14 @@ func _ensure_multiplayer_result_signals() -> void:
 		NetworkClient.match_ended_received.connect(_on_network_match_ended)
 	if not NetworkClient.kicked_from_server.is_connected(_on_kicked_from_server):
 		NetworkClient.kicked_from_server.connect(_on_kicked_from_server)
+	if not NetworkClient.player_disconnected_received.is_connected(_on_opponent_disconnected):
+		NetworkClient.player_disconnected_received.connect(_on_opponent_disconnected)
+	if not NetworkClient.player_reconnected_received.is_connected(_on_opponent_reconnected):
+		NetworkClient.player_reconnected_received.connect(_on_opponent_reconnected)
+	if not NetworkClient.reconnect_started.is_connected(_on_reconnect_started):
+		NetworkClient.reconnect_started.connect(_on_reconnect_started)
+	if not NetworkClient.reconnect_failed.is_connected(_on_reconnect_failed):
+		NetworkClient.reconnect_failed.connect(_on_reconnect_failed)
 
 
 func _apply_network_face_result(result: ActionResultClass) -> void:
@@ -3317,6 +3328,33 @@ func _on_kicked_from_server(reason: String) -> void:
 		_command_bar.show_status("You were kicked: %s" % reason)
 	# Open debrief after a short delay (same pattern as normal match end)
 	get_tree().create_timer(1.0).timeout.connect(_open_mission_debrief_dialog)
+
+
+func _on_opponent_disconnected(side_name: String, reconnect_window_sec: int) -> void:
+	if _command_bar != null:
+		_command_bar.append_chat_system("OPPONENT DISCONNECTED: %s player lost connection. Waiting %ds for reconnect." % [side_name, reconnect_window_sec])
+		_command_bar.show_status("Opponent disconnected — waiting for reconnect (%ds)." % reconnect_window_sec)
+
+
+func _on_opponent_reconnected(side_name: String) -> void:
+	if _command_bar != null:
+		_command_bar.append_chat_system("OPPONENT RECONNECTED: %s player is back." % side_name)
+		_command_bar.show_status("Opponent reconnected. Match continues.")
+
+
+func _on_reconnect_started() -> void:
+	if _command_bar != null:
+		_command_bar.append_chat_system("CONNECTION LOST: Attempting to reconnect...")
+		_command_bar.show_status("Connection lost — reconnecting...")
+
+
+func _on_reconnect_failed() -> void:
+	GameLog.log_system("[Main] Reconnect failed — returning to lobby.")
+	NetworkClient.disconnect_from_server()
+	if _command_bar != null:
+		_command_bar.show_status("Reconnect failed. Returning to lobby.")
+		_command_bar.cleanup_chat()
+	get_tree().call_deferred("change_scene_to_file", "res://scenes/lobby_browser.tscn")
 
 
 func _on_network_target_sync(payload: Dictionary) -> void:

@@ -105,8 +105,30 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | 25 | Regiment management (CO/XO dashboard, player interactions, admin oversight) |
 | 26 | Map overhaul (visual terrain for all multiplayer maps) |
 | 27 | Auto-updater (startup version check, self-updating game client) |
+| 28 | Match reconnection (90s reconnect window, ghost client, Leave Match button) |
 
-## Phase 27 Details (Just Completed)
+## Phase 28 Details (Just Completed)
+
+- **Server** (`server/src/index.ts`):
+  - Ghost client pattern: disconnected player's side_ownership record stays to block their slot
+  - 90-second reconnect window via `pendingReconnects` map (userId → timer/side/team)
+  - On reconnect: cancel timer, remove ghost, reassign side/team, send full snapshot
+  - `sendJson` now checks `ws.readyState` before sending (prevents errors on ghost sockets)
+  - `leave_match` message type: intentional quit → immediate forfeit, no reconnect window
+  - `player_disconnected` / `player_reconnected` broadcasts to remaining players
+  - Timer cleanup in `handleMatchEnded` and `ensureFreshMatch`
+- **Client** (`scripts/network/network_client.gd`):
+  - Auto-reconnect loop: up to 6 attempts over 120s client-side window
+  - `send_leave_match()` for intentional quit via Leave button
+  - New signals: `player_disconnected_received`, `player_reconnected_received`, `reconnect_started`, `reconnect_failed`
+  - Status HUD shows reconnect progress
+- **Game UI** (`scripts/core/main.gd`):
+  - Opponent disconnect/reconnect chat messages and status bar updates
+  - Reconnect failure → automatic return to lobby
+  - Retreat button becomes "Leave Match" in multiplayer (sends `leave_match`, no reconnect)
+- **Known issues** (`scripts/ui/mode_select.gd`): updated from "no reconnection" to "90s reconnect window"
+
+## Phase 27 Details
 
 - **AutoUpdater** (`scripts/network/auto_updater.gd`):
   - On game startup, queries Supabase `site_settings` for `game_version` and `download_url`
@@ -172,7 +194,6 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| 28 | Match reconnection | Reconnect to a match after disconnect instead of losing it — session persistence, server-side match state hold, client rejoin flow |
 | 29 | Movement & animation polish | Fix soldier stutter on overlapping move orders, fix grenade throw animation not playing on remote client, smoother pathfinding |
 | 30 | Chat improvements | Whisper/announce in all game modes (not just 2v2+), chat history persistence, mute/block players |
 | 31 | Sound & music | Sound effects for combat (gunfire, grenades, movement), ambient sounds, background music, volume controls |
@@ -219,3 +240,5 @@ To release an update:
 - **WebSocket race conditions:** Client can send messages before server registers them. Server handles gracefully.
 - **Supabase Realtime channels:** Use unique channel names (`Math.random().toString(36).slice(2)` suffix) and `supabase.removeChannel()` for cleanup to avoid "cannot add callbacks after subscribe()" errors.
 - **Godot export:** Requires export templates matching the Godot version (4.7).
+- **Godot `.uid` files:** Godot 4.7 generates `.uid` resource tracking files. These are gitignored.
+- **Reconnect window:** The 90s server timer and 120s client retry window are intentionally offset — the client gives up 30s after the server would forfeit anyway, avoiding a race where the client reconnects just as the server forfeits.

@@ -115,7 +115,11 @@ func _ready() -> void:
 	var retreat := %RetreatButton as Button
 	if retreat != null:
 		retreat.disabled = false
-		retreat.tooltip_text = "Retreat — end the scenario and concede the field."
+		if GameModeManager.is_local_multiplayer():
+			retreat.text = "Leave"
+			retreat.tooltip_text = "Leave Match — forfeit and disconnect (no reconnect)."
+		else:
+			retreat.tooltip_text = "Retreat — end the scenario and concede the field."
 		retreat.pressed.connect(func() -> void: retreat_requested.emit())
 
 	_select_soldier(1, false, false)

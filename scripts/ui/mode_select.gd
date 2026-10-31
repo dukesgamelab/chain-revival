@@ -512,7 +512,7 @@ func _on_known_issues_pressed() -> void:
 func _fill_known_issues(page: VBoxContainer) -> void:
 	var issues := [
 		"Team games (2v2+) are new and lightly tested — expect rough edges.",
-		"No reconnection: if you disconnect mid-match, the match is lost.",
+		"Reconnection: if you disconnect mid-match, you have 90 seconds to reconnect.",
 		"Chat whisper and announce only work in team games (2v2+).",
 		"Soldiers occasionally stutter when multiple move orders overlap.",
 		"Grenade throw animation may not play on the remote client.",
