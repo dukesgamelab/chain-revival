@@ -8,6 +8,8 @@ interface SiteSettings {
   leaderboard_enabled: boolean
   registration_enabled: boolean
   appeal_enabled: boolean
+  bugreports_enabled: boolean
+  feedback_enabled: boolean
   game_version: string
   download_url: string
 }
@@ -19,6 +21,8 @@ const DEFAULTS: SiteSettings = {
   leaderboard_enabled: true,
   registration_enabled: true,
   appeal_enabled: true,
+  bugreports_enabled: true,
+  feedback_enabled: true,
   game_version: '',
   download_url: '',
 }

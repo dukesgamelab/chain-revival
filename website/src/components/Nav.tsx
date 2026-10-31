@@ -18,9 +18,14 @@ export function Nav({ user, profile, onSignOut }: NavProps) {
     { to: '/leaderboard', label: 'Leaderboard', always: false, setting: 'leaderboard_enabled' as const },
     { to: '/regiments', label: 'Regiments', always: false, setting: 'regiments_enabled' as const },
     { to: '/download', label: 'Download', always: false, setting: 'download_enabled' as const },
+    { to: '/bugs', label: 'Bug Report', always: false, setting: 'bugreports_enabled' as const, auth: true },
+    { to: '/feedback', label: 'Feedback', always: false, setting: 'feedback_enabled' as const, auth: true },
   ]
 
-  const visibleLinks = links.filter(l => l.always || settings[l.setting!])
+  const visibleLinks = links.filter(l => {
+    if (l.auth && !user) return false
+    return l.always || settings[l.setting!]
+  })
 
   function isActive(path: string) {
     if (path === '/') return location.pathname === '/'

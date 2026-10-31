@@ -99,33 +99,61 @@ PP thresholds: `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500
 | 21 | Tutorial mode & rank fix |
 | 22 | Website integration (React SPA, admin dashboard, forgot password, ban notification Edge Function) |
 | 23 | Build & distribution (Godot Windows export, download page, build serving, admin version/URL config) |
+| 24 | Alpha launch (bug reports, feedback, privacy policy, ToS, server capacity bump) |
 
-## Phase 23 Details (Just Completed)
+## Phase 24 Details (Just Completed)
 
-- Godot Windows x86_64 export preset configured, outputs to `builds/ChainRevival-0.1.0-alpha.zip`
-- Download page with version badge, system requirements, 4-step install guide, SmartScreen warning
-- Download button activates when admin sets `download_url` in the admin dashboard
-- Admin dashboard: Game Distribution section with `game_version` and `download_url` fields
-- Server serves game builds from `/builds` directory with `Content-Disposition: attachment` headers
-- Dockerfile copies `builds/` into the container (wildcard pattern so build doesn't fail if empty)
-- SQL migration `018_download_settings.sql` seeds `game_version` and `download_url` in `site_settings`
-- Ban notification Edge Function deployed to Supabase with Resend integration
-- Server admin/moderator verification now done server-side via Supabase (was client-trusted)
-- Auth consolidated into single AuthProvider context (was duplicated across components)
-- 404 catch-all route added
+- Bug report system: `/bugs` page with title, description, category (gameplay/ui/multiplayer/performance/crash/other), severity, steps to reproduce
+- Feedback system: `/feedback` page with star rating, category (general/gameplay/balance/ui/maps/feature-request), freeform message
+- Privacy Policy page at `/privacy` — data collection, third-party services, cookies, children's privacy, contact
+- Terms of Service page at `/terms` — accounts, conduct, moderation, alpha status disclaimer, IP, liability
+- Admin dashboard: new Bugs and Feedback tabs for reviewing submissions, status management on bug reports (open/in-progress/closed)
+- Admin toggles: `bugreports_enabled` and `feedback_enabled` site settings
+- Nav updated with Bug Report and Feedback links (toggle-controlled)
+- Footer updated with Privacy Policy and Terms of Service links
+- SQL migration `019_alpha_launch.sql`: `bug_reports` and `feedback` tables with RLS policies
+- Fly.io VM bumped from 1 to 2 shared CPUs for alpha tester capacity
+- Both new tables have Supabase Realtime enabled
 
-### Build & Deploy Workflow
+### Alpha Launch Checklist
 
-1. Export from Godot: Project > Export > "Chain Revival 0.1.0-alpha" > Export Project
-2. Build lands in `builds/ChainRevival-0.1.0-alpha.zip` (gitignored, picked up by Dockerfile)
-3. Deploy: `fly deploy -a chain-revival-ax0q1g --remote-only`
-4. Set version and download URL in admin dashboard
+1. Run migration `019_alpha_launch.sql` in Supabase SQL Editor
+2. Deploy: `fly deploy -a chain-revival-ax0q1g --remote-only`
+3. Verify bug report and feedback forms work
+4. Share download link and site URL with alpha testers
+5. Monitor bug reports and feedback in the admin dashboard
 
 ## Upcoming Phases
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| 24 | Alpha Launch | Bug reporting channel. Minimal privacy policy/ToS. Server capacity check. Invite testers, collect feedback. |
+| 25 | Regiment Management | CO/XO management dashboard on website. Player regiment interactions (apply, leave). Admin regiment oversight. |
+
+### Phase 25: Regiment Management (Detailed Scope)
+
+**CO/XO Management Dashboard** (website page, visible to CO/XO of their regiment):
+- View pending join requests and accept/reject them (RPC `accept_regiment_join` exists)
+- Kick members (RPC `kick_regiment_member` exists)
+- Promote/demote members — assign regiment ranks: 1LT, CPT, MAJ, LT COL, COL (RPC `assign_regiment_rank` exists, requires player PP rank >= 2LT)
+- Set/remove XO (RPC `set_regiment_xo` exists, CO-only)
+- Edit regiment description and website URL (RPC `update_regiment_details` exists, CO-only)
+- Send invites to players (RLS policy `CO and XO can send invites` exists on `regiment_join_requests`)
+- Request regiment disbandment (RLS policy `CO can submit disband applications` exists on `regiment_applications`)
+
+**Player Regiment Interactions** (on regiments page or player profile):
+- Apply to join a regiment (RLS policy `Users can request to join a regiment` exists on `regiment_join_requests`)
+- View status of pending applications
+- Accept/reject invites received from regiments (RLS policy `Users can resolve invites sent to them` exists)
+- Leave current regiment (RLS policy `Members can leave their regiment` exists on `regiment_members`, also need to clear `regiment_id` on `player_profiles`)
+- Apply to create a new regiment (RLS policy `Users can submit create applications` exists on `regiment_applications`)
+
+**Admin Regiment Oversight** (in admin dashboard):
+- View and approve/reject regiment creation applications (RPCs `approve_regiment_application` and `reject_regiment_application` exist)
+- View and approve/reject regiment disbandment requests
+- View all regiment join requests across all regiments
+- Override: kick members, transfer CO, force-disband
+
+**Backend Status:** All Supabase RPC functions and RLS policies already exist in migration `009_regiments.sql`. This phase is purely website UI work — no new migrations needed unless admin override functions are added.
 
 ## Code Signing (Not Yet Done)
 

@@ -10,6 +10,10 @@ import { Regiments } from './pages/Regiments'
 import { Download } from './pages/Download'
 import { Appeal } from './pages/Appeal'
 import { Admin } from './pages/Admin'
+import { BugReport } from './pages/BugReport'
+import { Feedback } from './pages/Feedback'
+import { Privacy } from './pages/Privacy'
+import { Terms } from './pages/Terms'
 import { AuthProvider, useAuth } from './hooks/AuthProvider'
 import { useSiteSettings } from './hooks/useSiteSettings'
 
@@ -27,6 +31,10 @@ function AppRoutes() {
         <Route path="regiments" element={<Regiments />} />
         <Route path="download" element={<Download />} />
         <Route path="appeal" element={<Appeal />} />
+        {user && <Route path="bugs" element={<BugReport />} />}
+        {user && <Route path="feedback" element={<Feedback />} />}
+        <Route path="privacy" element={<Privacy />} />
+        <Route path="terms" element={<Terms />} />
         {profile?.is_admin && <Route path="admin" element={<Admin />} />}
         <Route path="*" element={<NotFound />} />
       </Route>
