@@ -13,6 +13,8 @@ const CHAT_PANEL_MARGIN_TOP := 80
 const CHAT_PANEL_MARGIN_BOTTOM := 20
 const CHAT_PANEL_MARGIN_RIGHT := 20
 const MAX_VISIBLE_MESSAGES := 100
+const MAX_MESSAGE_LENGTH := 200
+const SEND_COOLDOWN_SEC := 2.0
 const CHAT_FILTER := "channel=eq.global"
 
 ## Scenes where the global chat should be hidden.
@@ -39,6 +41,7 @@ var _http_send: HTTPRequest
 var _fetch_busy: bool = false
 var _visibility_check_queued: bool = false
 var _subscribed: bool = false
+var _send_cooldown: float = 0.0
 
 
 func _ready() -> void:
@@ -141,6 +144,7 @@ func _build_ui() -> void:
 	_chat_input.placeholder_text = "Say something..."
 	_chat_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chat_input.custom_minimum_size = Vector2(0, 26)
+	_chat_input.max_length = MAX_MESSAGE_LENGTH
 	_chat_input.add_theme_color_override("font_color", Color.WHITE)
 	_chat_input.text_submitted.connect(func(_t: String): _submit_chat())
 	input_row.add_child(_chat_input)
@@ -174,6 +178,10 @@ func _update_visibility() -> void:
 		_ensure_subscribed()
 		if _seen_ids.is_empty():
 			_fetch_history()
+		var banned := SupabaseAuth.is_banned
+		_chat_input.editable = not banned
+		_chat_send_button.disabled = banned
+		_chat_input.placeholder_text = "You are banned from chat" if banned else "Say something..."
 	else:
 		_ensure_unsubscribed()
 
@@ -241,15 +249,29 @@ func _on_realtime_message(record: Dictionary) -> void:
 # Chat send / initial history fetch
 # ─────────────────────────────────────────────────────────────────────────
 
+func _process(delta: float) -> void:
+	if _send_cooldown > 0.0:
+		_send_cooldown -= delta
+		if _send_cooldown <= 0.0:
+			_send_cooldown = 0.0
+			_chat_send_button.disabled = false
+
+
 func _submit_chat() -> void:
 	var msg := _chat_input.text.strip_edges()
 	if msg.is_empty():
 		return
 	if not SupabaseAuth.is_signed_in:
 		return
+	if SupabaseAuth.is_banned:
+		return
+	if _send_cooldown > 0.0:
+		return
 	_chat_input.text = ""
 	_chat_input.grab_focus()
 	_send_message(msg)
+	_send_cooldown = SEND_COOLDOWN_SEC
+	_chat_send_button.disabled = true
 
 
 func _send_message(msg: String) -> void:

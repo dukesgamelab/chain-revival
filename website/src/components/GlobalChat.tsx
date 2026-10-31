@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 interface ChatMessage {
@@ -13,13 +13,28 @@ interface GlobalChatProps {
   userId: string
   displayName: string
   regimentTag: string | null
+  isBanned: boolean
 }
 
-export function GlobalChat({ userId, displayName, regimentTag }: GlobalChatProps) {
+const SEND_COOLDOWN_MS = 2000
+
+function formatChatTime(iso: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  let h = d.getHours()
+  const m = d.getMinutes()
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  h = h % 12 || 12
+  return `${h}:${m.toString().padStart(2, '0')} ${ampm}`
+}
+
+export function GlobalChat({ userId, displayName, regimentTag, isBanned }: GlobalChatProps) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [unread, setUnread] = useState(0)
+  const [cooldown, setCooldown] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const openRef = useRef(open)
   openRef.current = open
@@ -64,13 +79,15 @@ export function GlobalChat({ userId, displayName, regimentTag }: GlobalChatProps
     }
   }, [open, messages.length])
 
-  async function sendMessage(e: React.FormEvent) {
+  const sendMessage = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     const text = input.trim()
-    if (!text) return
+    if (!text || cooldown || isBanned) return
 
     const chatName = regimentTag ? `${regimentTag} ${displayName}` : displayName
     setInput('')
+    setCooldown(true)
+    setTimeout(() => setCooldown(false), SEND_COOLDOWN_MS)
 
     await supabase.from('chat_messages').insert({
       user_id: userId,
@@ -78,7 +95,7 @@ export function GlobalChat({ userId, displayName, regimentTag }: GlobalChatProps
       message: text,
       channel: 'global',
     })
-  }
+  }, [input, cooldown, isBanned, regimentTag, displayName, userId])
 
   return (
     <div className="fixed bottom-4 right-4 z-40">
@@ -92,24 +109,36 @@ export function GlobalChat({ userId, displayName, regimentTag }: GlobalChatProps
           <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1 text-sm">
             {messages.map(msg => (
               <div key={msg.id}>
-                <span className={msg.user_id === userId ? 'text-cyan-400' : 'text-amber-400'}>
+                <span className="text-slate-500 text-xs mr-1">{formatChatTime(msg.created_at)}</span>
+                <a
+                  href={`/player/${msg.user_id}`}
+                  className={`hover:underline ${msg.user_id === userId ? 'text-cyan-400' : 'text-amber-400'}`}
+                >
                   {msg.display_name}
-                </span>
+                </a>
                 <span className="text-slate-300 ml-1">{msg.message}</span>
               </div>
             ))}
             <div ref={messagesEndRef} />
           </div>
 
-          <form onSubmit={sendMessage} className="p-2 border-t border-slate-700">
+          <form onSubmit={sendMessage} className="p-2 border-t border-slate-700 flex gap-1">
             <input
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Type a message..."
-              className="w-full bg-slate-800 text-white text-sm rounded px-3 py-2 outline-none focus:ring-1 focus:ring-sky-500 placeholder-slate-500"
+              placeholder={isBanned ? 'You are banned from chat' : cooldown ? 'Wait...' : 'Type a message...'}
+              disabled={cooldown || isBanned}
+              className="flex-1 bg-slate-800 text-white text-sm rounded px-3 py-2 outline-none focus:ring-1 focus:ring-sky-500 placeholder-slate-500 disabled:opacity-50"
               maxLength={200}
             />
+            <button
+              type="submit"
+              disabled={cooldown || isBanned || !input.trim()}
+              className="bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm rounded px-3 py-2 transition-colors"
+            >
+              Send
+            </button>
           </form>
         </div>
       ) : (

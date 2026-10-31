@@ -35,6 +35,9 @@ signal retreat_requested
 var _status_hud: StatusHud
 
 # In-game chat
+const CHAT_MAX_LENGTH := 200
+const CHAT_COOLDOWN_SEC := 2.0
+
 var _chat_http_send: HTTPRequest
 var _chat_seen_ids: Dictionary = {}
 var _chat_channel: String = ""
@@ -43,6 +46,7 @@ var _chat_subscribed: bool = false
 var _ignore_list: Dictionary = {}  # user_id -> true
 var _chat_mode: String = ""  # "", "whisper", or "announce"
 var _recent_senders: Dictionary = {}  # user_id -> display_name
+var _chat_cooldown: float = 0.0
 
 var _selected_soldier_id: int = 1
 var _move_target_soldier_id: int = -1
@@ -124,6 +128,10 @@ func _ready() -> void:
 
 	_select_soldier(1, false, false)
 	_refresh_deployment_stage_label(true)
+
+
+func _process(delta: float) -> void:
+	_chat_cooldown_tick(delta)
 
 
 func _setup_dev_tools() -> void:
@@ -486,6 +494,7 @@ func _setup_chat_panel() -> void:
 		chat_input.editable = true
 		chat_input.mouse_filter = Control.MOUSE_FILTER_STOP
 		chat_input.focus_mode = Control.FOCUS_ALL
+		chat_input.max_length = CHAT_MAX_LENGTH
 		chat_input.add_theme_color_override("font_color", Color.WHITE)
 		chat_input.add_theme_color_override("font_placeholder_color", Color(0.5, 0.5, 0.5))
 		chat_input.text_submitted.connect(_on_chat_input_submitted)
@@ -584,6 +593,10 @@ func _on_chat_input_submitted(_text: String = "") -> void:
 		return
 	if not SupabaseAuth.is_signed_in:
 		return
+	if SupabaseAuth.is_banned:
+		return
+	if _chat_cooldown > 0.0:
+		return
 	chat_input.text = ""
 	chat_input.grab_focus()
 	if _chat_mode == "announce":
@@ -592,6 +605,20 @@ func _on_chat_input_submitted(_text: String = "") -> void:
 		msg = "[WHISPER] " + msg
 	_chat_send_message(msg)
 	_echo_local_message(msg)
+	_chat_cooldown = CHAT_COOLDOWN_SEC
+	var send_btn := %ChatDefaultButton as Button
+	if send_btn != null:
+		send_btn.disabled = true
+
+
+func _chat_cooldown_tick(delta: float) -> void:
+	if _chat_cooldown > 0.0:
+		_chat_cooldown -= delta
+		if _chat_cooldown <= 0.0:
+			_chat_cooldown = 0.0
+			var send_btn := %ChatDefaultButton as Button
+			if send_btn != null:
+				send_btn.disabled = false
 
 
 func _echo_local_message(msg: String) -> void:
