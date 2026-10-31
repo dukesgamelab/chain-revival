@@ -65,6 +65,7 @@ var _command_dialog: CommandDialog = null
 var _assign_weapons_dialog: AssignWeaponsDialog = null
 var _mission_debrief_dialog: MissionDebriefDialogClass = null
 var _survival_difficulty_dialog: SurvivalDifficultyDialogClass = null
+var _pause_menu: AcceptDialog = null
 
 var _map_data = MapDataClass.create_default()
 var _session: GameSession = GameSessionClass.new([], [])
@@ -1736,6 +1737,10 @@ func _on_ammo_adjust_requested(soldier_id: int, delta: int) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ESCAPE:
+			_toggle_pause_menu()
+			get_viewport().set_input_as_handled()
+			return
 		if BuildConfig.is_development():
 			if event.keycode == KEY_1:
 				_switch_active_team(Team.USA)
@@ -2157,6 +2162,38 @@ func _return_to_mode_select() -> void:
 	if _command_bar != null:
 		_command_bar.cleanup_chat()
 	get_tree().call_deferred("change_scene_to_file", "res://scenes/mode_select.tscn")
+
+
+func _toggle_pause_menu() -> void:
+	if _pause_menu != null and _pause_menu.visible:
+		_pause_menu.hide()
+		return
+	if _pause_menu != null:
+		_pause_menu.popup_centered()
+		return
+	var dlg := AcceptDialog.new()
+	dlg.title = "Paused"
+	dlg.ok_button_text = "Resume"
+	dlg.min_size = Vector2(280, 120)
+	CocUiTheme.apply_to(dlg)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	dlg.add_child(vbox)
+	var quit_btn := Button.new()
+	quit_btn.text = "Quit to Menu"
+	quit_btn.add_theme_font_size_override("font_size", 11)
+	quit_btn.pressed.connect(func():
+		dlg.hide()
+		if GameModeManager.is_local_multiplayer():
+			NetworkClient.send_leave_match()
+			NetworkClient.disconnect_from_server()
+		_return_to_mode_select()
+	)
+	vbox.add_child(quit_btn)
+	$UI.add_child(dlg)
+	_pause_menu = dlg
+	dlg.popup_centered()
 
 
 func _apply_tutorial_button_mask() -> void:

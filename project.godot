@@ -19,6 +19,7 @@ config/windows_native_icon="res://assets/ui/app_icon.ico"
 [autoload]
 
 AudioManager="*res://scenes/audio_manager.tscn"
+SettingsManager="*res://scripts/core/settings_manager.gd"
 GameLog="*res://scripts/core/game_log.gd"
 GameModeManager="*res://scripts/core/game_mode_manager.gd"
 PlayerSides="*res://scripts/network/player_side_manager.gd"
