@@ -638,9 +638,18 @@ For changes to `server/` or `website/` that don't affect the Godot client:
 
 **Without signing** (current state): players will see SmartScreen/Chrome download warnings.
 
+## Multiplayer Lobby Bug Fixes (v0.22.4-alpha)
+
+- **Stale lobbies persisting after match**: `list_lobbies()` query had `host_id.eq.%s` in the OR clause that bypassed status filtering for the host. Removed — now only fetches `waiting` and `in_progress` lobbies.
+- **Lobby recovery loop**: Recovery logic in `_on_lobbies_listed` recovered "in_progress" lobbies AND auto-refresh auto-started them, creating an infinite loop (lobby → side select → back → lobby). Fixed: only recover "waiting" lobbies; DELETE "in_progress" ones during recovery.
+- **Double `_start_multiplayer` calls**: Auto-refresh callbacks fired while `await connect_and_wait()` was pending, causing multiple WebSocket connect/disconnect cycles. Added `_starting_match` boolean guard.
+- **Export join failure**: `export_presets.cfg` excluded `side_select.tscn` and `match_setup.tscn` — see Known Gotchas.
+- **Removed Host Game button**: Players now only join via the room grid.
+
 ## Known Bugs
 
 - **Reconnect on game close (BROKEN)**: Closing the game window triggers `player_disconnected` and shows "90s" message, but: (1) countdown never ticks down visually, (2) match forfeits way before 90 seconds, (3) disconnected player's PC shows "no games available" within ~5 seconds. Needs investigation in `server/src/index.ts` disconnect handler and `match.ts` reconnect logic.
+- **PP not accumulated after match**: Prestige Points don't increase after winning. Killed all 4 enemy soldiers, won the game, PP stayed at 1340. Kills and victory bonus are not being added. Reported 2026-11-01.
 
 ## Known Gotchas
 
@@ -648,6 +657,7 @@ For changes to `server/` or `website/` that don't affect the Godot client:
 - **Supabase RPC overloading:** Supabase doesn't support PostgreSQL function overloading well. Use distinct function names.
 - **WebSocket race conditions:** Client can send messages before server registers them. Server handles gracefully.
 - **Supabase Realtime channels:** Use unique channel names (`Math.random().toString(36).slice(2)` suffix) and `supabase.removeChannel()` for cleanup to avoid "cannot add callbacks after subscribe()" errors.
+- **Godot export exclude filter:** `export_presets.cfg` exclude_filter was stripping `scenes/side_select.tscn` and `scenes/match_setup.tscn` from builds. This caused multiplayer joins to silently fail in exports — the join RPC succeeded (lobby showed 2/2) but `change_scene_to_file` couldn't find the scene in the PCK. Worked fine in the editor because the files exist on disk. Fixed in v0.22.4-alpha. Always verify new scenes aren't in the exclude list.
 - **Godot export:** Requires export templates matching the Godot version (4.7).
 - **Godot `.uid` files:** Godot 4.7 generates `.uid` resource tracking files. These are gitignored.
 - **Reconnect window:** The 90s server timer and 120s client retry window are intentionally offset — the client gives up 30s after the server would forfeit anyway, avoiding a race where the client reconnects just as the server forfeits.

@@ -50,6 +50,7 @@ var _room_rows: Dictionary = {}
 var _hosted_lobby_id: String = ""
 var _joined_lobby_id: String = ""
 var _active_room_number: int = 0
+var _starting_match: bool = false
 
 # Player card sidebar
 var _player_card_panel: PanelContainer
@@ -804,10 +805,13 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 		for lobby_dict in lobbies:
 			var lobby: Dictionary = lobby_dict
 			var lobby_status: String = lobby.get("status", "")
-			if lobby.get("host_id", "") == SupabaseAuth.user_id and (lobby_status == "waiting" or lobby_status == "in_progress"):
-				_hosted_lobby_id = lobby.get("id", "")
-				var rn_val = lobby.get("room_number", 0)
-				_active_room_number = int(rn_val) if rn_val != null else 0
+			if lobby.get("host_id", "") == SupabaseAuth.user_id:
+				if lobby_status == "waiting":
+					_hosted_lobby_id = lobby.get("id", "")
+					var rn_val = lobby.get("room_number", 0)
+					_active_room_number = int(rn_val) if rn_val != null else 0
+				elif lobby_status == "in_progress":
+					_lobby_client.delete_lobby(lobby.get("id", ""))
 				break
 
 	# Build room_number -> lobby lookup
@@ -978,6 +982,9 @@ func _on_cancel_hosted() -> void:
 # ─────────────────────────────────────────────────────────────────────────
 
 func _start_multiplayer(server_url: String, map_id: String = "", team_size: int = 1, match_length_sec: int = 900) -> void:
+	if _starting_match:
+		return
+	_starting_match = true
 	_refresh_timer.stop()
 	GameModeManager.set_mode(GameMode.LOCAL_MULTIPLAYER)
 	NetworkClient.disconnect_from_server()
@@ -990,6 +997,7 @@ func _start_multiplayer(server_url: String, map_id: String = "", team_size: int 
 	NetworkClient.is_regimental = room_type == "regimental"
 	var connected := await NetworkClient.connect_and_wait()
 	if not connected:
+		_starting_match = false
 		_set_status("Could not connect to game server.", Color.RED)
 		_refresh_timer.start()
 		return

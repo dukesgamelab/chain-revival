@@ -138,7 +138,6 @@ jobs:
           generate_release_notes: true
 
       - name: Update Supabase site settings
-        if: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
         env:
           SUPABASE_URL: https://tnyaqreedvdmyworvqbw.supabase.co
           SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
