@@ -50,7 +50,6 @@ func _ready() -> void:
 	_add_lan_button()
 	_add_leaderboard_button()
 	_add_version_label()
-	_add_known_issues_button()
 	_add_settings_button()
 	_add_quit_button()
 	_show_first_launch_hint()
@@ -139,7 +138,16 @@ func _hide_dev_tools_unless_signed_in() -> void:
 	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
 	if dev_box == null:
 		return
-	dev_box.visible = BuildConfig.is_development() and SupabaseAuth.is_signed_in
+	dev_box.visible = SupabaseAuth.is_signed_in and (SupabaseAuth.is_admin or SupabaseAuth.is_moderator)
+	if not SupabaseAuth.profile_loaded.is_connected(_on_profile_loaded):
+		SupabaseAuth.profile_loaded.connect(_on_profile_loaded)
+
+
+func _on_profile_loaded() -> void:
+	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
+	if dev_box == null:
+		return
+	dev_box.visible = SupabaseAuth.is_signed_in and (SupabaseAuth.is_admin or SupabaseAuth.is_moderator)
 
 
 func _apply_survival_playtest_menu() -> void:

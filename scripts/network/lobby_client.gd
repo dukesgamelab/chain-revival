@@ -25,6 +25,7 @@ var _pending_match_name: String = ""
 var _pending_server_url: String = ""
 var _pending_map_id: String = "ff_farm"
 var _pending_team_size: int = 1
+var _pending_room_number: int = 0
 
 
 func _ready() -> void:
@@ -42,22 +43,23 @@ func _ready() -> void:
 # Public API
 # ─────────────────────────────────────────────────────────────────────────
 
-## List lobbies: waiting ones plus any hosted by the current user.
+## List lobbies: waiting/in_progress ones plus any hosted by the current user.
 func list_lobbies() -> void:
 	if not _check_auth():
 		return
-	var url := "%s/rest/v1/lobbies?or=(status.eq.waiting,host_id.eq.%s)&order=created_at.desc" % [SupabaseAuth.SUPABASE_URL, SupabaseAuth.user_id]
+	var url := "%s/rest/v1/lobbies?or=(status.eq.waiting,status.eq.in_progress,host_id.eq.%s)&order=room_number.asc.nullslast" % [SupabaseAuth.SUPABASE_URL, SupabaseAuth.user_id]
 	_http_list.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
 
 
 ## Create a new lobby. First deletes any existing lobbies by this host.
-func create_lobby(match_name: String, server_url: String = "", map_id: String = "ff_farm", team_size: int = 1) -> void:
+func create_lobby(match_name: String, server_url: String = "", map_id: String = "ff_farm", team_size: int = 1, room_number: int = 0) -> void:
 	if not _check_auth():
 		return
 	_pending_match_name = match_name
 	_pending_server_url = server_url
 	_pending_map_id = map_id
 	_pending_team_size = team_size
+	_pending_room_number = room_number
 	# Delete any stale lobbies by this host first.
 	var url := "%s/rest/v1/lobbies?host_id=eq.%s" % [SupabaseAuth.SUPABASE_URL, SupabaseAuth.user_id]
 	_http_cleanup.request(url, _bearer_headers(), HTTPClient.METHOD_DELETE)
@@ -173,6 +175,8 @@ func _on_cleanup_response(_result: int, _response_code: int, _headers: PackedStr
 		payload["server_url"] = _pending_server_url
 	if not _pending_map_id.is_empty():
 		payload["map_id"] = _pending_map_id
+	if _pending_room_number > 0:
+		payload["room_number"] = _pending_room_number
 	var body := JSON.stringify(payload)
 	var headers := _bearer_headers_prefer_return()
 	var url := "%s/rest/v1/lobbies" % SupabaseAuth.SUPABASE_URL

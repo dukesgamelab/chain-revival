@@ -22,6 +22,7 @@ signal sign_in_failed(reason: String)
 signal sign_up_succeeded(user: Dictionary)
 signal sign_up_failed(reason: String)
 signal player_banned(reason: String)
+signal profile_loaded()
 
 ## ── Public state ────────────────────────────────────────────────────────
 var access_token: String = ""
@@ -224,6 +225,7 @@ func _on_profile_response(result: int, response_code: int, _headers: PackedStrin
 	GameLog.log_system("[SupabaseAuth] Profile loaded: rank=%d pp=%d regiment=%s tag=%s admin=%s mod=%s banned=%s" % [rank, prestige_points, regiment_id, regiment_tag, str(is_admin), str(is_moderator), str(is_banned)])
 	if is_banned:
 		player_banned.emit(ban_reason)
+	profile_loaded.emit()
 
 
 # ─────────────────────────────────────────────────────────────────────────

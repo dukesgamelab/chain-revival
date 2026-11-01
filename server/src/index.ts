@@ -82,8 +82,8 @@ function handleMatchEnded(info: MatchEndedInfo): void {
   const endCauseStr = info.endCause === END_CAUSE_FORFEIT ? "forfeit"
     : info.endCause === END_CAUSE_EXTERMINATION ? "extermination" : "time";
 
-  const usaPP = info.usaPPEarned;
-  const germanyPP = info.germanyPPEarned;
+  const usaPP = isTrainingMatch ? 0 : info.usaPPEarned;
+  const germanyPP = isTrainingMatch ? 0 : info.germanyPPEarned;
   const currentTeamSize = getTeamSize();
   const dbMatchId = info.dbMatchId;
   const durationSec = Math.round(info.durationMs / 1000);
@@ -204,6 +204,7 @@ function ensureFreshMatch(): void {
     console.log("Previous match ended, creating a fresh match.");
     resetSides();
     setTeamSize(1);
+    isTrainingMatch = false;
     match = new LocalMatch();
     wireMatchCallbacks(match);
   }
@@ -235,6 +236,9 @@ function sendJson(ws: WebSocket, payload: unknown): void {
 // Track which userIds are admins or moderators (set on hello, used for kick validation)
 const adminUserIds = new Set<string>();
 const moderatorUserIds = new Set<string>();
+
+// Training match flag — set from client hello, suppresses PP awards
+let isTrainingMatch = false;
 
 const RECONNECT_WINDOW_SEC = 90;
 
@@ -304,6 +308,11 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       } else {
         console.log("Auth token invalid for %s; continuing as guest.", clientName);
       }
+    }
+
+    if (message.isTraining === true) {
+      isTrainingMatch = true;
+      console.log("[Hello] Training match — PP awards disabled.");
     }
 
     // --- Reconnect detection ---

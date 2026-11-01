@@ -83,6 +83,17 @@ interface AdminJoinRequest {
   regiment_name?: string
 }
 
+interface AdminPlayer {
+  id: string
+  display_name: string
+  is_admin: boolean
+  is_moderator: boolean
+  is_banned: boolean
+  rank: number
+  prestige_points: number
+  email?: string
+}
+
 interface AdminAnnouncement {
   id: string
   title: string
@@ -140,7 +151,10 @@ export function Admin() {
   const [announcementComments, setAnnouncementComments] = useState<Record<string, AnnouncementComment[]>>({})
   const [expandedAnnouncementComments, setExpandedAnnouncementComments] = useState<Set<string>>(new Set())
   const [newsletterCount, setNewsletterCount] = useState(0)
-  const [tab, setTab] = useState<'toggles' | 'stats' | 'appeals' | 'bugs' | 'feedback' | 'regiments' | 'announcements'>('toggles')
+  const [adminPlayers, setAdminPlayers] = useState<AdminPlayer[]>([])
+  const [playerSearch, setPlayerSearch] = useState('')
+  const [playerSearchLoading, setPlayerSearchLoading] = useState(false)
+  const [tab, setTab] = useState<'toggles' | 'stats' | 'appeals' | 'bugs' | 'feedback' | 'regiments' | 'announcements' | 'players'>('toggles')
 
   useEffect(() => {
     async function loadStats() {
@@ -310,6 +324,15 @@ export function Admin() {
       setNewsletterCount(count ?? 0)
     }
 
+    async function loadPlayers() {
+      const { data } = await supabase
+        .from('player_profiles')
+        .select('id,display_name,is_admin,is_moderator,is_banned,rank,prestige_points')
+        .order('display_name')
+        .limit(100)
+      if (data) setAdminPlayers(data)
+    }
+
     loadStats()
     loadAppeals()
     loadBugReports()
@@ -317,6 +340,7 @@ export function Admin() {
     loadRegimentData()
     loadAnnouncements()
     loadNewsletterCount()
+    loadPlayers()
   }, [])
 
   async function resolveAppeal(id: string, status: 'approved' | 'denied') {
@@ -454,6 +478,48 @@ export function Admin() {
     }))
   }
 
+  async function searchPlayers(query: string) {
+    setPlayerSearch(query)
+    if (query.trim().length < 2) {
+      const { data } = await supabase
+        .from('player_profiles')
+        .select('id,display_name,is_admin,is_moderator,is_banned,rank,prestige_points')
+        .order('display_name')
+        .limit(100)
+      if (data) setAdminPlayers(data)
+      return
+    }
+    setPlayerSearchLoading(true)
+    const { data } = await supabase
+      .from('player_profiles')
+      .select('id,display_name,is_admin,is_moderator,is_banned,rank,prestige_points')
+      .ilike('display_name', `%${query.trim()}%`)
+      .order('display_name')
+      .limit(100)
+    if (data) setAdminPlayers(data)
+    setPlayerSearchLoading(false)
+  }
+
+  async function togglePlayerAdmin(playerId: string, isAdmin: boolean) {
+    const { error } = await supabase.rpc('set_admin', {
+      p_target_id: playerId,
+      p_is_admin: isAdmin,
+    })
+    if (error) { alert(error.message); return }
+    setAdminPlayers(prev => prev.map(p => p.id === playerId ? { ...p, is_admin: isAdmin } : p))
+  }
+
+  async function togglePlayerModerator(playerId: string, isMod: boolean) {
+    const { error } = await supabase.rpc('set_moderator', {
+      p_target_id: playerId,
+      p_is_moderator: isMod,
+    })
+    if (error) { alert(error.message); return }
+    setAdminPlayers(prev => prev.map(p => p.id === playerId ? { ...p, is_moderator: isMod } : p))
+  }
+
+  const RANK_LABELS = ['PVT', 'PFC', 'CPL', 'SGT', 'SSG', 'SFC', 'MSG', '2LT', '1LT', 'CPT']
+
   const toggles: { key: keyof typeof settings; label: string; desc: string }[] = [
     { key: 'leaderboard_enabled', label: 'Leaderboard', desc: 'Show leaderboard page and nav link' },
     { key: 'regiments_enabled', label: 'Regiments', desc: 'Show regiments page and nav link' },
@@ -471,10 +537,11 @@ export function Admin() {
       <h1 className="text-3xl font-bold mb-6 text-amber-400">Admin Dashboard</h1>
 
       <div className="flex flex-wrap rounded-lg bg-slate-800 p-1 mb-6 w-fit gap-0.5">
-        {(['toggles', 'stats', 'appeals', 'bugs', 'feedback', 'regiments', 'announcements'] as const).map(t => {
+        {(['toggles', 'stats', 'players', 'appeals', 'bugs', 'feedback', 'regiments', 'announcements'] as const).map(t => {
           const labels: Record<string, string> = {
             toggles: 'Toggles',
             stats: 'Stats',
+            players: 'Players',
             appeals: `Appeals (${appeals.length})`,
             bugs: `Bugs (${bugReports.filter(b => b.status === 'open').length})`,
             feedback: `Feedback (${feedbackList.length})`,
@@ -580,6 +647,88 @@ export function Admin() {
             <div className="text-3xl font-bold text-violet-400">{newsletterCount}</div>
             <div className="text-sm text-slate-400 mt-1">Newsletter Subscribers</div>
           </div>
+        </div>
+      )}
+
+      {tab === 'players' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <input
+              type="text"
+              value={playerSearch}
+              onChange={e => searchPlayers(e.target.value)}
+              placeholder="Search by display name..."
+              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white outline-none focus:ring-2 focus:ring-sky-500 placeholder-slate-600"
+            />
+            {playerSearchLoading && <span className="text-slate-500 text-sm">Searching...</span>}
+          </div>
+
+          {adminPlayers.length === 0 ? (
+            <div className="text-center text-slate-500 py-16">No players found</div>
+          ) : (
+            <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-700 text-slate-400 text-left">
+                    <th className="px-4 py-3">Player</th>
+                    <th className="px-4 py-3 text-center">Rank</th>
+                    <th className="px-4 py-3 text-center">PP</th>
+                    <th className="px-4 py-3 text-center">Admin</th>
+                    <th className="px-4 py-3 text-center">Moderator</th>
+                    <th className="px-4 py-3 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminPlayers.map(p => (
+                    <tr key={p.id} className="border-b border-slate-800 hover:bg-slate-800/40 transition-colors">
+                      <td className="px-4 py-3">
+                        <Link to={`/player/${p.id}`} className="text-sky-400 hover:text-sky-300 hover:underline">
+                          {p.display_name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-center text-slate-300 text-xs font-mono">
+                        {RANK_LABELS[Math.min(p.rank, RANK_LABELS.length - 1)]}
+                      </td>
+                      <td className="px-4 py-3 text-center text-slate-400">{p.prestige_points}</td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => togglePlayerAdmin(p.id, !p.is_admin)}
+                          disabled={p.id === user?.id && p.is_admin}
+                          title={p.id === user?.id && p.is_admin ? 'Cannot remove your own admin' : ''}
+                          className={`relative w-10 h-5 rounded-full transition-colors ${
+                            p.is_admin ? 'bg-amber-600' : 'bg-slate-600'
+                          } ${p.id === user?.id && p.is_admin ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                          <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+                            p.is_admin ? 'translate-x-5' : 'translate-x-0.5'
+                          }`} />
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => togglePlayerModerator(p.id, !p.is_moderator)}
+                          className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${
+                            p.is_moderator ? 'bg-sky-600' : 'bg-slate-600'
+                          }`}
+                        >
+                          <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+                            p.is_moderator ? 'translate-x-5' : 'translate-x-0.5'
+                          }`} />
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {p.is_banned ? (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">Banned</span>
+                        ) : (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">Active</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 

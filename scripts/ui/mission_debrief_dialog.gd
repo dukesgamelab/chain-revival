@@ -272,7 +272,7 @@ func _build_promotion_panel() -> PanelContainer:
 
 	## Use server-provided PP earned and SupabaseAuth's persisted rank/PP.
 	var local_team: int = _game_state.command_hierarchy.get_team_id(local_pid) if _game_state.command_hierarchy != null else 1
-	var pp_earned: int = int(_game_state.team_pp_earned.get(local_team, 0))
+	var pp_earned: int = 0 if NetworkClient.is_training else int(_game_state.team_pp_earned.get(local_team, 0))
 	var start_pp: int = SupabaseAuth.prestige_points
 	var start_rank: int = SupabaseAuth.rank
 
