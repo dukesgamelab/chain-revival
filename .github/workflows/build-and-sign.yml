@@ -12,7 +12,7 @@ on:
   #     - "v*"
 
 env:
-  GODOT_VERSION: "4.7"
+  GODOT_VERSION: "4.7.2"
   EXPORT_PRESET: "Windows Desktop"
   GAME_NAME: "ChainRevival"
 
@@ -20,7 +20,10 @@ jobs:
   build:
     name: Export Windows Build
     runs-on: ubuntu-latest
-    container: barichello/godot-ci:4.7-stable
+    container:
+      image: barichello/godot-ci:4.7.2
+      env:
+        HOME: /root
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +35,12 @@ jobs:
           else
             echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Link export templates
+        run: |
+          mkdir -p /github/home/.local/share/godot/export_templates
+          ln -s /root/.local/share/godot/export_templates/* \
+            /github/home/.local/share/godot/export_templates/
 
       - name: Setup export directory
         run: mkdir -p build/windows
@@ -55,7 +64,7 @@ jobs:
   sign:
     name: Sign with Certum SimplySign
     needs: build
-    if: secrets.SIMPLYSIGN_TOTP_SEED != ''
+    if: false  # Enable when Certum cert is purchased and SIMPLYSIGN_TOTP_SEED secret is added
     runs-on: windows-latest
     environment: signing
     steps:
@@ -124,5 +133,28 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           name: Chain Revival v${{ steps.version.outputs.version }}
           files: ${{ env.GAME_NAME }}-${{ steps.version.outputs.version }}.zip
-          draft: true
+          draft: false
+          prerelease: true
           generate_release_notes: true
+
+      - name: Update Supabase site settings
+        if: secrets.SUPABASE_SERVICE_ROLE_KEY != ''
+        env:
+          SUPABASE_URL: https://tnyaqreedvdmyworvqbw.supabase.co
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/${{ env.GAME_NAME }}-${VERSION}.zip"
+          curl -sf -X PATCH \
+            "${SUPABASE_URL}/rest/v1/site_settings?key=eq.game_version" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"value\": \"${VERSION}\"}"
+          curl -sf -X PATCH \
+            "${SUPABASE_URL}/rest/v1/site_settings?key=eq.download_url" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"value\": \"${DOWNLOAD_URL}\"}"
+          echo "Updated game_version=${VERSION} and download_url=${DOWNLOAD_URL}"

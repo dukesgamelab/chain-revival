@@ -902,6 +902,8 @@ func _on_update_check_complete(update_available: bool) -> void:
 	_update_dialog.title = "Update Available"
 	_update_dialog.ok_button_text = "Update Now"
 	_update_dialog.min_size = Vector2(400, 180)
+	_update_dialog.max_size = Vector2(500, 250)
+	_update_dialog.unresizable = true
 	CocUiTheme.apply_to(_update_dialog)
 
 	var vbox := VBoxContainer.new()

@@ -31,6 +31,15 @@ var _hist_http: HTTPRequest
 var _lb_fetch_busy := false
 var _hist_fetch_busy := false
 
+var _profile_http: HTTPRequest
+var _player_card_panel: PanelContainer
+var _player_card_name: Label
+var _player_card_rank: Label
+var _player_card_regiment: Label
+var _player_card_stats: Label
+var _player_card_visible: bool = false
+var _center_container: CenterContainer
+
 ## Which scene to return to (set before changing to this scene).
 ## Falls back to mode_select.
 static var return_scene: String = ""
@@ -49,13 +58,13 @@ func _ready() -> void:
 # -----------------------------------------------------------------------
 
 func _build_ui() -> void:
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(center)
+	_center_container = CenterContainer.new()
+	_center_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_center_container)
 
 	var outer_panel := PanelContainer.new()
 	outer_panel.custom_minimum_size = Vector2(700, 500)
-	center.add_child(outer_panel)
+	_center_container.add_child(outer_panel)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 24)
@@ -116,6 +125,8 @@ func _build_ui() -> void:
 	_back_button.custom_minimum_size = Vector2(0, 34)
 	_back_button.pressed.connect(_on_back_pressed)
 	btn_row.add_child(_back_button)
+
+	_build_player_card()
 
 
 func _build_leaderboard_panel() -> Control:
@@ -192,7 +203,7 @@ func _build_history_panel() -> Control:
 
 func _make_lb_row(pos_text: String, name_text: String, rank_text: String,
 		wins_text: String, played_text: String, kills_text: String,
-		winrate_text: String, is_header: bool) -> HBoxContainer:
+		winrate_text: String, is_header: bool, player_id: String = "") -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 
@@ -207,12 +218,24 @@ func _make_lb_row(pos_text: String, name_text: String, rank_text: String,
 	pos_label.add_theme_color_override("font_color", color)
 	row.add_child(pos_label)
 
-	var name_label := Label.new()
-	name_label.text = name_text
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.add_theme_font_size_override("font_size", font_size)
-	name_label.add_theme_color_override("font_color", color)
-	row.add_child(name_label)
+	if not is_header and not player_id.is_empty():
+		var name_btn := Button.new()
+		name_btn.text = name_text
+		name_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		name_btn.flat = true
+		name_btn.add_theme_font_size_override("font_size", font_size)
+		name_btn.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0))
+		name_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		name_btn.pressed.connect(_on_player_name_clicked.bind(player_id))
+		row.add_child(name_btn)
+	else:
+		var name_label := Label.new()
+		name_label.text = name_text
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_label.add_theme_font_size_override("font_size", font_size)
+		name_label.add_theme_color_override("font_color", color)
+		row.add_child(name_label)
 
 	var rank_label := Label.new()
 	rank_label.text = rank_text
@@ -371,7 +394,7 @@ func _fetch_search(query: String) -> void:
 
 	# Supabase ilike for case-insensitive partial match
 	var encoded := query.uri_encode()
-	var url := "%s/rest/v1/player_profiles?select=display_name,games_won,games_played,total_kills,rank&display_name=ilike.*%s*&order=games_won.desc&limit=50" % [SUPABASE_URL, encoded]
+	var url := "%s/rest/v1/player_profiles?select=id,display_name,games_won,games_played,total_kills,rank&display_name=ilike.*%s*&order=games_won.desc&limit=50" % [SUPABASE_URL, encoded]
 	var hdrs := PackedStringArray([
 		"apikey: %s" % SUPABASE_ANON_KEY,
 		"Content-Type: application/json",
@@ -414,7 +437,7 @@ func _fetch_leaderboard() -> void:
 	_lb_http.request_completed.connect(_on_leaderboard_response)
 
 	# Fetch top 50 players sorted by games_won desc, then by games_played asc (fewer games = better)
-	var url := "%s/rest/v1/player_profiles?select=display_name,games_won,games_played,total_kills,rank&order=games_won.desc,games_played.asc&limit=50" % SUPABASE_URL
+	var url := "%s/rest/v1/player_profiles?select=id,display_name,games_won,games_played,total_kills,rank&order=games_won.desc,games_played.asc&limit=50" % SUPABASE_URL
 	var hdrs := PackedStringArray([
 		"apikey: %s" % SUPABASE_ANON_KEY,
 		"Content-Type: application/json",
@@ -447,6 +470,7 @@ func _populate_leaderboard(players: Array) -> void:
 
 	for i in range(players.size()):
 		var p: Dictionary = players[i]
+		var player_id: String = str(p.get("id", ""))
 		var display_name: String = p.get("display_name", "???")
 		var wins: int = int(p.get("games_won", 0))
 		var played: int = int(p.get("games_played", 0))
@@ -465,7 +489,8 @@ func _populate_leaderboard(players: Array) -> void:
 			str(played),
 			str(kills),
 			"%.0f%%" % winrate,
-			false
+			false,
+			player_id
 		)
 
 		# Highlight current user's row
@@ -657,6 +682,136 @@ func _on_opponent_names_response(_result: int, response_code: int,
 
 		var row := _make_hist_row(result_text, team_text, str(match_kills), score_text, pp_text, opponent_text, date_text, false)
 		_history_container.add_child(row)
+
+
+# -----------------------------------------------------------------------
+# Player card
+# -----------------------------------------------------------------------
+
+func _build_player_card() -> void:
+	_player_card_panel = PanelContainer.new()
+	_player_card_panel.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	_player_card_panel.offset_right = 240
+	_player_card_panel.visible = false
+	add_child(_player_card_panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	_player_card_panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "Player Card"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 11)
+	title.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	vbox.add_child(title)
+
+	var sep1 := HSeparator.new()
+	vbox.add_child(sep1)
+
+	_player_card_name = Label.new()
+	_player_card_name.text = ""
+	_player_card_name.add_theme_font_size_override("font_size", 14)
+	_player_card_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(_player_card_name)
+
+	_player_card_rank = Label.new()
+	_player_card_rank.text = ""
+	_player_card_rank.add_theme_font_size_override("font_size", 12)
+	_player_card_rank.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_player_card_rank.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	vbox.add_child(_player_card_rank)
+
+	_player_card_regiment = Label.new()
+	_player_card_regiment.text = ""
+	_player_card_regiment.add_theme_font_size_override("font_size", 12)
+	_player_card_regiment.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_player_card_regiment.add_theme_color_override("font_color", Color(0.6, 0.75, 0.9))
+	vbox.add_child(_player_card_regiment)
+
+	var sep2 := HSeparator.new()
+	vbox.add_child(sep2)
+
+	_player_card_stats = Label.new()
+	_player_card_stats.text = ""
+	_player_card_stats.add_theme_font_size_override("font_size", 12)
+	vbox.add_child(_player_card_stats)
+
+	var close_btn := Button.new()
+	close_btn.text = "Close"
+	close_btn.custom_minimum_size = Vector2(0, 28)
+	close_btn.pressed.connect(_close_player_card)
+	vbox.add_child(close_btn)
+
+
+func _on_player_name_clicked(player_id: String) -> void:
+	if _profile_http != null:
+		_profile_http.queue_free()
+	_profile_http = HTTPRequest.new()
+	add_child(_profile_http)
+	_profile_http.request_completed.connect(_on_profile_response)
+	var url := "%s/rest/v1/player_profiles?id=eq.%s&select=id,display_name,rank,prestige_points,games_played,games_won,total_kills,regiment_id,regiments(name,tag)" % [SUPABASE_URL, player_id]
+	var hdrs := PackedStringArray([
+		"apikey: %s" % SUPABASE_ANON_KEY,
+		"Content-Type: application/json",
+	])
+	_profile_http.request(url, hdrs, HTTPClient.METHOD_GET)
+
+
+func _on_profile_response(_result: int, response_code: int,
+		_headers: PackedStringArray, body: PackedByteArray) -> void:
+	if response_code != 200:
+		return
+	var json := JSON.new()
+	if json.parse(body.get_string_from_utf8()) != OK:
+		return
+	var profiles: Array = json.data
+	if profiles.is_empty():
+		return
+
+	var profile: Dictionary = profiles[0]
+	var display_name: String = profile.get("display_name", "Unknown")
+	var rank_idx: int = clampi(profile.get("rank", 0), 0, RANK_LABELS.size() - 1)
+	var pp: int = profile.get("prestige_points", 0)
+	var games: int = profile.get("games_played", 0)
+	var wins: int = profile.get("games_won", 0)
+	var kills: int = profile.get("total_kills", 0)
+	var win_pct := 0.0
+	if games > 0:
+		win_pct = float(wins) / float(games) * 100.0
+
+	_player_card_name.text = "%s %s" % [RANK_LABELS[rank_idx], display_name]
+	_player_card_rank.text = "Rank: %s  |  PP: %d" % [RANK_LABELS[rank_idx], pp]
+
+	var regiment_data: Variant = profile.get("regiments", null)
+	if regiment_data is Dictionary and regiment_data.get("name", "") != "":
+		_player_card_regiment.text = "[%s] %s" % [regiment_data.get("tag", ""), regiment_data.get("name", "")]
+		_player_card_regiment.visible = true
+	else:
+		_player_card_regiment.text = ""
+		_player_card_regiment.visible = false
+
+	_player_card_stats.text = "Games: %d\nWins: %d (%.0f%%)\nKills: %d" % [games, wins, win_pct, kills]
+	_show_player_card()
+
+
+func _show_player_card() -> void:
+	_player_card_panel.visible = true
+	_player_card_visible = true
+	_center_container.offset_left = 240
+
+
+func _close_player_card() -> void:
+	_player_card_panel.visible = false
+	_player_card_visible = false
+	_center_container.offset_left = 0
 
 
 # -----------------------------------------------------------------------
