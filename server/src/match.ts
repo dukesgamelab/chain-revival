@@ -113,6 +113,8 @@ export type OnMatchEndedCallback = (info: MatchEndedInfo) => void;
 export interface MatchOptions {
   /** Production default true. Tests pass false and call advanceRealtime. */
   startDriver?: boolean;
+  /** Override scenario time in seconds (default 900 = 15 min). */
+  scenarioTimeSec?: number;
 }
 
 const DIAG_INTERVAL_MSEC = 5000;
@@ -152,7 +154,7 @@ export class LocalMatch {
   constructor(mapId = DEFAULT_MAP_ID, options: MatchOptions = {}) {
     this.dbMatchId = randomUUID();
     const map = MapData.loadFromRepo(mapId);
-    this.gameState = new GameState(map);
+    this.gameState = new GameState(map, options.scenarioTimeSec);
     this.replay.captureInitialState(this.gameState);
     // Start paused, waiting for both sides to connect.
     this.phase = "created";
@@ -182,6 +184,12 @@ export class LocalMatch {
 
   get clientCount(): number {
     return this.clients.size;
+  }
+
+  setScenarioTime(sec: number): void {
+    if (this.phase !== "created") return;
+    this.gameState.scenario.scenarioTimeSec = sec;
+    this.gameState.scenario.timeRemainingSec = sec;
   }
 
   attachClient(clientId: string, ws: WebSocket): void {

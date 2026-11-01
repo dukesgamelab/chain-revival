@@ -13,6 +13,7 @@ interface SiteSettings {
   announcements_enabled: boolean
   game_version: string
   download_url: string
+  max_rooms: string
 }
 
 const DEFAULTS: SiteSettings = {
@@ -27,6 +28,7 @@ const DEFAULTS: SiteSettings = {
   announcements_enabled: true,
   game_version: '',
   download_url: '',
+  max_rooms: '8',
 }
 
 export function useSiteSettings() {

@@ -59,12 +59,13 @@ export interface ScenarioState {
   vpEntries: VictoryPointEntry[];
 }
 
-export function createScenarioState(vpEntries: VictoryPointEntry[] = []): ScenarioState {
+export function createScenarioState(vpEntries: VictoryPointEntry[] = [], timeSec?: number): ScenarioState {
+  const t = timeSec ?? SCENARIO_TIME_SEC;
   ensureHoldersInitialized(vpEntries);
   return {
-    scenarioTimeSec: SCENARIO_TIME_SEC,
+    scenarioTimeSec: t,
     elapsedSec: 0,
-    timeRemainingSec: SCENARIO_TIME_SEC,
+    timeRemainingSec: t,
     ended: false,
     endCause: END_CAUSE_NONE,
     winner: WINNER_NONE,

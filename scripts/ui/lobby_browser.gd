@@ -19,16 +19,19 @@ const MapDataClass := preload("res://scripts/map/map_data.gd")
 
 const ONLINE_SERVER_URL := "wss://chain-revival-ax0q1g.fly.dev"
 
-const ROOM_CONFIG := [
-	{"number": 1, "name": "Open Game", "type": "open"},
-	{"number": 2, "name": "Open Game", "type": "open"},
-	{"number": 3, "name": "Regimental", "type": "regimental"},
-	{"number": 4, "name": "Regimental", "type": "regimental"},
-	{"number": 5, "name": "Training", "type": "training"},
-	{"number": 6, "name": "Regimental", "type": "regimental"},
-	{"number": 7, "name": "Regimental", "type": "regimental"},
-	{"number": 8, "name": "Open Game", "type": "open"},
+const BASE_ROOM_PATTERN := [
+	{"name": "Open Game", "type": "open"},
+	{"name": "Open Game", "type": "open"},
+	{"name": "Regimental", "type": "regimental"},
+	{"name": "Regimental", "type": "regimental"},
+	{"name": "Training", "type": "training"},
+	{"name": "Regimental", "type": "regimental"},
+	{"name": "Regimental", "type": "regimental"},
+	{"name": "Open Game", "type": "open"},
 ]
+
+var _room_config: Array = []
+var _max_rooms: int = 8
 
 
 var _lobby_client: Node
@@ -40,13 +43,25 @@ var _admin_button: Button
 var _back_button: Button
 var _refresh_timer: Timer
 
-# Room grid data — keyed by room number (1-8).
+# Room grid data — keyed by room number (1-8+).
 # Each entry: { desc_label, type_label, players_label, action_btn, lobby }
 var _room_rows: Dictionary = {}
 
 var _hosted_lobby_id: String = ""
 var _joined_lobby_id: String = ""
 var _active_room_number: int = 0
+
+# Player card sidebar
+var _player_card_panel: PanelContainer
+var _player_card_name: Label
+var _player_card_rank: Label
+var _player_card_regiment: Label
+var _player_card_stats: Label
+var _player_card_visible: bool = false
+var _center_container: CenterContainer
+var _room_vbox: VBoxContainer
+var _room_header: HBoxContainer
+var _btn_row: HBoxContainer
 
 # Briefing dialog
 var _briefing_dialog: Window
@@ -60,12 +75,16 @@ var _briefing_room_number: int = 0
 var _briefing_room_type: String = ""
 
 
+var _http_settings: HTTPRequest
+
 func _ready() -> void:
 	CocUiTheme.apply_to(self)
 	_lobby_client = LobbyClientClass.new()
 	add_child(_lobby_client)
+	_generate_room_config(_max_rooms)
 	_build_ui()
 	_connect_signals()
+	_fetch_max_rooms()
 	_lobby_client.list_lobbies()
 
 	_refresh_timer = Timer.new()
@@ -73,6 +92,67 @@ func _ready() -> void:
 	_refresh_timer.timeout.connect(_on_auto_refresh)
 	add_child(_refresh_timer)
 	_refresh_timer.start()
+
+
+func _generate_room_config(count: int) -> void:
+	_room_config.clear()
+	for i in range(count):
+		if i < BASE_ROOM_PATTERN.size():
+			var cfg: Dictionary = BASE_ROOM_PATTERN[i].duplicate()
+			cfg["number"] = i + 1
+			_room_config.append(cfg)
+		else:
+			_room_config.append({"number": i + 1, "name": "Open Game", "type": "open"})
+
+
+func _fetch_max_rooms() -> void:
+	if not SupabaseAuth.is_signed_in:
+		return
+	_http_settings = HTTPRequest.new()
+	_http_settings.request_completed.connect(_on_settings_response)
+	add_child(_http_settings)
+	var url := "%s/rest/v1/site_settings?key=eq.max_rooms&select=value" % SupabaseAuth.SUPABASE_URL
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"apikey: %s" % SupabaseAuth.SUPABASE_ANON_KEY,
+		"Authorization: Bearer %s" % SupabaseAuth.access_token,
+	])
+	_http_settings.request(url, headers, HTTPClient.METHOD_GET)
+
+
+func _on_settings_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		return
+	var text := body.get_string_from_utf8()
+	var json := JSON.new()
+	if json.parse(text) != OK:
+		return
+	var data: Variant = json.data
+	if data is Array and data.size() > 0:
+		var val: Variant = data[0].get("value", "8")
+		var new_max := clampi(int(str(val)), 1, 16)
+		if new_max != _max_rooms:
+			_max_rooms = new_max
+			_rebuild_room_grid()
+
+
+func _rebuild_room_grid() -> void:
+	# Remove old room row panels
+	for rn: int in _room_rows:
+		var row_data: Dictionary = _room_rows[rn]
+		var panel: PanelContainer = row_data.get("panel")
+		if panel != null:
+			panel.queue_free()
+	_room_rows.clear()
+
+	_generate_room_config(_max_rooms)
+	# Insert new room rows between the header and button row
+	var header_idx := _room_header.get_index()
+	for i in range(_room_config.size()):
+		var row_panel := _build_room_row(_room_config[i])
+		_room_vbox.add_child(row_panel)
+		_room_vbox.move_child(row_panel, header_idx + 1 + i)
+	_lobby_client.list_lobbies()
 
 
 func _exit_tree() -> void:
@@ -88,9 +168,12 @@ func _exit_tree() -> void:
 # ─────────────────────────────────────────────────────────────────────────
 
 func _build_ui() -> void:
+	_build_player_card()
+
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	center.offset_right = -280
+	_center_container = center
 	add_child(center)
 
 	var outer_panel := PanelContainer.new()
@@ -106,6 +189,7 @@ func _build_ui() -> void:
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 6)
+	_room_vbox = vbox
 	margin.add_child(vbox)
 
 	# Title
@@ -123,18 +207,19 @@ func _build_ui() -> void:
 	vbox.add_child(_status_label)
 
 	# Room grid header
-	var header := _build_grid_header()
-	vbox.add_child(header)
+	_room_header = _build_grid_header()
+	vbox.add_child(_room_header)
 
 	# Room rows
-	for room_cfg in ROOM_CONFIG:
+	for room_cfg in _room_config:
 		var row_panel := _build_room_row(room_cfg)
 		vbox.add_child(row_panel)
 
 	# Bottom buttons
-	var btn_row := HBoxContainer.new()
-	btn_row.add_theme_constant_override("separation", 8)
-	vbox.add_child(btn_row)
+	_btn_row = HBoxContainer.new()
+	_btn_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(_btn_row)
+	var btn_row := _btn_row
 
 	_refresh_button = Button.new()
 	_refresh_button.text = "Refresh"
@@ -237,11 +322,14 @@ func _build_room_row(room_cfg: Dictionary) -> PanelContainer:
 	num_label.add_theme_font_size_override("font_size", 12)
 	inner_row.add_child(num_label)
 
-	# Description
-	var desc_label := Label.new()
+	# Description (clickable to show player card)
+	var desc_label := Button.new()
 	desc_label.text = room_cfg["name"]
 	desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	desc_label.add_theme_font_size_override("font_size", 12)
+	desc_label.flat = true
+	desc_label.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	desc_label.pressed.connect(_on_desc_clicked.bind(room_cfg["number"]))
 	inner_row.add_child(desc_label)
 
 	# Type
@@ -277,6 +365,134 @@ func _build_room_row(room_cfg: Dictionary) -> PanelContainer:
 	}
 
 	return panel
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Player card sidebar
+# ─────────────────────────────────────────────────────────────────────────
+
+func _build_player_card() -> void:
+	_player_card_panel = PanelContainer.new()
+	_player_card_panel.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	_player_card_panel.offset_right = 240
+	_player_card_panel.visible = false
+	add_child(_player_card_panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	_player_card_panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "Player Card"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 15)
+	vbox.add_child(title)
+
+	var sep := HSeparator.new()
+	vbox.add_child(sep)
+
+	_player_card_name = Label.new()
+	_player_card_name.text = ""
+	_player_card_name.add_theme_font_size_override("font_size", 14)
+	_player_card_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(_player_card_name)
+
+	_player_card_rank = Label.new()
+	_player_card_rank.text = ""
+	_player_card_rank.add_theme_font_size_override("font_size", 12)
+	_player_card_rank.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_player_card_rank.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	vbox.add_child(_player_card_rank)
+
+	_player_card_regiment = Label.new()
+	_player_card_regiment.text = ""
+	_player_card_regiment.add_theme_font_size_override("font_size", 12)
+	_player_card_regiment.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_player_card_regiment.add_theme_color_override("font_color", Color(0.6, 0.75, 0.9))
+	vbox.add_child(_player_card_regiment)
+
+	var sep2 := HSeparator.new()
+	vbox.add_child(sep2)
+
+	_player_card_stats = Label.new()
+	_player_card_stats.text = ""
+	_player_card_stats.add_theme_font_size_override("font_size", 12)
+	vbox.add_child(_player_card_stats)
+
+	var close_btn := Button.new()
+	close_btn.text = "Close"
+	close_btn.custom_minimum_size = Vector2(0, 30)
+	close_btn.pressed.connect(_close_player_card)
+	vbox.add_child(close_btn)
+
+
+func _on_desc_clicked(room_number: int) -> void:
+	var room_data: Dictionary = _room_rows.get(room_number, {})
+	var lobby: Dictionary = room_data.get("lobby", {})
+	if lobby.is_empty():
+		return
+	var host_id: String = lobby.get("host_id", "")
+	if host_id.is_empty():
+		return
+	_lobby_client.fetch_player_profile(host_id)
+
+
+func _on_player_profile_fetched(profile: Dictionary) -> void:
+	if profile.is_empty():
+		return
+	var display_name: String = profile.get("display_name", "Unknown")
+	var rank_idx: int = clampi(profile.get("rank", 0), 0, RANK_LABELS.size() - 1)
+	var pp: int = profile.get("prestige_points", 0)
+	var games: int = profile.get("games_played", 0)
+	var wins: int = profile.get("games_won", 0)
+	var kills: int = profile.get("total_kills", 0)
+	var win_pct := 0.0
+	if games > 0:
+		win_pct = float(wins) / float(games) * 100.0
+
+	_player_card_name.text = "%s %s" % [RANK_LABELS[rank_idx], display_name]
+
+	_player_card_rank.text = "Rank: %s  |  PP: %s" % [RANK_LABELS[rank_idx], _format_number(pp)]
+
+	var regiment_data: Variant = profile.get("regiments", null)
+	if regiment_data is Dictionary and regiment_data.get("name", "") != "":
+		_player_card_regiment.text = "[%s] %s" % [regiment_data.get("tag", ""), regiment_data.get("name", "")]
+		_player_card_regiment.visible = true
+	else:
+		_player_card_regiment.text = ""
+		_player_card_regiment.visible = false
+
+	_player_card_stats.text = "Games: %d\nWins: %d (%.0f%%)\nKills: %d" % [games, wins, win_pct, kills]
+
+	_show_player_card()
+
+
+func _show_player_card() -> void:
+	_player_card_panel.visible = true
+	_player_card_visible = true
+	_center_container.offset_left = 240
+
+
+func _close_player_card() -> void:
+	_player_card_panel.visible = false
+	_player_card_visible = false
+	_center_container.offset_left = 0
+
+
+func _format_number(n: int) -> String:
+	if n >= 1000:
+		return "%.1fk" % (float(n) / 1000.0)
+	return str(n)
+
+
+const RANK_LABELS := ["PVT", "PFC", "CPL", "SGT", "SSG", "SFC", "MSG", "2LT", "1LT", "CPT"]
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -421,7 +637,7 @@ func _build_briefing_dialog() -> void:
 func _open_briefing(room_number: int) -> void:
 	_briefing_room_number = room_number
 	var room_cfg: Dictionary = {}
-	for cfg in ROOM_CONFIG:
+	for cfg in _room_config:
 		if cfg["number"] == room_number:
 			room_cfg = cfg
 			break
@@ -467,6 +683,8 @@ func _get_briefing_team_size() -> int:
 	return sizes[size_idx]
 
 
+const MATCH_LENGTH_OPTIONS: Array[int] = [600, 900, 1200]
+
 func _on_briefing_confirm() -> void:
 	var room_number := _briefing_room_number
 	var map_idx := _briefing_map_dropdown.selected
@@ -475,10 +693,13 @@ func _on_briefing_confirm() -> void:
 		map_id = MapDataClass.MULTIPLAYER_MAPS[map_idx]["id"]
 	var team_size := _get_briefing_team_size()
 	var match_name := "%s's Game" % SupabaseAuth.display_name
+	var length_idx := _briefing_length_dropdown.selected
+	var match_length_sec: int = MATCH_LENGTH_OPTIONS[clampi(length_idx, 0, MATCH_LENGTH_OPTIONS.size() - 1)]
+	var host_regiment_id := SupabaseAuth.regiment_id if _briefing_room_type == "regimental" else ""
 	_active_room_number = room_number
 	_close_briefing()
 	_set_status("Creating game in Room %d..." % room_number, Color.WHITE)
-	_lobby_client.create_lobby(match_name, ONLINE_SERVER_URL, map_id, team_size, room_number)
+	_lobby_client.create_lobby(match_name, ONLINE_SERVER_URL, map_id, team_size, room_number, match_length_sec, host_regiment_id)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -498,6 +719,7 @@ func _connect_signals() -> void:
 	_lobby_client.lobby_joined.connect(_on_lobby_joined)
 	_lobby_client.lobby_error.connect(_on_lobby_error)
 	_lobby_client.lobby_deleted.connect(_on_lobby_deleted)
+	_lobby_client.player_profile_fetched.connect(_on_player_profile_fetched)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -520,6 +742,11 @@ func _on_room_action(room_number: int) -> void:
 	# Guard: can't join another room while in one
 	if not _hosted_lobby_id.is_empty() or not _joined_lobby_id.is_empty():
 		_set_status("Leave your current room first.", Color.ORANGE)
+		return
+
+	var room_type := _get_room_type(room_number)
+	if room_type == "regimental" and SupabaseAuth.regiment_id.is_empty():
+		_set_status("You must be in a regiment to use Regimental rooms.", Color.ORANGE)
 		return
 
 	if lobby.is_empty():
@@ -588,11 +815,11 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 		var lobby: Dictionary = lobby_dict
 		var rn_val = lobby.get("room_number", 0)
 		var rn: int = int(rn_val) if rn_val != null else 0
-		if rn >= 1 and rn <= 8:
+		if rn >= 1 and rn <= _max_rooms:
 			room_to_lobby[rn] = lobby
 
 	# Update each room row
-	for room_cfg in ROOM_CONFIG:
+	for room_cfg in _room_config:
 		var rn: int = room_cfg["number"]
 		var lobby: Dictionary = room_to_lobby.get(rn, {})
 		_update_room_row(rn, lobby)
@@ -614,7 +841,8 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 						host_url = "ws://127.0.0.1:3000"
 					var lobby_map: String = lobby.get("map_id", "")
 					var lobby_team_size: int = lobby.get("team_size", 1)
-					_start_multiplayer(host_url, lobby_map, lobby_team_size)
+					var lobby_length: int = lobby.get("match_length_sec", 900)
+					_start_multiplayer(host_url, lobby_map, lobby_team_size, lobby_length)
 					return
 				else:
 					_set_status("Waiting for players (%d/%d)..." % [current, max_p], Color.GREEN)
@@ -644,7 +872,7 @@ func _update_room_row(room_number: int, lobby: Dictionary) -> void:
 		return
 
 	row_data["lobby"] = lobby
-	var desc_label: Label = row_data["desc_label"]
+	var desc_label: Button = row_data["desc_label"]
 	var type_label: Label = row_data["type_label"]
 	var players_label: Label = row_data["players_label"]
 	var action_btn: Button = row_data["action_btn"]
@@ -708,7 +936,8 @@ func _on_lobby_joined(lobby: Dictionary) -> void:
 			server_url = "ws://127.0.0.1:3000"
 		var lobby_map: String = lobby.get("map_id", "")
 		var lobby_team_size: int = lobby.get("team_size", 1)
-		_start_multiplayer(server_url, lobby_map, lobby_team_size)
+		var lobby_length: int = lobby.get("match_length_sec", 900)
+		_start_multiplayer(server_url, lobby_map, lobby_team_size, lobby_length)
 	else:
 		_joined_lobby_id = lobby.get("id", "")
 		var current: int = lobby.get("current_players", 1)
@@ -747,15 +976,17 @@ func _on_cancel_hosted() -> void:
 # Game transition
 # ─────────────────────────────────────────────────────────────────────────
 
-func _start_multiplayer(server_url: String, map_id: String = "", team_size: int = 1) -> void:
+func _start_multiplayer(server_url: String, map_id: String = "", team_size: int = 1, match_length_sec: int = 900) -> void:
 	_refresh_timer.stop()
 	GameModeManager.set_mode(GameMode.LOCAL_MULTIPLAYER)
 	NetworkClient.disconnect_from_server()
 	NetworkClient.server_url = server_url
 	NetworkClient.selected_map_id = map_id
 	NetworkClient.selected_team_size = team_size
+	NetworkClient.match_length_sec = match_length_sec
 	var room_type := _get_room_type(_active_room_number)
 	NetworkClient.is_training = room_type == "training"
+	NetworkClient.is_regimental = room_type == "regimental"
 	var connected := await NetworkClient.connect_and_wait()
 	if not connected:
 		_set_status("Could not connect to game server.", Color.RED)
@@ -769,7 +1000,7 @@ func _start_multiplayer(server_url: String, map_id: String = "", team_size: int 
 # ─────────────────────────────────────────────────────────────────────────
 
 func _get_room_type(room_number: int) -> String:
-	for cfg in ROOM_CONFIG:
+	for cfg in _room_config:
 		if cfg["number"] == room_number:
 			return cfg["type"]
 	return "open"

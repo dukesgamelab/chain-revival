@@ -8,6 +8,8 @@ export interface ClientRecord {
   assignedSide: SideName | null;
   /** Supabase user ID, set when the client sends an authToken with hello. */
   userId: string | null;
+  /** Regiment ID for regimental match team assignment. */
+  regimentId: string | null;
 }
 
 /** How many players each side needs before the match can start. */
@@ -30,7 +32,7 @@ export function getTeamSize(): number {
 }
 
 export function registerClient(ws: WebSocket, clientId: string): ClientRecord {
-  const record: ClientRecord = { ws, clientId, assignedSide: null, userId: null };
+  const record: ClientRecord = { ws, clientId, assignedSide: null, userId: null, regimentId: null };
   clients.set(clientId, record);
   return record;
 }
@@ -39,6 +41,13 @@ export function setClientUserId(clientId: string, userId: string): void {
   const record = clients.get(clientId);
   if (record) {
     record.userId = userId;
+  }
+}
+
+export function setClientRegimentId(clientId: string, regimentId: string): void {
+  const record = clients.get(clientId);
+  if (record) {
+    record.regimentId = regimentId;
   }
 }
 

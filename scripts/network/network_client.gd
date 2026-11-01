@@ -11,6 +11,8 @@ var server_url: String = DEFAULT_SERVER_URL
 var selected_map_id: String = ""
 var selected_team_size: int = 1
 var is_training: bool = false
+var match_length_sec: int = 0
+var is_regimental: bool = false
 const CLIENT_NAME := "Godot Client"
 const DEFAULT_CONNECT_TIMEOUT_SEC := 5.0
 const DEFAULT_SIDE_REQUEST_TIMEOUT_SEC := 5.0
@@ -444,6 +446,11 @@ func _send_hello() -> void:
 		hello["teamSize"] = selected_team_size
 	if is_training:
 		hello["isTraining"] = true
+	if match_length_sec > 0:
+		hello["matchLengthSec"] = match_length_sec
+	if is_regimental and not SupabaseAuth.regiment_id.is_empty():
+		hello["regimentId"] = SupabaseAuth.regiment_id
+		hello["isRegimental"] = true
 	send_json(hello)
 	GameLog.log_system("[NetworkClient] Sent hello to server.")
 

@@ -589,6 +589,24 @@ export function Admin() {
           ))}
 
           <div className="mt-6 pt-6 border-t border-slate-700/50">
+            <h3 className="text-sm font-semibold text-slate-300 mb-3">Lobby Settings</h3>
+            <div className="space-y-3 mb-6">
+              <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-4">
+                <label className="block text-sm font-medium text-white mb-1">Max Rooms</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={16}
+                  value={settings.max_rooms}
+                  onChange={e => updateSetting('max_rooms', e.target.value)}
+                  className="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                />
+                <p className="text-xs text-slate-500 mt-1">Number of rooms shown in the lobby grid (1-16). Rooms beyond 8 are Open Game.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-slate-700/50">
             <h3 className="text-sm font-semibold text-slate-300 mb-3">Game Distribution</h3>
             <div className="space-y-3">
               <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-4">

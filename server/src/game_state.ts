@@ -36,9 +36,9 @@ export class GameState {
   nextShotId = 0;
   readonly scenario: ScenarioState;
 
-  constructor(map: MapData) {
+  constructor(map: MapData, scenarioTimeSec?: number) {
     this.map = map;
-    this.scenario = createScenarioState(map.victoryPoints ?? []);
+    this.scenario = createScenarioState(map.victoryPoints ?? [], scenarioTimeSec);
     this.spawnSides();
     this.faceOpposites();
     this.perception.rebuildVisibility(this);

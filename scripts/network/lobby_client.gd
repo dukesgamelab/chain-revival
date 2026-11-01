@@ -10,6 +10,7 @@ signal lobby_joined(lobby: Dictionary)
 signal lobby_deleted()
 signal lobby_error(msg: String)
 signal chat_messages_received(messages: Array)
+signal player_profile_fetched(profile: Dictionary)
 
 var _http_list: HTTPRequest
 var _http_create: HTTPRequest
@@ -19,6 +20,7 @@ var _http_update: HTTPRequest
 var _http_cleanup: HTTPRequest
 var _http_chat_send: HTTPRequest
 var _http_chat_fetch: HTTPRequest
+var _http_profile: HTTPRequest
 
 ## Stashed create args while we clean up old lobbies first.
 var _pending_match_name: String = ""
@@ -26,6 +28,8 @@ var _pending_server_url: String = ""
 var _pending_map_id: String = "ff_farm"
 var _pending_team_size: int = 1
 var _pending_room_number: int = 0
+var _pending_match_length_sec: int = 900
+var _pending_host_regiment_id: String = ""
 
 
 func _ready() -> void:
@@ -37,6 +41,7 @@ func _ready() -> void:
 	_http_cleanup = _make_http("_on_cleanup_response")
 	_http_chat_send = _make_http("_on_chat_send_response")
 	_http_chat_fetch = _make_http("_on_chat_fetch_response")
+	_http_profile = _make_http("_on_profile_response")
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -52,7 +57,7 @@ func list_lobbies() -> void:
 
 
 ## Create a new lobby. First deletes any existing lobbies by this host.
-func create_lobby(match_name: String, server_url: String = "", map_id: String = "ff_farm", team_size: int = 1, room_number: int = 0) -> void:
+func create_lobby(match_name: String, server_url: String = "", map_id: String = "ff_farm", team_size: int = 1, room_number: int = 0, match_length_sec: int = 900, host_regiment_id: String = "") -> void:
 	if not _check_auth():
 		return
 	_pending_match_name = match_name
@@ -60,6 +65,8 @@ func create_lobby(match_name: String, server_url: String = "", map_id: String = 
 	_pending_map_id = map_id
 	_pending_team_size = team_size
 	_pending_room_number = room_number
+	_pending_match_length_sec = match_length_sec
+	_pending_host_regiment_id = host_regiment_id
 	# Delete any stale lobbies by this host first.
 	var url := "%s/rest/v1/lobbies?host_id=eq.%s" % [SupabaseAuth.SUPABASE_URL, SupabaseAuth.user_id]
 	_http_cleanup.request(url, _bearer_headers(), HTTPClient.METHOD_DELETE)
@@ -104,6 +111,14 @@ func send_chat_message(msg: String) -> void:
 	})
 	var url := "%s/rest/v1/chat_messages" % SupabaseAuth.SUPABASE_URL
 	_http_chat_send.request(url, _bearer_headers(), HTTPClient.METHOD_POST, body)
+
+
+## Fetch a player's profile by user ID (for the player card sidebar).
+func fetch_player_profile(user_id: String) -> void:
+	if not _check_auth():
+		return
+	var url := "%s/rest/v1/player_profiles?id=eq.%s&select=id,display_name,rank,prestige_points,games_played,games_won,total_kills,regiment_id,regiments(name,tag)" % [SupabaseAuth.SUPABASE_URL, user_id]
+	_http_profile.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
 
 
 ## Fetch the last 50 chat messages. The UI deduplicates by ID.
@@ -177,6 +192,10 @@ func _on_cleanup_response(_result: int, _response_code: int, _headers: PackedStr
 		payload["map_id"] = _pending_map_id
 	if _pending_room_number > 0:
 		payload["room_number"] = _pending_room_number
+	if _pending_match_length_sec > 0 and _pending_match_length_sec != 900:
+		payload["match_length_sec"] = _pending_match_length_sec
+	if not _pending_host_regiment_id.is_empty():
+		payload["host_regiment_id"] = _pending_host_regiment_id
 	var body := JSON.stringify(payload)
 	var headers := _bearer_headers_prefer_return()
 	var url := "%s/rest/v1/lobbies" % SupabaseAuth.SUPABASE_URL
@@ -185,6 +204,14 @@ func _on_cleanup_response(_result: int, _response_code: int, _headers: PackedStr
 
 func _on_update_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
 	pass
+
+
+func _on_profile_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		return
+	var parsed := _parse_body_array(body)
+	if parsed.size() > 0:
+		player_profile_fetched.emit(parsed[0])
 
 
 func _on_chat_send_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:

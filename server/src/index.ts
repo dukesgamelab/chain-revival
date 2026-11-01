@@ -13,6 +13,7 @@ import {
   parseMoveIntent,
   parsePositionIntent,
   type MatchEndedInfo,
+  type MatchOptions,
 } from "./match";
 import { getUserId } from "./supabase_auth";
 import {
@@ -27,6 +28,7 @@ import {
   removeClient,
   requestSide,
   resetSides,
+  setClientRegimentId,
   setClientUserId,
   setTeamSize,
   sideCount,
@@ -205,6 +207,9 @@ function ensureFreshMatch(): void {
     resetSides();
     setTeamSize(1);
     isTrainingMatch = false;
+    matchLengthSec = 0;
+    isRegimentalMatch = false;
+    regimentTeamMap.clear();
     match = new LocalMatch();
     wireMatchCallbacks(match);
   }
@@ -239,6 +244,11 @@ const moderatorUserIds = new Set<string>();
 
 // Training match flag — set from client hello, suppresses PP awards
 let isTrainingMatch = false;
+// Match length override — set from client hello (600/900/1200 seconds)
+let matchLengthSec = 0;
+// Regimental match — regiment IDs mapped to teams for auto-assignment
+let isRegimentalMatch = false;
+const regimentTeamMap = new Map<string, number>();
 
 const RECONNECT_WINDOW_SEC = 90;
 
@@ -315,6 +325,26 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       console.log("[Hello] Training match — PP awards disabled.");
     }
 
+    if (message.isRegimental === true) {
+      isRegimentalMatch = true;
+      const regId = typeof message.regimentId === "string" ? message.regimentId : "";
+      if (regId !== "") {
+        setClientRegimentId(clientId, regId);
+        if (!regimentTeamMap.has(regId)) {
+          const team = regimentTeamMap.size === 0 ? TEAM_USA : TEAM_GERMANY;
+          regimentTeamMap.set(regId, team);
+          console.log("[Hello] Regiment %s assigned to team %d.", regId, team);
+        }
+      }
+    }
+
+    const VALID_MATCH_LENGTHS = [600, 900, 1200];
+    const reqLength = typeof message.matchLengthSec === "number" ? message.matchLengthSec : 0;
+    if (reqLength > 0 && VALID_MATCH_LENGTHS.includes(reqLength) && match.matchPhase === "created") {
+      matchLengthSec = reqLength;
+      console.log("[Hello] Match length set to %d seconds.", matchLengthSec);
+    }
+
     // --- Reconnect detection ---
     if (userId !== null && pendingReconnects.has(userId)) {
       const reconnect = pendingReconnects.get(userId)!;
@@ -362,7 +392,9 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     if (requestedMap !== "" && match.matchPhase === "created" && requestedMap !== match.gameState.map.mapId) {
       try {
         resetSides();
-        match = new LocalMatch(requestedMap);
+        const opts: MatchOptions = {};
+        if (matchLengthSec > 0) opts.scenarioTimeSec = matchLengthSec;
+        match = new LocalMatch(requestedMap, opts);
         wireMatchCallbacks(match);
         console.log("Map changed to %s by client request", requestedMap);
       } catch (err) {
@@ -381,6 +413,10 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
         console.log("Requested team size %d not supported by map %s (supported: %s)",
           requestedTeamSize, match.gameState.map.mapId, supported.join(","));
       }
+    }
+
+    if (matchLengthSec > 0 && match.matchPhase === "created") {
+      match.setScenarioTime(matchLengthSec);
     }
 
     match.attachClient(clientId, ws);
@@ -486,10 +522,20 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
   }
 
   if (message.type === "request_side") {
-    const side = parseSideName(message.side);
+    let side = parseSideName(message.side);
     if (side === null) {
       sendJson(ws, { type: "side_denied", reason: "Invalid side" });
       return;
+    }
+
+    if (isRegimentalMatch) {
+      const record = getClient(clientId);
+      const regId = record?.regimentId ?? "";
+      const assignedTeam = regId !== "" ? regimentTeamMap.get(regId) : undefined;
+      if (assignedTeam !== undefined) {
+        side = assignedTeam === TEAM_USA ? "USA" : "GERMANY";
+        console.log("Regimental match: forcing %s to %s (regiment %s)", clientId, side, regId);
+      }
     }
 
     console.log("Client requested %s (%s)", side, clientId);

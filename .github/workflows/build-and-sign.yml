@@ -6,9 +6,10 @@ on:
       version:
         description: "Version tag (e.g. 0.19.0-alpha)"
         required: true
-  push:
-    tags:
-      - "v*"
+  # Disabled until code signing is set up — re-enable when Certum cert is purchased.
+  # push:
+  #   tags:
+  #     - "v*"
 
 env:
   GODOT_VERSION: "4.7"
