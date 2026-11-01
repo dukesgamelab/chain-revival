@@ -23,6 +23,13 @@ func _ready() -> void:
 	if OS.has_feature("editor"):
 		update_check_complete.emit(false)
 		return
+	# Skip update check if we just updated - prevents loop if the new build
+	# takes a moment to fully replace or has the same version baked in
+	var marker_path := OS.get_user_data_dir().path_join("updates/just_updated")
+	if FileAccess.file_exists(marker_path):
+		DirAccess.remove_absolute(marker_path)
+		update_check_complete.emit(false)
+		return
 	check_for_update()
 
 
@@ -188,6 +195,13 @@ func _apply_update() -> void:
 		return
 	bat_file.store_string(bat_content)
 	bat_file.close()
+
+	# Write marker so the relaunched game skips the update check once
+	var marker_path := OS.get_user_data_dir().path_join("updates/just_updated")
+	var marker := FileAccess.open(marker_path, FileAccess.WRITE)
+	if marker != null:
+		marker.store_string(remote_version)
+		marker.close()
 
 	# Launch the batch script and quit
 	var bat_native := ProjectSettings.globalize_path(bat_path).replace("/", "\\")
