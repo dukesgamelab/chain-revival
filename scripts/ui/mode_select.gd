@@ -62,7 +62,8 @@ func _add_lan_button() -> void:
 		return
 	var lan_btn := Button.new()
 	lan_btn.text = "LAN Multiplayer"
-	lan_btn.custom_minimum_size = Vector2(320, 30)
+	lan_btn.custom_minimum_size = Vector2(400, 36)
+	lan_btn.add_theme_font_size_override("font_size", 16)
 	lan_btn.pressed.connect(_on_lan_multiplayer_pressed)
 	dev_box.add_child(lan_btn)
 
@@ -73,7 +74,8 @@ func _add_leaderboard_button() -> void:
 		return
 	var lb_btn := Button.new()
 	lb_btn.text = "Leaderboard"
-	lb_btn.custom_minimum_size = Vector2(320, 36)
+	lb_btn.custom_minimum_size = Vector2(400, 44)
+	lb_btn.add_theme_font_size_override("font_size", 20)
 	lb_btn.pressed.connect(_on_leaderboard_pressed)
 	# Insert before the DevBox (second-to-last major element)
 	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
@@ -105,11 +107,11 @@ func _add_auth_ui() -> void:
 	vbox.move_child(auth_box, 0)  # Put at the very top
 
 	_sign_in_label = Label.new()
-	_sign_in_label.add_theme_font_size_override("font_size", 12)
+	_sign_in_label.add_theme_font_size_override("font_size", 16)
 	auth_box.add_child(_sign_in_label)
 
 	var auth_button := Button.new()
-	auth_button.add_theme_font_size_override("font_size", 12)
+	auth_button.add_theme_font_size_override("font_size", 14)
 	auth_box.add_child(auth_button)
 
 	if SupabaseAuth.is_signed_in:
@@ -410,7 +412,8 @@ func _add_settings_button() -> void:
 		return
 	var btn := Button.new()
 	btn.text = "Settings"
-	btn.custom_minimum_size = Vector2(320, 36)
+	btn.custom_minimum_size = Vector2(400, 44)
+	btn.add_theme_font_size_override("font_size", 20)
 	btn.pressed.connect(_on_settings_pressed)
 	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
 	if dev_box != null:
@@ -427,7 +430,8 @@ func _add_quit_button() -> void:
 		return
 	var btn := Button.new()
 	btn.text = "Quit"
-	btn.custom_minimum_size = Vector2(320, 36)
+	btn.custom_minimum_size = Vector2(400, 44)
+	btn.add_theme_font_size_override("font_size", 20)
 	btn.pressed.connect(func(): get_tree().quit())
 	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
 	if dev_box != null:

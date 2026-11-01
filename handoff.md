@@ -2,7 +2,7 @@
 
 ## What Is This?
 
-Chain Revival is a tactical squad combat game inspired by Chain of Command, built in Godot 4.7 with an authoritative Node.js game server. Players command squads in turn-based tactical combat with real-time multiplayer via WebSockets.
+Chain Revival is a tactical squad combat game inspired by Chain of Command, built in Godot 4.7.2 with an authoritative Node.js game server. Players command squads in turn-based tactical combat with real-time multiplayer via WebSockets.
 
 ## Architecture
 
@@ -17,7 +17,7 @@ chain-revival/
     sql/            Numbered migrations (001-027)
   website/          React + Vite + Tailwind SPA
     src/pages/      Home, Login, Leaderboard, Player, Regiments, RegimentManage, Download, Appeal, Admin
-    src/hooks/      useAuth, useRealtimeQuery, useSiteSettings
+    src/hooks/      AuthProvider, useRealtimeQuery, useSiteSettings
     src/components/ Nav, GlobalChat, RankBadge, StatCard, MatchRow, Footer
   supabase/         Edge Functions (ban-notification)
   maps/             Map data files
@@ -29,9 +29,9 @@ chain-revival/
 
 | Layer | Tech |
 |-------|------|
-| Game client | Godot 4.7, GDScript |
+| Game client | Godot 4.7.2, GDScript |
 | Game server | Node.js 20, TypeScript, raw `node:http` + `ws` |
-| Website | React 19, Vite 8, Tailwind CSS 4, React Router 7 |
+| Website | React 19, Vite 8, Tailwind CSS 4, react-router-dom 7 |
 | Database | Supabase (PostgreSQL + Auth + Realtime) |
 | Hosting | Fly.io (single container serves game server + website) |
 
@@ -62,7 +62,8 @@ Enabled on: `player_profiles`, `match_history`, `regiments`, `regiment_members`,
 
 13 ranks: PVT(0), PFC(1), CPL(2), SGT(3), SSG(4), SFC(5), MSG(6), 2LT(7), 1LT(8), CPT(9), MAJ(10), LT COL(11), COL(12).
 PP thresholds (ranks 0-9): `[0, 500, 2500, 7500, 17500, 35500, 65500, 115500, 195500, 315500]`.
-Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. Display rank uses assigned rank when set, falls back to PP rank.
+Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only - not earned via PP. Display rank uses assigned rank when set, falls back to PP rank.
+**Planned (Phase 44):** COs will be able to promote members to officer ranks (2LT+) with promotion slots limited by regiment member count (and possibly regiment PP or win-loss record). Currently all regiment rank assignments are admin-only.
 
 ## Fly.io
 
@@ -79,7 +80,7 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 - **Commit style:** `Phase N: Title` for phase work
 - **No Claude attribution.** Never add `Co-Authored-By` lines or any Claude/Anthropic references to commits or PRs. All commits must appear as solely by `dukesgamelab`.
 
-## Completed Phases (1-39)
+## Completed Phases (1-40)
 
 | Phase | Name |
 |-------|------|
@@ -217,7 +218,7 @@ Server now broadcasts a `vp_update` message whenever VP state changes (holder fl
   - Job-level `if` can't access secrets — changed to `if: false` with comment
 - **Auto-updater tested end-to-end**: Old build (0.20.0-alpha) detected version mismatch, downloaded 0.21.0-alpha zip, extracted, relaunched with new version. Dialog shows "Update Now" / "Skip" buttons.
 - **Update dialog fix**: `max_size = Vector2(500, 250)`, `unresizable = true` — buttons were pushed off-screen before
-- **Current version**: `0.21.0-alpha` (`BuildConfig.VERSION`)
+- **Current version**: `0.22.4-alpha` (`BuildConfig.VERSION`)
 
 **Release workflow (fully automated)**:
 1. Bump `BuildConfig.VERSION` in `scripts/core/build_config.gd`
@@ -454,7 +455,7 @@ Server now broadcasts a `vp_update` message whenever VP state changes (holder fl
 6. Test the full pipeline: manual dispatch → build → sign → draft release
 7. Re-enable auto-updater to pull from GitHub Releases
 
-## Phase 33 Details (Just Completed)
+## Phase 33 Details (Complete)
 
 ### Bug Fixes
 
@@ -466,7 +467,7 @@ Server now broadcasts a `vp_update` message whenever VP state changes (holder fl
 - **Quit button**: Added to main menu, calls `get_tree().quit()`.
 - **Dev tools hiding**: Developer section hidden unless `BuildConfig.is_development() and SupabaseAuth.is_signed_in`.
 
-## Phase 32 Details (Just Completed)
+## Phase 32 Details (Complete)
 
 - **SettingsManager autoload** (`scripts/core/settings_manager.gd`):
   - New singleton registered in `project.godot`, manages display and keybind settings
@@ -628,10 +629,21 @@ Server now broadcasts a `vp_update` message whenever VP state changes (holder fl
 | 41 | Website chat channels | Regiment chat rooms and player-created custom channels on the website via Supabase Realtime |
 | 42 | In-game whisper/DM | Whisper and direct messages during live matches via WebSocket server |
 | 43 | Community forum | Torn-style threaded forum - categories (General, Trading, Faction, Q&A, etc.), paginated thread lists, thread/reply views, last poster tracking, admin-pinned announcements section; nav tab right after Home |
-| 44 | Spectator mode | Watch live matches without participating, camera controls, player perspective switching |
+| 44 | Regiment officer promotions | COs can promote members to officer ranks (2LT+) with promotion slots limited by regiment member count (and possibly regiment PP/win-loss record). Structured promotion tiers - e.g. X members unlocks Y slots for 2LT, more for 1LT, CPT, etc. |
+| 45 | Combat realism - friendly fire & grenade tuning | Enable friendly grenade damage/stun instead of blocking the throw, tune kill probability curve so stun triggers more often |
+| 46 | Server-side deployment zone enforcement | Validate DZ boundaries on the server (currently client-only), block moves outside DZ during deployment phase in multiplayer |
+| 47 | Reconnect fix | Fix the broken 90s reconnect - timer forfeits too early, countdown doesn't tick visually, disconnected player sees "no games available" within seconds |
+| 48 | Combat keybinds & command shortcuts | OG-style keyboard shortcuts on command buttons (D/W/R/C/F/G/P/H etc.), field report panel |
+| 49 | Suppression & pinning system | Active suppression mechanic beyond grenade stun - sustained fire pins soldiers, morale/stress effects |
+| 50 | PP balance & career rewards | PP lost on killed-by-rank, Medal of Courage payouts (TODOs in scenario_rules.gd) |
+| 51 | Newsletter & notification pipeline | Wire up Resend email sending, double opt-in, announcement push to game client |
+| 52 | Replay polish | Movement animation in replay viewer, "View Match" button on Godot mission debrief, OG meta tags for link previews |
 
-## Website Enhancements (Future)
+## Future Features (not scheduled)
 
+- **Spectator mode**: Watch live matches without participating, camera controls, player perspective switching.
+- **More maps**: OG has 30+ scenarios, Chain Revival has 7. Deferred until existing maps are tweaked and playtested - only Farm Fight has been closely reviewed so far.
+- **Soldier stacking prevention**: Currently soldiers can occupy the same tile (OG allowed this too). Could add collision/stacking rules as a future option if gameplay calls for it.
 - **Rich text editor for announcements**: Replace the plain textarea with a Lexical (Meta's rich text framework) or markdown toolbar editor (`@uiw/react-md-editor`) so patch notes can be formatted without writing raw markdown. The body already renders via `ReactMarkdown` in `Announcements.tsx`, so a markdown-output editor is the lowest-friction option.
 
 ## Code Signing
@@ -693,22 +705,11 @@ For changes to `server/` or `website/` that don't affect the Godot client:
 ## Known Bugs
 
 - **Reconnect on game close (BROKEN)**: Closing the game window triggers `player_disconnected` and shows "90s" message, but: (1) countdown never ticks down visually, (2) match forfeits way before 90 seconds, (3) disconnected player's PC shows "no games available" within ~5 seconds. Needs investigation in `server/src/index.ts` disconnect handler and `match.ts` reconnect logic.
-- **PP not accumulated after match**: FIXED - migration 022 (Phase 35) accidentally dropped prestige_points, total_kills, and rank updates from both `record_match_result` and `record_player_result` RPCs. Fix: run migration `027_fix_pp_tracking.sql` in Supabase SQL Editor.
-- **Regiment leave from Godot client broken**: FIXED - `regiment_client.gd` did a raw REST DELETE on `regiment_members` instead of calling the `leave_regiment` RPC, so `player_profiles.regiment_id` and `regiments.xo_id` were never cleared. After leaving in-game, the website hid Create/Join buttons and the browse panel wasn't rebuilt. Fixed by switching to the RPC call and rebuilding the browse panel after leave.
 
-## Phase 40: Named Objectives & VP Capture
+### Fixed Bugs (for reference)
 
-HUD/map features plus the regiment leave bugfix.
-
-### VP Name Labels
-- Yellow text labels below each VP diamond marker on the map (`victory_point_layer.gd`)
-- Uses the `name` field from VP entries in map JSON (e.g. "The Farmhouse")
-- Matches `OriginalLabelLayer` style: yellow with black shadow
-
-### VP Ownership Bar
-- New `VpBar` widget (`scripts/ui/vp_bar.gd`) in top-left HUD below ScoreHud
-- Shows each VP zone name with a colored dot (blue=USA, dark red=Germany) for current holder
-- Updates every HUD refresh via `_refresh_scenario_hud()` in main.gd
+- **PP not accumulated after match**: migration 022 (Phase 35) accidentally dropped prestige_points, total_kills, and rank updates from both `record_match_result` and `record_player_result` RPCs. Fixed by migration `027_fix_pp_tracking.sql`.
+- **Regiment leave from Godot client broken**: `regiment_client.gd` did a raw REST DELETE on `regiment_members` instead of calling the `leave_regiment` RPC, so `player_profiles.regiment_id` and `regiments.xo_id` were never cleared. Fixed by switching to the RPC call and rebuilding the browse panel after leave (Phase 40).
 
 ## Known Gotchas
 
@@ -717,6 +718,6 @@ HUD/map features plus the regiment leave bugfix.
 - **WebSocket race conditions:** Client can send messages before server registers them. Server handles gracefully.
 - **Supabase Realtime channels:** Use unique channel names (`Math.random().toString(36).slice(2)` suffix) and `supabase.removeChannel()` for cleanup to avoid "cannot add callbacks after subscribe()" errors.
 - **Godot export exclude filter:** `export_presets.cfg` exclude_filter was stripping `scenes/side_select.tscn` and `scenes/match_setup.tscn` from builds. This caused multiplayer joins to silently fail in exports — the join RPC succeeded (lobby showed 2/2) but `change_scene_to_file` couldn't find the scene in the PCK. Worked fine in the editor because the files exist on disk. Fixed in v0.22.4-alpha. Always verify new scenes aren't in the exclude list.
-- **Godot export:** Requires export templates matching the Godot version (4.7).
-- **Godot `.uid` files:** Godot 4.7 generates `.uid` resource tracking files. These are gitignored.
+- **Godot export:** Requires export templates matching the Godot version (4.7.2).
+- **Godot `.uid` files:** Godot 4.7.2 generates `.uid` resource tracking files. These are gitignored.
 - **Reconnect window:** The 90s server timer and 120s client retry window are intentionally offset — the client gives up 30s after the server would forfeit anyway, avoiding a race where the client reconnects just as the server forfeits.
