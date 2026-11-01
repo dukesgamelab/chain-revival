@@ -21,8 +21,6 @@ const PP_LOST_PER_SOLDIER := 1
 const SPEC_AREA_POINTS := 1
 ## RECOVERED GPP->PP_const (in-scenario → career, 1:1).
 const GPP_TO_PP := 1
-## RECOVERED CheckVPTilesEach ≈ 1s — TUNED poll interval (exact OG cadence unrecovered).
-const VP_POLL_INTERVAL_SEC := 1.0
 ## TUNED: linear decay from 100% at t=0 to this floor at TIME_GONE.
 ## Fact of decay is RECOVERED (`VP AsSoonAsYouCanDecr = 5`); exact curve is not.
 const VP_DECAY_FLOOR := 0.25
@@ -48,7 +46,6 @@ static func begin_scenario(game_state) -> void:
 	game_state.end_cause = ScenarioEndCauseClass.NONE
 	game_state.winner = ScenarioWinnerClass.NONE
 	game_state.scenario_ended = false
-	game_state.vp_poll_accum_sec = 0.0
 	VictoryPointSystem.ensure_holders_initialized(game_state.map_data)
 	## Seed capture timestamps so initial holders keep full value if held to the end.
 	for entry in game_state.map_data.victory_points:
@@ -85,11 +82,8 @@ static func process_tick(game_state, tick_sec: float) -> bool:
 		float(SCENARIO_TIME_SEC) - game_state.scenario_elapsed_sec,
 	)
 
-	game_state.vp_poll_accum_sec += tick_sec
-	if game_state.vp_poll_accum_sec >= VP_POLL_INTERVAL_SEC:
-		game_state.vp_poll_accum_sec = 0.0
-		if VictoryPointSystem.update_capture(game_state, game_state.scenario_elapsed_sec):
-			game_state.vp_holders_dirty = true
+	if VictoryPointSystem.update_capture(game_state, game_state.scenario_elapsed_sec, tick_sec):
+		game_state.vp_holders_dirty = true
 
 	if living_soldier_count(game_state, Team.USA) <= 0:
 		_award_held_victory_points(game_state)
@@ -237,6 +231,10 @@ static func _award_held_victory_points(game_state) -> void:
 		game_state.team_terrain_points[team_id] = (
 			int(game_state.team_terrain_points.get(team_id, 0)) + award
 		)
+
+
+static func compute_terrain_points_for_display(game_state) -> void:
+	_award_held_victory_points(game_state)
 
 
 static func _add_kill_points(game_state, team_id: int, delta: int) -> void:

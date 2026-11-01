@@ -38,8 +38,6 @@ export const KILL_POINTS = 4;
 export const PP_LOST_PER_SOLDIER = 1;
 /** RECOVERED SpecArea->PP_const. */
 export const SPEC_AREA_POINTS = 1;
-/** VP poll interval in seconds. */
-const VP_POLL_INTERVAL_SEC = 1.0;
 /** Decay floor at end of mission. */
 const VP_DECAY_FLOOR = 0.25;
 
@@ -55,7 +53,7 @@ export interface ScenarioState {
   killPoints: Record<number, number>;
   killCounts: Record<number, number>;
   terrainPoints: Record<number, number>;
-  vpPollAccumSec: number;
+  vpDirty: boolean;
   vpEntries: VictoryPointEntry[];
 }
 
@@ -72,7 +70,7 @@ export function createScenarioState(vpEntries: VictoryPointEntry[] = [], timeSec
     killPoints: { [TEAM_USA]: 0, [TEAM_GERMANY]: 0 },
     killCounts: { [TEAM_USA]: 0, [TEAM_GERMANY]: 0 },
     terrainPoints: { [TEAM_USA]: 0, [TEAM_GERMANY]: 0 },
-    vpPollAccumSec: 0,
+    vpDirty: false,
     vpEntries,
   };
 }
@@ -93,11 +91,10 @@ export function processTick(
   scenario.elapsedSec += tickSec;
   scenario.timeRemainingSec = Math.max(0, scenario.scenarioTimeSec - scenario.elapsedSec);
 
-  // VP poll
-  scenario.vpPollAccumSec += tickSec;
-  if (scenario.vpPollAccumSec >= VP_POLL_INTERVAL_SEC) {
-    scenario.vpPollAccumSec = 0;
-    updateCapture(state, scenario.vpEntries, scenario.elapsedSec);
+  // VP capture progress (every tick for smooth progress bar).
+  const vpChanged = updateCapture(state, scenario.vpEntries, scenario.elapsedSec, tickSec);
+  if (vpChanged) {
+    scenario.vpDirty = true;
   }
 
   // Extermination check

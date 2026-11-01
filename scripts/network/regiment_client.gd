@@ -266,12 +266,12 @@ func kick_member(regiment_id: String, target_id: String) -> void:
 
 
 ## Leave the regiment voluntarily.
-func leave_regiment(regiment_id: String) -> void:
+func leave_regiment(_regiment_id: String) -> void:
 	if not _check_auth():
 		return
-	# Delete own membership row (RLS allows this)
-	var url := "%s/rest/v1/regiment_members?regiment_id=eq.%s&player_id=eq.%s" % [SupabaseAuth.SUPABASE_URL, regiment_id, SupabaseAuth.user_id]
-	_http_leave.request(url, _bearer_headers(), HTTPClient.METHOD_DELETE)
+	var body := JSON.stringify({"p_player_id": SupabaseAuth.user_id})
+	var url := "%s/rest/v1/rpc/leave_regiment" % SupabaseAuth.SUPABASE_URL
+	_http_leave.request(url, _bearer_headers(), HTTPClient.METHOD_POST, body)
 
 
 ## Assign a rank to a member (CO/XO, calls RPC).

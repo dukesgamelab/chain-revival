@@ -797,7 +797,24 @@ export class LocalMatch {
           matchId: this.matchId,
           simMsec: this.clock.getTicksMsec(),
           timeRemainingSec: this.gameState.scenario.timeRemainingSec,
+          usaKillPoints: this.gameState.scenario.killPoints[1] ?? 0,
+          germanyKillPoints: this.gameState.scenario.killPoints[2] ?? 0,
         });
+        if (this.gameState.scenario.vpDirty) {
+          this.gameState.scenario.vpDirty = false;
+          this.broadcast({
+            type: "vp_update",
+            matchId: this.matchId,
+            simMsec: this.clock.getTicksMsec(),
+            entries: this.gameState.scenario.vpEntries.map((e) => ({
+              x: e.x,
+              y: e.y,
+              holder: e.holder,
+              captureProgress: e.captureProgress ?? 0,
+              capturingSide: e.capturingSide ?? "",
+            })),
+          });
+        }
       }
       if (scenarioEnded) {
         this.phase = "ended";

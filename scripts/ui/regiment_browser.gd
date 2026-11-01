@@ -52,6 +52,7 @@ var _admin_reg_container: VBoxContainer
 var _current_regiment: Dictionary = {}
 var _is_co := false
 var _is_xo := false
+var _pending_join_regiment_ids: Dictionary = {}  # regiment_id -> true
 
 ## Which scene to return to.
 static var return_scene: String = ""
@@ -165,6 +166,13 @@ func _build_ui() -> void:
 	var btn_row := HBoxContainer.new()
 	btn_row.add_theme_constant_override("separation", 8)
 	vbox.add_child(btn_row)
+
+	var refresh_button := Button.new()
+	refresh_button.text = "Refresh"
+	refresh_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	refresh_button.custom_minimum_size = Vector2(0, 34)
+	refresh_button.pressed.connect(_on_refresh_pressed)
+	btn_row.add_child(refresh_button)
 
 	_back_button = Button.new()
 	_back_button.text = "Back"
@@ -443,9 +451,13 @@ func _make_regiment_row(name_text: String, tag_text: String, co_text: String,
 	# Join button (only on data rows, only if signed in and not in a regiment)
 	if not is_header and SupabaseAuth.is_signed_in and SupabaseAuth.regiment_id == "":
 		var join_btn := Button.new()
-		join_btn.text = "Join"
-		join_btn.custom_minimum_size = Vector2(50, 0)
-		join_btn.pressed.connect(_on_request_join.bind(regiment_id))
+		if _pending_join_regiment_ids.has(regiment_id):
+			join_btn.text = "Pending"
+			join_btn.disabled = true
+		else:
+			join_btn.text = "Join"
+			join_btn.pressed.connect(_on_request_join.bind(regiment_id, join_btn))
+		join_btn.custom_minimum_size = Vector2(60, 0)
 		row.add_child(join_btn)
 	elif not is_header:
 		# Spacer to keep alignment
@@ -934,8 +946,11 @@ func _on_submit_create() -> void:
 	_regiment_client.apply_create_regiment(reg_name, reg_tag, reg_desc)
 
 
-func _on_request_join(regiment_id: String) -> void:
+func _on_request_join(regiment_id: String, btn: Button) -> void:
 	_regiment_client.request_join(regiment_id)
+	_pending_join_regiment_ids[regiment_id] = true
+	btn.text = "Pending"
+	btn.disabled = true
 
 
 func _on_accept_join(request_id: String) -> void:
@@ -1323,6 +1338,7 @@ func _on_leave_pressed() -> void:
 	SupabaseAuth.regiment_id = ""
 	SupabaseAuth.regiment_tag = ""
 	_refresh_my_regiment()
+	_rebuild_browse_panel()
 
 
 func _on_back_pressed() -> void:
@@ -1546,6 +1562,23 @@ func _on_co_names_response(_result: int, response_code: int,
 # ─────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────
+
+func _on_refresh_pressed() -> void:
+	_status_label.text = "Refreshing..."
+	SupabaseAuth.fetch_profile()
+	await get_tree().create_timer(0.5).timeout
+	_rebuild_browse_panel()
+	_refresh_my_regiment()
+	_status_label.text = ""
+
+
+func _rebuild_browse_panel() -> void:
+	_browse_panel.queue_free()
+	_browse_panel = _build_browse_panel()
+	_content_stack.add_child(_browse_panel)
+	_browse_panel.visible = (_tab_bar.current_tab == 0)
+	_refresh_browse()
+
 
 func _clear_container(container: VBoxContainer) -> void:
 	for child in container.get_children():

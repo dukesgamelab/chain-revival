@@ -1,9 +1,13 @@
 class_name VictoryPointSystem
 extends RefCounted
-## Runtime victory-point ownership. Authority-only — mutates map_data.victory_points.
+## Runtime victory-point ownership with timed capture bar.
+## Authority-only locally; multiplayer uses server vp_update messages.
 
 ## Chebyshev ("squares") radius for presence / contest.
 const CAPTURE_RADIUS := 5
+
+## Seconds of uncontested presence needed to capture a VP.
+const CAPTURE_TIME_SEC := 20.0
 
 
 ## Ensure runtime holder is seeded from initial_holder once per match load.
@@ -17,15 +21,20 @@ static func ensure_holders_initialized(map_data) -> void:
 			entry["holder"] = str(entry.get("initial_holder", "Germany"))
 		if not entry.has("capture_elapsed_sec"):
 			entry["capture_elapsed_sec"] = 0.0
+		if not entry.has("capture_progress"):
+			entry["capture_progress"] = 0.0
+		if not entry.has("capturing_side"):
+			entry["capturing_side"] = ""
 
 
-## Poll ownership. Holder = side with living soldiers in radius and no living enemy contesting.
-## `elapsed_sec` stamps capture time for end-of-mission decay awards.
-## Returns true if any VP holder changed (so presentation can redraw).
-static func update_capture(game_state, elapsed_sec: float = 0.0) -> bool:
+## Poll ownership with timed capture. Returns true if any VP state changed.
+## In multiplayer the server sends vp_update messages - skip local capture.
+static func update_capture(game_state, elapsed_sec: float = 0.0, tick_sec: float = 1.0) -> bool:
 	if game_state == null or game_state.map_data == null:
 		return false
 	if game_state.is_deployment_phase() or game_state.is_ended_phase():
+		return false
+	if GameModeManager.is_local_multiplayer():
 		return false
 	var map_data = game_state.map_data
 	ensure_holders_initialized(map_data)
@@ -38,26 +47,46 @@ static func update_capture(game_state, elapsed_sec: float = 0.0) -> bool:
 			continue
 		var usa_here := _team_soldier_within(game_state, Team.USA, cell, CAPTURE_RADIUS)
 		var ger_here := _team_soldier_within(game_state, Team.GERMANY, cell, CAPTURE_RADIUS)
-		## Contested — no ownership change.
-		if usa_here and ger_here:
+
+		# Contested or nobody here: reset capture progress.
+		if (usa_here and ger_here) or (not usa_here and not ger_here):
+			if float(entry.get("capture_progress", 0.0)) > 0.0:
+				entry["capture_progress"] = 0.0
+				entry["capturing_side"] = ""
+				changed = true
 			continue
-		var new_holder := ""
-		if usa_here:
-			new_holder = "USA"
-		elif ger_here:
-			new_holder = "Germany"
-		else:
+
+		var attacking_side := "USA" if usa_here else "Germany"
+
+		# Attacker already holds it - no capture needed.
+		if _same_holder(str(entry.get("holder", "")), attacking_side):
+			if float(entry.get("capture_progress", 0.0)) > 0.0:
+				entry["capture_progress"] = 0.0
+				entry["capturing_side"] = ""
+				changed = true
 			continue
-		var prev := str(entry.get("holder", entry.get("initial_holder", "Germany")))
-		if _same_holder(prev, new_holder):
-			continue
-		entry["holder"] = new_holder
-		entry["capture_elapsed_sec"] = elapsed_sec
+
+		# Different side started capturing - reset progress.
+		var prev_capturing := str(entry.get("capturing_side", ""))
+		if not prev_capturing.is_empty() and not _same_holder(prev_capturing, attacking_side):
+			entry["capture_progress"] = 0.0
+
+		entry["capturing_side"] = attacking_side
+		var progress := minf(1.0, float(entry.get("capture_progress", 0.0)) + tick_sec / CAPTURE_TIME_SEC)
+		entry["capture_progress"] = progress
 		changed = true
-		GameLog.log_system(
-			"[VictoryPoint] %s captured at %s (was %s) t=%.1fs"
-			% [new_holder, cell, prev, elapsed_sec]
-		)
+
+		# Capture complete.
+		if progress >= 1.0:
+			var prev := str(entry.get("holder", entry.get("initial_holder", "Germany")))
+			entry["holder"] = attacking_side
+			entry["capture_elapsed_sec"] = elapsed_sec
+			entry["capture_progress"] = 0.0
+			entry["capturing_side"] = ""
+			GameLog.log_system(
+				"[VictoryPoint] %s captured at %s (was %s) t=%.1fs"
+				% [attacking_side, cell, prev, elapsed_sec]
+			)
 	return changed
 
 

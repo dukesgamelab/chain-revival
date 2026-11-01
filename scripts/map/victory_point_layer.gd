@@ -28,10 +28,11 @@ func _draw() -> void:
 		if cell.x <= -900 or not map_data.is_in_bounds(cell):
 			continue
 		var holder := str(entry.get("holder", entry.get("initial_holder", "Germany"))).strip_edges()
-		_draw_flag_tile(cell, holder)
+		var vp_name := str(entry.get("name", "")).strip_edges()
+		_draw_flag_tile(cell, holder, vp_name)
 
 
-func _draw_flag_tile(cell: Vector2i, holder: String) -> void:
+func _draw_flag_tile(cell: Vector2i, holder: String, vp_name: String = "") -> void:
 	var center := IsometricGrid.grid_to_world(cell)
 	var corners := IsometricGrid.diamond_corners(center)
 	var inset := PackedVector2Array()
@@ -61,6 +62,14 @@ func _draw_flag_tile(cell: Vector2i, holder: String) -> void:
 				continue
 			_draw_label_colored(font, origin + Vector2(ox, oy), label, size, is_usa, true)
 	_draw_label_colored(font, origin, label, size, is_usa, false)
+
+	## Yellow name label below the diamond (matching OriginalLabelLayer style).
+	if not vp_name.is_empty():
+		var name_size := maxi(10, int(11.0 * scale))
+		var name_width := font.get_string_size(vp_name, HORIZONTAL_ALIGNMENT_LEFT, -1, name_size).x
+		var name_pos := center + Vector2(-name_width * 0.5, 14.0 * scale)
+		draw_string(font, name_pos + Vector2(1, 1), vp_name, HORIZONTAL_ALIGNMENT_LEFT, -1, name_size, Color(0, 0, 0, 1))
+		draw_string(font, name_pos, vp_name, HORIZONTAL_ALIGNMENT_LEFT, -1, name_size, Color(1.0, 1.0, 0.0, 1.0))
 
 
 func _draw_label_colored(

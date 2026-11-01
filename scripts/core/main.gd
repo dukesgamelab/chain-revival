@@ -1607,6 +1607,8 @@ func _refresh_scenario_hud() -> void:
 	if _command_bar == null or _game_state == null:
 		return
 	_command_bar.set_scenario_clock(_game_state.time_remaining())
+	if not _game_state.scenario_ended:
+		ScenarioRulesClass.compute_terrain_points_for_display(_game_state)
 	_command_bar.set_scenario_scores(
 		ScenarioRulesClass.total_points(_game_state, Team.USA),
 		ScenarioRulesClass.total_points(_game_state, Team.GERMANY),
@@ -1614,6 +1616,8 @@ func _refresh_scenario_hud() -> void:
 		_game_state.team_terrain_points,
 		_vp_holder_summary(),
 	)
+	if _game_state.map_data != null:
+		_command_bar.set_vp_bar_data(_game_state.map_data.victory_points)
 	_refresh_survival_hud()
 
 
@@ -3255,6 +3259,8 @@ func _ensure_multiplayer_result_signals() -> void:
 		NetworkClient.grenade_explode_received.connect(_on_network_grenade_explode)
 	if not NetworkClient.scenario_time_received.is_connected(_on_network_scenario_time):
 		NetworkClient.scenario_time_received.connect(_on_network_scenario_time)
+	if not NetworkClient.vp_update_received.is_connected(_on_network_vp_update):
+		NetworkClient.vp_update_received.connect(_on_network_vp_update)
 	if not NetworkClient.deployment_ended_received.is_connected(_on_network_deployment_ended):
 		NetworkClient.deployment_ended_received.connect(_on_network_deployment_ended)
 	if not NetworkClient.match_ended_received.is_connected(_on_network_match_ended):
@@ -3389,6 +3395,10 @@ func _on_network_scenario_time(payload: Dictionary) -> void:
 	if _game_state == null:
 		return
 	_game_state.scenario_time_remaining_sec = float(payload.get("timeRemainingSec", 0.0))
+	if payload.has("usaKillPoints"):
+		_game_state.team_kill_points[Team.USA] = int(payload.get("usaKillPoints", 0))
+	if payload.has("germanyKillPoints"):
+		_game_state.team_kill_points[Team.GERMANY] = int(payload.get("germanyKillPoints", 0))
 	var deploy_time := float(payload.get("deployTimeRemainingSec", -1.0))
 	if deploy_time > 0.0:
 		if not _game_state.timed_deployment:
@@ -3403,6 +3413,35 @@ func _on_network_scenario_time(payload: Dictionary) -> void:
 	if rem_i != _last_scenario_hud_sec:
 		_last_scenario_hud_sec = rem_i
 		_refresh_scenario_hud()
+
+
+func _on_network_vp_update(payload: Dictionary) -> void:
+	if _game_state == null or _game_state.map_data == null:
+		return
+	var entries: Array = payload.get("entries", [])
+	for server_entry in entries:
+		if not server_entry is Dictionary:
+			continue
+		var sx := int(server_entry.get("x", -999))
+		var sy := int(server_entry.get("y", -999))
+		for local_entry in _game_state.map_data.victory_points:
+			if not local_entry is Dictionary:
+				continue
+			if int(local_entry.get("x", -999)) == sx and int(local_entry.get("y", -999)) == sy:
+				var prev_holder := str(local_entry.get("holder", ""))
+				var new_holder := str(server_entry.get("holder", prev_holder))
+				if prev_holder != new_holder:
+					local_entry["holder"] = new_holder
+					GameLog.log_system(
+						"[VictoryPoint] %s captured (was %s)"
+						% [new_holder, prev_holder]
+					)
+				local_entry["capture_progress"] = float(server_entry.get("captureProgress", 0.0))
+				local_entry["capturing_side"] = str(server_entry.get("capturingSide", ""))
+				break
+	if _world != null and _world.victory_point_layer != null:
+		_world.victory_point_layer.queue_redraw()
+	_refresh_scenario_hud()
 
 
 func _on_network_match_ended(payload: Dictionary) -> void:

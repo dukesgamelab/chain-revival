@@ -147,7 +147,7 @@ func _setup_dev_tools() -> void:
 	var dev := %DevTools as Control
 	if dev == null:
 		return
-	if BuildConfig.is_survival_playtest():
+	if BuildConfig.is_survival_playtest() or GameModeManager.is_local_multiplayer():
 		dev.visible = false
 		_fit_dev_tools()
 		return
@@ -185,6 +185,18 @@ func _fit_dev_tools_now() -> void:
 			survival.offset_bottom = PAD + maxf(surv_min.y, 1.0)
 			score_bottom = maxf(score_bottom, survival.offset_bottom)
 		y = score_bottom + GAP
+
+	# VP bar below score
+	var vp_bar := %VpBar as Control
+	if vp_bar != null and is_instance_valid(vp_bar) and vp_bar.visible:
+		var vp_min := vp_bar.get_combined_minimum_size()
+		vp_bar.offset_left = PAD
+		vp_bar.offset_top = y
+		vp_bar.offset_right = PAD + maxf(vp_min.x, 1.0)
+		vp_bar.offset_bottom = y + maxf(vp_min.y, 1.0)
+		y = vp_bar.offset_bottom + GAP
+
+
 	var dev := %DevTools as Control
 	if dev == null or not is_instance_valid(dev) or not dev.visible:
 		var ui_early := get_parent()
@@ -225,6 +237,12 @@ func get_top_left_tools_rect() -> Rect2:
 		top = minf(top, survival.offset_top)
 		right = maxf(right, survival.offset_right)
 		bottom = maxf(bottom, survival.offset_bottom)
+	var vp_bar := %VpBar as Control
+	if vp_bar != null and is_instance_valid(vp_bar) and vp_bar.visible:
+		left = minf(left, vp_bar.offset_left)
+		top = minf(top, vp_bar.offset_top)
+		right = maxf(right, vp_bar.offset_right)
+		bottom = maxf(bottom, vp_bar.offset_bottom)
 	if dev != null and is_instance_valid(dev) and dev.visible:
 		left = minf(left, dev.offset_left)
 		top = minf(top, dev.offset_top)
@@ -447,6 +465,16 @@ func set_scenario_scores(
 			"USA %d (kills %d + terrain %d)\nGermany %d (kills %d + terrain %d)\nVP: %s"
 			% [usa_total, uk, ut, ger_total, gk, gt, vp_summary if not vp_summary.is_empty() else "—"]
 		)
+
+
+func set_vp_bar_data(vp_entries: Array) -> void:
+	var vp_bar := %VpBar as VpBar
+	if vp_bar == null:
+		return
+	vp_bar.set_vp_data(vp_entries)
+	_fit_dev_tools()
+
+
 
 
 @warning_ignore("shadowed_variable_base_class")
@@ -848,12 +876,11 @@ func _refresh_deployment_stage_label(is_deployment: bool, remaining_sec: float =
 func _refresh_team_score_label() -> void:
 	if _team_label == null:
 		return
-	_team_label.text = "%s  %d|%d" % [
-		Team.display_name(_active_team_id),
-		_usa_score_total,
-		_ger_score_total,
-	]
-	_team_label.custom_minimum_size = Vector2(96, CocUiTheme.ROW_HEIGHT)
+	if _active_team_id == Team.USA:
+		_team_label.text = "USA %d  Germany %d" % [_usa_score_total, _ger_score_total]
+	else:
+		_team_label.text = "Germany %d  USA %d" % [_ger_score_total, _usa_score_total]
+	_team_label.custom_minimum_size = Vector2(140, CocUiTheme.ROW_HEIGHT)
 
 
 func _on_squad_move_mode_toggled(movement_mode: int, is_pressed: bool) -> void:

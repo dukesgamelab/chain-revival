@@ -14,7 +14,7 @@ chain-revival/
     src/index.ts    Main server — WebSocket handler + static file serving
     src/match.ts    Authoritative match simulation
     src/supabase_auth.ts  Auth verification
-    sql/            Numbered migrations (001-026)
+    sql/            Numbered migrations (001-027)
   website/          React + Vite + Tailwind SPA
     src/pages/      Home, Login, Leaderboard, Player, Regiments, RegimentManage, Download, Appeal, Admin
     src/hooks/      useAuth, useRealtimeQuery, useSiteSettings
@@ -117,6 +117,45 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 | 37 | Lobby room grid overhaul (8-room grid, briefing dialog, training PP suppression, admin Players tab) |
 | 38 | Lobby polish (player card sidebar, regiment-vs-regiment enforcement, match length wiring, expandable rooms, admin max_rooms) |
 | 39 | Distribution pipeline & leaderboard player cards (CI tested end-to-end, auto-updater verified, 1080p maximized, clickable leaderboard names, auto-publish releases) |
+| 40 | Named objectives, VP capture progress & multiplayer sync |
+
+## Phase 40 Details (Complete — Named Objectives, VP Capture & Sync)
+
+**Goal:** Add named VP labels on maps, VP ownership bar in HUD, timed VP capture mechanic, and fix multiplayer VP sync.
+
+### VP Name Labels
+
+- `scripts/map/victory_point_layer.gd`: Yellow text labels below diamond markers, drawn from `vp_name` field in map data.
+
+### VP Bar HUD
+
+- `scripts/ui/vp_bar.gd`: Small panel below ScoreHud showing VP zones with colored holder dots (blue USA, red Germany) and a capture progress bar when capture is in progress.
+
+### VP Capture Progress (20-second timer)
+
+Previously VPs flipped instantly when one side had uncontested presence. Now capture takes 20 seconds of continuous uncontested presence.
+
+- **Server** (`server/src/victory_points.ts`): `captureProgress` (0-1) and `capturingSide` fields on `VictoryPointEntry`. `updateCapture()` increments progress each tick by `tickSec / CAPTURE_TIME_SEC`. Progress resets if contested, nobody present, or a different side starts capturing.
+- **Client** (`scripts/combat/victory_point_system.gd`): Mirror of server logic for offline/singleplayer. Skips local capture in multiplayer (`GameModeManager.is_local_multiplayer()` guard).
+
+### Multiplayer VP Sync
+
+Server now broadcasts a `vp_update` message whenever VP state changes (holder flip or progress change).
+
+- **Server** (`server/src/match.ts`): After `processScenarioTick`, if `scenario.vpDirty`, broadcasts `{type: "vp_update", entries: [{x, y, holder, captureProgress, capturingSide}]}` and clears the flag.
+- **Client** (`scripts/network/network_client.gd`): New `vp_update_received` signal.
+- **Client** (`scripts/core/main.gd`): `_on_network_vp_update()` applies server VP state to local map data, logs capture events, redraws VP layer and refreshes HUD.
+
+### Regiment Leave Fix
+
+- `scripts/network/regiment_client.gd`: Changed from raw REST DELETE to `leave_regiment` RPC call.
+- `scripts/ui/regiment_browser.gd`: Rebuild browse panel after leaving, Refresh button, pending join state.
+
+### Deploy Checklist
+
+1. `fly deploy -a chain-revival-ax0q1g --remote-only` (server change - already deployed)
+2. Migration 027 (PP fix) - already run
+3. Test: VP capture progress bar, multiplayer VP sync, VP name labels
 
 ## Phase 38 Details (Complete — Lobby Polish)
 
@@ -585,10 +624,15 @@ Ranks 10-12 (MAJ/LT COL/COL) are regiment-assigned only — not earned via PP. D
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| 40 | Named objectives & field report | Named capture zones on maps (yellow labels), victory points bar, separate Field Report combat log panel (right side, timestamped events) |
-| 41 | Chat channels | Regiment chat channels, whisper/DM in global chat, player-created custom channels |
-| 42 | Spectator mode | Watch live matches without participating, camera controls, player perspective switching |
-| 43 | Community forum | Torn-style threaded forum — categories (General, Trading, Faction, Q&A, etc.), paginated thread lists, thread/reply views, last poster tracking, admin-pinned announcements section; nav tab right after Home |
+| 40 | Named objectives & VP capture | Named capture zones on maps (yellow labels), victory points bar, timed VP capture, multiplayer VP sync |
+| 41 | Website chat channels | Regiment chat rooms and player-created custom channels on the website via Supabase Realtime |
+| 42 | In-game whisper/DM | Whisper and direct messages during live matches via WebSocket server |
+| 43 | Community forum | Torn-style threaded forum - categories (General, Trading, Faction, Q&A, etc.), paginated thread lists, thread/reply views, last poster tracking, admin-pinned announcements section; nav tab right after Home |
+| 44 | Spectator mode | Watch live matches without participating, camera controls, player perspective switching |
+
+## Website Enhancements (Future)
+
+- **Rich text editor for announcements**: Replace the plain textarea with a Lexical (Meta's rich text framework) or markdown toolbar editor (`@uiw/react-md-editor`) so patch notes can be formatted without writing raw markdown. The body already renders via `ReactMarkdown` in `Announcements.tsx`, so a markdown-output editor is the lowest-friction option.
 
 ## Code Signing
 
@@ -649,7 +693,22 @@ For changes to `server/` or `website/` that don't affect the Godot client:
 ## Known Bugs
 
 - **Reconnect on game close (BROKEN)**: Closing the game window triggers `player_disconnected` and shows "90s" message, but: (1) countdown never ticks down visually, (2) match forfeits way before 90 seconds, (3) disconnected player's PC shows "no games available" within ~5 seconds. Needs investigation in `server/src/index.ts` disconnect handler and `match.ts` reconnect logic.
-- **PP not accumulated after match**: Prestige Points don't increase after winning. Killed all 4 enemy soldiers, won the game, PP stayed at 1340. Kills and victory bonus are not being added. Reported 2026-11-01.
+- **PP not accumulated after match**: FIXED - migration 022 (Phase 35) accidentally dropped prestige_points, total_kills, and rank updates from both `record_match_result` and `record_player_result` RPCs. Fix: run migration `027_fix_pp_tracking.sql` in Supabase SQL Editor.
+- **Regiment leave from Godot client broken**: FIXED - `regiment_client.gd` did a raw REST DELETE on `regiment_members` instead of calling the `leave_regiment` RPC, so `player_profiles.regiment_id` and `regiments.xo_id` were never cleared. After leaving in-game, the website hid Create/Join buttons and the browse panel wasn't rebuilt. Fixed by switching to the RPC call and rebuilding the browse panel after leave.
+
+## Phase 40: Named Objectives & VP Capture
+
+HUD/map features plus the regiment leave bugfix.
+
+### VP Name Labels
+- Yellow text labels below each VP diamond marker on the map (`victory_point_layer.gd`)
+- Uses the `name` field from VP entries in map JSON (e.g. "The Farmhouse")
+- Matches `OriginalLabelLayer` style: yellow with black shadow
+
+### VP Ownership Bar
+- New `VpBar` widget (`scripts/ui/vp_bar.gd`) in top-left HUD below ScoreHud
+- Shows each VP zone name with a colored dot (blue=USA, dark red=Germany) for current holder
+- Updates every HUD refresh via `_refresh_scenario_hud()` in main.gd
 
 ## Known Gotchas
 

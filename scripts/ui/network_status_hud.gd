@@ -13,14 +13,4 @@ func _ready() -> void:
 
 
 func _refresh(_unused: Variant = null) -> void:
-	if not GameModeManager.is_local_multiplayer():
-		visible = false
-		return
-	var lines := PackedStringArray()
-	for line in NetworkClient.get_multiplayer_status_lines():
-		lines.append(line)
-	if lines.is_empty():
-		visible = false
-		return
-	visible = true
-	_label.text = "\n".join(lines)
+	visible = false
