@@ -803,7 +803,8 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 	if _hosted_lobby_id.is_empty() and _joined_lobby_id.is_empty():
 		for lobby_dict in lobbies:
 			var lobby: Dictionary = lobby_dict
-			if lobby.get("host_id", "") == SupabaseAuth.user_id and lobby.get("status", "") == "waiting":
+			var lobby_status: String = lobby.get("status", "")
+			if lobby.get("host_id", "") == SupabaseAuth.user_id and (lobby_status == "waiting" or lobby_status == "in_progress"):
 				_hosted_lobby_id = lobby.get("id", "")
 				var rn_val = lobby.get("room_number", 0)
 				_active_room_number = int(rn_val) if rn_val != null else 0
@@ -878,8 +879,8 @@ func _update_room_row(room_number: int, lobby: Dictionary) -> void:
 	var action_btn: Button = row_data["action_btn"]
 	var room_cfg: Dictionary = row_data["config"]
 
-	if lobby.is_empty():
-		# Empty room
+	if lobby.is_empty() or lobby.get("status", "") == "finished":
+		# Empty or finished room
 		desc_label.text = room_cfg["name"]
 		type_label.text = room_cfg["name"]
 		players_label.text = "--"

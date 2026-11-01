@@ -442,21 +442,21 @@ func _show_startup_status() -> void:
 	if _is_survival_mode():
 		_command_bar.show_status("Survival Mode: 1 v All — choose a difficulty.")
 		return
+	if GameModeManager.is_local_multiplayer() and PlayerSides.has_assignment():
+		_command_bar.show_status(
+			"Controlling %s. Fire At: click an enemy to open fire. Right-click cancels."
+			% PlayerSides.display_side_name()
+		)
+		return
 	if _map_data != null and _map_data.is_original_visual_map():
 		_command_bar.show_status(
 			"%s loaded. Rotate Q/E. --test-map switches maps."
 			% str(_map_data.map_name)
 		)
 		return
-	if GameModeManager.is_local_multiplayer() and PlayerSides.has_assignment():
-		_command_bar.show_status(
-			"Controlling %s. Fire At: click an enemy to open fire. Right-click cancels."
-			% PlayerSides.display_side_name()
-		)
-	else:
-		_command_bar.show_status(
-			"Press 1 = USA, 2 = Germany. Fire At: click an enemy to open fire. Right-click cancels."
-		)
+	_command_bar.show_status(
+		"Press 1 = USA, 2 = Germany. Fire At: click an enemy to open fire. Right-click cancels."
+	)
 
 
 func _apply_multiplayer_side_lock() -> void:

@@ -48,11 +48,11 @@ func _ready() -> void:
 # Public API
 # ─────────────────────────────────────────────────────────────────────────
 
-## List lobbies: waiting/in_progress ones plus any hosted by the current user.
+## List lobbies: only active (waiting/in_progress) ones.
 func list_lobbies() -> void:
 	if not _check_auth():
 		return
-	var url := "%s/rest/v1/lobbies?or=(status.eq.waiting,status.eq.in_progress,host_id.eq.%s)&order=room_number.asc.nullslast" % [SupabaseAuth.SUPABASE_URL, SupabaseAuth.user_id]
+	var url := "%s/rest/v1/lobbies?or=(status.eq.waiting,status.eq.in_progress)&order=room_number.asc.nullslast" % SupabaseAuth.SUPABASE_URL
 	_http_list.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
 
 

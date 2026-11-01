@@ -327,3 +327,28 @@ export async function saveReplay(params: SaveReplayParams): Promise<void> {
     console.error("[Supabase] saveReplay error:", err);
   }
 }
+
+/**
+ * Mark all in_progress lobbies as finished.
+ * Called when a match ends so the lobby grid doesn't show stale entries.
+ */
+export async function finishAllLobbies(): Promise<void> {
+  if (!isConfigured()) return;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/lobbies?status=eq.in_progress`,
+      {
+        method: "PATCH",
+        headers: { ...headers(), Prefer: "return=minimal" },
+        body: JSON.stringify({ status: "finished" }),
+      },
+    );
+    if (!res.ok) {
+      console.error("[Supabase] finishAllLobbies failed (%d)", res.status);
+    } else {
+      console.log("[Supabase] Marked in_progress lobbies as finished.");
+    }
+  } catch (err) {
+    console.error("[Supabase] finishAllLobbies error:", err);
+  }
+}

@@ -33,7 +33,7 @@ import {
   setTeamSize,
   sideCount,
 } from "./side_ownership";
-import { recordMatchResult, recordPlayerResult, distributeCoPP, getPlayerFlags, setActiveMatch, clearActiveMatch, saveReplay } from "./supabase_client";
+import { recordMatchResult, recordPlayerResult, distributeCoPP, getPlayerFlags, setActiveMatch, clearActiveMatch, saveReplay, finishAllLobbies } from "./supabase_client";
 import {
   MATCH_ID,
   sideToTeamId,
@@ -60,6 +60,8 @@ function handleMatchEnded(info: MatchEndedInfo): void {
     clearTimeout(reconnect.timer);
   }
   pendingReconnects.clear();
+
+  finishAllLobbies().catch(err => console.error("[MatchEnd] Lobby cleanup failed:", err));
 
   const usaUserIds: string[] = [];
   const germanyUserIds: string[] = [];
@@ -821,6 +823,7 @@ httpServer.listen(PORT, HOST, () => {
   if (HOST === "0.0.0.0") {
     console.log("LAN enabled — other machines can connect using this PC's IP address.");
   }
+  finishAllLobbies().catch(err => console.error("[Startup] Lobby cleanup failed:", err));
 });
 
 wss.on("connection", (ws: WebSocket) => {
