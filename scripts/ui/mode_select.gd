@@ -258,21 +258,21 @@ func _ensure_how_to_play_dialog() -> void:
 	dlg.title = "How to Play"
 	dlg.ok_button_text = "Close"
 	dlg.unresizable = true
-	dlg.min_size = Vector2(580, 480)
+	dlg.min_size = Vector2(780, 620)
 	CocUiTheme.apply_to(dlg)
 	var paper := _how_to_play_paper_style()
 	dlg.add_theme_stylebox_override("panel", paper)
 	dlg.add_theme_stylebox_override("embedded_border", paper)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 16)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_right", 16)
-	margin.add_theme_constant_override("margin_bottom", 8)
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_bottom", 12)
 	dlg.add_child(margin)
 
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(540, 370)
+	scroll.custom_minimum_size = Vector2(720, 500)
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -281,7 +281,7 @@ func _ensure_how_to_play_dialog() -> void:
 	var page := VBoxContainer.new()
 	page.add_theme_constant_override("separation", 8)
 	page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	page.custom_minimum_size.x = 520
+	page.custom_minimum_size.x = 700
 	scroll.add_child(page)
 	_fill_how_to_play_page(page)
 
@@ -346,7 +346,7 @@ func _howto_heading(page: VBoxContainer, title: String) -> void:
 		_howto_spacer(page)
 	var label := Label.new()
 	label.text = title
-	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_font_size_override("font_size", 24)
 	label.add_theme_color_override("font_color", Color(0.18, 0.16, 0.12))
 	page.add_child(label)
 	var rule := ColorRect.new()
@@ -361,7 +361,7 @@ func _howto_body(page: VBoxContainer, text: String) -> void:
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_font_size_override("font_size", 19)
 	label.add_theme_color_override("font_color", Color(0.16, 0.15, 0.12))
 	page.add_child(label)
 
@@ -373,8 +373,8 @@ func _howto_row(page: VBoxContainer, action: String, detail: String) -> void:
 
 	var key := Label.new()
 	key.text = action
-	key.custom_minimum_size = Vector2(168, 0)
-	key.add_theme_font_size_override("font_size", 13)
+	key.custom_minimum_size = Vector2(230, 0)
+	key.add_theme_font_size_override("font_size", 19)
 	key.add_theme_color_override("font_color", Color(0.22, 0.20, 0.14))
 	row.add_child(key)
 
@@ -382,7 +382,7 @@ func _howto_row(page: VBoxContainer, action: String, detail: String) -> void:
 	value.text = detail
 	value.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	value.add_theme_font_size_override("font_size", 13)
+	value.add_theme_font_size_override("font_size", 19)
 	value.add_theme_color_override("font_color", Color(0.16, 0.15, 0.12))
 	row.add_child(value)
 	page.add_child(row)
@@ -450,13 +450,13 @@ func _on_settings_pressed() -> void:
 	var dlg := AcceptDialog.new()
 	dlg.title = "Settings"
 	dlg.ok_button_text = "Close"
-	dlg.min_size = Vector2(460, 340)
+	dlg.min_size = Vector2(680, 520)
 	CocUiTheme.apply_to(dlg)
 
 	var tabs := TabContainer.new()
 	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	tabs.add_theme_font_size_override("font_size", 11)
+	tabs.add_theme_font_size_override("font_size", 20)
 	dlg.add_child(tabs)
 
 	_build_audio_tab(tabs)
@@ -483,7 +483,7 @@ func _build_audio_tab(tabs: TabContainer) -> void:
 
 	var heading := Label.new()
 	heading.text = "Volume"
-	heading.add_theme_font_size_override("font_size", 14)
+	heading.add_theme_font_size_override("font_size", 22)
 	heading.add_theme_color_override("font_color", Color(0.18, 0.16, 0.12))
 	vbox.add_child(heading)
 
@@ -519,6 +519,7 @@ func _build_graphics_tab(tabs: TabContainer) -> void:
 
 	_fullscreen_check = CheckButton.new()
 	_fullscreen_check.text = "Fullscreen"
+	_fullscreen_check.add_theme_font_size_override("font_size", 20)
 	_fullscreen_check.button_pressed = SettingsManager.fullscreen
 	_fullscreen_check.toggled.connect(func(on: bool):
 		SettingsManager.set_fullscreen(on)
@@ -528,6 +529,7 @@ func _build_graphics_tab(tabs: TabContainer) -> void:
 
 	_vsync_check = CheckButton.new()
 	_vsync_check.text = "VSync"
+	_vsync_check.add_theme_font_size_override("font_size", 20)
 	_vsync_check.button_pressed = SettingsManager.vsync
 	_vsync_check.toggled.connect(func(on: bool):
 		SettingsManager.set_vsync(on)
@@ -539,10 +541,11 @@ func _build_graphics_tab(tabs: TabContainer) -> void:
 	var res_label := Label.new()
 	res_label.text = "Resolution"
 	res_label.custom_minimum_size = Vector2(80, 0)
-	res_label.add_theme_font_size_override("font_size", 12)
+	res_label.add_theme_font_size_override("font_size", 20)
 	res_row.add_child(res_label)
 	_resolution_option = OptionButton.new()
-	_resolution_option.custom_minimum_size = Vector2(160, 0)
+	_resolution_option.custom_minimum_size = Vector2(200, 0)
+	_resolution_option.add_theme_font_size_override("font_size", 20)
 	for res in SettingsManager.RESOLUTIONS:
 		_resolution_option.add_item("%d x %d" % [res.x, res.y])
 	_resolution_option.selected = SettingsManager.resolution_index
@@ -582,22 +585,22 @@ func _build_controls_tab(tabs: TabContainer) -> void:
 	for action in SettingsManager.REMAPPABLE_ACTIONS:
 		var label := Label.new()
 		label.text = SettingsManager.ACTION_LABELS.get(action, action)
-		label.custom_minimum_size = Vector2(90, 0)
-		label.add_theme_font_size_override("font_size", 11)
+		label.custom_minimum_size = Vector2(130, 0)
+		label.add_theme_font_size_override("font_size", 18)
 		grid.add_child(label)
 
 		var binds: Array = SettingsManager.get_bindings(action)
 		var btn_primary := Button.new()
-		btn_primary.custom_minimum_size = Vector2(80, 24)
+		btn_primary.custom_minimum_size = Vector2(120, 34)
 		btn_primary.text = SettingsManager.key_name(binds[0] if binds.size() > 0 else 0)
-		btn_primary.add_theme_font_size_override("font_size", 10)
+		btn_primary.add_theme_font_size_override("font_size", 16)
 		btn_primary.pressed.connect(_start_rebind.bind(action, 0, btn_primary))
 		grid.add_child(btn_primary)
 
 		var btn_secondary := Button.new()
-		btn_secondary.custom_minimum_size = Vector2(80, 24)
+		btn_secondary.custom_minimum_size = Vector2(120, 34)
 		btn_secondary.text = SettingsManager.key_name(binds[1] if binds.size() > 1 else 0)
-		btn_secondary.add_theme_font_size_override("font_size", 10)
+		btn_secondary.add_theme_font_size_override("font_size", 16)
 		btn_secondary.pressed.connect(_start_rebind.bind(action, 1, btn_secondary))
 		grid.add_child(btn_secondary)
 
@@ -607,7 +610,7 @@ func _build_controls_tab(tabs: TabContainer) -> void:
 	btn_row.add_theme_constant_override("separation", 8)
 	var reset_btn := Button.new()
 	reset_btn.text = "Reset Defaults"
-	reset_btn.add_theme_font_size_override("font_size", 10)
+	reset_btn.add_theme_font_size_override("font_size", 16)
 	reset_btn.pressed.connect(_on_reset_keybinds)
 	btn_row.add_child(reset_btn)
 	outer.add_child(btn_row)
@@ -694,8 +697,8 @@ func _add_volume_row(parent: VBoxContainer, label_text: String, initial: float) 
 
 	var label := Label.new()
 	label.text = label_text
-	label.custom_minimum_size = Vector2(60, 0)
-	label.add_theme_font_size_override("font_size", 12)
+	label.custom_minimum_size = Vector2(80, 0)
+	label.add_theme_font_size_override("font_size", 20)
 	row.add_child(label)
 
 	var slider := HSlider.new()
@@ -779,7 +782,7 @@ func _show_ban_notice() -> void:
 func _add_version_label() -> void:
 	var ver := Label.new()
 	ver.text = "v%s" % BuildConfig.VERSION
-	ver.add_theme_font_size_override("font_size", 11)
+	ver.add_theme_font_size_override("font_size", 14)
 	ver.add_theme_color_override("font_color", Color(0.5, 0.55, 0.5, 0.7))
 	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	ver.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
@@ -803,7 +806,8 @@ func _add_known_issues_button() -> void:
 		return
 	var btn := Button.new()
 	btn.text = "Known Issues"
-	btn.custom_minimum_size = Vector2(320, 36)
+	btn.custom_minimum_size = Vector2(400, 44)
+	btn.add_theme_font_size_override("font_size", 20)
 	btn.pressed.connect(_on_known_issues_pressed)
 	var dev_box := get_node_or_null("Center/Panel/Margin/VBox/DevBox") as Control
 	if dev_box != null:
@@ -821,18 +825,18 @@ func _on_known_issues_pressed() -> void:
 	var dlg := AcceptDialog.new()
 	dlg.title = "Known Issues"
 	dlg.ok_button_text = "Close"
-	dlg.min_size = Vector2(500, 400)
+	dlg.min_size = Vector2(600, 480)
 	CocUiTheme.apply_to(dlg)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 16)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_right", 16)
-	margin.add_theme_constant_override("margin_bottom", 8)
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_bottom", 12)
 	dlg.add_child(margin)
 
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(460, 300)
+	scroll.custom_minimum_size = Vector2(540, 370)
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -861,7 +865,7 @@ func _fill_known_issues(page: VBoxContainer) -> void:
 		label.text = "• " + issue
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		label.add_theme_font_size_override("font_size", 13)
+		label.add_theme_font_size_override("font_size", 16)
 		page.add_child(label)
 
 
@@ -877,7 +881,7 @@ func _show_first_launch_hint() -> void:
 	var dlg := AcceptDialog.new()
 	dlg.title = "Welcome to Chain Revival!"
 	dlg.ok_button_text = "Got it"
-	dlg.min_size = Vector2(420, 200)
+	dlg.min_size = Vector2(520, 280)
 	CocUiTheme.apply_to(dlg)
 	dlg.dialog_text = "Welcome, Commander!\n\nIf this is your first time, hit \"How to Play\" on the main menu for controls and tips.\n\nFor multiplayer, sign in first, then hit \"Multiplayer\" to find or host a game.\n\nGood luck out there."
 	add_child(dlg)
@@ -905,8 +909,8 @@ func _on_update_check_complete(update_available: bool) -> void:
 	_update_dialog = AcceptDialog.new()
 	_update_dialog.title = "Update Available"
 	_update_dialog.ok_button_text = "Update Now"
-	_update_dialog.min_size = Vector2(400, 180)
-	_update_dialog.max_size = Vector2(500, 250)
+	_update_dialog.min_size = Vector2(520, 260)
+	_update_dialog.max_size = Vector2(600, 320)
 	_update_dialog.unresizable = true
 	CocUiTheme.apply_to(_update_dialog)
 
@@ -916,12 +920,12 @@ func _on_update_check_complete(update_available: bool) -> void:
 	var msg := Label.new()
 	msg.text = "A new version of Chain Revival is available!\n\nCurrent: v%s\nLatest: v%s" % [BuildConfig.VERSION, _updater.remote_version]
 	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	msg.add_theme_font_size_override("font_size", 14)
+	msg.add_theme_font_size_override("font_size", 20)
 	vbox.add_child(msg)
 
 	_update_progress_label = Label.new()
 	_update_progress_label.text = ""
-	_update_progress_label.add_theme_font_size_override("font_size", 12)
+	_update_progress_label.add_theme_font_size_override("font_size", 16)
 	_update_progress_label.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0))
 	vbox.add_child(_update_progress_label)
 

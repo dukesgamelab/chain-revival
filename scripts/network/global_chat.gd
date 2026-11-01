@@ -8,7 +8,7 @@ extends Node
 ## Uses Supabase Realtime for live message delivery (no polling).
 ## Falls back to a single REST fetch for initial history on connect.
 
-const CHAT_PANEL_WIDTH := 260
+const CHAT_PANEL_WIDTH := 420
 const CHAT_PANEL_MARGIN_TOP := 80
 const CHAT_PANEL_MARGIN_BOTTOM := 20
 const CHAT_PANEL_MARGIN_RIGHT := 20
@@ -109,12 +109,12 @@ func _build_ui() -> void:
 	var title_label := Label.new()
 	title_label.text = "Chat"
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_label.add_theme_font_size_override("font_size", 13)
+	title_label.add_theme_font_size_override("font_size", 22)
 	header_row.add_child(title_label)
 
 	_toggle_button = Button.new()
 	_toggle_button.text = "_"
-	_toggle_button.custom_minimum_size = Vector2(24, 20)
+	_toggle_button.custom_minimum_size = Vector2(34, 30)
 	_toggle_button.pressed.connect(_on_toggle_pressed)
 	header_row.add_child(_toggle_button)
 
@@ -143,15 +143,17 @@ func _build_ui() -> void:
 	_chat_input = LineEdit.new()
 	_chat_input.placeholder_text = "Say something..."
 	_chat_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_chat_input.custom_minimum_size = Vector2(0, 26)
+	_chat_input.custom_minimum_size = Vector2(0, 38)
 	_chat_input.max_length = MAX_MESSAGE_LENGTH
+	_chat_input.add_theme_font_size_override("font_size", 18)
 	_chat_input.add_theme_color_override("font_color", Color.WHITE)
 	_chat_input.text_submitted.connect(func(_t: String): _submit_chat())
 	input_row.add_child(_chat_input)
 
 	_chat_send_button = Button.new()
 	_chat_send_button.text = "Send"
-	_chat_send_button.custom_minimum_size = Vector2(50, 26)
+	_chat_send_button.add_theme_font_size_override("font_size", 18)
+	_chat_send_button.custom_minimum_size = Vector2(70, 38)
 	_chat_send_button.pressed.connect(_submit_chat)
 	input_row.add_child(_chat_send_button)
 
@@ -336,7 +338,7 @@ func _apply_single_message(msg: Dictionary) -> void:
 	line.bbcode_enabled = true
 	line.fit_content = true
 	line.scroll_active = false
-	line.add_theme_font_size_override("normal_font_size", 11)
+	line.add_theme_font_size_override("normal_font_size", 18)
 
 	var msg_user_id: String = str(msg.get("user_id", ""))
 	var is_self: bool = (msg_user_id == SupabaseAuth.user_id)
