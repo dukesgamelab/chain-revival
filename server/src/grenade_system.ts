@@ -13,6 +13,7 @@ import { onSoldierKilled } from "./scenario_rules";
 import {
   chebyshev,
   POSITION_DOWN,
+  MOVEMENT_RUN,
   MOVEMENT_CRAWL,
   type Vec2i,
   type GrenadeCommandIntent,
@@ -159,11 +160,8 @@ export function executeGrenade(
     return result;
   }
 
-  // Friendly fire check
-  if (grenadeWouldHitFriendly(state, soldier.teamId, targetCell)) {
-    result.statusMessage = "Cannot throw: friendly soldiers in blast radius.";
-    return result;
-  }
+  // Friendly fire warning (allowed but risky)
+  // grenadeWouldHitFriendly is still used client-side for the visual warning
 
   // Halt movement
   if (soldier.isMoving) {
@@ -207,10 +205,7 @@ export function resolveGrenade(
     if (soldier.isDead) {
       continue;
     }
-    // Friendlies immune
-    if (soldier.teamId === thrower.teamId) {
-      continue;
-    }
+    const isFriendly = soldier.teamId === thrower.teamId;
 
     const distance = euclideanDistance(soldier.gridPosition, explosionCell);
     if (distance > GRENADE_HIT_DISTANCE) {
@@ -226,11 +221,14 @@ export function resolveGrenade(
     if (state.rng.chance(killChance)) {
       soldier.markKilled(state.rng);
       state.markPerceptionDirty();
-      onSoldierKilled(state.scenario, thrower.teamId, soldier);
+      if (!isFriendly) {
+        onSoldierKilled(state.scenario, thrower.teamId, soldier);
+      }
       killed.push({ teamId: soldier.teamId, soldierId: soldier.soldierId });
-      messages.push(
-        `${teamDisplayName(soldier.teamId)} Soldier ${soldier.soldierId} killed by grenade blast.`,
-      );
+      const killMsg = isFriendly
+        ? `${teamDisplayName(soldier.teamId)} Soldier ${soldier.soldierId} killed by FRIENDLY grenade!`
+        : `${teamDisplayName(soldier.teamId)} Soldier ${soldier.soldierId} killed by grenade blast.`;
+      messages.push(killMsg);
 
       // Clear engagements on this dead soldier
       for (const other of state.soldiers) {
@@ -250,9 +248,10 @@ export function resolveGrenade(
     const stunSec = stunDurationAtDistance(distance);
     applyGrenadeStun(soldier, stunSec, state.clock.getTicksMsec());
     stunned.push({ teamId: soldier.teamId, soldierId: soldier.soldierId, durationSec: stunSec });
-    messages.push(
-      `${teamDisplayName(soldier.teamId)} Soldier ${soldier.soldierId} stunned by grenade blast (${stunSec.toFixed(1)}s).`,
-    );
+    const stunMsg = isFriendly
+      ? `${teamDisplayName(soldier.teamId)} Soldier ${soldier.soldierId} stunned by FRIENDLY grenade! (${stunSec.toFixed(1)}s)`
+      : `${teamDisplayName(soldier.teamId)} Soldier ${soldier.soldierId} stunned by grenade blast (${stunSec.toFixed(1)}s).`;
+    messages.push(stunMsg);
   }
 
   return { killed, stunned, messages };
@@ -299,6 +298,7 @@ export function recoverStunTick(state: GameState): boolean {
       soldier.standOnStunRecovery = false;
       if (soldier.positionState === POSITION_DOWN) {
         soldier.positionState = 0; // POSITION_UP
+        soldier.movementMode = MOVEMENT_RUN;
         changed = true;
       }
     }

@@ -1266,13 +1266,13 @@ func _update_grenade_preview() -> void:
 		and CombatSystem.grenade_throw_distance(shooter.grid_position, target_cell)
 		<= CombatSystem.GRENADE_THROW_RANGE
 	)
-	var safe_for_friendlies := (
+	var hits_friendly := (
 		in_range
-		and not CombatSystem.grenade_would_hit_friendly(
+		and CombatSystem.grenade_would_hit_friendly(
 			_game_state, shooter.team_id, target_cell
 		)
 	)
-	_los_visualizer.show_grenade_throw_preview(from_world, target_world, safe_for_friendlies)
+	_los_visualizer.show_grenade_throw_preview(from_world, target_world, in_range, hits_friendly)
 
 	if _grenade_soldier_id == CommandBar.SQUAD_ID:
 		var fireteam: Fireteam = _control_fireteam()

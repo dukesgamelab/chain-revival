@@ -578,6 +578,11 @@ static func execute_move(
 		var peer_positions := _living_fireteam_positions(fireteam, soldier_state.soldier_id)
 		single_target = _clamp_cell_to_fireteam_cohesion(single_target, peer_positions)
 
+	if soldier_state.is_moving and not soldier_state.current_path.is_empty():
+		if soldier_state.current_path[soldier_state.current_path.size() - 1] == single_target:
+			result.refresh_views = false
+			return result
+
 	if not _assign_move_path(
 		game_state, context, fireteam, soldier_state,
 		cmd, result, move_result.mode, move_result.message,
@@ -1092,8 +1097,7 @@ static func execute_grenade(
 	)
 	if throw_distance > GameplayPolicies.grenade.throw_range:
 		return ActionResult.fail("Target is out of grenade range.")
-	if CombatSystem.grenade_would_hit_friendly(game_state, soldier.team_id, cmd.target_cell):
-		return ActionResult.fail("Cannot throw — friendly soldiers in blast radius.")
+	## Friendly fire is allowed - player takes the risk. AI checks separately.
 
 	var result := ActionResult.new()
 	## In range: stop running and throw from the current tile.
@@ -1148,6 +1152,11 @@ static func arm_movement_mode_for_soldier(
 	var stand_message := _stand_up_for_locomotion(soldier, move_result.mode)
 
 	soldier.movement_mode = move_result.mode
+	if soldier.is_moving:
+		soldier.move_speed_mult = (
+			MovementModeClass.speed_multiplier(move_result.mode)
+			* CombatSystem.get_stress_movement_modifier(soldier.stress)
+		)
 	var mode_message := "Soldier %d movement mode = %s" % [
 		soldier.soldier_id,
 		MovementModeClass.display_name(move_result.mode),
@@ -1234,6 +1243,9 @@ static func _assign_move_path(
 	var target_cell := cmd.target_cell if target_override.x <= -900 else target_override
 	if target_cell == start_cell:
 		return false
+	if state.is_moving and not state.current_path.is_empty():
+		if state.current_path[state.current_path.size() - 1] == target_cell:
+			return false
 	if not game_state.map_data.is_walkable(target_cell):
 		return false
 
@@ -1246,11 +1258,6 @@ static func _assign_move_path(
 			return false
 
 	if state.is_moving:
-		result.movement_halts.append({
-			"team_id": state.team_id,
-			"soldier_id": state.soldier_id,
-			"snap_cell": state.grid_position,
-		})
 		state.clear_path()
 
 	state.movement_mode = mode
@@ -1326,11 +1333,6 @@ static func _assign_translated_squad_path(
 	if member_target.x > -900 and path[path.size() - 1] != member_target:
 		return false
 	if state.is_moving:
-		result.movement_halts.append({
-			"team_id": state.team_id,
-			"soldier_id": state.soldier_id,
-			"snap_cell": state.grid_position,
-		})
 		state.clear_path()
 	state.movement_mode = mode
 	var speed_mult := (
@@ -1519,10 +1521,16 @@ static func _validate_move(soldier: SoldierState, mode: int) -> String:
 	return ""
 
 
-## RUN/WALK stand a prone soldier. CRAWL stays down. Stance never rejects a move.
+## RUN/WALK stand a prone soldier. CRAWL forces prone. Stance never rejects a move.
 static func _stand_up_for_locomotion(soldier: SoldierState, mode: int) -> String:
-	if soldier == null or mode == MovementModeClass.CRAWL:
+	if soldier == null:
 		return ""
+	if mode == MovementModeClass.CRAWL:
+		if soldier.position_state == PositionStateClass.DOWN:
+			return ""
+		soldier.clear_pending_position()
+		soldier.position_state = PositionStateClass.DOWN
+		return "Soldier %d changed to DOWN" % soldier.soldier_id
 	if soldier.position_state != PositionStateClass.DOWN and soldier.pending_position_state < 0:
 		return ""
 	soldier.clear_pending_position()

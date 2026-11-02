@@ -112,6 +112,13 @@ export function executeMove(
     return fail(resolved.message);
   }
 
+  if (soldier.isMoving && soldier.currentPath.length > 0) {
+    const dest = soldier.currentPath[soldier.currentPath.length - 1];
+    if (vecEq(dest, target)) {
+      return emptyAction();
+    }
+  }
+
   const result = emptyAction();
   standUpForLocomotion(soldier, resolved.mode, result);
   if (!assignMovePath(gameState, soldier, target, resolved.mode, result)) {
@@ -298,6 +305,12 @@ function assignMovePath(
   if (vecEq(target, start) || !gameState.map.isWalkable(target)) {
     return false;
   }
+  if (soldier.isMoving && soldier.currentPath.length > 0) {
+    const dest = soldier.currentPath[soldier.currentPath.length - 1];
+    if (vecEq(dest, target)) {
+      return false;
+    }
+  }
   const path = findPath(gameState.map, start, target);
   if (path.length < 2) {
     return false;
@@ -308,11 +321,6 @@ function assignMovePath(
     }
   }
   if (soldier.isMoving) {
-    result.movementHalts.push({
-      teamId: soldier.teamId,
-      soldierId: soldier.soldierId,
-      snapCell: { ...soldier.gridPosition },
-    });
     soldier.clearPath();
   }
   soldier.movementMode = mode;
@@ -368,11 +376,6 @@ function assignTranslatedSquadPath(
     return false;
   }
   if (soldier.isMoving) {
-    result.movementHalts.push({
-      teamId: soldier.teamId,
-      soldierId: soldier.soldierId,
-      snapCell: { ...soldier.gridPosition },
-    });
     soldier.clearPath();
   }
   soldier.movementMode = mode;

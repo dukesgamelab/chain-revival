@@ -28,7 +28,7 @@ export const SHOOTER_PRONE_ACCURACY_MULT = 1.15;
 export const TARGET_PRONE_HIT_MULT = 0.55;
 export const POINT_BLANK_TILES = 2.0;
 export const POINT_BLANK_MIN_HIT = 0.92;
-export const LETHALITY_MULTIPLIER = 0.9;
+export const LETHALITY_MULTIPLIER = 0.6;
 export const BASE_FIRE_CYCLE_SEC = 5.0;
 export const FIRST_FIRE_CYCLE_SEC = 5.0;
 

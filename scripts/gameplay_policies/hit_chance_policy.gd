@@ -23,10 +23,9 @@ const DEFAULT_RANGE_EPSILON := 0.25
 const DEFAULT_MAX_ENGAGEMENT_TILES := 40
 ## RECOVERED INITKilledProbability = 0.20 (separate kill roll after hit).
 const RECOVERED_LETHALITY_MULTIPLIER := 0.20
-## TUNED — without a wound state, a hit should ≈ remove the soldier (OG casualty rate).
-## Was 0.40 (point-blank hits often did nothing). Revert to 0.20 when wound state lands.
-## Folded as P(death) = HitFinal × lethality_multiplier (bullets + grenade casualty).
-const DEFAULT_LETHALITY_MULTIPLIER := 0.90
+## TUNED - balanced for no wound state. Revert to 0.20 when wound state lands.
+## Folded as P(death) = HitFinal x lethality_multiplier (bullets + grenade casualty).
+const DEFAULT_LETHALITY_MULTIPLIER := 0.60
 const DEFAULT_AUTO_TARGET_ENGAGED_BONUS := 10.0
 const DEFAULT_AUTO_FIRE_SCAN_INTERVAL := 0.5
 ## RECOVERED from gameplay capture — 5.05s and 6.09s observed; midpoint used as default.
