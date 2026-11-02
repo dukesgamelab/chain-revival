@@ -60,6 +60,9 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
   const [channelUnread, setChannelUnread] = useState<Record<string, number>>({})
   const seenIds = useRef(new Set<string>())
   const loadedChannels = useRef(new Set<string>())
+  const allPlayers = useRef<Record<string, string>>({})
+  const playersLoaded = useRef(false)
+  const [suggestions, setSuggestions] = useState<string[]>([])
 
   // Fetch channels on mount
   useEffect(() => {
@@ -133,20 +136,35 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
       if (data) {
         const reversed = data.reverse()
         const newMsgs: ChatMessage[] = []
+        const lookupIds: string[] = []
         for (const msg of reversed) {
           const msgId = String(msg.id)
           if (!seenIds.current.has(msgId)) {
             seenIds.current.add(msgId)
             newMsgs.push(msg as ChatMessage)
           }
+          if (msg.user_id === userId && msg.whisper_to && !whisperNameCache.current[msg.whisper_to]) {
+            if (!lookupIds.includes(msg.whisper_to)) lookupIds.push(msg.whisper_to)
+          }
         }
         if (newMsgs.length > 0) {
           setWhisperMessages(prev => [...prev, ...newMsgs].slice(-MAX_MESSAGES))
         }
+        if (lookupIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('player_profiles')
+            .select('id,display_name')
+            .in('id', lookupIds)
+          if (profiles) {
+            for (const p of profiles) {
+              whisperNameCache.current[p.id as string] = p.display_name as string
+            }
+          }
+        }
       }
     }
     loadWhispers()
-  }, [])
+  }, [userId])
 
   // Realtime subscription - no filter, RLS handles visibility
   useEffect(() => {
@@ -203,6 +221,9 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
     setChannelUnread(prev => ({ ...prev, [chId]: 0 }))
   }, [])
 
+  const [systemMsg, setSystemMsg] = useState<string | null>(null)
+  const whisperNameCache = useRef<Record<string, string>>({})
+
   const sendMessage = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     const text = input.trim()
@@ -213,6 +234,50 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
     setCooldown(true)
     setTimeout(() => setCooldown(false), SEND_COOLDOWN_MS)
 
+    if (text.startsWith('/w ')) {
+      const rest = text.slice(3).trim()
+      const spaceIdx = rest.indexOf(' ')
+      if (spaceIdx < 1) {
+        setSystemMsg('Usage: /w PlayerName message')
+        setTimeout(() => setSystemMsg(null), 4000)
+        return
+      }
+      const targetName = rest.slice(0, spaceIdx).trim()
+      const whisperText = rest.slice(spaceIdx + 1).trim()
+      if (!whisperText) {
+        setSystemMsg('Usage: /w PlayerName message')
+        setTimeout(() => setSystemMsg(null), 4000)
+        return
+      }
+      const { data: players } = await supabase
+        .from('player_profiles')
+        .select('id,display_name')
+        .eq('display_name', targetName)
+        .limit(1)
+      if (!players || players.length === 0) {
+        setSystemMsg(`Player '${targetName}' not found.`)
+        setTimeout(() => setSystemMsg(null), 4000)
+        return
+      }
+      const targetId = players[0].id as string
+      whisperNameCache.current[targetId] = players[0].display_name as string
+      if (targetId === userId) {
+        setSystemMsg("You can't whisper to yourself.")
+        setTimeout(() => setSystemMsg(null), 4000)
+        return
+      }
+      await supabase.from('chat_messages').insert({
+        user_id: userId,
+        display_name: chatName,
+        message: whisperText,
+        channel: 'global',
+        channel_id: activeChannelId,
+        is_whisper: true,
+        whisper_to: targetId,
+      })
+      return
+    }
+
     const activeType = channels.find(c => c.id === activeChannelId)?.type || 'global'
     await supabase.from('chat_messages').insert({
       user_id: userId,
@@ -222,6 +287,41 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
       channel_id: activeChannelId,
     })
   }, [input, cooldown, isBanned, regimentTag, displayName, userId, activeChannelId, channels])
+
+  const fetchAllPlayers = useCallback(async () => {
+    if (playersLoaded.current) return
+    const { data } = await supabase
+      .from('player_profiles')
+      .select('id,display_name')
+      .neq('id', userId)
+      .order('display_name')
+    if (data) {
+      playersLoaded.current = true
+      for (const p of data) {
+        allPlayers.current[p.id as string] = p.display_name as string
+      }
+    }
+  }, [userId])
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setInput(val)
+    if (val.startsWith('/w ')) {
+      if (!playersLoaded.current) fetchAllPlayers()
+      const partial = val.slice(3).trim().toLowerCase()
+      const matches = Object.values(allPlayers.current)
+        .filter(name => !partial || name.toLowerCase().startsWith(partial))
+        .slice(0, 8)
+      setSuggestions(matches)
+    } else {
+      setSuggestions([])
+    }
+  }, [fetchAllPlayers])
+
+  const pickSuggestion = useCallback((name: string) => {
+    setInput(`/w ${name} `)
+    setSuggestions([])
+  }, [])
 
   // Build display messages: channel messages + whispers, sorted by time
   const displayMessages = (() => {
@@ -271,7 +371,7 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
                 {msg.is_whisper ? (
                   <>
                     <span className="text-fuchsia-400 text-xs mr-1">
-                      [whisper {msg.user_id === userId ? 'to' : 'from'} {msg.display_name}]
+                      [whisper {msg.user_id === userId ? 'to' : 'from'} {msg.user_id === userId ? (whisperNameCache.current[msg.whisper_to || ''] || msg.whisper_to) : msg.display_name}]
                     </span>
                     <span className="text-slate-300">{msg.message}</span>
                   </>
@@ -288,14 +388,34 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
                 )}
               </div>
             ))}
+            {systemMsg && (
+              <div className="text-red-400 text-xs">{systemMsg}</div>
+            )}
             <div ref={messagesEndRef} />
           </div>
+
+          {suggestions.length > 0 && (
+            <div className="px-2 pb-1">
+              <div className="bg-slate-800 border border-slate-600 rounded p-1 flex flex-wrap gap-1">
+                {suggestions.map(name => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => pickSuggestion(name)}
+                    className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 rounded px-2 py-1 transition-colors"
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <form onSubmit={sendMessage} className="p-2 border-t border-slate-700 flex gap-1">
             <input
               type="text"
               value={input}
-              onChange={e => setInput(e.target.value)}
+              onChange={handleInputChange}
               placeholder={isBanned ? 'You are banned from chat' : cooldown ? 'Wait...' : 'Type a message...'}
               disabled={cooldown || isBanned}
               className="flex-1 bg-slate-800 text-white text-sm rounded px-3 py-2 outline-none focus:ring-1 focus:ring-sky-500 placeholder-slate-500 disabled:opacity-50"

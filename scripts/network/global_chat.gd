@@ -37,8 +37,12 @@ var _http_fetch: HTTPRequest
 var _http_send: HTTPRequest
 var _http_channels: HTTPRequest
 var _http_whispers: HTTPRequest
+var _http_lookup: HTTPRequest
+var _http_batch_lookup: HTTPRequest
 var _fetch_busy: bool = false
 var _channels_busy: bool = false
+var _pending_whisper_msg: String = ""
+var _pending_whisper_target: String = ""
 var _visibility_check_queued: bool = false
 var _subscribed: bool = false
 var _send_cooldown: float = 0.0
@@ -58,6 +62,17 @@ var _channel_unread: Dictionary = {}
 
 ## Tab button references: { channel_id: Button }
 var _tab_buttons: Dictionary = {}
+
+## Cache of user_id -> display_name for whisper targets
+var _display_name_cache: Dictionary = {}
+
+## All players for whisper suggestions: { user_id: display_name }
+var _all_players: Dictionary = {}
+var _players_loaded: bool = false
+var _http_players: HTTPRequest
+
+var _suggestion_panel: PanelContainer
+var _suggestion_list: VBoxContainer
 
 
 func _ready() -> void:
@@ -89,6 +104,18 @@ func _setup_http() -> void:
 	_http_whispers = HTTPRequest.new()
 	_http_whispers.request_completed.connect(_on_whispers_response)
 	add_child(_http_whispers)
+
+	_http_lookup = HTTPRequest.new()
+	_http_lookup.request_completed.connect(_on_lookup_response)
+	add_child(_http_lookup)
+
+	_http_batch_lookup = HTTPRequest.new()
+	_http_batch_lookup.request_completed.connect(_on_batch_lookup_response)
+	add_child(_http_batch_lookup)
+
+	_http_players = HTTPRequest.new()
+	_http_players.request_completed.connect(_on_players_response)
+	add_child(_http_players)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -201,6 +228,98 @@ func _build_ui() -> void:
 	_chat_send_button.custom_minimum_size = Vector2(70, 38)
 	_chat_send_button.pressed.connect(_submit_chat)
 	input_row.add_child(_chat_send_button)
+
+	_chat_input.text_changed.connect(_on_input_text_changed)
+
+	# Whisper suggestion popup - sits above the input row
+	_suggestion_panel = PanelContainer.new()
+	_suggestion_panel.visible = false
+	_suggestion_panel.custom_minimum_size = Vector2(200, 0)
+	vbox.move_child(input_row, -1)
+	vbox.add_child(_suggestion_panel)
+	vbox.move_child(_suggestion_panel, input_row.get_index())
+
+	var suggestion_margin := MarginContainer.new()
+	suggestion_margin.add_theme_constant_override("margin_left", 4)
+	suggestion_margin.add_theme_constant_override("margin_top", 4)
+	suggestion_margin.add_theme_constant_override("margin_right", 4)
+	suggestion_margin.add_theme_constant_override("margin_bottom", 4)
+	_suggestion_panel.add_child(suggestion_margin)
+
+	_suggestion_list = VBoxContainer.new()
+	_suggestion_list.add_theme_constant_override("separation", 2)
+	suggestion_margin.add_child(_suggestion_list)
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Whisper suggestions
+# ─────────────────────────────────────────────────────────────────────────
+
+func _on_input_text_changed(new_text: String) -> void:
+	if new_text.begins_with("/w "):
+		if not _players_loaded:
+			_fetch_all_players()
+		var partial := new_text.substr(3).strip_edges().to_lower()
+		_show_suggestions(partial)
+	else:
+		_suggestion_panel.visible = false
+
+
+func _fetch_all_players() -> void:
+	if not SupabaseAuth.is_signed_in:
+		return
+	var url := "%s/rest/v1/player_profiles?select=id,display_name&id=neq.%s&order=display_name" % [SupabaseAuth.SUPABASE_URL, SupabaseAuth.user_id]
+	_http_players.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
+
+
+func _on_players_response(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if response_code != 200:
+		return
+	_players_loaded = true
+	var parsed := _parse_body_array(body)
+	for entry in parsed:
+		var uid: String = str(entry.get("id", ""))
+		var dname: String = str(entry.get("display_name", ""))
+		if not uid.is_empty() and not dname.is_empty():
+			_all_players[uid] = dname
+	if _chat_input.text.begins_with("/w "):
+		var partial := _chat_input.text.substr(3).strip_edges().to_lower()
+		_show_suggestions(partial)
+
+
+func _show_suggestions(partial: String) -> void:
+	for child in _suggestion_list.get_children():
+		child.queue_free()
+
+	var matches: Array[String] = []
+	for uid in _all_players:
+		var name: String = _all_players[uid]
+		if partial.is_empty() or name.to_lower().begins_with(partial):
+			matches.append(name)
+	if matches.size() > 8:
+		matches.resize(8)
+
+	if matches.is_empty():
+		_suggestion_panel.visible = false
+		return
+
+	for name in matches:
+		var btn := Button.new()
+		btn.text = name
+		btn.add_theme_font_size_override("font_size", 16)
+		btn.custom_minimum_size = Vector2(0, 30)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.pressed.connect(_on_suggestion_picked.bind(name))
+		_suggestion_list.add_child(btn)
+
+	_suggestion_panel.visible = true
+
+
+func _on_suggestion_picked(name: String) -> void:
+	_chat_input.text = "/w %s " % name
+	_chat_input.caret_column = _chat_input.text.length()
+	_chat_input.grab_focus()
+	_suggestion_panel.visible = false
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -411,9 +530,82 @@ func _submit_chat() -> void:
 		return
 	_chat_input.text = ""
 	_chat_input.grab_focus()
-	_send_message(msg)
+
+	if msg.begins_with("/w "):
+		var parts := msg.substr(3).strip_edges()
+		var space_pos := parts.find(" ")
+		if space_pos < 1:
+			_show_system_message("Usage: /w PlayerName message")
+			return
+		var target_name := parts.substr(0, space_pos).strip_edges()
+		var whisper_text := parts.substr(space_pos + 1).strip_edges()
+		if whisper_text.is_empty():
+			_show_system_message("Usage: /w PlayerName message")
+			return
+		_start_whisper(target_name, whisper_text)
+	else:
+		_send_message(msg)
+
 	_send_cooldown = SEND_COOLDOWN_SEC
 	_chat_send_button.disabled = true
+
+
+func _show_system_message(text: String) -> void:
+	var line := RichTextLabel.new()
+	line.bbcode_enabled = true
+	line.fit_content = true
+	line.scroll_active = false
+	line.add_theme_font_size_override("normal_font_size", 18)
+	line.text = "[color=red]%s[/color]" % text
+	_chat_messages_container.add_child(line)
+	_scroll_to_bottom()
+
+
+func _start_whisper(target_name: String, whisper_text: String) -> void:
+	_pending_whisper_target = target_name
+	_pending_whisper_msg = whisper_text
+	var url := "%s/rest/v1/player_profiles?display_name=eq.%s&select=id,display_name" % [SupabaseAuth.SUPABASE_URL, target_name.uri_encode()]
+	_http_lookup.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
+
+
+func _on_lookup_response(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if response_code != 200:
+		_show_system_message("Could not look up player.")
+		return
+	var parsed := _parse_body_array(body)
+	if parsed.is_empty():
+		_show_system_message("Player '%s' not found." % _pending_whisper_target)
+		return
+	var target_id: String = str(parsed[0].get("id", ""))
+	var target_display: String = str(parsed[0].get("display_name", _pending_whisper_target))
+	if target_id.is_empty():
+		_show_system_message("Player '%s' not found." % _pending_whisper_target)
+		return
+	if target_id == SupabaseAuth.user_id:
+		_show_system_message("You can't whisper to yourself.")
+		return
+	_display_name_cache[target_id] = target_display
+	_send_whisper(target_id, _pending_whisper_msg)
+	_pending_whisper_target = ""
+	_pending_whisper_msg = ""
+
+
+func _send_whisper(target_id: String, msg: String) -> void:
+	var tagged_name := SupabaseAuth.display_name
+	if SupabaseAuth.regiment_tag != "":
+		tagged_name = "%s %s" % [SupabaseAuth.regiment_tag, tagged_name]
+	var payload := {
+		"user_id": SupabaseAuth.user_id,
+		"display_name": tagged_name,
+		"message": msg,
+		"channel": "global",
+		"is_whisper": true,
+		"whisper_to": target_id,
+	}
+	if not _active_channel_id.is_empty():
+		payload["channel_id"] = _active_channel_id
+	var url := "%s/rest/v1/chat_messages" % SupabaseAuth.SUPABASE_URL
+	_http_send.request(url, _bearer_headers(), HTTPClient.METHOD_POST, JSON.stringify(payload))
 
 
 func _send_message(msg: String) -> void:
@@ -461,8 +653,34 @@ func _on_whispers_response(_result: int, response_code: int, _headers: PackedStr
 	if response_code != 200:
 		return
 	var parsed := _parse_body_array(body)
+	var lookup_ids: Array[String] = []
 	for msg_dict in parsed:
 		_apply_single_message(msg_dict as Dictionary, true)
+		var wt: String = str(msg_dict.get("whisper_to", ""))
+		var sender_id: String = str(msg_dict.get("user_id", ""))
+		if not wt.is_empty() and sender_id == SupabaseAuth.user_id and not _display_name_cache.has(wt):
+			if wt not in lookup_ids:
+				lookup_ids.append(wt)
+	_refresh_message_display()
+	if not lookup_ids.is_empty():
+		_batch_lookup_names(lookup_ids)
+
+
+func _batch_lookup_names(ids: Array[String]) -> void:
+	var id_list := ",".join(ids)
+	var url := "%s/rest/v1/player_profiles?id=in.(%s)&select=id,display_name" % [SupabaseAuth.SUPABASE_URL, id_list]
+	_http_batch_lookup.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
+
+
+func _on_batch_lookup_response(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if response_code != 200:
+		return
+	var parsed := _parse_body_array(body)
+	for entry in parsed:
+		var uid: String = str(entry.get("id", ""))
+		var dname: String = str(entry.get("display_name", ""))
+		if not uid.is_empty() and not dname.is_empty():
+			_display_name_cache[uid] = dname
 	_refresh_message_display()
 
 
@@ -565,10 +783,18 @@ func _render_message(msg: Dictionary) -> void:
 	var is_self: bool = (msg_user_id == SupabaseAuth.user_id)
 
 	if is_whisper:
-		var whisper_label := "to" if is_self else "from"
-		line.text = "[color=gray]%s[/color] [color=magenta][whisper %s %s][/color] %s" % [
-			time_display, whisper_label, sender, text
-		]
+		var whisper_name: String
+		if is_self:
+			var target_id: String = str(msg.get("whisper_to", ""))
+			whisper_name = _display_name_cache.get(target_id, target_id)
+			line.text = "[color=gray]%s[/color] [color=magenta][whisper to %s][/color] %s" % [
+				time_display, whisper_name, text
+			]
+		else:
+			whisper_name = sender
+			line.text = "[color=gray]%s[/color] [color=magenta][whisper from %s][/color] %s" % [
+				time_display, whisper_name, text
+			]
 	else:
 		var name_color: String = "cyan" if is_self else "yellow"
 		line.text = "[color=gray]%s[/color] [color=%s][%s][/color] %s" % [
