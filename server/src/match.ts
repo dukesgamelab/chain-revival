@@ -441,7 +441,8 @@ export class LocalMatch {
       return;
     }
 
-    const result = executeMove(this.gameState, intent, client.teamId);
+    const deploymentLocked = this.deploymentRemainingSec > 0;
+    const result = executeMove(this.gameState, intent, client.teamId, deploymentLocked);
     const payload = toMoveResultPayload(this.matchId, intent.requestId, result);
     this.broadcast(payload);
     console.log(

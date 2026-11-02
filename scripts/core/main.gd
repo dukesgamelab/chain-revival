@@ -3176,6 +3176,14 @@ func _grenade_preview_shooter() -> SoldierState:
 
 func _apply_move_command(cmd: MoveCommand) -> void:
 	if GameModeManager.is_local_multiplayer():
+		if (
+			_game_state.locks_deployment_zone()
+			and not _game_state.map_data.is_deployment_cell(cmd.team_id, cmd.target_cell)
+		):
+			_present_action_result(
+				ActionResultClass.fail("Stay in the deployment zone until the countdown ends.")
+			)
+			return
 		_ensure_multiplayer_result_signals()
 		var net_result: ActionResultClass = await NetworkClient.submit_move_and_wait(cmd)
 		_on_network_move_result(net_result, "")
