@@ -1541,6 +1541,8 @@ static func apply_suppression_from_shot(
 	if target.position_state == PositionStateClass.DOWN:
 		stance_mult = policy.prone_suppression_mult
 	gain *= cover_mult * stance_mult
+	if shooter.sustained_fire:
+		gain *= policy.sustained_fire_suppression_mult
 	if gain <= 0.0:
 		return
 	## Cap at max_stress only (OG INITMaxStressOut → 100). StressLimit is a range

@@ -93,7 +93,8 @@
 		"suppression_bar": 0.6,
 		"suppression_smg": 2.0,
 		"suppression_default": 0.25,
-		"max_stress": 100.0
+		"max_stress": 100.0,
+		"sustained_fire_suppression_mult": 1.5
 	},
 	"movement": {
 		"comment": "Speeds TUNED. Type/Move multipliers TUNED so walking/running on open ground is easier to hit. Angle sine on RUN and WALK. approach_hit_bonus when heading toward the shooter.",

@@ -143,7 +143,15 @@ export function applyStressDecay(
   return Math.max(0, runtimeStress * retain);
 }
 
-export { MAX_STRESS };
+export { MAX_STRESS, BAND_PINNED, BAND_PANICKED };
+
+export function isStressPinned(stress: number): boolean {
+  return stress >= BAND_PINNED;
+}
+
+export function isStressPanicked(stress: number): boolean {
+  return stress >= BAND_PANICKED;
+}
 
 function clamp(n: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, n));

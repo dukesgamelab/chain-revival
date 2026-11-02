@@ -85,33 +85,34 @@ Enabled on: `player_profiles`, `match_history`, `regiments`, `regiment_members`,
 - **Remote:** GitHub, user `dukesgamelab`
 - **No Claude attribution.** Never add `Co-Authored-By` lines or any Claude/Anthropic references to commits or PRs. All commits must appear as solely by `dukesgamelab`.
 
-## Current Work - Combat Realism (branch: combat-realism)
+## Current Work - Suppression & Pinning (branch: suppression-pinning)
 
 **No SQL migrations needed.**
 
 **Features complete:**
-- Friendly grenade damage/stun - grenades affect same-team soldiers (client + server)
-- Throw preview line turns yellow when friendlies are in blast radius
-- Lethality multiplier tuned from 0.9 to 0.6 for balanced no-wound-state play
-- Crawl animation regression fix - CRAWL forces prone stance
-- Mid-move mode switch now updates speed immediately
-- Post-stun movement mode resets to RUN
-- Repeated-click move bug fix - early return when already heading to target
-- Move redirect snap-back fix - smooth visual blending instead of snapping back to grid position
+- Sustained fire suppression bonus - Fire At shots generate 1.5x suppression stress (configurable)
+- Panicked grenade block - soldiers at stress >= 70 cannot throw grenades
+- Server-side panicked enforcement - Fire At and grenade rejection now enforced server-side (was client-only)
+- UI stress colors and band labels - "Pinned 52%" with color coding (white/yellow/orange/red/dark red)
+- Button disabling - Fire At and Grenade grey out when soldier is panicked
+- Soldier sprite stress tint - subtle warm modulate at pinned/panicked thresholds
+- Exported `isStressPinned()` / `isStressPanicked()` helpers on server
 
 **Key files changed:**
-- `scripts/combat/combat_system.gd` - Friendly grenade damage in blast resolution
-- `scripts/core/action_resolver.gd` - Move fixes (same-target, redirect halt removal, crawl, mid-move speed)
-- `scripts/core/main.gd` - Grenade preview wiring (friendly warning)
-- `scripts/effects/los_visualizer.gd` - Yellow warning line for friendly fire
-- `scripts/soldiers/soldier_state.gd` - Post-stun RUN reset
-- `scripts/tests/gameplay_foundation_tests.gd` - Updated lethality test assertions
-- `assets/data/gameplay_policies.json` - Lethality 0.9 -> 0.6
-- `server/src/action_resolver.ts` - Server-side move fixes (same-target, redirect halt removal)
-- `server/src/grenade_system.ts` - Server-side friendly grenade damage, post-stun RUN reset
-- `server/src/hit_resolution.ts` - Server-side lethality 0.9 -> 0.6
+- `scripts/combat/combat_system.gd` - Sustained fire suppression multiplier in `apply_suppression_from_shot`
+- `scripts/core/action_resolver.gd` - Panicked grenade rejection in `execute_grenade`
+- `scripts/ui/soldier_command_row.gd` - Stress color/label, button enable methods, status colors
+- `scripts/ui/command_bar.gd` - Panicked button disabling in `sync_soldier_row`
+- `scripts/soldiers/soldier.gd` - Stress tint in `_apply_fog_visual`
+- `scripts/gameplay_policies/suppression_policy.gd` - `sustained_fire_suppression_mult` field
+- `assets/data/gameplay_policies.json` - Added `sustained_fire_suppression_mult: 1.5`
+- `server/src/stress_accuracy.ts` - Exported `isStressPinned`, `isStressPanicked`, band constants
+- `server/src/action_resolver.ts` - Server-side panicked Fire At rejection
+- `server/src/grenade_system.ts` - Server-side panicked grenade rejection
+- `server/src/combat_system.ts` - Server sustained fire suppression multiplier
+- `scripts/tests/gameplay_foundation_tests.gd` - Tests for sustained fire mult, panicked grenade block, stress labels
 
-**Status:** All changes committed on `combat-realism` branch. When ready to merge, PR should target `develop`.
+**Status:** All changes committed on `suppression-pinning` branch. When ready to merge, PR should target `develop`.
 
 ## Deployment
 

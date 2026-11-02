@@ -155,9 +155,12 @@ gain = (stress_limit_tiles - range) * suppression_generated * STRESS_SCALE * cov
 
 Beyond `stress_limit_tiles` (25 for rifles/LMGs, 13 for SMGs), the weapon generates zero suppression.
 
+**Sustained fire bonus:** Shots from a sustained Fire At order multiply suppression gain by 1.5x (`sustained_fire_suppression_mult`). This is the primary pinning mechanic - focused fire builds stress faster than auto-fire.
+
 **Examples:**
-- Rifle at 10 tiles: ~53.6 stress per shot
+- Rifle at 10 tiles: ~53.6 stress per shot (~80.4 sustained)
 - SMG at 5 tiles: ~228.6 (capped at 100)
+- LMG at 10 tiles: ~128.6 (capped at 100)
 - LMG at 10 tiles: ~128.6 (capped at 100)
 
 ### Stress Bands
@@ -169,6 +172,10 @@ Beyond `stress_limit_tiles` (25 for rifles/LMGs, 13 for SMGs), the weapon genera
 | Suppressed | 25-45 | 0.75x | 1.15x |
 | Pinned | 45-70 | 0.5x | 1.3x |
 | Panicked | 70+ | 0.35x | 1.5x |
+
+**Panicked restrictions:** Panicked soldiers (stress >= 70) cannot use Fire At or throw grenades. Orders are rejected with a notice. These restrictions are enforced both client-side and server-side.
+
+**Visual feedback:** Stress is shown in the command row as band name + percentage with color coding (white/yellow/orange/red/dark red). Soldier sprites get a subtle warm tint at pinned and panicked thresholds. Fire At and Grenade buttons grey out when a soldier is panicked.
 
 ### Stress Accuracy
 

@@ -1084,6 +1084,8 @@ static func execute_grenade(
 		return ActionResult.fail("Soldier unavailable.")
 	if soldier.is_stunned():
 		return ActionResult.fail("Soldier is stunned.")
+	if CombatSystem.is_stress_panicked(soldier.stress):
+		return ActionResult.fail("Soldier is panicked and cannot throw.")
 	if soldier.has_pending_grenade():
 		return ActionResult.fail("Soldier already has a grenade in the air.")
 	if soldier.grenade_count <= 0:

@@ -14,8 +14,13 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - **Server-side DZ enforcement** (Phase 43) - Server validates deployment zone boundaries during the 15s deployment phase. Moves outside your team's DZ are blocked. Server-only change, no client build needed
 - **Friendly grenade damage** (Phase 44) - Grenades now damage and stun same-team soldiers. Throw preview line turns yellow when friendlies are in blast radius. AI avoids friendly fire automatically
 - **Lethality rebalance** (Phase 44) - Lethality multiplier tuned from 0.9 to 0.6 for balanced no-wound-state play
+- **Sustained fire suppression** (Phase 45) - Fire At (sustained fire) generates 1.5x suppression stress, making focused fire the way to pin enemies
+- **Panicked restrictions** (Phase 45) - Panicked soldiers (stress >= 70) cannot throw grenades or use Fire At. Server-side enforcement added
+- **Stress UI feedback** (Phase 45) - Stress label shows band name + color (Nervous/Suppressed/Pinned/Panicked). Fire At and Grenade buttons grey out when panicked. Soldier sprites get a subtle warm tint at high stress
 
 ### Bug Fixes
+
+- Fixed server not enforcing panicked Fire At rejection - previously client-only (Phase 45)
 
 - Fixed admin dashboard player role assignment
 - Fixed crawl animation regression - CRAWL now forces prone stance (Phase 44)
@@ -98,6 +103,21 @@ Copy this into website patch notes when cutting the next release build. Remove i
 ---
 
 ## Phase Details
+
+### Phase 45 - Suppression & Pinning
+
+**Goal:** Make sustained fire a real tactical tool - focused fire builds stress faster, panicked soldiers can't throw grenades, and the UI shows stress state clearly.
+
+**What Changed:**
+
+- **Sustained fire suppression bonus** (`combat_system.gd`, `combat_system.ts`): Shots from a sustained Fire At engagement generate 1.5x suppression stress. Configurable via `sustained_fire_suppression_mult` in `gameplay_policies.json`. This is the core pinning mechanic - focus fire on a position to degrade and suppress enemies
+- **Panicked grenade block** (`action_resolver.gd`, `grenade_system.ts`): Panicked soldiers (stress >= 70) cannot throw grenades. Rejected with "Soldier is panicked and cannot throw."
+- **Server-side panicked enforcement** (`action_resolver.ts`, `grenade_system.ts`, `stress_accuracy.ts`): Server now rejects Fire At and grenade orders from panicked soldiers. Previously the panic Fire At check was client-only (security gap). Added `isStressPanicked()` and `isStressPinned()` helpers
+- **UI stress colors and band labels** (`soldier_command_row.gd`): Stress label now shows band name + percentage ("Pinned 52%") with color coding - white (calm), yellow (nervous), orange (suppressed), red (pinned), dark red (panicked). Activity status "Pinned" and "Panicked" also colored
+- **Button disabling** (`command_bar.gd`, `soldier_command_row.gd`): Fire At and Grenade buttons grey out when a soldier is panicked
+- **Soldier sprite stress tint** (`soldier.gd`): Subtle warm modulate tint on soldiers at pinned (>= 45) and panicked (>= 70) stress levels. Visible on both friendly and enemy soldiers
+
+No migration needed. Both client and server changes.
 
 ### Phase 44 - Combat Realism
 
@@ -261,7 +281,7 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 | Phase | Name | Scope | Priority |
 |-------|------|-------|----------|
 | ~~44~~ | ~~Combat realism~~ | ~~Done - friendly grenades, lethality 0.6, movement fixes~~ | ~~Complete~~ |
-| 45 | Suppression & pinning | Sustained fire pins soldiers, morale/stress effects | v1 required |
+| ~~45~~ | ~~Suppression & pinning~~ | ~~Done - sustained fire 1.5x suppression, panicked blocks, UI stress feedback~~ | ~~Complete~~ |
 | 46 | Reconnect fix | Fix broken 90s reconnect - timer, countdown, "no games available" bug | v1 required |
 | 47 | Combat keybinds | OG-style keyboard shortcuts (D/W/R/C/F/G/P/H etc.), field report panel | v1 required |
 | 48 | PP balance & career rewards | PP lost on killed-by-rank, Medal of Courage payouts | v1 required |

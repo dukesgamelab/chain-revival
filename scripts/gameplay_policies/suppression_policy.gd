@@ -57,6 +57,7 @@ const DEFAULT_SUPPRESSION_SMG := 2.0
 const DEFAULT_SUPPRESSION_LMG := 0.6
 const DEFAULT_SUPPRESSION_DEFAULT := 0.25
 const DEFAULT_STRESS_LIMIT_TILES := 25.0 ## RECOVERED rifle/LMG StressLimit
+const DEFAULT_SUSTAINED_FIRE_SUPPRESSION_MULT := 1.5
 
 ## PROBABLE default experience for effective_tier = experience − stress_original.
 ## Not proven — change effective_tier_from_stress() if the axis is pure stress.
@@ -98,6 +99,7 @@ var suppression_mg42: float = DEFAULT_SUPPRESSION_LMG
 var suppression_bar: float = DEFAULT_SUPPRESSION_LMG
 var suppression_smg: float = DEFAULT_SUPPRESSION_SMG
 var suppression_default: float = DEFAULT_SUPPRESSION_DEFAULT
+var sustained_fire_suppression_mult: float = DEFAULT_SUSTAINED_FIRE_SUPPRESSION_MULT
 ## Legacy absolute recovery (unused when fall multiplier is active); config may still set.
 var recovery_per_tick: float = 0.15
 var recovery_prone_per_tick: float = 0.25
@@ -130,6 +132,7 @@ func reset_to_defaults() -> void:
 	suppression_bar = DEFAULT_SUPPRESSION_LMG
 	suppression_smg = DEFAULT_SUPPRESSION_SMG
 	suppression_default = DEFAULT_SUPPRESSION_DEFAULT
+	sustained_fire_suppression_mult = DEFAULT_SUSTAINED_FIRE_SUPPRESSION_MULT
 	recovery_per_tick = 0.15
 	recovery_prone_per_tick = 0.25
 	accuracy_by_band = [1.0, 0.85, 0.65, 0.4, 0.2]
@@ -351,6 +354,8 @@ func apply_config(section: Dictionary) -> void:
 		suppression_smg = float(section.suppression_smg)
 	if section.has("suppression_default"):
 		suppression_default = float(section.suppression_default)
+	if section.has("sustained_fire_suppression_mult"):
+		sustained_fire_suppression_mult = float(section.sustained_fire_suppression_mult)
 	if section.has("max_stress"):
 		max_stress = float(section.max_stress)
 	if section.has("stress_base"):
