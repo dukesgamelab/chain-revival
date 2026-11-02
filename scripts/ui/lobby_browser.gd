@@ -19,6 +19,11 @@ const MapDataClass := preload("res://scripts/map/map_data.gd")
 
 const ONLINE_SERVER_URL := "wss://chain-revival-ax0q1g.fly.dev"
 
+static func _effective_server_url() -> String:
+	if NetworkClient.server_url != NetworkClient.DEFAULT_SERVER_URL:
+		return NetworkClient.server_url
+	return ONLINE_SERVER_URL
+
 const BASE_ROOM_PATTERN := [
 	{"name": "Open Game", "type": "open"},
 	{"name": "Open Game", "type": "open"},
@@ -706,7 +711,7 @@ func _on_briefing_confirm() -> void:
 	_active_room_number = room_number
 	_close_briefing()
 	_set_status("Creating game in Room %d..." % room_number, Color.WHITE)
-	_lobby_client.create_lobby(match_name, ONLINE_SERVER_URL, map_id, team_size, room_number, match_length_sec, host_regiment_id)
+	_lobby_client.create_lobby(match_name, _effective_server_url(), map_id, team_size, room_number, match_length_sec, host_regiment_id)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -849,7 +854,7 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 					_set_status("All players joined! Starting match...", Color.GREEN)
 					var host_url: String = lobby.get("server_url", "")
 					if host_url.is_empty():
-						host_url = "ws://127.0.0.1:3000"
+						host_url = _effective_server_url()
 					var lobby_map: String = lobby.get("map_id", "")
 					var lobby_team_size: int = lobby.get("team_size", 1)
 					var lobby_length: int = lobby.get("match_length_sec", 900)
@@ -944,7 +949,7 @@ func _on_lobby_joined(lobby: Dictionary) -> void:
 		_set_status("Joined! Starting match...", Color.GREEN)
 		var server_url: String = lobby.get("server_url", "")
 		if server_url.is_empty():
-			server_url = "ws://127.0.0.1:3000"
+			server_url = _effective_server_url()
 		var lobby_map: String = lobby.get("map_id", "")
 		var lobby_team_size: int = lobby.get("team_size", 1)
 		var lobby_length: int = lobby.get("match_length_sec", 900)

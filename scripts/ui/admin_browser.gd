@@ -9,6 +9,11 @@ const MODE_SELECT_SCENE := "res://scenes/mode_select.tscn"
 const RegimentClientClass := preload("res://scripts/network/regiment_client.gd")
 const ONLINE_SERVER_URL := "wss://chain-revival-ax0q1g.fly.dev"
 
+static func _effective_server_url() -> String:
+	if NetworkClient.server_url != NetworkClient.DEFAULT_SERVER_URL:
+		return NetworkClient.server_url
+	return ONLINE_SERVER_URL
+
 const RANK_LABELS := ["PVT", "PFC", "CPL", "SGT", "SSG", "SFC", "MSG", "2LT", "1LT", "CPT"]
 
 var _regiment_client: Node
@@ -220,9 +225,10 @@ func _on_kick_pressed(player_id: String) -> void:
 	# Open a temporary WebSocket to the game server
 	_kick_socket = WebSocketPeer.new()
 	var tls_opts: TLSOptions = null
-	if ONLINE_SERVER_URL.begins_with("wss://"):
+	var url := _effective_server_url()
+	if url.begins_with("wss://"):
 		tls_opts = TLSOptions.client()
-	var err := _kick_socket.connect_to_url(ONLINE_SERVER_URL, tls_opts)
+	var err := _kick_socket.connect_to_url(url, tls_opts)
 	if err != OK:
 		_status_label.text = "Failed to connect to game server."
 		_kick_state = ""

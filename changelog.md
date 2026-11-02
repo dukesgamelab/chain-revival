@@ -99,6 +99,7 @@ Copy this into website patch notes when cutting the next release build. Remove i
 | 41-42 | Chat channels & whispers (multi-channel, custom channels, /w whisper, click-to-whisper) |
 | 43 | Server-side DZ enforcement |
 | 44 | Combat realism (friendly grenades, lethality tuning, movement fixes) |
+| 45 | Suppression & pinning (sustained fire bonus, panicked restrictions, stress UI) |
 
 ---
 

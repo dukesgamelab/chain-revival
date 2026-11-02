@@ -157,7 +157,7 @@ vertical_alignment = 1
 clip_text = true
 
 [node name="StressPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(42, 18)
+custom_minimum_size = Vector2(105, 18)
 layout_mode = 2
 
 [node name="StressLabel" type="Label" parent="StressPanel"]
