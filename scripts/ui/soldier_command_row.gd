@@ -32,6 +32,7 @@ signal ammo_adjust_requested(soldier_id: int, delta: int)
 @onready var _hit_label: Label = %HitLabel
 
 var _row_enabled: bool = true
+var _fire_at_force_disabled: bool = false
 var _move_buttons: Dictionary = {}
 var _team_id: int = Team.USA
 ## Stance for Down/Up label; button itself stays momentary (not latched).
@@ -213,7 +214,7 @@ func set_row_enabled(enabled: bool) -> void:
 		_update_fire_at_highlight(false)
 		_fire_at_button.set_block_signals(false)
 	_row_enabled = enabled
-	_fire_at_button.disabled = not enabled
+	_fire_at_button.disabled = not enabled or _fire_at_force_disabled
 	_run_to_button.disabled = not enabled
 	_crawl_to_button.disabled = not enabled
 	_hold_fire_button.disabled = not enabled
@@ -247,6 +248,7 @@ func set_button_mask(mask: Dictionary) -> void:
 
 
 func set_fire_at_button_enabled(enabled: bool) -> void:
+	_fire_at_force_disabled = not enabled
 	_fire_at_button.disabled = not _row_enabled or not enabled
 	if not enabled and _fire_at_button.button_pressed:
 		_fire_at_button.set_pressed_no_signal(false)

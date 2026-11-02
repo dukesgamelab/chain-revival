@@ -336,7 +336,7 @@ func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0
 	var panicked := CombatSystem.is_stress_panicked(state.stress)
 	var can_act := alive and not state.is_stunned()
 	row.set_fire_at_button_enabled(can_act and not panicked)
-	row.set_grenade_button_enabled(can_act and not panicked)
+	row.set_grenade_button_enabled(can_act)
 
 
 func set_soldier_row_interactive(row_index: int, enabled: bool) -> void:

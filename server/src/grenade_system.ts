@@ -18,7 +18,6 @@ import {
   type Vec2i,
   type GrenadeCommandIntent,
 } from "./types";
-import { isStressPanicked } from "./stress_accuracy";
 
 // --- Grenade constants (from GrenadePolicy) ---
 
@@ -143,10 +142,6 @@ export function executeGrenade(
   }
   if (soldier.isStunned(state.clock.getTicksMsec())) {
     result.statusMessage = "Soldier is stunned.";
-    return result;
-  }
-  if (isStressPanicked(soldier.stress)) {
-    result.statusMessage = "Soldier is panicked and cannot throw.";
     return result;
   }
   if (soldier.grenadeExplodeAtMsec > 0) {

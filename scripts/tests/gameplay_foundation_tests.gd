@@ -2610,8 +2610,8 @@ func _test_panicked_grenade_rejected() -> void:
 		game_state, cmd, CommandContextClass.new(),
 	)
 	_assert(
-		"Panicked soldier grenade is rejected",
-		not result.success,
+		"Panicked soldier can still throw grenades",
+		result.success,
 		result.status_message,
 	)
 
