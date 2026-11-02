@@ -178,7 +178,7 @@ func _build_ui() -> void:
 	add_child(center)
 
 	var outer_panel := PanelContainer.new()
-	outer_panel.custom_minimum_size = Vector2(780, 520)
+	outer_panel.custom_minimum_size = Vector2(860, 600)
 	center.add_child(outer_panel)
 
 	var margin := MarginContainer.new()
@@ -197,14 +197,14 @@ func _build_ui() -> void:
 	var title := Label.new()
 	title.text = "Game Rooms"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_font_size_override("font_size", 24)
 	vbox.add_child(title)
 
 	# Status
 	_status_label = Label.new()
 	_status_label.text = "Loading rooms..."
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_label.add_theme_font_size_override("font_size", 11)
+	_status_label.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(_status_label)
 
 	# Room grid header
@@ -225,32 +225,37 @@ func _build_ui() -> void:
 	_refresh_button = Button.new()
 	_refresh_button.text = "Refresh"
 	_refresh_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_refresh_button.custom_minimum_size = Vector2(0, 34)
+	_refresh_button.custom_minimum_size = Vector2(0, 42)
+	_refresh_button.add_theme_font_size_override("font_size", 18)
 	btn_row.add_child(_refresh_button)
 
 	_leaderboard_button = Button.new()
 	_leaderboard_button.text = "Leaderboard"
 	_leaderboard_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_leaderboard_button.custom_minimum_size = Vector2(0, 34)
+	_leaderboard_button.custom_minimum_size = Vector2(0, 42)
+	_leaderboard_button.add_theme_font_size_override("font_size", 18)
 	btn_row.add_child(_leaderboard_button)
 
 	_regiments_button = Button.new()
 	_regiments_button.text = "Regiments"
 	_regiments_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_regiments_button.custom_minimum_size = Vector2(0, 34)
+	_regiments_button.custom_minimum_size = Vector2(0, 42)
+	_regiments_button.add_theme_font_size_override("font_size", 18)
 	btn_row.add_child(_regiments_button)
 
 	if SupabaseAuth.is_admin or SupabaseAuth.is_moderator:
 		_admin_button = Button.new()
 		_admin_button.text = "Admin"
 		_admin_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_admin_button.custom_minimum_size = Vector2(0, 34)
+		_admin_button.custom_minimum_size = Vector2(0, 42)
+		_admin_button.add_theme_font_size_override("font_size", 18)
 		btn_row.add_child(_admin_button)
 
 	_back_button = Button.new()
 	_back_button.text = "Back"
 	_back_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_back_button.custom_minimum_size = Vector2(0, 34)
+	_back_button.custom_minimum_size = Vector2(0, 42)
+	_back_button.add_theme_font_size_override("font_size", 18)
 	btn_row.add_child(_back_button)
 
 	# Build briefing dialog (hidden until needed)
@@ -265,36 +270,36 @@ func _build_grid_header() -> HBoxContainer:
 
 	var col_num := Label.new()
 	col_num.text = "Room"
-	col_num.custom_minimum_size = Vector2(44, 0)
+	col_num.custom_minimum_size = Vector2(50, 0)
 	col_num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	col_num.add_theme_font_size_override("font_size", 11)
+	col_num.add_theme_font_size_override("font_size", 15)
 	col_num.add_theme_color_override("font_color", hdr_color)
 	header.add_child(col_num)
 
 	var col_desc := Label.new()
 	col_desc.text = "Description"
 	col_desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	col_desc.add_theme_font_size_override("font_size", 11)
+	col_desc.add_theme_font_size_override("font_size", 15)
 	col_desc.add_theme_color_override("font_color", hdr_color)
 	header.add_child(col_desc)
 
 	var col_type := Label.new()
 	col_type.text = "Type"
-	col_type.custom_minimum_size = Vector2(80, 0)
-	col_type.add_theme_font_size_override("font_size", 11)
+	col_type.custom_minimum_size = Vector2(100, 0)
+	col_type.add_theme_font_size_override("font_size", 15)
 	col_type.add_theme_color_override("font_color", hdr_color)
 	header.add_child(col_type)
 
 	var col_players := Label.new()
 	col_players.text = "Players"
-	col_players.custom_minimum_size = Vector2(55, 0)
-	col_players.add_theme_font_size_override("font_size", 11)
+	col_players.custom_minimum_size = Vector2(65, 0)
+	col_players.add_theme_font_size_override("font_size", 15)
 	col_players.add_theme_color_override("font_color", hdr_color)
 	header.add_child(col_players)
 
 	var col_action := Label.new()
 	col_action.text = ""
-	col_action.custom_minimum_size = Vector2(90, 0)
+	col_action.custom_minimum_size = Vector2(110, 0)
 	header.add_child(col_action)
 
 	return header
@@ -302,13 +307,13 @@ func _build_grid_header() -> HBoxContainer:
 
 func _build_room_row(room_cfg: Dictionary) -> PanelContainer:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(0, 30)
+	panel.custom_minimum_size = Vector2(0, 40)
 
 	var margin_wrap := MarginContainer.new()
 	margin_wrap.add_theme_constant_override("margin_left", 4)
 	margin_wrap.add_theme_constant_override("margin_right", 4)
-	margin_wrap.add_theme_constant_override("margin_top", 2)
-	margin_wrap.add_theme_constant_override("margin_bottom", 2)
+	margin_wrap.add_theme_constant_override("margin_top", 4)
+	margin_wrap.add_theme_constant_override("margin_bottom", 4)
 	panel.add_child(margin_wrap)
 
 	var inner_row := HBoxContainer.new()
@@ -318,16 +323,16 @@ func _build_room_row(room_cfg: Dictionary) -> PanelContainer:
 	# Room number
 	var num_label := Label.new()
 	num_label.text = str(room_cfg["number"])
-	num_label.custom_minimum_size = Vector2(44, 0)
+	num_label.custom_minimum_size = Vector2(50, 0)
 	num_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	num_label.add_theme_font_size_override("font_size", 12)
+	num_label.add_theme_font_size_override("font_size", 18)
 	inner_row.add_child(num_label)
 
 	# Description (clickable to show player card)
 	var desc_label := Button.new()
 	desc_label.text = room_cfg["name"]
 	desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	desc_label.add_theme_font_size_override("font_size", 12)
+	desc_label.add_theme_font_size_override("font_size", 18)
 	desc_label.flat = true
 	desc_label.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	desc_label.pressed.connect(_on_desc_clicked.bind(room_cfg["number"]))
@@ -336,21 +341,22 @@ func _build_room_row(room_cfg: Dictionary) -> PanelContainer:
 	# Type
 	var type_label := Label.new()
 	type_label.text = room_cfg["name"]
-	type_label.custom_minimum_size = Vector2(80, 0)
-	type_label.add_theme_font_size_override("font_size", 11)
+	type_label.custom_minimum_size = Vector2(100, 0)
+	type_label.add_theme_font_size_override("font_size", 16)
 	inner_row.add_child(type_label)
 
 	# Players
 	var players_label := Label.new()
 	players_label.text = "--"
-	players_label.custom_minimum_size = Vector2(55, 0)
-	players_label.add_theme_font_size_override("font_size", 12)
+	players_label.custom_minimum_size = Vector2(65, 0)
+	players_label.add_theme_font_size_override("font_size", 18)
 	inner_row.add_child(players_label)
 
 	# Action button
 	var action_btn := Button.new()
 	action_btn.text = "Join Room"
-	action_btn.custom_minimum_size = Vector2(90, 26)
+	action_btn.custom_minimum_size = Vector2(110, 36)
+	action_btn.add_theme_font_size_override("font_size", 16)
 	action_btn.pressed.connect(_on_room_action.bind(room_cfg["number"]))
 	inner_row.add_child(action_btn)
 

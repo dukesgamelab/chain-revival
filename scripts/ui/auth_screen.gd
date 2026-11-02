@@ -34,7 +34,7 @@ func _build_ui() -> void:
 	add_child(center)
 
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(360, 0)
+	panel.custom_minimum_size = Vector2(440, 0)
 	center.add_child(panel)
 
 	var margin := MarginContainer.new()
@@ -52,12 +52,12 @@ func _build_ui() -> void:
 	var title := Label.new()
 	title.text = "Chain Revival"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_font_size_override("font_size", 28)
 	vbox.add_child(title)
 
 	_subtitle = Label.new()
 	_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_subtitle.add_theme_font_size_override("font_size", 13)
+	_subtitle.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(_subtitle)
 
 	_add_spacer(vbox, 8)
@@ -65,37 +65,40 @@ func _build_ui() -> void:
 	# Display Name (sign-up only)
 	_name_label = Label.new()
 	_name_label.text = "Display Name"
-	_name_label.add_theme_font_size_override("font_size", 13)
+	_name_label.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(_name_label)
 
 	_display_name_field = LineEdit.new()
 	_display_name_field.placeholder_text = "Your username"
-	_display_name_field.custom_minimum_size = Vector2(0, 32)
+	_display_name_field.custom_minimum_size = Vector2(0, 40)
+	_display_name_field.add_theme_font_size_override("font_size", 18)
 	_display_name_field.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(_display_name_field)
 
 	# Email
 	var email_label := Label.new()
 	email_label.text = "Email"
-	email_label.add_theme_font_size_override("font_size", 13)
+	email_label.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(email_label)
 
 	_email_field = LineEdit.new()
 	_email_field.placeholder_text = "you@example.com"
-	_email_field.custom_minimum_size = Vector2(0, 32)
+	_email_field.custom_minimum_size = Vector2(0, 40)
+	_email_field.add_theme_font_size_override("font_size", 18)
 	_email_field.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(_email_field)
 
 	# Password
 	var pw_label := Label.new()
 	pw_label.text = "Password"
-	pw_label.add_theme_font_size_override("font_size", 13)
+	pw_label.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(pw_label)
 
 	_password_field = LineEdit.new()
 	_password_field.placeholder_text = "Password"
 	_password_field.secret = true
-	_password_field.custom_minimum_size = Vector2(0, 32)
+	_password_field.custom_minimum_size = Vector2(0, 40)
+	_password_field.add_theme_font_size_override("font_size", 18)
 	_password_field.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(_password_field)
 
@@ -104,7 +107,8 @@ func _build_ui() -> void:
 	# Primary action button
 	_primary_button = Button.new()
 	_primary_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_primary_button.custom_minimum_size = Vector2(0, 36)
+	_primary_button.custom_minimum_size = Vector2(0, 44)
+	_primary_button.add_theme_font_size_override("font_size", 18)
 	vbox.add_child(_primary_button)
 
 	# Status
@@ -112,19 +116,21 @@ func _build_ui() -> void:
 	_status_label.text = ""
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status_label.add_theme_font_size_override("font_size", 12)
+	_status_label.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(_status_label)
 
 	# Toggle mode link
 	_toggle_button = Button.new()
 	_toggle_button.flat = true
-	_toggle_button.add_theme_font_size_override("font_size", 12)
+	_toggle_button.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(_toggle_button)
 
 	# Back
 	_back_button = Button.new()
 	_back_button.text = "Back"
 	_back_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_back_button.custom_minimum_size = Vector2(0, 40)
+	_back_button.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(_back_button)
 
 

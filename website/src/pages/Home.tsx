@@ -36,7 +36,7 @@ export function Home() {
           </h1>
           <p className="text-xl md:text-2xl text-slate-400 mt-6 max-w-2xl mx-auto leading-relaxed">
             A tactical squad combat game inspired by the classic Chain of Command.
-            Command your soldiers. Outmaneuver your enemy. Claim victory.
+            Command your soldiers. Out maneuver your enemy. Claim victory.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
