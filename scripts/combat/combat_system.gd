@@ -2356,9 +2356,7 @@ static func resolve_grenade(
 			var soldier: SoldierStateClass = state
 			if soldier.is_dead:
 				continue
-			## Own / friendly team — never affected by this thrower's blast.
-			if soldier.team_id == thrower.team_id:
-				continue
+			var is_friendly := soldier.team_id == thrower.team_id
 
 			var distance := _euclidean_distance(soldier.grid_position, explosion_cell)
 			if distance > policy.hit_distance:
@@ -2376,15 +2374,20 @@ static func resolve_grenade(
 			if GameRandom.chance(kill_chance):
 				soldier.mark_killed()
 				notify_soldier_perception_dirty(game_state, soldier)
-				ScenarioRulesClass.on_soldier_killed(game_state, thrower.team_id, soldier)
+				if not is_friendly:
+					ScenarioRulesClass.on_soldier_killed(game_state, thrower.team_id, soldier)
 				result.killed.append({
 					"team_id": soldier.team_id,
 					"soldier_id": soldier.soldier_id,
 				})
-				result.messages.append(
-					"%s Soldier %d killed by grenade blast."
-					% [Team.display_name(soldier.team_id), soldier.soldier_id],
+				var kill_label := (
+					"%s Soldier %d killed by FRIENDLY grenade!"
+					% [Team.display_name(soldier.team_id), soldier.soldier_id]
+					if is_friendly
+					else "%s Soldier %d killed by grenade blast."
+					% [Team.display_name(soldier.team_id), soldier.soldier_id]
 				)
+				result.messages.append(kill_label)
 				continue
 
 			## Every survivor in radius — no saving throw.
@@ -2395,10 +2398,14 @@ static func resolve_grenade(
 				"soldier_id": soldier.soldier_id,
 				"duration_sec": stun_sec,
 			})
-			result.messages.append(
-				"%s Soldier %d stunned by grenade blast (%.1fs)."
-				% [Team.display_name(soldier.team_id), soldier.soldier_id, stun_sec],
+			var stun_label := (
+				"%s Soldier %d stunned by FRIENDLY grenade! (%.1fs)"
+				% [Team.display_name(soldier.team_id), soldier.soldier_id, stun_sec]
+				if is_friendly
+				else "%s Soldier %d stunned by grenade blast (%.1fs)."
+				% [Team.display_name(soldier.team_id), soldier.soldier_id, stun_sec]
 			)
+			result.messages.append(stun_label)
 
 	return result
 

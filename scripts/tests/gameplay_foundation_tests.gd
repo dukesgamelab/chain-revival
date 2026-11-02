@@ -1263,8 +1263,8 @@ func _test_policy_defaults_unchanged() -> void:
 		is_equal_approx(GameplayPolicies.hit.hit_scale, 0.060),
 	)
 	_assert(
-		"Hit lethality multiplier is tuned 0.90",
-		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.90),
+		"Hit lethality multiplier is tuned 0.60",
+		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.60),
 	)
 	_assert("Grenade policy range is recovered 5", GameplayPolicies.grenade.throw_range == 5)
 	_assert(
@@ -1332,8 +1332,8 @@ func _test_lethality_multiplier() -> void:
 	_bootstrap()
 	GameplayPolicies.reset_all_to_defaults()
 	_assert(
-		"Default lethality is TUNED 0.90 (not recovered 0.20)",
-		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.90),
+		"Default lethality is TUNED 0.60",
+		is_equal_approx(GameplayPolicies.hit.lethality_multiplier, 0.60),
 		"got=%s" % GameplayPolicies.hit.lethality_multiplier,
 	)
 	_assert(

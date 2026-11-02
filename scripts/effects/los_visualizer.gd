@@ -102,6 +102,7 @@ func show_grenade_throw_preview(
 	from_world: Vector2,
 	target_world: Vector2,
 	in_range: bool,
+	friendly_warning: bool = false,
 ) -> void:
 	if not debug_visible:
 		hide_preview()
@@ -110,9 +111,10 @@ func show_grenade_throw_preview(
 	_cone.visible = false
 	_aim_line.visible = true
 	_aim_line.points = PackedVector2Array([from_world, target_world])
-	_aim_line.default_color = (
-		LOSSystemClass.COLOR_CLEAR if in_range else LOSSystemClass.COLOR_BLOCKED
-	)
+	var color := LOSSystemClass.COLOR_BLOCKED
+	if in_range:
+		color = LOSSystemClass.COLOR_COVER if friendly_warning else LOSSystemClass.COLOR_CLEAR
+	_aim_line.default_color = color
 	_clear_cover_highlight()
 	queue_redraw()
 

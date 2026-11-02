@@ -1,7 +1,6 @@
 # Claude Code
 .claude/
 CLAUDE.md
-handoff.md
 
 # Godot 4+ specific ignores
 .godot/

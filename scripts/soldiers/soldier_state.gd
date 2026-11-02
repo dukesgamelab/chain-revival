@@ -301,6 +301,7 @@ func recover_from_stun_if_expired() -> bool:
 		return false
 	clear_pending_position()
 	position_state = PositionStateClass.UP
+	movement_mode = MovementModeClass.RUN
 	return true
 
 
