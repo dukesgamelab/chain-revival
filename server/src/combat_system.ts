@@ -314,7 +314,11 @@ function applySuppressionFromShot(
   if (target.positionState === POSITION_DOWN) {
     stanceMult = PRONE_SUPPRESSION_MULT;
   }
-  const finalGain = gain * coverMult * stanceMult;
+  const SUSTAINED_FIRE_SUPPRESSION_MULT = 1.5;
+  let finalGain = gain * coverMult * stanceMult;
+  if (shooter.sustainedFire) {
+    finalGain *= SUSTAINED_FIRE_SUPPRESSION_MULT;
+  }
   if (finalGain <= 0) {
     return;
   }

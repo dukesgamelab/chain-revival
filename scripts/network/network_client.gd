@@ -8,6 +8,7 @@ extends Node
 ## Default server URL. Override with --server=ws://192.168.x.x:3000 on the command line.
 const DEFAULT_SERVER_URL := "ws://127.0.0.1:3000"
 var server_url: String = DEFAULT_SERVER_URL
+var server_url_overridden: bool = false
 var selected_map_id: String = ""
 var selected_team_size: int = 1
 var is_training: bool = false
@@ -80,10 +81,23 @@ var _reconnect_deadline_msec: int = 0
 func _ready() -> void:
 	set_process(false)
 	## Allow LAN play via command-line: --server=ws://192.168.1.100:3000
-	for arg in OS.get_cmdline_args():
+	for arg in OS.get_cmdline_args() + OS.get_cmdline_user_args():
 		if arg.begins_with("--server="):
 			server_url = arg.substr(9)
+			server_url_overridden = true
 			GameLog.log_system("[NetworkClient] Server URL override: %s" % server_url)
+	## Also check for dev_server.txt in project root - drop this file to use local server.
+	if not server_url_overridden and FileAccess.file_exists("res://dev_server.txt"):
+		var f := FileAccess.open("res://dev_server.txt", FileAccess.READ)
+		if f:
+			for line in f.get_as_text().split("\n"):
+				var trimmed := line.strip_edges()
+				if trimmed.is_empty() or trimmed.begins_with("#"):
+					continue
+				server_url = trimmed
+				server_url_overridden = true
+				GameLog.log_system("[NetworkClient] Dev server override from file: %s" % server_url)
+				break
 
 
 func connect_for_local_multiplayer() -> void:

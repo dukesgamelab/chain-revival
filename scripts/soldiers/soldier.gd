@@ -646,6 +646,15 @@ func _apply_fog_visual(mode: int, is_selected: bool = false) -> void:
 				_anim.modulate = Color(1.14, 1.14, 1.08, 1.0)
 			else:
 				_anim.modulate = Color.WHITE
+			_anim.modulate *= _stress_tint()
+
+
+func _stress_tint() -> Color:
+	if _presentation_stress >= GameplayPolicies.suppression.panic_threshold:
+		return Color(1.15, 0.85, 0.75, 1.0)
+	if _presentation_stress >= GameplayPolicies.suppression.pinned_threshold:
+		return Color(1.1, 0.95, 0.85, 1.0)
+	return Color.WHITE
 
 
 ## Fog-of-war only — used by Main on combat scans to avoid full sync_from_state.

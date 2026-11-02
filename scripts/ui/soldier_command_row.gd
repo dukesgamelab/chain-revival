@@ -32,6 +32,7 @@ signal ammo_adjust_requested(soldier_id: int, delta: int)
 @onready var _hit_label: Label = %HitLabel
 
 var _row_enabled: bool = true
+var _fire_at_force_disabled: bool = false
 var _move_buttons: Dictionary = {}
 var _team_id: int = Team.USA
 ## Stance for Down/Up label; button itself stays momentary (not latched).
@@ -163,15 +164,40 @@ func set_grenade_pressed(is_pressed: bool) -> void:
 func set_activity_status(text: String) -> void:
 	if _status_label.text != text:
 		_status_label.text = text
-	## Stunned must read clearly without greying the whole row (that looks like death).
 	if text == "Stunned":
 		_status_label.modulate = Color(1.0, 0.85, 0.35, 1.0)
+	elif text == "Pinned":
+		_status_label.modulate = Color(1.0, 0.65, 0.2, 1.0)
+	elif text == "Panicked":
+		_status_label.modulate = Color(1.0, 0.3, 0.2, 1.0)
 	else:
 		_status_label.modulate = Color.WHITE
 
 
 func set_stress(stress: float) -> void:
-	_stress_label.text = "%d%%" % int(round(clampf(stress, 0.0, 100.0)))
+	var pct := int(round(clampf(stress, 0.0, 100.0)))
+	var band := GameplayPolicies.suppression.stress_band(stress)
+	if band == 0:
+		_stress_label.text = "%d%%" % pct
+		_stress_label.modulate = Color.WHITE
+	else:
+		var label := StressLabels.state_label(stress)
+		_stress_label.text = "%s %d%%" % [label, pct]
+		_stress_label.modulate = _stress_band_color(band)
+
+
+static func _stress_band_color(band: int) -> Color:
+	match band:
+		1:
+			return Color(1.0, 1.0, 0.4, 1.0)
+		2:
+			return Color(1.0, 0.65, 0.2, 1.0)
+		3:
+			return Color(1.0, 0.3, 0.2, 1.0)
+		4:
+			return Color(0.8, 0.15, 0.15, 1.0)
+		_:
+			return Color.WHITE
 
 
 func set_hit_pct(hit_pct: float) -> void:
@@ -188,7 +214,7 @@ func set_row_enabled(enabled: bool) -> void:
 		_update_fire_at_highlight(false)
 		_fire_at_button.set_block_signals(false)
 	_row_enabled = enabled
-	_fire_at_button.disabled = not enabled
+	_fire_at_button.disabled = not enabled or _fire_at_force_disabled
 	_run_to_button.disabled = not enabled
 	_crawl_to_button.disabled = not enabled
 	_hold_fire_button.disabled = not enabled
@@ -219,6 +245,21 @@ func set_button_mask(mask: Dictionary) -> void:
 	_grenade_button.disabled = not bool(mask.get("grenade", false))
 	_fire_at_will_button.disabled = not bool(mask.get("fire_at_will", false))
 	_hold_fire_button.disabled = not bool(mask.get("hold_fire", false))
+
+
+func set_fire_at_button_enabled(enabled: bool) -> void:
+	_fire_at_force_disabled = not enabled
+	_fire_at_button.disabled = not _row_enabled or not enabled
+	if not enabled and _fire_at_button.button_pressed:
+		_fire_at_button.set_pressed_no_signal(false)
+		_update_fire_at_highlight(false)
+
+
+func set_grenade_button_enabled(enabled: bool) -> void:
+	_grenade_button.disabled = not _row_enabled or not enabled
+	if not enabled and _grenade_button.button_pressed:
+		_grenade_button.set_pressed_no_signal(false)
+		_update_grenade_highlight(false)
 
 
 func set_move_button_enabled(movement_mode: int, enabled: bool) -> void:

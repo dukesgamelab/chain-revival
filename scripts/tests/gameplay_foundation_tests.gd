@@ -74,6 +74,9 @@ func _ready() -> void:
 	_test_scenario_clock_and_scoring()
 	_test_timed_deployment_zone_lock()
 	_test_build_config_editor_is_development()
+	_test_sustained_fire_suppression_mult()
+	_test_panicked_grenade_rejected()
+	_test_stress_band_labels()
 
 	print("")
 	print("Gameplay foundation tests: %d passed, %d failed" % [_passed, _failed])
@@ -1283,6 +1286,7 @@ func _test_policy_defaults_unchanged() -> void:
 	_assert("Grenade VarC is recovered 30", is_equal_approx(GameplayPolicies.grenade.var_c, 30.0))
 	_assert("Grenade VarD is recovered 5", is_equal_approx(GameplayPolicies.grenade.var_d, 5.0))
 	_assert("Suppression pinned threshold unchanged", is_equal_approx(GameplayPolicies.suppression.pinned_threshold, 45.0))
+	_assert("Sustained fire suppression mult is 1.5", is_equal_approx(GameplayPolicies.suppression.sustained_fire_suppression_mult, 1.5))
 	_assert("Movement run speed unchanged", is_equal_approx(GameplayPolicies.movement.speed_run, 2.0))
 	_assert("Vision cone range bonus unchanged", GameplayPolicies.vision.cone_range_bonus == 8)
 	_assert(
@@ -2564,3 +2568,68 @@ func _test_build_config_editor_is_development() -> void:
 	## Custom feature `survival_playtest` is only set on the playtest export preset.
 	_assert("Editor / F5 run is development", BuildConfig.is_development())
 	_assert("Editor / F5 run is not survival playtest", not BuildConfig.is_survival_playtest())
+
+
+func _test_sustained_fire_suppression_mult() -> void:
+	var policy := GameplayPolicies.suppression
+	var garand := WeaponRegistry.get_weapon("garand")
+	var range_tiles := 10
+	var base_gain := policy.range_suppression_gain_runtime(
+		garand.suppression_generated, garand.stress_limit_tiles, range_tiles,
+	)
+	_assert("Base suppression gain > 0 at 10 tiles", base_gain > 0.0)
+	var sustained_gain := base_gain * policy.sustained_fire_suppression_mult
+	_assert(
+		"Sustained fire generates 1.5x suppression",
+		is_equal_approx(sustained_gain, base_gain * 1.5),
+		"base=%.2f sustained=%.2f" % [base_gain, sustained_gain],
+	)
+	_assert(
+		"Sustained mult is configurable and > 1",
+		policy.sustained_fire_suppression_mult > 1.0,
+	)
+
+
+func _test_panicked_grenade_rejected() -> void:
+	_bootstrap()
+	var game_state := _make_game_state()
+	var fireteam := game_state.session.get_fireteam(Team.USA)
+	var soldier: SoldierState = fireteam.get_soldier(1)
+	soldier.grid_position = Vector2i(20, 30)
+	soldier.clear_path()
+	_park_friendlies_away(game_state, Team.USA, 1)
+	var target_cell := Vector2i(22, 30)
+
+	soldier.stress = GameplayPolicies.suppression.panic_threshold + 1.0
+	_assert("Soldier above panic is panicked", CombatSystemClass.is_stress_panicked(soldier.stress))
+	var cmd := GrenadeCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = 1
+	cmd.target_cell = target_cell
+	var result := ActionResolverClass.execute_grenade(
+		game_state, cmd, CommandContextClass.new(),
+	)
+	_assert(
+		"Panicked soldier can still throw grenades",
+		result.success,
+		result.status_message,
+	)
+
+	soldier.stress = GameplayPolicies.suppression.pinned_threshold
+	_assert("Pinned soldier is not panicked", not CombatSystemClass.is_stress_panicked(soldier.stress))
+	var result2 := ActionResolverClass.execute_grenade(
+		game_state, cmd, CommandContextClass.new(),
+	)
+	_assert(
+		"Pinned (not panicked) soldier can still throw",
+		result2.success,
+		result2.status_message,
+	)
+
+
+func _test_stress_band_labels() -> void:
+	_assert("Calm label is OK", StressLabels.state_label(0.0) == "OK")
+	_assert("Nervous label", StressLabels.state_label(15.0) == "Nervous")
+	_assert("Suppressed label", StressLabels.state_label(30.0) == "Suppressed")
+	_assert("Pinned label", StressLabels.state_label(50.0) == "Pinned")
+	_assert("Panicked label", StressLabels.state_label(80.0) == "Panicked")
