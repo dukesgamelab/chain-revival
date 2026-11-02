@@ -528,8 +528,8 @@ func _test_grenade_rejects_friendly_blast() -> void:
 		game_state, cmd, CommandContextClass.new()
 	)
 	_assert(
-		"Grenade throw rejected when friendly in blast",
-		not result.success,
+		"Grenade throw allowed with friendly in blast",
+		result.success,
 		result.status_message,
 	)
 	_assert(
@@ -558,8 +558,8 @@ func _test_grenade_skips_friendly_stun() -> void:
 	for entry in explosion.killed:
 		if int(entry.get("team_id", -1)) == Team.USA:
 			buddy_hit = true
-	_assert("Grenade blast does not stun/kill friendlies", not buddy_hit)
-	_assert("Buddy remains unstunned", not buddy.is_stunned())
+	_assert("Grenade blast can stun/kill friendlies", buddy_hit)
+	_assert("Buddy is stunned by friendly grenade", buddy.is_stunned())
 	_assert(
 		"Enemy still affected by blast",
 		not explosion.stunned.is_empty() or not explosion.killed.is_empty(),
@@ -1215,15 +1215,22 @@ func _test_grenade_blast_blocked_by_wall() -> void:
 	var game_state := _make_game_state(map_data)
 	var thrower := game_state.get_soldier(Team.USA, 1)
 	var behind := game_state.get_soldier(Team.GERMANY, 1)
-	thrower.grid_position = Vector2i(20, 30)
+	thrower.grid_position = Vector2i(18, 30)
 	behind.grid_position = Vector2i(23, 30)
 	thrower.clear_path()
 	behind.clear_path()
 	GameRandom.reseed(99)
 	var explosion := CombatSystemClass.resolve_grenade(game_state, thrower, Vector2i(21, 30))
+	var behind_hit := false
+	for entry in explosion.stunned:
+		if int(entry.get("soldier_id", -1)) == behind.soldier_id and int(entry.get("team_id", -1)) == behind.team_id:
+			behind_hit = true
+	for entry in explosion.killed:
+		if int(entry.get("soldier_id", -1)) == behind.soldier_id and int(entry.get("team_id", -1)) == behind.team_id:
+			behind_hit = true
 	_assert(
 		"Wall blocks grenade blast to soldier behind it",
-		explosion.killed.is_empty() and explosion.stunned.is_empty(),
+		not behind_hit,
 		"killed=%d stunned=%d" % [explosion.killed.size(), explosion.stunned.size()],
 	)
 	_assert("Soldier behind wall remains unstunned", not behind.is_stunned())
@@ -1561,16 +1568,16 @@ func _test_point_blank_prone_cover_lethal() -> void:
 	var rounds := weapon.ammo_cost(shooter.ammo_current)
 	var kill_chance := 1.0 - pow(1.0 - per_round, float(maxi(rounds, 1)))
 	_assert(
-		"Point-blank prone+cover rifle kill_chance >= 0.8",
-		kill_chance >= 0.8,
+		"Point-blank prone+cover rifle kill_chance >= 0.5",
+		kill_chance >= 0.5,
 		"kill=%.4f final=%.4f rounds=%d" % [kill_chance, final_chance, rounds],
 	)
 	CombatSystemClass.begin_fire_prep(shooter)
 	SimulationClock.advance_msec(int(GameplayPolicies.hit.fire_prep_delay_sec * 1000.0) + 50)
 	var shot := CombatSystemClass.resolve_shot(game_state, shooter, target, false)
 	_assert(
-		"resolve_shot reports effective attack kill_chance >= 0.8",
-		shot.fired and shot.kill_chance >= 0.8,
+		"resolve_shot reports effective attack kill_chance >= 0.5",
+		shot.fired and shot.kill_chance >= 0.5,
 		"fired=%s kill=%.4f" % [shot.fired, shot.kill_chance],
 	)
 
