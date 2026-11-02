@@ -81,6 +81,7 @@ export function executeMove(
   gameState: GameState,
   cmd: MoveCommandIntent,
   actingTeamId: number,
+  deploymentLocked = false,
 ): ActionResult {
   if (cmd.teamId !== actingTeamId) {
     return fail("That soldier is not under your control.");
@@ -95,7 +96,11 @@ export function executeMove(
   }
 
   if (cmd.scope === MOVE_SCOPE_SQUAD) {
-    return executeSquadMove(gameState, cmd, target);
+    return executeSquadMove(gameState, cmd, target, deploymentLocked);
+  }
+
+  if (deploymentLocked && !gameState.map.isDeploymentCell(actingTeamId, target)) {
+    return fail("Stay in the deployment zone until the countdown ends.");
   }
 
   const soldier = gameState.getSoldier(cmd.teamId, cmd.soldierId);
@@ -125,6 +130,7 @@ function executeSquadMove(
   gameState: GameState,
   cmd: MoveCommandIntent,
   squadTarget: Vec2i,
+  deploymentLocked: boolean,
 ): ActionResult {
   const now = gameState.clock.getTicksMsec();
   const orderable: SoldierState[] = [];
@@ -160,6 +166,9 @@ function executeSquadMove(
     const memberRef = formationRefs.get(soldier.soldierId) as Vec2i;
     const offset = vec(memberRef.x - anchorPos.x, memberRef.y - anchorPos.y);
     const memberTarget = squadRelativeCell(gameState, squadTarget, offset);
+    if (deploymentLocked && !gameState.map.isDeploymentCell(cmd.teamId, memberTarget)) {
+      continue;
+    }
     let assigned = false;
     if (leadPath.length > 0 && leadStart.x > -900) {
       assigned = assignTranslatedSquadPath(

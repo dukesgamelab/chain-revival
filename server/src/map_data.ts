@@ -54,6 +54,8 @@ export class MapData {
     gmPoints: number;
   }>;
   private readonly blocked = new Set<string>();
+  private readonly team1SpawnSet: Set<string>;
+  private readonly team2SpawnSet: Set<string>;
   private readonly tiles = new Map<string, TileGameplay>();
 
   constructor(
@@ -69,6 +71,8 @@ export class MapData {
     this.height = height;
     this.team1Spawns = team1Spawns;
     this.team2Spawns = team2Spawns;
+    this.team1SpawnSet = new Set(team1Spawns.map(vecKey));
+    this.team2SpawnSet = new Set(team2Spawns.map(vecKey));
     this.metadata = { displayName: mapId, description: "", supportedTeamSizes: [1], soldiersPerPlayer: 4 };
     this.victoryPoints = [];
     for (const cell of blockedTiles) {
@@ -199,6 +203,11 @@ export class MapData {
 
   isWalkable(cell: Vec2i): boolean {
     return this.isInBounds(cell) && !this.isBlocked(cell);
+  }
+
+  isDeploymentCell(teamId: number, cell: Vec2i): boolean {
+    const set = teamId === 1 ? this.team1SpawnSet : this.team2SpawnSet;
+    return set.has(vecKey(cell));
   }
 
   hasObject(cell: Vec2i): boolean {
