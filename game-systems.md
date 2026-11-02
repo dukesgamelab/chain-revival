@@ -173,9 +173,9 @@ Beyond `stress_limit_tiles` (25 for rifles/LMGs, 13 for SMGs), the weapon genera
 | Pinned | 45-70 | 0.5x | 1.3x |
 | Panicked | 70+ | 0.35x | 1.5x |
 
-**Panicked restrictions:** Panicked soldiers (stress >= 70) cannot use Fire At or throw grenades. Orders are rejected with a notice. These restrictions are enforced both client-side and server-side.
+**Panicked restrictions:** Panicked soldiers (stress >= 70) cannot use Fire At. Orders are rejected with a notice. This restriction is enforced both client-side and server-side. Grenades can still be thrown when panicked.
 
-**Visual feedback:** Stress is shown in the command row as band name + percentage with color coding (white/yellow/orange/red/dark red). Soldier sprites get a subtle warm tint at pinned and panicked thresholds. Fire At and Grenade buttons grey out when a soldier is panicked.
+**Visual feedback:** Stress is shown in the command row as band name + percentage with color coding (white/yellow/orange/red/dark red). Soldier sprites get a subtle warm tint at pinned and panicked thresholds. Fire At button greys out when a soldier is panicked.
 
 ### Stress Accuracy
 

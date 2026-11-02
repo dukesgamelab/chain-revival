@@ -91,26 +91,30 @@ Enabled on: `player_profiles`, `match_history`, `regiments`, `regiment_members`,
 
 **Features complete:**
 - Sustained fire suppression bonus - Fire At shots generate 1.5x suppression stress (configurable)
-- Panicked grenade block - soldiers at stress >= 70 cannot throw grenades
-- Server-side panicked enforcement - Fire At and grenade rejection now enforced server-side (was client-only)
+- Panicked Fire At block - soldiers at stress >= 70 cannot use Fire At (grenades still allowed)
+- Server-side panicked enforcement - Fire At rejection now enforced server-side (was client-only)
 - UI stress colors and band labels - "Pinned 52%" with color coding (white/yellow/orange/red/dark red)
-- Button disabling - Fire At and Grenade grey out when soldier is panicked
+- Button disabling - Fire At greys out when soldier is panicked
 - Soldier sprite stress tint - subtle warm modulate at pinned/panicked thresholds
+- Server-side stress movement speed modifier - multiplayer movement now reflects stress bands
+- Dev server toggle - `dev_server.txt` for local testing without deploying
 - Exported `isStressPinned()` / `isStressPanicked()` helpers on server
 
 **Key files changed:**
 - `scripts/combat/combat_system.gd` - Sustained fire suppression multiplier in `apply_suppression_from_shot`
-- `scripts/core/action_resolver.gd` - Panicked grenade rejection in `execute_grenade`
-- `scripts/ui/soldier_command_row.gd` - Stress color/label, button enable methods, status colors
-- `scripts/ui/command_bar.gd` - Panicked button disabling in `sync_soldier_row`
+- `scripts/core/action_resolver.gd` - Panicked Fire At rejection
+- `scripts/ui/soldier_command_row.gd` - Stress color/label, button enable methods, status colors, force-disable flag
+- `scripts/ui/command_bar.gd` - Panicked Fire At button disabling in `sync_soldier_row`
 - `scripts/soldiers/soldier.gd` - Stress tint in `_apply_fog_visual`
 - `scripts/gameplay_policies/suppression_policy.gd` - `sustained_fire_suppression_mult` field
 - `assets/data/gameplay_policies.json` - Added `sustained_fire_suppression_mult: 1.5`
 - `server/src/stress_accuracy.ts` - Exported `isStressPinned`, `isStressPanicked`, band constants
-- `server/src/action_resolver.ts` - Server-side panicked Fire At rejection
-- `server/src/grenade_system.ts` - Server-side panicked grenade rejection
+- `server/src/action_resolver.ts` - Server-side panicked Fire At rejection, stress movement speed modifier
 - `server/src/combat_system.ts` - Server sustained fire suppression multiplier
-- `scripts/tests/gameplay_foundation_tests.gd` - Tests for sustained fire mult, panicked grenade block, stress labels
+- `server/src/stress_accuracy.ts` - `movementModifier()` export for server movement speed
+- `scripts/network/network_client.gd` - Dev server toggle via `dev_server.txt` or `--server=` flag
+- `scripts/ui/lobby_browser.gd` - `_effective_server_url()`, LOCAL indicator in lobby title
+- `scripts/tests/gameplay_foundation_tests.gd` - Tests for sustained fire mult, panicked grenade allowance, stress labels
 
 **Status:** All changes committed on `suppression-pinning` branch. When ready to merge, PR should target `develop`.
 

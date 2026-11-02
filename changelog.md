@@ -15,12 +15,16 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - **Friendly grenade damage** (Phase 44) - Grenades now damage and stun same-team soldiers. Throw preview line turns yellow when friendlies are in blast radius. AI avoids friendly fire automatically
 - **Lethality rebalance** (Phase 44) - Lethality multiplier tuned from 0.9 to 0.6 for balanced no-wound-state play
 - **Sustained fire suppression** (Phase 45) - Fire At (sustained fire) generates 1.5x suppression stress, making focused fire the way to pin enemies
-- **Panicked restrictions** (Phase 45) - Panicked soldiers (stress >= 70) cannot throw grenades or use Fire At. Server-side enforcement added
-- **Stress UI feedback** (Phase 45) - Stress label shows band name + color (Nervous/Suppressed/Pinned/Panicked). Fire At and Grenade buttons grey out when panicked. Soldier sprites get a subtle warm tint at high stress
+- **Panicked restrictions** (Phase 45) - Panicked soldiers (stress >= 70) cannot use Fire At. Grenades still allowed. Server-side enforcement added
+- **Stress UI feedback** (Phase 45) - Stress label shows band name + color (Nervous/Suppressed/Pinned/Panicked). Fire At button greys out when panicked. Soldier sprites get a subtle warm tint at high stress
+- **Dev server toggle** - Create `dev_server.txt` in project root with local server URL to test develop branch in multiplayer without deploying. Lobby shows yellow LOCAL indicator
 
 ### Bug Fixes
 
 - Fixed server not enforcing panicked Fire At rejection - previously client-only (Phase 45)
+- Fixed server not applying stress movement speed modifier - soldiers moved at full speed regardless of stress in multiplayer (Phase 45)
+- Fixed Fire At button not disabling when panicked - set_row_enabled was overriding the panicked disable (Phase 45)
+- Fixed stress column too narrow for band labels like "Suppressed 42%" - widened from 42px to 105px (Phase 45)
 
 - Fixed admin dashboard player role assignment
 - Fixed crawl animation regression - CRAWL now forces prone stance (Phase 44)
@@ -107,16 +111,18 @@ Copy this into website patch notes when cutting the next release build. Remove i
 
 ### Phase 45 - Suppression & Pinning
 
-**Goal:** Make sustained fire a real tactical tool - focused fire builds stress faster, panicked soldiers can't throw grenades, and the UI shows stress state clearly.
+**Goal:** Make sustained fire a real tactical tool - focused fire builds stress faster, panicked soldiers lose Fire At, and the UI shows stress state clearly.
 
 **What Changed:**
 
 - **Sustained fire suppression bonus** (`combat_system.gd`, `combat_system.ts`): Shots from a sustained Fire At engagement generate 1.5x suppression stress. Configurable via `sustained_fire_suppression_mult` in `gameplay_policies.json`. This is the core pinning mechanic - focus fire on a position to degrade and suppress enemies
-- **Panicked grenade block** (`action_resolver.gd`, `grenade_system.ts`): Panicked soldiers (stress >= 70) cannot throw grenades. Rejected with "Soldier is panicked and cannot throw."
-- **Server-side panicked enforcement** (`action_resolver.ts`, `grenade_system.ts`, `stress_accuracy.ts`): Server now rejects Fire At and grenade orders from panicked soldiers. Previously the panic Fire At check was client-only (security gap). Added `isStressPanicked()` and `isStressPinned()` helpers
+- **Panicked Fire At block** (`action_resolver.gd`, `action_resolver.ts`): Panicked soldiers (stress >= 70) cannot use Fire At. Grenades are still allowed when panicked
+- **Server-side panicked enforcement** (`action_resolver.ts`, `stress_accuracy.ts`): Server now rejects Fire At orders from panicked soldiers. Previously the panic Fire At check was client-only (security gap). Added `isStressPanicked()` and `isStressPinned()` helpers
+- **Server-side stress movement speed** (`action_resolver.ts`, `stress_accuracy.ts`): Server now applies stress band movement modifiers. Previously movement speed in multiplayer ignored stress entirely
 - **UI stress colors and band labels** (`soldier_command_row.gd`): Stress label now shows band name + percentage ("Pinned 52%") with color coding - white (calm), yellow (nervous), orange (suppressed), red (pinned), dark red (panicked). Activity status "Pinned" and "Panicked" also colored
-- **Button disabling** (`command_bar.gd`, `soldier_command_row.gd`): Fire At and Grenade buttons grey out when a soldier is panicked
+- **Button disabling** (`command_bar.gd`, `soldier_command_row.gd`): Fire At button greys out when a soldier is panicked. Fixed a bug where `set_row_enabled` was overriding the disable
 - **Soldier sprite stress tint** (`soldier.gd`): Subtle warm modulate tint on soldiers at pinned (>= 45) and panicked (>= 70) stress levels. Visible on both friendly and enemy soldiers
+- **Dev server toggle** (`network_client.gd`, `lobby_browser.gd`): Create `dev_server.txt` in project root with a server URL (e.g. `ws://192.168.0.4:3000`) to test locally without deploying. Lobby title shows yellow LOCAL indicator. File is gitignored
 
 No migration needed. Both client and server changes.
 
@@ -300,6 +306,7 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 ## Known Bugs
 
 - **Reconnect on game close (BROKEN)**: Closing the game window triggers `player_disconnected` and shows "90s" message, but: (1) countdown never ticks down visually, (2) match forfeits way before 90 seconds, (3) disconnected player's PC shows "no games available" within ~5 seconds. Needs investigation in `server/src/index.ts` disconnect handler and `match.ts` reconnect logic.
+- **Fog of war showing enemies in DZ**: Enemy soldiers visible in their deployment zone before the game starts. Can see enemy units across the entire map. Observed in LAN multiplayer - needs investigation.
 
 ### Fixed Bugs (for reference)
 
