@@ -10,7 +10,7 @@ import { speedMultiplier, stepCostMsec } from "./movement_policy";
 import { beginFirePrep } from "./fire_prep";
 import { combatRange } from "./hit_resolution";
 import { canAssignManualPriority, canSpot } from "./perception";
-import { isStressPanicked } from "./stress_accuracy";
+import { isStressPanicked, movementModifier } from "./stress_accuracy";
 import { findPath } from "./pathfinder";
 import type { SoldierState } from "./soldier_state";
 import {
@@ -325,7 +325,7 @@ function assignMovePath(
     soldier.clearPath();
   }
   soldier.movementMode = mode;
-  const speedMult = speedMultiplier(mode);
+  const speedMult = speedMultiplier(mode) * movementModifier(soldier.stress);
   soldier.assignPath(path, speedMult);
   pushMoveOrder(result, soldier, path, speedMult);
   return true;
@@ -380,7 +380,7 @@ function assignTranslatedSquadPath(
     soldier.clearPath();
   }
   soldier.movementMode = mode;
-  const speedMult = speedMultiplier(mode);
+  const speedMult = speedMultiplier(mode) * movementModifier(soldier.stress);
   soldier.assignPath(path, speedMult);
   pushMoveOrder(result, soldier, path, speedMult);
   return true;

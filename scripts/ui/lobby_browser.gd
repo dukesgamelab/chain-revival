@@ -20,7 +20,7 @@ const MapDataClass := preload("res://scripts/map/map_data.gd")
 const ONLINE_SERVER_URL := "wss://chain-revival-ax0q1g.fly.dev"
 
 static func _effective_server_url() -> String:
-	if NetworkClient.server_url != NetworkClient.DEFAULT_SERVER_URL:
+	if NetworkClient.server_url_overridden:
 		return NetworkClient.server_url
 	return ONLINE_SERVER_URL
 

@@ -6,6 +6,7 @@ CLAUDE.md
 .godot/
 *.uid
 /android/
+dev_server.txt
 
 # Node server
 server/node_modules/

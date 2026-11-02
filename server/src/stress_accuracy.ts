@@ -28,6 +28,7 @@ const TIER_ROWS: number[][] = [
   [1.0, 4.0, 4.5, 4.5, 5.0, 5.0, 5.0],
 ];
 const FIRE_DELAY_BY_BAND = [1.0, 1.05, 1.15, 1.3, 1.5];
+const MOVEMENT_BY_BAND = [1.0, 0.9, 0.75, 0.5, 0.35];
 const BAND_NERVOUS = 10;
 const BAND_SUPPRESSED = 25;
 const BAND_PINNED = 45;
@@ -36,6 +37,11 @@ const BAND_PANICKED = 70;
 export function fireDelayModifier(stress: number): number {
   const band = stressBand(stress);
   return FIRE_DELAY_BY_BAND[band] ?? 1;
+}
+
+export function movementModifier(stress: number): number {
+  const band = stressBand(stress);
+  return MOVEMENT_BY_BAND[band] ?? 1;
 }
 
 export function accuracyModifierFor(
