@@ -288,6 +288,21 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
     })
   }, [input, cooldown, isBanned, regimentTag, displayName, userId, activeChannelId, channels])
 
+  const inputRef = useRef('')
+
+  const updateSuggestions = useCallback(() => {
+    const val = inputRef.current
+    if (val.startsWith('/w ')) {
+      const partial = val.slice(3).trim().toLowerCase()
+      const matches = Object.values(allPlayers.current)
+        .filter(name => !partial || name.toLowerCase().startsWith(partial))
+        .slice(0, 8)
+      setSuggestions(matches)
+    } else {
+      setSuggestions([])
+    }
+  }, [])
+
   const fetchAllPlayers = useCallback(async () => {
     if (playersLoaded.current) return
     const { data } = await supabase
@@ -300,23 +315,19 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
       for (const p of data) {
         allPlayers.current[p.id as string] = p.display_name as string
       }
+      updateSuggestions()
     }
-  }, [userId])
+  }, [userId, updateSuggestions])
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     setInput(val)
+    inputRef.current = val
     if (val.startsWith('/w ')) {
       if (!playersLoaded.current) fetchAllPlayers()
-      const partial = val.slice(3).trim().toLowerCase()
-      const matches = Object.values(allPlayers.current)
-        .filter(name => !partial || name.toLowerCase().startsWith(partial))
-        .slice(0, 8)
-      setSuggestions(matches)
-    } else {
-      setSuggestions([])
     }
-  }, [fetchAllPlayers])
+    updateSuggestions()
+  }, [fetchAllPlayers, updateSuggestions])
 
   const pickSuggestion = useCallback((name: string) => {
     setInput(`/w ${name} `)
