@@ -24,6 +24,8 @@ interface GlobalChatProps {
   regimentTag: string | null
   regimentId: string | null
   isBanned: boolean
+  isAdmin: boolean
+  isModerator: boolean
 }
 
 const SEND_COOLDOWN_MS = 2000
@@ -40,7 +42,16 @@ function formatChatTime(iso: string): string {
   return `${h}:${m.toString().padStart(2, '0')} ${ampm}`
 }
 
-export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBanned }: GlobalChatProps) {
+const TYPE_ORDER: Record<string, number> = { global: 0, regiment: 1, custom: 2 }
+function sortChannels(chs: ChatChannel[]): ChatChannel[] {
+  return [...chs].sort((a, b) => {
+    const ao = TYPE_ORDER[a.type] ?? 2
+    const bo = TYPE_ORDER[b.type] ?? 2
+    return ao !== bo ? ao - bo : a.name.localeCompare(b.name)
+  })
+}
+
+export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBanned, isAdmin, isModerator }: GlobalChatProps) {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [unread, setUnread] = useState(0)
@@ -63,6 +74,9 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
   const allPlayers = useRef<Record<string, string>>({})
   const playersLoaded = useRef(false)
   const [suggestions, setSuggestions] = useState<string[]>([])
+  const [channelDialogOpen, setChannelDialogOpen] = useState(false)
+  const [joinableChannels, setJoinableChannels] = useState<{ id: string; name: string; created_by: string }[]>([])
+  const [newChannelName, setNewChannelName] = useState('')
 
   // Fetch channels on mount
   useEffect(() => {
@@ -74,7 +88,7 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
         .order('name')
 
       if (data && data.length > 0) {
-        setChannels(data as ChatChannel[])
+        setChannels(sortChannels(data as ChatChannel[]))
         const globalCh = data.find((c: ChatChannel) => c.type === 'global')
         if (globalCh) {
           setActiveChannelId(globalCh.id)
@@ -329,10 +343,112 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
     updateSuggestions()
   }, [fetchAllPlayers, updateSuggestions])
 
+  const stripTag = useCallback((name: string) => {
+    const parts = name.split(' ')
+    if (parts.length >= 2 && parts[0].length <= 5 && parts[0] === parts[0].toUpperCase()) {
+      return parts.slice(1).join(' ')
+    }
+    return name
+  }, [])
+
+  const clickToWhisper = useCallback((name: string) => {
+    const bare = stripTag(name)
+    setInput(`/w ${bare} `)
+    inputRef.current = `/w ${bare} `
+    setSuggestions([])
+  }, [stripTag])
+
   const pickSuggestion = useCallback((name: string) => {
     setInput(`/w ${name} `)
     setSuggestions([])
   }, [])
+
+  const fetchJoinableChannels = useCallback(async () => {
+    const { data } = await supabase.rpc('list_custom_channels')
+    if (data) {
+      setJoinableChannels(data as { id: string; name: string; created_by: string }[])
+    }
+  }, [])
+
+  const openChannelDialog = useCallback(() => {
+    setChannelDialogOpen(true)
+    setNewChannelName('')
+    fetchJoinableChannels()
+  }, [fetchJoinableChannels])
+
+  const createChannel = useCallback(async () => {
+    const name = newChannelName.trim()
+    if (!name) return
+    const { error } = await supabase.rpc('create_custom_channel', { p_name: name })
+    if (error) {
+      setSystemMsg('Could not create channel.')
+      setTimeout(() => setSystemMsg(null), 4000)
+      return
+    }
+    setChannelDialogOpen(false)
+    setNewChannelName('')
+    const { data: refreshed } = await supabase
+      .from('chat_channels')
+      .select('id,name,type')
+      .order('type')
+      .order('name')
+    if (refreshed) setChannels(sortChannels(refreshed as ChatChannel[]))
+  }, [newChannelName])
+
+  const joinChannel = useCallback(async (channelId: string) => {
+    await supabase.from('chat_channel_members').insert({ channel_id: channelId, user_id: userId })
+    setChannelDialogOpen(false)
+    const { data: refreshed } = await supabase
+      .from('chat_channels')
+      .select('id,name,type')
+      .order('type')
+      .order('name')
+    if (refreshed) setChannels(sortChannels(refreshed as ChatChannel[]))
+  }, [userId])
+
+  const leaveChannel = useCallback(async (channelId: string) => {
+    await supabase
+      .from('chat_channel_members')
+      .delete()
+      .eq('channel_id', channelId)
+      .eq('user_id', userId)
+    if (activeChannelId === channelId) {
+      const globalCh = channels.find(c => c.type === 'global')
+      if (globalCh) {
+        setActiveChannelId(globalCh.id)
+        activeChannelIdRef.current = globalCh.id
+      }
+    }
+    const { data: refreshed } = await supabase
+      .from('chat_channels')
+      .select('id,name,type')
+      .order('type')
+      .order('name')
+    if (refreshed) setChannels(sortChannels(refreshed as ChatChannel[]))
+  }, [userId, activeChannelId, channels])
+
+  const deleteChannel = useCallback(async (channelId: string) => {
+    const { error } = await supabase.rpc('delete_custom_channel', { p_channel_id: channelId })
+    if (error) {
+      setSystemMsg('Could not delete channel.')
+      setTimeout(() => setSystemMsg(null), 4000)
+      return
+    }
+    if (activeChannelId === channelId) {
+      const globalCh = channels.find(c => c.type === 'global')
+      if (globalCh) {
+        setActiveChannelId(globalCh.id)
+        activeChannelIdRef.current = globalCh.id
+      }
+    }
+    const { data: refreshed } = await supabase
+      .from('chat_channels')
+      .select('id,name,type')
+      .order('type')
+      .order('name')
+    if (refreshed) setChannels(sortChannels(refreshed as ChatChannel[]))
+    fetchJoinableChannels()
+  }, [activeChannelId, channels, fetchJoinableChannels])
 
   // Build display messages: channel messages + whispers, sorted by time
   const displayMessages = (() => {
@@ -345,10 +461,13 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
   return (
     <div className="fixed bottom-4 right-4 z-40">
       {open ? (
-        <div className="w-96 h-[28rem] bg-slate-900 border border-slate-700 rounded-lg shadow-2xl flex flex-col">
+        <div className="w-96 h-[28rem] bg-slate-900 border border-slate-700 rounded-lg shadow-2xl flex flex-col relative">
           <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700">
             <span className="text-sm font-semibold text-white">Chat</span>
-            <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-white text-lg">&times;</button>
+            <div className="flex gap-1">
+              <button onClick={openChannelDialog} className="text-slate-400 hover:text-white text-sm px-1" title="Create or join a channel">+</button>
+              <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-white text-lg">&times;</button>
+            </div>
           </div>
 
           {/* Channel tabs */}
@@ -359,17 +478,27 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
                 const chUnread = channelUnread[ch.id] || 0
                 const label = ch.type === 'regiment' ? `[${ch.name}]` : ch.name
                 return (
-                  <button
-                    key={ch.id}
-                    onClick={() => switchChannel(ch.id)}
-                    className={`text-xs px-2 py-1 rounded whitespace-nowrap transition-colors ${
-                      isActive
-                        ? 'bg-sky-600 text-white'
-                        : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
-                    }`}
-                  >
-                    {label}{chUnread > 0 && !isActive ? ` (${chUnread})` : ''}
-                  </button>
+                  <div key={ch.id} className="flex items-center">
+                    <button
+                      onClick={() => switchChannel(ch.id)}
+                      className={`text-xs px-2 py-1 rounded-l whitespace-nowrap transition-colors ${
+                        isActive
+                          ? 'bg-sky-600 text-white'
+                          : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                      } ${ch.type !== 'custom' ? 'rounded-r' : ''}`}
+                    >
+                      {label}{chUnread > 0 && !isActive ? ` (${chUnread})` : ''}
+                    </button>
+                    {ch.type === 'custom' && (
+                      <button
+                        onClick={() => leaveChannel(ch.id)}
+                        className="text-xs px-1 py-1 rounded-r bg-slate-800 text-slate-500 hover:text-red-400 hover:bg-slate-700 transition-colors"
+                        title="Leave channel"
+                      >
+                        x
+                      </button>
+                    )}
+                  </div>
                 )
               })}
             </div>
@@ -382,18 +511,34 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
                 {msg.is_whisper ? (
                   <>
                     <span className="text-fuchsia-400 text-xs mr-1">
-                      [whisper {msg.user_id === userId ? 'to' : 'from'} {msg.user_id === userId ? (whisperNameCache.current[msg.whisper_to || ''] || msg.whisper_to) : msg.display_name}]
+                      [whisper {msg.user_id === userId ? 'to ' : 'from '}
+                      {msg.user_id === userId ? (
+                        whisperNameCache.current[msg.whisper_to || ''] || msg.whisper_to
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => clickToWhisper(msg.display_name)}
+                          className="hover:underline text-fuchsia-400 cursor-pointer"
+                        >
+                          {msg.display_name}
+                        </button>
+                      )}]
                     </span>
                     <span className="text-slate-300">{msg.message}</span>
                   </>
                 ) : (
                   <>
-                    <a
-                      href={`/player/${msg.user_id}`}
-                      className={`hover:underline ${msg.user_id === userId ? 'text-cyan-400' : 'text-amber-400'}`}
-                    >
-                      {msg.display_name}
-                    </a>
+                    {msg.user_id === userId ? (
+                      <span className="text-cyan-400">{msg.display_name}</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => clickToWhisper(msg.display_name)}
+                        className={`hover:underline text-amber-400 cursor-pointer`}
+                      >
+                        {msg.display_name}
+                      </button>
+                    )}
                     <span className="text-slate-300 ml-1">{msg.message}</span>
                   </>
                 )}
@@ -440,6 +585,76 @@ export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBan
               Send
             </button>
           </form>
+
+          {channelDialogOpen && (
+            <div className="absolute inset-0 bg-slate-900 rounded-lg flex flex-col z-10">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700">
+                <span className="text-sm font-semibold text-white">Channels</span>
+                <button onClick={() => setChannelDialogOpen(false)} className="text-slate-400 hover:text-white text-lg">&times;</button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+                <div>
+                  <p className="text-xs text-slate-400 mb-1">Create channel</p>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={newChannelName}
+                      onChange={e => setNewChannelName(e.target.value)}
+                      placeholder="Channel name"
+                      maxLength={20}
+                      className="flex-1 bg-slate-800 text-white text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-sky-500 placeholder-slate-500"
+                    />
+                    <button
+                      onClick={createChannel}
+                      disabled={!newChannelName.trim()}
+                      className="bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-xs rounded px-3 py-1 transition-colors"
+                    >
+                      Create
+                    </button>
+                  </div>
+                </div>
+                <hr className="border-slate-700" />
+                <div>
+                  <p className="text-xs text-slate-400 mb-1">Custom channels</p>
+                  {joinableChannels.length === 0 ? (
+                    <p className="text-xs text-slate-500">No custom channels yet.</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {joinableChannels.map(ch => {
+                        const joined = channels.some(c => c.id === ch.id)
+                        const canDelete = ch.created_by === userId || isAdmin || isModerator
+                        return (
+                          <div key={ch.id} className="flex items-center justify-between">
+                            <span className={`text-sm ${joined ? 'text-slate-500' : 'text-slate-300'}`}>
+                              {ch.name}{joined ? ' (joined)' : ''}
+                            </span>
+                            <div className="flex gap-1">
+                              {!joined && (
+                                <button
+                                  onClick={() => joinChannel(ch.id)}
+                                  className="text-xs bg-sky-600 hover:bg-sky-500 text-white rounded px-2 py-1 transition-colors"
+                                >
+                                  Join
+                                </button>
+                              )}
+                              {canDelete && (
+                                <button
+                                  onClick={() => deleteChannel(ch.id)}
+                                  className="text-xs bg-red-700 hover:bg-red-600 text-white rounded px-2 py-1 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <button

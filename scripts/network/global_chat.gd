@@ -74,6 +74,16 @@ var _http_players: HTTPRequest
 var _suggestion_panel: PanelContainer
 var _suggestion_list: VBoxContainer
 
+var _http_create_channel: HTTPRequest
+var _http_join_channel: HTTPRequest
+var _http_leave_channel: HTTPRequest
+var _http_list_channels: HTTPRequest
+var _http_delete_channel: HTTPRequest
+var _channel_dialog: PanelContainer
+var _channel_dialog_vbox: VBoxContainer
+var _channel_name_input: LineEdit
+var _joinable_list: VBoxContainer
+
 
 func _ready() -> void:
 	_canvas_layer = CanvasLayer.new()
@@ -116,6 +126,26 @@ func _setup_http() -> void:
 	_http_players = HTTPRequest.new()
 	_http_players.request_completed.connect(_on_players_response)
 	add_child(_http_players)
+
+	_http_create_channel = HTTPRequest.new()
+	_http_create_channel.request_completed.connect(_on_create_channel_response)
+	add_child(_http_create_channel)
+
+	_http_join_channel = HTTPRequest.new()
+	_http_join_channel.request_completed.connect(_on_join_channel_response)
+	add_child(_http_join_channel)
+
+	_http_leave_channel = HTTPRequest.new()
+	_http_leave_channel.request_completed.connect(_on_leave_channel_response)
+	add_child(_http_leave_channel)
+
+	_http_list_channels = HTTPRequest.new()
+	_http_list_channels.request_completed.connect(_on_list_channels_response)
+	add_child(_http_list_channels)
+
+	_http_delete_channel = HTTPRequest.new()
+	_http_delete_channel.request_completed.connect(_on_delete_channel_response)
+	add_child(_http_delete_channel)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -177,6 +207,12 @@ func _build_ui() -> void:
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_label.add_theme_font_size_override("font_size", 22)
 	header_row.add_child(title_label)
+
+	var add_channel_button := Button.new()
+	add_channel_button.text = "+"
+	add_channel_button.custom_minimum_size = Vector2(34, 30)
+	add_channel_button.pressed.connect(_on_add_channel_pressed)
+	header_row.add_child(add_channel_button)
 
 	_toggle_button = Button.new()
 	_toggle_button.text = "_"
@@ -250,6 +286,83 @@ func _build_ui() -> void:
 	_suggestion_list.add_theme_constant_override("separation", 2)
 	suggestion_margin.add_child(_suggestion_list)
 
+	# Channel create/join dialog - overlay on top of the chat panel
+	_channel_dialog = PanelContainer.new()
+	_channel_dialog.visible = false
+	_channel_dialog.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_channel_dialog.z_index = 10
+	_outer_panel.add_child(_channel_dialog)
+	CocUiTheme.apply_to(_channel_dialog)
+
+	var dialog_margin := MarginContainer.new()
+	dialog_margin.add_theme_constant_override("margin_left", 12)
+	dialog_margin.add_theme_constant_override("margin_top", 12)
+	dialog_margin.add_theme_constant_override("margin_right", 12)
+	dialog_margin.add_theme_constant_override("margin_bottom", 12)
+	_channel_dialog.add_child(dialog_margin)
+
+	_channel_dialog_vbox = VBoxContainer.new()
+	_channel_dialog_vbox.add_theme_constant_override("separation", 8)
+	dialog_margin.add_child(_channel_dialog_vbox)
+
+	var dialog_header := HBoxContainer.new()
+	_channel_dialog_vbox.add_child(dialog_header)
+
+	var dialog_title := Label.new()
+	dialog_title.text = "Channels"
+	dialog_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	dialog_title.add_theme_font_size_override("font_size", 20)
+	dialog_header.add_child(dialog_title)
+
+	var dialog_close := Button.new()
+	dialog_close.text = "X"
+	dialog_close.custom_minimum_size = Vector2(34, 30)
+	dialog_close.pressed.connect(func(): _channel_dialog.visible = false)
+	dialog_header.add_child(dialog_close)
+
+	var create_label := Label.new()
+	create_label.text = "Create channel"
+	create_label.add_theme_font_size_override("font_size", 16)
+	_channel_dialog_vbox.add_child(create_label)
+
+	var create_row := HBoxContainer.new()
+	create_row.add_theme_constant_override("separation", 4)
+	_channel_dialog_vbox.add_child(create_row)
+
+	_channel_name_input = LineEdit.new()
+	_channel_name_input.placeholder_text = "Channel name"
+	_channel_name_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_channel_name_input.custom_minimum_size = Vector2(0, 36)
+	_channel_name_input.max_length = 20
+	_channel_name_input.add_theme_font_size_override("font_size", 16)
+	_channel_name_input.add_theme_color_override("font_color", Color.WHITE)
+	create_row.add_child(_channel_name_input)
+
+	var create_btn := Button.new()
+	create_btn.text = "Create"
+	create_btn.add_theme_font_size_override("font_size", 16)
+	create_btn.custom_minimum_size = Vector2(80, 36)
+	create_btn.pressed.connect(_on_create_channel)
+	create_row.add_child(create_btn)
+
+	var sep2 := HSeparator.new()
+	_channel_dialog_vbox.add_child(sep2)
+
+	var join_label := Label.new()
+	join_label.text = "Join a channel"
+	join_label.add_theme_font_size_override("font_size", 16)
+	_channel_dialog_vbox.add_child(join_label)
+
+	var joinable_scroll := ScrollContainer.new()
+	joinable_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	joinable_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_channel_dialog_vbox.add_child(joinable_scroll)
+
+	_joinable_list = VBoxContainer.new()
+	_joinable_list.add_theme_constant_override("separation", 4)
+	_joinable_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	joinable_scroll.add_child(_joinable_list)
+
 
 # ─────────────────────────────────────────────────────────────────────────
 # Whisper suggestions
@@ -322,6 +435,20 @@ func _on_suggestion_picked(name: String) -> void:
 	_suggestion_panel.visible = false
 
 
+func _strip_tag(display_name: String) -> String:
+	var parts := display_name.split(" ", false, 2)
+	if parts.size() >= 2 and parts[0].length() <= 5 and parts[0] == parts[0].to_upper():
+		return parts[1]
+	return display_name
+
+
+func _on_name_clicked(meta: Variant) -> void:
+	var name_str := str(meta)
+	_chat_input.text = "/w %s " % name_str
+	_chat_input.caret_column = _chat_input.text.length()
+	_chat_input.grab_focus()
+
+
 # ─────────────────────────────────────────────────────────────────────────
 # Channel tabs
 # ─────────────────────────────────────────────────────────────────────────
@@ -332,18 +459,39 @@ func _rebuild_channel_tabs() -> void:
 	_tab_buttons.clear()
 
 	for ch in _channels:
-		var btn := Button.new()
 		var ch_id: String = str(ch.get("id", ""))
 		var ch_name: String = str(ch.get("name", "???"))
 		var ch_type: String = str(ch.get("type", "custom"))
 		if ch_type == "regiment":
 			ch_name = "[%s]" % ch_name
-		btn.text = ch_name
-		btn.add_theme_font_size_override("font_size", 18)
-		btn.custom_minimum_size = Vector2(0, 36)
-		btn.pressed.connect(_on_channel_tab_pressed.bind(ch_id))
-		_channel_tab_row.add_child(btn)
-		_tab_buttons[ch_id] = btn
+
+		if ch_type == "custom":
+			var tab_row := HBoxContainer.new()
+			tab_row.add_theme_constant_override("separation", 0)
+			_channel_tab_row.add_child(tab_row)
+
+			var btn := Button.new()
+			btn.text = ch_name
+			btn.add_theme_font_size_override("font_size", 18)
+			btn.custom_minimum_size = Vector2(0, 36)
+			btn.pressed.connect(_on_channel_tab_pressed.bind(ch_id))
+			tab_row.add_child(btn)
+			_tab_buttons[ch_id] = btn
+
+			var leave_btn := Button.new()
+			leave_btn.text = "x"
+			leave_btn.add_theme_font_size_override("font_size", 14)
+			leave_btn.custom_minimum_size = Vector2(24, 36)
+			leave_btn.pressed.connect(_on_leave_channel_tab.bind(ch_id))
+			tab_row.add_child(leave_btn)
+		else:
+			var btn := Button.new()
+			btn.text = ch_name
+			btn.add_theme_font_size_override("font_size", 18)
+			btn.custom_minimum_size = Vector2(0, 36)
+			btn.pressed.connect(_on_channel_tab_pressed.bind(ch_id))
+			_channel_tab_row.add_child(btn)
+			_tab_buttons[ch_id] = btn
 
 	_update_tab_styles()
 
@@ -397,20 +545,39 @@ func _fetch_channels() -> void:
 	_http_channels.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
 
 
-func _on_channels_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+func _on_channels_response(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	_channels_busy = false
 	if response_code != 200:
 		return
 	var parsed := _parse_body_array(body)
 	if parsed.is_empty():
 		return
+	parsed.sort_custom(func(a, b):
+		var order := {"global": 0, "regiment": 1, "custom": 2}
+		var a_ord: int = order.get(str(a.get("type", "custom")), 2)
+		var b_ord: int = order.get(str(b.get("type", "custom")), 2)
+		if a_ord != b_ord:
+			return a_ord < b_ord
+		return str(a.get("name", "")) < str(b.get("name", ""))
+	)
 	_channels = parsed
-	for ch in _channels:
-		if str(ch.get("type", "")) == "global":
-			_active_channel_id = str(ch.get("id", ""))
-			break
-	if _active_channel_id.is_empty() and not _channels.is_empty():
-		_active_channel_id = str(_channels[0].get("id", ""))
+
+	var prev_still_exists := false
+	if not _active_channel_id.is_empty():
+		for ch in _channels:
+			if str(ch.get("id", "")) == _active_channel_id:
+				prev_still_exists = true
+				break
+
+	if not prev_still_exists:
+		_active_channel_id = ""
+		for ch in _channels:
+			if str(ch.get("type", "")) == "global":
+				_active_channel_id = str(ch.get("id", ""))
+				break
+		if _active_channel_id.is_empty() and not _channels.is_empty():
+			_active_channel_id = str(_channels[0].get("id", ""))
+
 	_rebuild_channel_tabs()
 	_fetch_history()
 	_fetch_whisper_history()
@@ -782,6 +949,7 @@ func _render_message(msg: Dictionary) -> void:
 	var msg_user_id: String = str(msg.get("user_id", ""))
 	var is_self: bool = (msg_user_id == SupabaseAuth.user_id)
 
+	var click_name := ""
 	if is_whisper:
 		var whisper_name: String
 		if is_self:
@@ -792,14 +960,23 @@ func _render_message(msg: Dictionary) -> void:
 			]
 		else:
 			whisper_name = sender
-			line.text = "[color=gray]%s[/color] [color=magenta][whisper from %s][/color] %s" % [
-				time_display, whisper_name, text
+			click_name = _strip_tag(sender)
+			line.text = "[color=gray]%s[/color] [color=magenta][whisper from [url=%s]%s[/url]][/color] %s" % [
+				time_display, click_name, sender, text
 			]
 	else:
 		var name_color: String = "cyan" if is_self else "yellow"
-		line.text = "[color=gray]%s[/color] [color=%s][%s][/color] %s" % [
-			time_display, name_color, sender, text
-		]
+		if is_self:
+			line.text = "[color=gray]%s[/color] [color=%s][%s][/color] %s" % [
+				time_display, name_color, sender, text
+			]
+		else:
+			click_name = _strip_tag(sender)
+			line.text = "[color=gray]%s[/color] [color=%s][[url=%s]%s[/url]][/color] %s" % [
+				time_display, name_color, click_name, sender, text
+			]
+	if not click_name.is_empty():
+		line.meta_clicked.connect(_on_name_clicked)
 	_chat_messages_container.add_child(line)
 
 
@@ -818,6 +995,167 @@ func _clear_messages() -> void:
 	_channel_unread.clear()
 	for child in _chat_messages_container.get_children():
 		child.queue_free()
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Custom channels - create / join / leave
+# ─────────────────────────────────────────────────────────────────────────
+
+func _on_add_channel_pressed() -> void:
+	_channel_dialog.visible = true
+	_channel_name_input.text = ""
+	_fetch_joinable_channels()
+
+
+func _fetch_joinable_channels() -> void:
+	var url := "%s/rest/v1/rpc/list_custom_channels" % SupabaseAuth.SUPABASE_URL
+	_http_list_channels.request(url, _bearer_headers(), HTTPClient.METHOD_POST, "{}")
+
+
+func _on_list_channels_response(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	for child in _joinable_list.get_children():
+		child.queue_free()
+
+	if response_code != 200:
+		var err_label := Label.new()
+		err_label.text = "Could not load channels."
+		err_label.add_theme_font_size_override("font_size", 14)
+		_joinable_list.add_child(err_label)
+		return
+
+	var parsed := _parse_body_array(body)
+	var my_channel_ids: Array[String] = []
+	for ch in _channels:
+		my_channel_ids.append(str(ch.get("id", "")))
+
+	var can_delete: bool = SupabaseAuth.is_admin or SupabaseAuth.is_moderator
+	var channel_count := 0
+	for entry in parsed:
+		var ch_id: String = str(entry.get("id", ""))
+		var ch_name: String = str(entry.get("name", ""))
+		var created_by: String = str(entry.get("created_by", ""))
+		var is_mine: bool = (created_by == SupabaseAuth.user_id)
+		var already_joined: bool = ch_id in my_channel_ids
+		channel_count += 1
+
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 4)
+
+		var lbl := Label.new()
+		lbl.text = ch_name
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.add_theme_font_size_override("font_size", 16)
+		if already_joined:
+			lbl.add_theme_color_override("font_color", Color.GRAY)
+		row.add_child(lbl)
+
+		if not already_joined:
+			var join_btn := Button.new()
+			join_btn.text = "Join"
+			join_btn.add_theme_font_size_override("font_size", 14)
+			join_btn.custom_minimum_size = Vector2(60, 30)
+			join_btn.pressed.connect(_on_join_channel.bind(ch_id))
+			row.add_child(join_btn)
+
+		if is_mine or can_delete:
+			var del_btn := Button.new()
+			del_btn.text = "Delete"
+			del_btn.add_theme_font_size_override("font_size", 14)
+			del_btn.custom_minimum_size = Vector2(70, 30)
+			del_btn.pressed.connect(_on_delete_channel.bind(ch_id))
+			row.add_child(del_btn)
+
+		_joinable_list.add_child(row)
+
+	if channel_count == 0:
+		var none_label := Label.new()
+		none_label.text = "No custom channels yet."
+		none_label.add_theme_font_size_override("font_size", 14)
+		none_label.add_theme_color_override("font_color", Color.GRAY)
+		_joinable_list.add_child(none_label)
+
+
+func _on_create_channel() -> void:
+	var ch_name := _channel_name_input.text.strip_edges()
+	if ch_name.is_empty():
+		return
+	if not SupabaseAuth.is_signed_in:
+		return
+	var payload := {"p_name": ch_name}
+	var url := "%s/rest/v1/rpc/create_custom_channel" % SupabaseAuth.SUPABASE_URL
+	_http_create_channel.request(url, _bearer_headers(), HTTPClient.METHOD_POST, JSON.stringify(payload))
+
+
+func _on_create_channel_response(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if response_code != 200:
+		var err_text := body.get_string_from_utf8()
+		push_warning("Create channel failed (%d): %s" % [response_code, err_text])
+		_show_system_message("Could not create channel (%d)." % response_code)
+		return
+	_channel_dialog.visible = false
+	_channel_name_input.text = ""
+	_channels_busy = false
+	_fetch_channels()
+
+
+func _on_join_channel(channel_id: String) -> void:
+	_join_channel(channel_id)
+
+
+func _join_channel(channel_id: String) -> void:
+	if not SupabaseAuth.is_signed_in:
+		return
+	var payload := {
+		"channel_id": channel_id,
+		"user_id": SupabaseAuth.user_id,
+	}
+	var url := "%s/rest/v1/chat_channel_members" % SupabaseAuth.SUPABASE_URL
+	_http_join_channel.request(url, _bearer_headers(), HTTPClient.METHOD_POST, JSON.stringify(payload))
+
+
+func _on_join_channel_response(_result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+	if response_code != 201 and response_code != 200:
+		_show_system_message("Could not join channel.")
+		return
+	_channel_dialog.visible = false
+	_channels_busy = false
+	_fetch_channels()
+
+
+func _on_leave_channel_tab(channel_id: String) -> void:
+	_leave_channel(channel_id)
+
+
+func _leave_channel(channel_id: String) -> void:
+	var url := "%s/rest/v1/chat_channel_members?channel_id=eq.%s&user_id=eq.%s" % [
+		SupabaseAuth.SUPABASE_URL, channel_id, SupabaseAuth.user_id
+	]
+	_http_leave_channel.request(url, _bearer_headers(), HTTPClient.METHOD_DELETE)
+
+
+func _on_leave_channel_response(_result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+	if response_code != 200 and response_code != 204:
+		_show_system_message("Could not leave channel.")
+		return
+	_channels_busy = false
+	_fetch_channels()
+
+
+func _on_delete_channel(channel_id: String) -> void:
+	var payload := {"p_channel_id": channel_id}
+	var url := "%s/rest/v1/rpc/delete_custom_channel" % SupabaseAuth.SUPABASE_URL
+	_http_delete_channel.request(url, _bearer_headers(), HTTPClient.METHOD_POST, JSON.stringify(payload))
+
+
+func _on_delete_channel_response(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if response_code != 200 and response_code != 204:
+		var err_text := body.get_string_from_utf8()
+		push_warning("Delete channel failed (%d): %s" % [response_code, err_text])
+		_show_system_message("Could not delete channel.")
+		return
+	_channel_dialog.visible = false
+	_channels_busy = false
+	_fetch_channels()
 
 
 # ─────────────────────────────────────────────────────────────────────────

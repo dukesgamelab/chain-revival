@@ -28,6 +28,8 @@ export default function App() {
           regimentTag={profile.regiment_tag}
           regimentId={profile.regiment_id}
           isBanned={profile.is_banned}
+          isAdmin={profile.is_admin}
+          isModerator={profile.is_moderator}
         />
       )}
     </div>
