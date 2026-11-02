@@ -1,12 +1,10 @@
 extends Node
-## Global chat overlay for Chain Revival.
+## Chat overlay for Chain Revival.
 ##
 ## Autoload that places a chat panel on top of every screen via CanvasLayer.
-## The panel sits to the right of the main content and is visible whenever
-## the player is signed in, except during gameplay.
-##
-## Uses Supabase Realtime for live message delivery (no polling).
-## Falls back to a single REST fetch for initial history on connect.
+## Supports multiple channels: Global (always), Regiment (if in one),
+## and custom player-created channels.
+## Whispers display across all channel tabs.
 
 const CHAT_PANEL_WIDTH := 420
 const CHAT_PANEL_MARGIN_TOP := 80
@@ -15,9 +13,7 @@ const CHAT_PANEL_MARGIN_RIGHT := 20
 const MAX_VISIBLE_MESSAGES := 100
 const MAX_MESSAGE_LENGTH := 200
 const SEND_COOLDOWN_SEC := 2.0
-const CHAT_FILTER := "channel=eq.global"
 
-## Scenes where the global chat should be hidden.
 const HIDDEN_SCENES := [
 	"res://scenes/main.tscn",
 	"res://scenes/side_select.tscn",
@@ -31,17 +27,37 @@ var _chat_messages_container: VBoxContainer
 var _chat_input: LineEdit
 var _chat_send_button: Button
 var _toggle_button: Button
+var _reopen_button: Button
+var _channel_tab_row: HBoxContainer
 
-var _seen_ids: Dictionary = {}
 var _is_open: bool = true
 var _unread_count: int = 0
 
 var _http_fetch: HTTPRequest
 var _http_send: HTTPRequest
+var _http_channels: HTTPRequest
+var _http_whispers: HTTPRequest
 var _fetch_busy: bool = false
+var _channels_busy: bool = false
 var _visibility_check_queued: bool = false
 var _subscribed: bool = false
 var _send_cooldown: float = 0.0
+
+## Channel data: [{id, name, type}, ...]
+var _channels: Array = []
+var _active_channel_id: String = ""
+
+## Per-channel message storage: { channel_id: [msg_dict, ...] }
+var _channel_messages: Dictionary = {}
+## Whisper messages (shown in all tabs)
+var _whisper_messages: Array = []
+var _seen_ids: Dictionary = {}
+
+## Per-channel unread counts: { channel_id: int }
+var _channel_unread: Dictionary = {}
+
+## Tab button references: { channel_id: Button }
+var _tab_buttons: Dictionary = {}
 
 
 func _ready() -> void:
@@ -66,6 +82,14 @@ func _setup_http() -> void:
 	_http_send.request_completed.connect(_on_send_response)
 	add_child(_http_send)
 
+	_http_channels = HTTPRequest.new()
+	_http_channels.request_completed.connect(_on_channels_response)
+	add_child(_http_channels)
+
+	_http_whispers = HTTPRequest.new()
+	_http_whispers.request_completed.connect(_on_whispers_response)
+	add_child(_http_whispers)
+
 
 # ─────────────────────────────────────────────────────────────────────────
 # UI construction
@@ -76,6 +100,21 @@ func _build_ui() -> void:
 	_root_control.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_canvas_layer.add_child(_root_control)
+
+	# Small button shown when chat is minimized
+	_reopen_button = Button.new()
+	_reopen_button.text = "Chat"
+	_reopen_button.add_theme_font_size_override("font_size", 18)
+	_reopen_button.custom_minimum_size = Vector2(80, 36)
+	_reopen_button.anchor_left = 1.0
+	_reopen_button.anchor_right = 1.0
+	_reopen_button.anchor_top = 0.0
+	_reopen_button.offset_left = -(80 + CHAT_PANEL_MARGIN_RIGHT)
+	_reopen_button.offset_right = -CHAT_PANEL_MARGIN_RIGHT
+	_reopen_button.offset_top = CHAT_PANEL_MARGIN_TOP
+	_reopen_button.visible = false
+	_reopen_button.pressed.connect(_on_toggle_pressed)
+	_root_control.add_child(_reopen_button)
 
 	_outer_panel = PanelContainer.new()
 	_outer_panel.anchor_left = 1.0
@@ -118,6 +157,12 @@ func _build_ui() -> void:
 	_toggle_button.pressed.connect(_on_toggle_pressed)
 	header_row.add_child(_toggle_button)
 
+	# Channel tabs
+	_channel_tab_row = HBoxContainer.new()
+	_channel_tab_row.name = "ChannelTabs"
+	_channel_tab_row.add_theme_constant_override("separation", 4)
+	vbox.add_child(_channel_tab_row)
+
 	# Separator
 	var sep := HSeparator.new()
 	sep.name = "ChatSeparator"
@@ -159,6 +204,101 @@ func _build_ui() -> void:
 
 
 # ─────────────────────────────────────────────────────────────────────────
+# Channel tabs
+# ─────────────────────────────────────────────────────────────────────────
+
+func _rebuild_channel_tabs() -> void:
+	for child in _channel_tab_row.get_children():
+		child.queue_free()
+	_tab_buttons.clear()
+
+	for ch in _channels:
+		var btn := Button.new()
+		var ch_id: String = str(ch.get("id", ""))
+		var ch_name: String = str(ch.get("name", "???"))
+		var ch_type: String = str(ch.get("type", "custom"))
+		if ch_type == "regiment":
+			ch_name = "[%s]" % ch_name
+		btn.text = ch_name
+		btn.add_theme_font_size_override("font_size", 18)
+		btn.custom_minimum_size = Vector2(0, 36)
+		btn.pressed.connect(_on_channel_tab_pressed.bind(ch_id))
+		_channel_tab_row.add_child(btn)
+		_tab_buttons[ch_id] = btn
+
+	_update_tab_styles()
+
+
+func _update_tab_styles() -> void:
+	for ch_id in _tab_buttons:
+		var btn: Button = _tab_buttons[ch_id]
+		var is_active: bool = (ch_id == _active_channel_id)
+		if is_active:
+			btn.add_theme_color_override("font_color", Color.WHITE)
+		else:
+			btn.remove_theme_color_override("font_color")
+		var unread: int = _channel_unread.get(ch_id, 0)
+		var base_name := ""
+		for ch in _channels:
+			if str(ch.get("id", "")) == ch_id:
+				var ch_type: String = str(ch.get("type", "custom"))
+				base_name = str(ch.get("name", "???"))
+				if ch_type == "regiment":
+					base_name = "[%s]" % base_name
+				break
+		if unread > 0 and ch_id != _active_channel_id:
+			btn.text = "%s (%d)" % [base_name, unread]
+		else:
+			btn.text = base_name
+
+
+func _on_channel_tab_pressed(channel_id: String) -> void:
+	if channel_id == _active_channel_id:
+		return
+	_active_channel_id = channel_id
+	_channel_unread[channel_id] = 0
+	_update_tab_styles()
+	if not _channel_messages.has(channel_id):
+		_fetch_history()
+	else:
+		_refresh_message_display()
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Channel fetching
+# ─────────────────────────────────────────────────────────────────────────
+
+func _fetch_channels() -> void:
+	if not SupabaseAuth.is_signed_in:
+		return
+	if _channels_busy:
+		return
+	_channels_busy = true
+	var url := "%s/rest/v1/chat_channels?select=id,name,type&order=type,name" % SupabaseAuth.SUPABASE_URL
+	_http_channels.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
+
+
+func _on_channels_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_channels_busy = false
+	if response_code != 200:
+		return
+	var parsed := _parse_body_array(body)
+	if parsed.is_empty():
+		return
+	_channels = parsed
+	for ch in _channels:
+		if str(ch.get("type", "")) == "global":
+			_active_channel_id = str(ch.get("id", ""))
+			break
+	if _active_channel_id.is_empty() and not _channels.is_empty():
+		_active_channel_id = str(_channels[0].get("id", ""))
+	_rebuild_channel_tabs()
+	_fetch_history()
+	_fetch_whisper_history()
+
+
+
+# ─────────────────────────────────────────────────────────────────────────
 # Visibility
 # ─────────────────────────────────────────────────────────────────────────
 
@@ -175,11 +315,12 @@ func _is_gameplay_scene() -> bool:
 
 func _update_visibility() -> void:
 	var show := SupabaseAuth.is_signed_in and not _is_gameplay_scene()
-	_outer_panel.visible = show
+	_outer_panel.visible = show and _is_open
+	_reopen_button.visible = show and not _is_open
 	if show:
 		_ensure_subscribed()
-		if _seen_ids.is_empty():
-			_fetch_history()
+		if _channels.is_empty():
+			_fetch_channels()
 		var banned := SupabaseAuth.is_banned
 		_chat_input.editable = not banned
 		_chat_send_button.disabled = banned
@@ -193,6 +334,13 @@ func _on_auth_changed(_signed_in: bool) -> void:
 	if not SupabaseAuth.is_signed_in:
 		_clear_messages()
 		_ensure_unsubscribed()
+		_channels.clear()
+		_active_channel_id = ""
+		_channel_messages.clear()
+		_whisper_messages.clear()
+		_channel_unread.clear()
+	else:
+		_fetch_channels()
 
 
 func _on_tree_changed() -> void:
@@ -209,20 +357,12 @@ func _deferred_visibility_check() -> void:
 
 func _on_toggle_pressed() -> void:
 	_is_open = not _is_open
-	_chat_scroll.visible = _is_open
-	var vbox := _chat_scroll.get_parent() as VBoxContainer
-	if vbox != null:
-		var sep := vbox.get_node_or_null("ChatSeparator")
-		if sep != null:
-			sep.visible = _is_open
-		var input_row := vbox.get_node_or_null("ChatInputRow")
-		if input_row != null:
-			input_row.visible = _is_open
+	_outer_panel.visible = _is_open
+	_reopen_button.visible = not _is_open
 	if _is_open:
 		_unread_count = 0
-		_toggle_button.text = "_"
 	else:
-		_toggle_button.text = "+" if _unread_count == 0 else "+ (%d)" % _unread_count
+		_reopen_button.text = "Chat" if _unread_count == 0 else "Chat (%d)" % _unread_count
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -233,18 +373,18 @@ func _ensure_subscribed() -> void:
 	if _subscribed:
 		return
 	_subscribed = true
-	SupabaseRealtime.subscribe("chat_messages", CHAT_FILTER, _on_realtime_message)
+	SupabaseRealtime.subscribe("chat_messages", "", _on_realtime_message)
 
 
 func _ensure_unsubscribed() -> void:
 	if not _subscribed:
 		return
 	_subscribed = false
-	SupabaseRealtime.unsubscribe("chat_messages", CHAT_FILTER, _on_realtime_message)
+	SupabaseRealtime.unsubscribe("chat_messages", "", _on_realtime_message)
 
 
 func _on_realtime_message(record: Dictionary) -> void:
-	_apply_single_message(record)
+	_apply_single_message(record, false)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -280,25 +420,50 @@ func _send_message(msg: String) -> void:
 	var tagged_name := SupabaseAuth.display_name
 	if SupabaseAuth.regiment_tag != "":
 		tagged_name = "%s %s" % [SupabaseAuth.regiment_tag, tagged_name]
-	var body := JSON.stringify({
+	var payload := {
 		"user_id": SupabaseAuth.user_id,
 		"display_name": tagged_name,
 		"message": msg,
 		"channel": "global",
-	})
+	}
+	if not _active_channel_id.is_empty():
+		payload["channel_id"] = _active_channel_id
+		for ch in _channels:
+			if str(ch.get("id", "")) == _active_channel_id:
+				var ch_type: String = str(ch.get("type", "global"))
+				payload["channel"] = ch_type
+				break
+	var body := JSON.stringify(payload)
 	var url := "%s/rest/v1/chat_messages" % SupabaseAuth.SUPABASE_URL
 	_http_send.request(url, _bearer_headers(), HTTPClient.METHOD_POST, body)
 
 
-## Fetch the last 50 messages on first connect (history backfill).
 func _fetch_history() -> void:
 	if not SupabaseAuth.is_signed_in:
 		return
 	if _fetch_busy:
 		return
+	if _active_channel_id.is_empty():
+		return
 	_fetch_busy = true
-	var url := "%s/rest/v1/chat_messages?channel=eq.global&order=created_at.asc&limit=50" % SupabaseAuth.SUPABASE_URL
+	var url := "%s/rest/v1/chat_messages?channel_id=eq.%s&order=created_at.asc&limit=50&select=id,display_name,message,created_at,user_id,channel_id,is_whisper,whisper_to" % [SupabaseAuth.SUPABASE_URL, _active_channel_id]
 	_http_fetch.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
+
+
+func _fetch_whisper_history() -> void:
+	if not SupabaseAuth.is_signed_in:
+		return
+	var url := "%s/rest/v1/chat_messages?is_whisper=eq.true&order=created_at.asc&limit=50&select=id,display_name,message,created_at,user_id,channel_id,is_whisper,whisper_to" % SupabaseAuth.SUPABASE_URL
+	_http_whispers.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
+
+
+func _on_whispers_response(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if response_code != 200:
+		return
+	var parsed := _parse_body_array(body)
+	for msg_dict in parsed:
+		_apply_single_message(msg_dict as Dictionary, true)
+	_refresh_message_display()
 
 
 func _on_send_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
@@ -311,17 +476,17 @@ func _on_fetch_response(result: int, response_code: int, _headers: PackedStringA
 		return
 	var parsed := _parse_body_array(body)
 	for msg_dict in parsed:
-		_apply_single_message(msg_dict as Dictionary)
+		_apply_single_message(msg_dict as Dictionary, true)
+	_refresh_message_display()
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# Message rendering
+# Message storage and rendering
 # ─────────────────────────────────────────────────────────────────────────
 
-func _apply_single_message(msg: Dictionary) -> void:
+func _apply_single_message(msg: Dictionary, is_history: bool) -> void:
 	var msg_id: String = msg.get("id", "")
 	if msg_id.is_empty():
-		# Realtime may return int IDs.
 		var raw_id = msg.get("id", null)
 		if raw_id != null:
 			msg_id = str(raw_id)
@@ -329,10 +494,66 @@ func _apply_single_message(msg: Dictionary) -> void:
 		return
 	_seen_ids[msg_id] = true
 
+	var is_whisper: bool = msg.get("is_whisper", false)
+	var ch_id: String = str(msg.get("channel_id", ""))
+	if ch_id.is_empty() or ch_id == "null" or ch_id == "<null>":
+		ch_id = _active_channel_id
+
+	if is_whisper:
+		_whisper_messages.append(msg)
+		if _whisper_messages.size() > MAX_VISIBLE_MESSAGES:
+			_whisper_messages = _whisper_messages.slice(-MAX_VISIBLE_MESSAGES)
+	else:
+		if not _channel_messages.has(ch_id):
+			_channel_messages[ch_id] = []
+		var arr: Array = _channel_messages[ch_id]
+		arr.append(msg)
+		if arr.size() > MAX_VISIBLE_MESSAGES:
+			_channel_messages[ch_id] = arr.slice(-MAX_VISIBLE_MESSAGES)
+
+	if not is_history:
+		var msg_user_id: String = str(msg.get("user_id", ""))
+		var is_self: bool = (msg_user_id == SupabaseAuth.user_id)
+
+		# Track unread for non-active channels
+		if not is_self:
+			if ch_id != _active_channel_id or not _is_open:
+				_channel_unread[ch_id] = _channel_unread.get(ch_id, 0) + 1
+				_update_tab_styles()
+
+			if not _is_open:
+				_unread_count += 1
+				_reopen_button.text = "Chat (%d)" % _unread_count
+
+		# If message belongs to active channel or is a whisper, show it live
+		if ch_id == _active_channel_id or is_whisper:
+			_render_message(msg)
+			_scroll_to_bottom()
+
+
+func _refresh_message_display() -> void:
+	for child in _chat_messages_container.get_children():
+		child.queue_free()
+
+	var channel_msgs: Array = _channel_messages.get(_active_channel_id, [])
+	var all_msgs: Array = []
+	all_msgs.append_array(channel_msgs)
+	all_msgs.append_array(_whisper_messages)
+	all_msgs.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a.get("created_at", "")) < str(b.get("created_at", ""))
+	)
+
+	for msg in all_msgs:
+		_render_message(msg)
+	_scroll_to_bottom()
+
+
+func _render_message(msg: Dictionary) -> void:
 	var sender: String = msg.get("display_name", "???")
 	var text: String = msg.get("message", "")
 	var timestamp_str: String = msg.get("created_at", "")
 	var time_display := _format_chat_time(timestamp_str)
+	var is_whisper: bool = msg.get("is_whisper", false)
 
 	var line := RichTextLabel.new()
 	line.bbcode_enabled = true
@@ -342,25 +563,18 @@ func _apply_single_message(msg: Dictionary) -> void:
 
 	var msg_user_id: String = str(msg.get("user_id", ""))
 	var is_self: bool = (msg_user_id == SupabaseAuth.user_id)
-	var name_color: String = "cyan" if is_self else "yellow"
 
-	line.text = "[color=gray]%s[/color] [color=%s][%s][/color] %s" % [
-		time_display, name_color, sender, text
-	]
+	if is_whisper:
+		var whisper_label := "to" if is_self else "from"
+		line.text = "[color=gray]%s[/color] [color=magenta][whisper %s %s][/color] %s" % [
+			time_display, whisper_label, sender, text
+		]
+	else:
+		var name_color: String = "cyan" if is_self else "yellow"
+		line.text = "[color=gray]%s[/color] [color=%s][%s][/color] %s" % [
+			time_display, name_color, sender, text
+		]
 	_chat_messages_container.add_child(line)
-
-	while _chat_messages_container.get_child_count() > MAX_VISIBLE_MESSAGES:
-		var oldest := _chat_messages_container.get_child(0)
-		_chat_messages_container.remove_child(oldest)
-		oldest.queue_free()
-
-	# Update unread badge if chat is minimized.
-	if not _is_open and not is_self:
-		_unread_count += 1
-		_toggle_button.text = "+ (%d)" % _unread_count
-
-	# Auto-scroll to bottom.
-	_scroll_to_bottom()
 
 
 func _scroll_to_bottom() -> void:
@@ -373,6 +587,9 @@ func _scroll_to_bottom() -> void:
 func _clear_messages() -> void:
 	_seen_ids.clear()
 	_unread_count = 0
+	_channel_messages.clear()
+	_whisper_messages.clear()
+	_channel_unread.clear()
 	for child in _chat_messages_container.get_children():
 		child.queue_free()
 

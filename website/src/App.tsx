@@ -26,6 +26,7 @@ export default function App() {
           userId={user.id}
           displayName={profile.display_name}
           regimentTag={profile.regiment_tag}
+          regimentId={profile.regiment_id}
           isBanned={profile.is_banned}
         />
       )}
