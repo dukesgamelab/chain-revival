@@ -200,7 +200,12 @@ func _build_ui() -> void:
 
 	# Title
 	var title := Label.new()
-	title.text = "Game Rooms"
+	var url := _effective_server_url()
+	if url != ONLINE_SERVER_URL:
+		title.text = "Game Rooms [LOCAL: %s]" % url
+		title.add_theme_color_override("font_color", Color(1.0, 1.0, 0.4))
+	else:
+		title.text = "Game Rooms"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 24)
 	vbox.add_child(title)
