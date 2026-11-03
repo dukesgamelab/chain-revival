@@ -26,6 +26,8 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - Removed footstep sounds - constant clicking noise during soldier movement (Phase 46)
 - Removed ambient wind loop - distracting background audio (Phase 46)
 - Removed grenade throw whistle sound - generated placeholder sounded unnatural (Phase 46)
+- Fixed status and stress column colors never showing - tints were applied with modulate over a fixed font color, so Cover/Stunned/Pinned/Panicked and stress bands all rendered plain red/black. Now use dark tones readable on the gray cells (Phase 46)
+- Fixed soldiers not taking the corner-hug pose when arriving at a corner - in multiplayer the server finishes the move before the run animation does, so the pose only appeared after the next click. Soldier now re-syncs when the animation reaches the tile (Phase 46)
 - Added server-side disconnect logging to help diagnose reconnect window failures (Phase 46)
 - Fixed server not enforcing panicked Fire At rejection - previously client-only (Phase 45)
 - Fixed server not applying stress movement speed modifier - soldiers moved at full speed regardless of stress in multiplayer (Phase 45)
@@ -311,7 +313,7 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 
 ## Known Bugs
 
-- **Reconnect on game close**: Countdown timer now ticks down visually. Added server-side disconnect logging to diagnose early forfeit. Root cause of early forfeit still under investigation - check `fly logs` for `[Disconnect] IMMEDIATE FORFEIT` lines (means the reconnect window was skipped, likely unauthenticated session).
+- **Reconnect on game close**: Countdown timer now ticks down visually. Added server-side disconnect logging to diagnose early forfeit. Root cause of early forfeit still under investigation - check `fly logs` for `[Disconnect] IMMEDIATE FORFEIT` lines (means the reconnect window was skipped, likely unauthenticated session). Local `npm run dev` has no `SUPABASE_URL`, so ES256 login tokens can't be verified, everyone joins as a guest, and reconnect can never trigger locally - set `SUPABASE_URL` before `npm run dev` to test it.
 - **Fog of war showing enemies in DZ**: Enemy soldiers visible in their deployment zone before the game starts. Can see enemy units across the entire map. Observed in LAN multiplayer - needs investigation.
 - **Wall rotation on camera turn**: Some wall sprites don't rotate correctly with the camera. Reported by tester on The Fortress map - needs investigation in facet rotation system.
 
@@ -328,4 +330,4 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 - **More maps**: OG has 30+ scenarios, Chain Revival has 7. Deferred until existing maps are tweaked and playtested.
 - **Soldier stacking prevention**: Currently soldiers can occupy the same tile (OG allowed this too). Could add collision/stacking rules later.
 - **Rich text editor for announcements**: Replace plain textarea with markdown toolbar editor. Body already renders via `ReactMarkdown`.
-- **Chat online list & private messages**: Show who's connected in the chat panel and allow PMs between players. Requested by tester Pai-ku-han.
+- **Chat online list**: Show who's connected in the chat panel. Requested by tester Pai-ku-han (also asked for PMs, which already exist via `/w` and click-to-whisper).

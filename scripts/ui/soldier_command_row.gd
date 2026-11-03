@@ -164,16 +164,17 @@ func set_grenade_pressed(is_pressed: bool) -> void:
 func set_activity_status(text: String) -> void:
 	if _status_label.text != text:
 		_status_label.text = text
+	## font_color, not modulate: modulate multiplies into the red base and hides the tint.
+	var color := CocUiTheme.TEXT_STATUS_RED
 	if text == "Stunned":
-		_status_label.modulate = Color(1.0, 0.85, 0.35, 1.0)
+		color = Color("806000")
 	elif text == "Pinned":
-		_status_label.modulate = Color(1.0, 0.65, 0.2, 1.0)
+		color = Color("B05000")
 	elif text == "Panicked":
-		_status_label.modulate = Color(1.0, 0.3, 0.2, 1.0)
+		color = Color("700000")
 	elif text.begins_with("Cover"):
-		_status_label.modulate = Color(0.5, 1.0, 0.5, 1.0)
-	else:
-		_status_label.modulate = Color.WHITE
+		color = Color("006000")
+	_status_label.add_theme_color_override("font_color", color)
 
 
 func set_stress(stress: float) -> void:
@@ -181,25 +182,24 @@ func set_stress(stress: float) -> void:
 	var band := GameplayPolicies.suppression.stress_band(stress)
 	if band == 0:
 		_stress_label.text = "%d%%" % pct
-		_stress_label.modulate = Color.WHITE
+		_stress_label.remove_theme_color_override("font_color")
 	else:
 		var label := StressLabels.state_label(stress)
 		_stress_label.text = "%s %d%%" % [label, pct]
-		_stress_label.modulate = _stress_band_color(band)
+		_stress_label.add_theme_color_override("font_color", _stress_band_color(band))
 
 
+## Dark tones: the stress cell is light gray, so bright yellow would be unreadable.
 static func _stress_band_color(band: int) -> Color:
 	match band:
 		1:
-			return Color(1.0, 1.0, 0.4, 1.0)
+			return Color("806000")
 		2:
-			return Color(1.0, 0.65, 0.2, 1.0)
+			return Color("B05000")
 		3:
-			return Color(1.0, 0.3, 0.2, 1.0)
-		4:
-			return Color(0.8, 0.15, 0.15, 1.0)
+			return Color("C00000")
 		_:
-			return Color.WHITE
+			return Color("700000")
 
 
 func set_hit_pct(hit_pct: float) -> void:

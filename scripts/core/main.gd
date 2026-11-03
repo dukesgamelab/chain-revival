@@ -4083,9 +4083,21 @@ func _on_soldier_step_reached(_team_id: int, _soldier_id: int, _tile: Vector2i, 
 	pass
 
 
-func _on_soldier_movement_finished(_team_id: int, _soldier_id: int) -> void:
+func _on_soldier_movement_finished(team_id: int, soldier_id: int) -> void:
 	## Presentation reached the dest (MP sim may have finished earlier). Drop that diamond.
 	_sync_run_to_destination_overlay()
+	## The sim's completion sync can land while the run anim is still playing, so the
+	## corner-hug idle was never picked. Re-sync once the sprite has actually stopped.
+	if _game_state == null or _session == null:
+		return
+	var state: SoldierState = _game_state.get_soldier(team_id, soldier_id)
+	if state == null or state.is_moving or not state.is_alive():
+		return
+	var is_selected: bool = (
+		team_id == _session.active_team_id
+		and soldier_id == _control_fireteam().selected_soldier_id
+	)
+	_sync_soldier_view(team_id, soldier_id, is_selected)
 
 
 func _on_soldier_stance_transition_finished(
