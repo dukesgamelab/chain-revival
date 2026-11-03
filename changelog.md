@@ -20,6 +20,7 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - **Dev server toggle** - Create `dev_server.txt` in project root with local server URL to test develop branch in multiplayer without deploying. Lobby shows yellow LOCAL indicator
 - **Cover status display** (Phase 46) - Soldiers next to obstructions now show "Cover" or "Cover (Prone)" in the command row instead of just "Standing"/"Prone". Cover label shows in green
 - **Reconnect countdown** (Phase 46) - Opponent disconnect message now counts down second-by-second instead of showing a static "90s" message
+- **Rejoin after closing the game** (Phase 46) - If you close the game mid-match, your room shows a "Rejoin" button when you come back to the lobby. It reconnects you to your held slot within the 90s window, or tells you the match has ended. Previously the room just showed "In Game" with no way back, and a host's in-progress lobby was deleted on relaunch
 
 ### Bug Fixes
 
@@ -28,6 +29,7 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - Removed grenade throw whistle sound - generated placeholder sounded unnatural (Phase 46)
 - Fixed status and stress column colors never showing - tints were applied with modulate over a fixed font color, so Cover/Stunned/Pinned/Panicked and stress bands all rendered plain red/black. Now use dark tones readable on the gray cells (Phase 46)
 - Fixed soldiers not taking the corner-hug pose when arriving at a corner - in multiplayer the server finishes the move before the run animation does, so the pose only appeared after the next click. Soldier now re-syncs when the animation reaches the tile (Phase 46)
+- Fixed soldiers hugging the far side of a corner being drawn on top of the wall when the camera is rotated - the corner lean moved the soldier's sort position, so a lean toward the camera pulled him in front of the wall. Lean now shifts only the sprite and overhead markers (Phase 46)
 - Added server-side disconnect logging to help diagnose reconnect window failures (Phase 46)
 - Fixed server not enforcing panicked Fire At rejection - previously client-only (Phase 45)
 - Fixed server not applying stress movement speed modifier - soldiers moved at full speed regardless of stress in multiplayer (Phase 45)

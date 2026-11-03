@@ -29,6 +29,7 @@ const AssignWeaponsDialogScene := preload("res://scenes/ui/assign_weapons_dialog
 const AdjustAmmoCommandClass := preload("res://scripts/commands/adjust_ammo_command.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
+const RejoinStoreClass := preload("res://scripts/network/rejoin_store.gd")
 const AiCommanderFrameworkClass := preload("res://scripts/ai/ai_commander_framework.gd")
 const IssueAiOrderCommandClass := preload("res://scripts/commands/issue_ai_order_command.gd")
 const PlayerSlotOwnershipClass := preload("res://scripts/core/player_slot_ownership.gd")
@@ -1704,6 +1705,7 @@ func _on_retreat_requested() -> void:
 	if _game_state == null or _game_state.scenario_ended or _game_state.is_deployment_phase():
 		return
 	if GameModeManager.is_local_multiplayer():
+		RejoinStoreClass.clear()
 		NetworkClient.send_leave_match()
 		return
 	var team_id := _game_state.local_team_id()
@@ -3455,6 +3457,8 @@ func _on_network_vp_update(payload: Dictionary) -> void:
 
 
 func _on_network_match_ended(payload: Dictionary) -> void:
+	_stop_reconnect_countdown()
+	RejoinStoreClass.clear()
 	if _game_state == null:
 		return
 	## Apply authoritative end state from the server.
@@ -3476,6 +3480,8 @@ func _on_network_match_ended(payload: Dictionary) -> void:
 
 func _on_kicked_from_server(reason: String) -> void:
 	GameLog.log_system("[Main] Kicked from server: %s" % reason)
+	_stop_reconnect_countdown()
+	RejoinStoreClass.clear()
 	NetworkClient.disconnect_from_server()
 	# Set game state to ended so the debrief can open
 	if _game_state != null:
@@ -3536,7 +3542,6 @@ func _start_reconnect_countdown() -> void:
 
 
 func _stop_reconnect_countdown() -> void:
-	_reconnect_countdown_sec = 0
 	if _reconnect_countdown_timer != null:
 		_reconnect_countdown_timer.stop()
 		_reconnect_countdown_timer.queue_free()

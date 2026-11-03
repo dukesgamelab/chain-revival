@@ -65,6 +65,8 @@ var _side_request_pending := false
 var _side_request_resolved := false
 var _side_request_success := false
 var match_ready_received := false
+## True when the server's welcome said this connection resumed a held match slot.
+var welcome_reconnected := false
 var client_id: String = ""
 var match_id: String = ""
 var last_snapshot: Dictionary = {}
@@ -379,6 +381,7 @@ func _reset_socket() -> void:
 	client_id = ""
 	match_id = ""
 	match_ready_received = false
+	welcome_reconnected = false
 	last_snapshot.clear()
 	_pending_waits.clear()
 	set_process(false)
@@ -497,6 +500,7 @@ func _handle_message(message: Dictionary) -> void:
 		"welcome":
 			client_id = str(message.get("clientId", ""))
 			match_id = str(message.get("matchId", match_id))
+			welcome_reconnected = bool(message.get("reconnected", false))
 			GameLog.log_system(
 				"[NetworkClient] Welcome: %s (clientId=%s matchId=%s)"
 				% [str(message.get("message", "")), client_id, match_id]

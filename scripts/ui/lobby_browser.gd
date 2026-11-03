@@ -8,6 +8,8 @@ extends Control
 const MODE_SELECT_SCENE := "res://scenes/mode_select.tscn"
 const LOBBY_BROWSER_SCENE := "res://scenes/lobby_browser.tscn"
 const SIDE_SELECT_SCENE := "res://scenes/side_select.tscn"
+const MAIN_SCENE := "res://scenes/main.tscn"
+const REJOIN_WAIT_SEC := 5.0
 const LEADERBOARD_SCENE := "res://scenes/leaderboard.tscn"
 const REGIMENT_SCENE := "res://scenes/regiment_browser.tscn"
 const ADMIN_SCENE := "res://scenes/admin_browser.tscn"
@@ -16,6 +18,9 @@ const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
 const RegimentBrowserScript := preload("res://scripts/ui/regiment_browser.gd")
 const AdminBrowserScript := preload("res://scripts/ui/admin_browser.gd")
 const MapDataClass := preload("res://scripts/map/map_data.gd")
+const RejoinStoreClass := preload("res://scripts/network/rejoin_store.gd")
+const MatchConfigClass := preload("res://scripts/core/match_config.gd")
+const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 
 const ONLINE_SERVER_URL := "wss://chain-revival-ax0q1g.fly.dev"
 
@@ -56,6 +61,8 @@ var _hosted_lobby_id: String = ""
 var _joined_lobby_id: String = ""
 var _active_room_number: int = 0
 var _starting_match: bool = false
+## Match this client was in before the game closed: {lobby_id, server_url}, or empty.
+var _rejoin: Dictionary = {}
 
 # Player card sidebar
 var _player_card_panel: PanelContainer
@@ -87,6 +94,7 @@ func _ready() -> void:
 	CocUiTheme.apply_to(self)
 	_lobby_client = LobbyClientClass.new()
 	add_child(_lobby_client)
+	_rejoin = RejoinStoreClass.load_record()
 	_generate_room_config(_max_rooms)
 	_build_ui()
 	_connect_signals()
@@ -747,6 +755,10 @@ func _on_room_action(room_number: int) -> void:
 	var room_data: Dictionary = _room_rows.get(room_number, {})
 	var lobby: Dictionary = room_data.get("lobby", {})
 
+	if _is_rejoinable(lobby):
+		_rejoin_match()
+		return
+
 	# Check if this is the player's own room — "Leave" action
 	if not lobby.is_empty():
 		var host_id: String = lobby.get("host_id", "")
@@ -826,9 +838,20 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 					_hosted_lobby_id = lobby.get("id", "")
 					var rn_val = lobby.get("room_number", 0)
 					_active_room_number = int(rn_val) if rn_val != null else 0
-				elif lobby_status == "in_progress":
+				elif lobby_status == "in_progress" and not _is_rejoinable(lobby):
 					_lobby_client.delete_lobby(lobby.get("id", ""))
 				break
+
+	## Forget the rejoin record once its lobby is no longer running.
+	if not _rejoin.is_empty():
+		var still_running := false
+		for lobby_dict in lobbies:
+			if _is_rejoinable(lobby_dict as Dictionary):
+				still_running = true
+				break
+		if not still_running:
+			RejoinStoreClass.clear()
+			_rejoin = {}
 
 	# Build room_number -> lobby lookup
 	var room_to_lobby: Dictionary = {}
@@ -863,7 +886,7 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 					var lobby_map: String = lobby.get("map_id", "")
 					var lobby_team_size: int = lobby.get("team_size", 1)
 					var lobby_length: int = lobby.get("match_length_sec", 900)
-					_start_multiplayer(host_url, lobby_map, lobby_team_size, lobby_length)
+					_start_multiplayer(host_url, lobby_map, lobby_team_size, lobby_length, my_lobby_id)
 					return
 				else:
 					_set_status("Waiting for players (%d/%d)..." % [current, max_p], Color.GREEN)
@@ -871,6 +894,10 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 		if not found and not _joined_lobby_id.is_empty():
 			_joined_lobby_id = ""
 			_set_status("The lobby was cancelled by the host.", Color.ORANGE)
+
+	if not _rejoin.is_empty() and not _starting_match:
+		_set_status("Your match is still running. Click Rejoin to get back in.", Color.GREEN)
+		return
 
 	# Update status for empty state
 	if _hosted_lobby_id.is_empty() and _joined_lobby_id.is_empty():
@@ -915,6 +942,14 @@ func _update_room_row(room_number: int, lobby: Dictionary) -> void:
 		var max_p: int = lobby.get("max_players", 2)
 		var ts: int = lobby.get("team_size", 1)
 
+		if _is_rejoinable(lobby):
+			desc_label.text = "Your match in progress"
+			type_label.text = "%dv%d" % [ts, ts]
+			players_label.text = "%d/%d" % [current, max_p]
+			action_btn.text = "Rejoin"
+			action_btn.disabled = _starting_match
+			return
+
 		# Description
 		if status == "in_progress":
 			desc_label.text = "Match in progress"
@@ -958,7 +993,7 @@ func _on_lobby_joined(lobby: Dictionary) -> void:
 		var lobby_map: String = lobby.get("map_id", "")
 		var lobby_team_size: int = lobby.get("team_size", 1)
 		var lobby_length: int = lobby.get("match_length_sec", 900)
-		_start_multiplayer(server_url, lobby_map, lobby_team_size, lobby_length)
+		_start_multiplayer(server_url, lobby_map, lobby_team_size, lobby_length, str(lobby.get("id", "")))
 	else:
 		_joined_lobby_id = lobby.get("id", "")
 		var current: int = lobby.get("current_players", 1)
@@ -997,11 +1032,12 @@ func _on_cancel_hosted() -> void:
 # Game transition
 # ─────────────────────────────────────────────────────────────────────────
 
-func _start_multiplayer(server_url: String, map_id: String = "", team_size: int = 1, match_length_sec: int = 900) -> void:
+func _start_multiplayer(server_url: String, map_id: String = "", team_size: int = 1, match_length_sec: int = 900, lobby_id: String = "") -> void:
 	if _starting_match:
 		return
 	_starting_match = true
 	_refresh_timer.stop()
+	RejoinStoreClass.save(lobby_id, server_url)
 	GameModeManager.set_mode(GameMode.LOCAL_MULTIPLAYER)
 	NetworkClient.disconnect_from_server()
 	NetworkClient.server_url = server_url
@@ -1018,6 +1054,63 @@ func _start_multiplayer(server_url: String, map_id: String = "", team_size: int 
 		_refresh_timer.start()
 		return
 	get_tree().change_scene_to_file(SIDE_SELECT_SCENE)
+
+
+func _is_rejoinable(lobby: Dictionary) -> bool:
+	return (
+		not _rejoin.is_empty()
+		and not lobby.is_empty()
+		and lobby.get("status", "") == "in_progress"
+		and str(lobby.get("id", "")) == str(_rejoin.get("lobby_id", ""))
+	)
+
+
+func _rejoin_match() -> void:
+	if _starting_match:
+		return
+	_starting_match = true
+	_refresh_timer.stop()
+	_set_status("Rejoining your match...", Color.GREEN)
+	GameModeManager.set_mode(GameMode.LOCAL_MULTIPLAYER)
+	NetworkClient.disconnect_from_server()
+	var url := str(_rejoin.get("server_url", ""))
+	NetworkClient.server_url = url if not url.is_empty() else _effective_server_url()
+	## Bare hello: map/size/training fields would reconfigure a fresh match if our slot is gone.
+	NetworkClient.selected_map_id = ""
+	NetworkClient.selected_team_size = 1
+	NetworkClient.match_length_sec = 0
+	NetworkClient.is_training = false
+	NetworkClient.is_regimental = false
+	if await NetworkClient.connect_and_wait():
+		var deadline_msec := Time.get_ticks_msec() + int(REJOIN_WAIT_SEC * 1000.0)
+		while Time.get_ticks_msec() < deadline_msec:
+			if _rejoin_confirmed():
+				break
+			## Welcome without the reconnected flag: the server no longer holds our slot.
+			if not NetworkClient.client_id.is_empty() and not NetworkClient.welcome_reconnected:
+				break
+			await get_tree().process_frame
+	if _rejoin_confirmed():
+		var cfg = MatchConfigClass.default_local_multiplayer_1v1()
+		cfg.local_player_id = 1 if PlayerSides.assigned_team_id == Team.USA else 2
+		MatchConfigStoreClass.set_pending(cfg)
+		get_tree().change_scene_to_file(MAIN_SCENE)
+		return
+	NetworkClient.disconnect_from_server()
+	RejoinStoreClass.clear()
+	_rejoin = {}
+	_starting_match = false
+	_set_status("Could not rejoin - that match has ended.", Color.ORANGE)
+	_refresh_timer.start()
+	_lobby_client.list_lobbies()
+
+
+func _rejoin_confirmed() -> bool:
+	return (
+		NetworkClient.welcome_reconnected
+		and NetworkClient.match_ready_received
+		and PlayerSides.has_assignment()
+	)
 
 
 # ─────────────────────────────────────────────────────────────────────────

@@ -87,6 +87,8 @@ var _idle_peek_side: int = CoverSystem.PeekSide.NONE
 var _played_idle_peek_side: int = CoverSystem.PeekSide.NONE
 ## Cover-relative corner cell for lean offset (OG BehindCorner geometry).
 var _cover_corner_cell: Vector2i = Vector2i(-999, -999)
+## Lean currently applied to the sprite and overhead markers (not the node position).
+var _lean_visual_offset: Vector2 = Vector2.ZERO
 ## Mirrored movement mode for corner lean run-factor (0.7 while Running).
 var _presentation_movement_mode: int = MovementMode.RUN
 var _fire_visual_shot_logged: bool = false
@@ -503,7 +505,23 @@ func sync_from_state(
 
 func _set_world_position_from_cell(cell: Vector2i) -> void:
 	_facing_from_cell = cell
-	position = IsometricGrid.grid_to_world(cell) + _corner_lean_world_offset()
+	position = IsometricGrid.grid_to_world(cell)
+	_apply_lean_visual()
+
+
+## Lean moves the sprite and overhead markers only. The node stays on its tile so the
+## parent's Y-sort keeps walls in front when the lean points toward the camera.
+func _apply_lean_visual() -> void:
+	if _anim == null:
+		return
+	var offset := Vector2.ZERO if _is_moving else _corner_lean_world_offset()
+	var delta := offset - _lean_visual_offset
+	_lean_visual_offset = offset
+	_anim.position = offset
+	if _id_marker != null:
+		_id_marker.position += delta
+	if _name_label != null:
+		_name_label.position += delta
 
 
 func _corner_lean_world_offset() -> Vector2:
@@ -565,7 +583,8 @@ func _refresh_corner_lean_offset() -> void:
 	## Keep lean applied after phase/frame changes without snapping the grid cell.
 	if _is_moving and _has_active_chase():
 		return
-	position = IsometricGrid.grid_to_world(_facing_from_cell) + _corner_lean_world_offset()
+	position = IsometricGrid.grid_to_world(_facing_from_cell)
+	_apply_lean_visual()
 
 
 func _refresh_id_marker(state: SoldierState) -> void:
@@ -582,7 +601,7 @@ func _refresh_id_marker(state: SoldierState) -> void:
 		if _name_label == null:
 			return
 		_name_label.text = _id_label_text
-		_name_label.position = Vector2(-64.0, label_y - 8.0)
+		_name_label.position = Vector2(-64.0, label_y - 8.0) + _lean_visual_offset
 		_name_label.size = Vector2(128.0, 16.0)
 		_name_label.visible = true
 		return
@@ -599,7 +618,7 @@ func _refresh_id_marker(state: SoldierState) -> void:
 	_id_marker.scale = ID_MARKER_SCALE
 	_id_marker.offset = Vector2.ZERO
 	_id_marker.modulate = Color.WHITE
-	_id_marker.position = Vector2(0.0, label_y)
+	_id_marker.position = Vector2(0.0, label_y) + _lean_visual_offset
 	_id_marker.visible = true
 
 
@@ -887,6 +906,7 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 		_path_index = _path.size() - 1
 	_previous_grid_pos = _path[start_idx]
 	_is_moving = true
+	_apply_lean_visual()
 	if not was_moving:
 		position = IsometricGrid.grid_to_world(_path[0])
 	_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
@@ -997,6 +1017,7 @@ func sync_movement_chase_from_state(state: SoldierState) -> void:
 			_previous_grid_pos = state.grid_position
 		_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
 		_is_moving = true
+		_apply_lean_visual()
 		var step_delta := _path[_path_index] - _previous_grid_pos
 		_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
 		## Only play run while actually translating — early arrivals stay idle (no run-in-place).
@@ -1070,8 +1091,9 @@ func _should_let_presentation_finish_move(state: SoldierState) -> bool:
 
 
 func _set_world_position_from_cell_if_needed(cell: Vector2i) -> void:
-	var dest_world := IsometricGrid.grid_to_world(cell) + _corner_lean_world_offset()
+	var dest_world := IsometricGrid.grid_to_world(cell)
 	if position.distance_to(dest_world) <= 2.0:
+		_apply_lean_visual()
 		return
 	_set_world_position_from_cell(cell)
 
