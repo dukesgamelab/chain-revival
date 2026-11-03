@@ -170,6 +170,8 @@ func set_activity_status(text: String) -> void:
 		_status_label.modulate = Color(1.0, 0.65, 0.2, 1.0)
 	elif text == "Panicked":
 		_status_label.modulate = Color(1.0, 0.3, 0.2, 1.0)
+	elif text.begins_with("Cover"):
+		_status_label.modulate = Color(0.5, 1.0, 0.5, 1.0)
 	else:
 		_status_label.modulate = Color.WHITE
 

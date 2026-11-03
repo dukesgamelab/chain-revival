@@ -311,7 +311,7 @@ func sync_selected_soldier(soldier_id: int) -> void:
 
 
 ## Sync one command row with live soldier gameplay data.
-func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0) -> void:
+func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0, map_data = null) -> void:
 	if row_index < 0 or row_index >= _rows.size():
 		return
 	var row: SoldierCommandRow = _rows[row_index]
@@ -323,7 +323,7 @@ func sync_soldier_row(row_index: int, state: SoldierState, hit_pct: float = -1.0
 	row.set_row_enabled(alive)
 	row.set_position_state(state.position_state)
 	row.set_fire_control_state(state.fire_control_state)
-	row.set_activity_status(state.activity_status_label())
+	row.set_activity_status(state.activity_status_label(map_data))
 	row.set_stress(state.stress)
 	row.set_hit_pct(hit_pct)
 	row.set_grenade_count(

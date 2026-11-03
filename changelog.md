@@ -18,9 +18,15 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - **Panicked restrictions** (Phase 45) - Panicked soldiers (stress >= 70) cannot use Fire At. Grenades still allowed. Server-side enforcement added
 - **Stress UI feedback** (Phase 45) - Stress label shows band name + color (Nervous/Suppressed/Pinned/Panicked). Fire At button greys out when panicked. Soldier sprites get a subtle warm tint at high stress
 - **Dev server toggle** - Create `dev_server.txt` in project root with local server URL to test develop branch in multiplayer without deploying. Lobby shows yellow LOCAL indicator
+- **Cover status display** (Phase 46) - Soldiers next to obstructions now show "Cover" or "Cover (Prone)" in the command row instead of just "Standing"/"Prone". Cover label shows in green
+- **Reconnect countdown** (Phase 46) - Opponent disconnect message now counts down second-by-second instead of showing a static "90s" message
 
 ### Bug Fixes
 
+- Removed footstep sounds - constant clicking noise during soldier movement (Phase 46)
+- Removed ambient wind loop - distracting background audio (Phase 46)
+- Removed grenade throw whistle sound - generated placeholder sounded unnatural (Phase 46)
+- Added server-side disconnect logging to help diagnose reconnect window failures (Phase 46)
 - Fixed server not enforcing panicked Fire At rejection - previously client-only (Phase 45)
 - Fixed server not applying stress movement speed modifier - soldiers moved at full speed regardless of stress in multiplayer (Phase 45)
 - Fixed Fire At button not disabling when panicked - set_row_enabled was overriding the panicked disable (Phase 45)
@@ -305,8 +311,9 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 
 ## Known Bugs
 
-- **Reconnect on game close (BROKEN)**: Closing the game window triggers `player_disconnected` and shows "90s" message, but: (1) countdown never ticks down visually, (2) match forfeits way before 90 seconds, (3) disconnected player's PC shows "no games available" within ~5 seconds. Needs investigation in `server/src/index.ts` disconnect handler and `match.ts` reconnect logic.
+- **Reconnect on game close**: Countdown timer now ticks down visually. Added server-side disconnect logging to diagnose early forfeit. Root cause of early forfeit still under investigation - check `fly logs` for `[Disconnect] IMMEDIATE FORFEIT` lines (means the reconnect window was skipped, likely unauthenticated session).
 - **Fog of war showing enemies in DZ**: Enemy soldiers visible in their deployment zone before the game starts. Can see enemy units across the entire map. Observed in LAN multiplayer - needs investigation.
+- **Wall rotation on camera turn**: Some wall sprites don't rotate correctly with the camera. Reported by tester on The Fortress map - needs investigation in facet rotation system.
 
 ### Fixed Bugs (for reference)
 
@@ -321,3 +328,4 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 - **More maps**: OG has 30+ scenarios, Chain Revival has 7. Deferred until existing maps are tweaked and playtested.
 - **Soldier stacking prevention**: Currently soldiers can occupy the same tile (OG allowed this too). Could add collision/stacking rules later.
 - **Rich text editor for announcements**: Replace plain textarea with markdown toolbar editor. Body already renders via `ReactMarkdown`.
+- **Chat online list & private messages**: Show who's connected in the chat panel and allow PMs between players. Requested by tester Pai-ku-han.
