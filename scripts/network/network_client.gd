@@ -27,6 +27,7 @@ const FireControlCommandClass := preload("res://scripts/commands/fire_control_co
 const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
 const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd")
 const AuthoritativeSyncClass := preload("res://scripts/network/authoritative_sync.gd")
+const RejoinStoreClass := preload("res://scripts/network/rejoin_store.gd")
 
 signal connection_changed(connected: bool)
 signal status_changed(status_text: String)
@@ -731,6 +732,8 @@ func send_client_ready() -> void:
 
 
 func send_leave_match() -> void:
+	## Leaving forfeits the slot - never offer Rejoin for it, even if we exit before match_ended.
+	RejoinStoreClass.clear()
 	if not _connected:
 		return
 	send_json({"type": "leave_match"})

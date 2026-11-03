@@ -1705,7 +1705,6 @@ func _on_retreat_requested() -> void:
 	if _game_state == null or _game_state.scenario_ended or _game_state.is_deployment_phase():
 		return
 	if GameModeManager.is_local_multiplayer():
-		RejoinStoreClass.clear()
 		NetworkClient.send_leave_match()
 		return
 	var team_id := _game_state.local_team_id()
