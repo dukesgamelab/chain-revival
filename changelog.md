@@ -30,6 +30,8 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - Fixed status and stress column colors never showing - tints were applied with modulate over a fixed font color, so Cover/Stunned/Pinned/Panicked and stress bands all rendered plain red/black. Now use dark tones readable on the gray cells (Phase 46)
 - Fixed soldiers not taking the corner-hug pose when arriving at a corner - in multiplayer the server finishes the move before the run animation does, so the pose only appeared after the next click. Soldier now re-syncs when the animation reaches the tile (Phase 46)
 - Fixed soldiers hugging the far side of a corner being drawn on top of the wall when the camera is rotated - the corner lean moved the soldier's sort position, so a lean toward the camera pulled him in front of the wall. Lean now shifts only the sprite and overhead markers (Phase 46)
+- Fixed corner left/right being swapped - the cross-product side helper was mirrored relative to the screen (map x-flip) and to the shot-line peek convention, so soldiers hugged a corner facing away from the wall and stepped out into the open when firing instead of around the corner. Client and server (Phase 46, needs server deploy)
+- Soldiers arriving at a building corner or wall tip now turn to look down the side of the building instead of keeping their run direction. Skipped while engaged. Client sim and server, facing sent with the move-complete message (Phase 46, needs server deploy)
 - Added server-side disconnect logging to help diagnose reconnect window failures (Phase 46)
 - Fixed server not enforcing panicked Fire At rejection - previously client-only (Phase 45)
 - Fixed server not applying stress movement speed modifier - soldiers moved at full speed regardless of stress in multiplayer (Phase 45)
@@ -299,7 +301,7 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 |-------|------|-------|----------|
 | ~~44~~ | ~~Combat realism~~ | ~~Done - friendly grenades, lethality 0.6, movement fixes~~ | ~~Complete~~ |
 | ~~45~~ | ~~Suppression & pinning~~ | ~~Done - sustained fire 1.5x suppression, panicked blocks, UI stress feedback~~ | ~~Complete~~ |
-| 46 | Reconnect fix | Fix broken 90s reconnect - timer, countdown, "no games available" bug | v1 required |
+| ~~46~~ | ~~Reconnect fix~~ | ~~Done - countdown, lobby Rejoin after closing the game, cover status, tester audio fixes~~ | ~~Complete~~ |
 | 47 | Combat keybinds | OG-style keyboard shortcuts (D/W/R/C/F/G/P/H etc.), field report panel | v1 required |
 | 48 | PP balance & career rewards | PP lost on killed-by-rank, Medal of Courage payouts | v1 required |
 | 49 | Regiment officer promotions | CO promotes members to officer ranks, promotion slots by member count | v1 required |
@@ -315,11 +317,13 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 
 ## Known Bugs
 
-- **Reconnect on game close**: Countdown timer now ticks down visually. Added server-side disconnect logging to diagnose early forfeit. Root cause of early forfeit still under investigation - check `fly logs` for `[Disconnect] IMMEDIATE FORFEIT` lines (means the reconnect window was skipped, likely unauthenticated session). Local `npm run dev` has no `SUPABASE_URL`, so ES256 login tokens can't be verified, everyone joins as a guest, and reconnect can never trigger locally - set `SUPABASE_URL` before `npm run dev` to test it.
+- **Corner cover presentation polish**: Left/right swap and arrival facing fixed in Phase 46. Still to check in game: how far the corner fire step plus the 0.5-tile lean pushes the sprite toward the wall, and whether the Face command feels clunky when aiming along a wall (clicks snap to 8 directions).
 - **Fog of war showing enemies in DZ**: Enemy soldiers visible in their deployment zone before the game starts. Can see enemy units across the entire map. Observed in LAN multiplayer - needs investigation.
 - **Wall rotation on camera turn**: Some wall sprites don't rotate correctly with the camera. Reported by tester on The Fortress map - needs investigation in facet rotation system.
 
 ### Fixed Bugs (for reference)
+
+- **Reconnect on game close** (Phase 46): Countdown was stuck at 90s, and a player who closed the game had no way back (room showed "In Game", host's lobby got deleted on relaunch). Fixed with a working countdown and a lobby Rejoin button. Note: local `npm run dev` needs `SUPABASE_URL` set or logins can't be verified, everyone joins as a guest, and the reconnect window never opens.
 
 - **PP not accumulated after match**: Migration 022 (Phase 35) accidentally dropped prestige_points, total_kills, and rank updates from both `record_match_result` and `record_player_result` RPCs. Fixed by migration `027_fix_pp_tracking.sql`.
 - **Regiment leave from Godot client broken**: `regiment_client.gd` did a raw REST DELETE on `regiment_members` instead of calling the `leave_regiment` RPC. Fixed in Phase 40.

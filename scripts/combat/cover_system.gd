@@ -658,16 +658,44 @@ static func presentation_corner_result(
 
 
 ## Shared LEFT/RIGHT from 2-D cross product (to_ref × along).
-## Positive → LEFT, negative → RIGHT; zero ties LEFT.
+## Positive → RIGHT, negative → LEFT; zero ties LEFT. Matches _wall_end_peek_side's
+## (-dy, dx) "left" and the on-screen side once the map's x-flip is applied, which is
+## what the L/R corner art (ALCIS/ALCFA...) is drawn for.
 static func peek_side_from_cross(to_ref: Vector2i, along: Vector2i) -> int:
 	var cross := to_ref.x * along.y - to_ref.y * along.x
 	if cross > 0:
-		return PeekSide.LEFT
-	if cross < 0:
 		return PeekSide.RIGHT
+	if cross < 0:
+		return PeekSide.LEFT
 	if to_ref == Vector2i.ZERO or along == Vector2i.ZERO:
 		return PeekSide.NONE
 	return PeekSide.LEFT
+
+
+## Facing that looks down the side of a structure when standing beside its corner or
+## wall tip: along the wall run that starts at that cell. ZERO when there is no such run.
+## Mirrored in server/src/los.ts cornerWatchFacing.
+static func corner_watch_facing(from_cell: Vector2i, map_data: MapData) -> Vector2i:
+	if map_data == null:
+		return Vector2i.ZERO
+	var ortho: Array[Vector2i] = [
+		Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
+	]
+	for offset in ortho:
+		var wall_cell := from_cell + offset
+		if not _is_corner_peek_blocker(map_data, wall_cell):
+			continue
+		if not _is_structure_corner_or_wall_tip(map_data, wall_cell):
+			continue
+		for run in ortho:
+			if run == offset or run == -offset:
+				continue
+			if (
+				_is_corner_peek_blocker(map_data, wall_cell + run)
+				and not _is_corner_peek_blocker(map_data, from_cell + run)
+			):
+				return run
+	return Vector2i.ZERO
 
 
 ## Wall tip (1 closed ortho) or building corner (2 adjacent closed). Not a mid-run face.

@@ -191,18 +191,56 @@ function isCornerPeekBlocker(map: MapData, cell: Vec2i): boolean {
   return map.obstructionHeight(cell) >= 2;
 }
 
+// Positive cross -> RIGHT to match wallEndPeekSide's (-dy, dx) "left" and the client's L/R corner art.
 function peekSideFromCross(toRef: Vec2i, along: Vec2i): number {
   const cross = toRef.x * along.y - toRef.y * along.x;
   if (cross > 0) {
-    return PEEK_LEFT;
+    return PEEK_RIGHT;
   }
   if (cross < 0) {
-    return PEEK_RIGHT;
+    return PEEK_LEFT;
   }
   if ((toRef.x === 0 && toRef.y === 0) || (along.x === 0 && along.y === 0)) {
     return PEEK_NONE;
   }
   return PEEK_LEFT;
+}
+
+const ORTHO: Vec2i[] = [vec(-1, 0), vec(1, 0), vec(0, -1), vec(0, 1)];
+
+// Wall tip (1 closed ortho) or building corner (2 adjacent closed). Not a mid-run face.
+function isStructureCornerOrWallTip(map: MapData, wall: Vec2i): boolean {
+  const closed = ORTHO.filter((d) => isCornerPeekBlocker(map, vec(wall.x + d.x, wall.y + d.y)));
+  if (closed.length <= 1) {
+    return true;
+  }
+  if (closed.length >= 3) {
+    return false;
+  }
+  return closed[0].x + closed[1].x !== 0 || closed[0].y + closed[1].y !== 0;
+}
+
+// Port of CoverSystem.corner_watch_facing: look down the side of the structure when
+// standing beside its corner or wall tip. Null when there is no wall run to look along.
+export function cornerWatchFacing(from: Vec2i, map: MapData): Vec2i | null {
+  for (const offset of ORTHO) {
+    const wall = vec(from.x + offset.x, from.y + offset.y);
+    if (!isCornerPeekBlocker(map, wall) || !isStructureCornerOrWallTip(map, wall)) {
+      continue;
+    }
+    for (const run of ORTHO) {
+      if ((run.x === offset.x && run.y === offset.y) || (run.x === -offset.x && run.y === -offset.y)) {
+        continue;
+      }
+      if (
+        isCornerPeekBlocker(map, vec(wall.x + run.x, wall.y + run.y))
+        && !isCornerPeekBlocker(map, vec(from.x + run.x, from.y + run.y))
+      ) {
+        return { ...run };
+      }
+    }
+  }
+  return null;
 }
 
 function perpNeighborOpen(map: MapData, cell: Vec2i): boolean {
