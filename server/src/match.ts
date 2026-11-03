@@ -800,6 +800,10 @@ export class LocalMatch {
           timeRemainingSec: this.gameState.scenario.timeRemainingSec,
           usaKillPoints: this.gameState.scenario.killPoints[1] ?? 0,
           germanyKillPoints: this.gameState.scenario.killPoints[2] ?? 0,
+          // Stress decays here every scan; clients otherwise only see it rise via shots.
+          stress: this.gameState.soldiers
+            .filter((s) => !s.isDead)
+            .map((s) => ({ teamId: s.teamId, soldierId: s.soldierId, stress: s.stress })),
         });
         if (this.gameState.scenario.vpDirty) {
           this.gameState.scenario.vpDirty = false;

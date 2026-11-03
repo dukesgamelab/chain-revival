@@ -318,7 +318,13 @@ func _maybe_request_exposed_prone_after_shot() -> bool:
 		return false
 	if _applied_position_state == PositionState.DOWN or _fire_return_prone:
 		return false
-	if _fire_peek_side != CoverSystem.PeekSide.NONE or _corner_peek_side != CoverSystem.PeekSide.NONE:
+	## _finish_fire clears the fire/corner peek before calling this, so also check the
+	## tile's corner eligibility: a soldier at a corner is in cover, not exposed.
+	if (
+		_fire_peek_side != CoverSystem.PeekSide.NONE
+		or _corner_peek_side != CoverSystem.PeekSide.NONE
+		or _idle_peek_side != CoverSystem.PeekSide.NONE
+	):
 		return false
 	if _is_standing_covered_vs_threat():
 		return false
@@ -677,6 +683,10 @@ func _stress_tint() -> Color:
 
 
 ## Fog-of-war only — used by Main on combat scans to avoid full sync_from_state.
+func current_fog_visual() -> int:
+	return _fog_visual
+
+
 func apply_spotting_only(is_selected: bool, fog_visual: int) -> void:
 	_apply_fog_visual(fog_visual, is_selected)
 	## Keep name labels in sync when fog flips without a full state sync.

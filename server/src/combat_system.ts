@@ -18,6 +18,7 @@ import { COVER_COMPLETE, COVER_MODERATE } from "./map_objects";
 import {
   COMBAT_SCAN_TICKS,
   findBestAutoTarget,
+  findSustainedTarget,
   isAutoTargetValid,
   isPriorityTrackable,
   TARGET_LOST_GRACE_MSEC,
@@ -360,8 +361,16 @@ function resolveEngagedTarget(
     if (current !== null && !targetLostGrace(shooter, now)) {
       return current;
     }
-    shooter.clearEngagedTarget();
-    return null;
+    // Target dead or gone: reacquire like CombatSystem._acquire_sustained_target instead of idling.
+    const reacquired = findSustainedTarget(state, shooter);
+    if (reacquired === null) {
+      shooter.clearEngagedTarget();
+      return null;
+    }
+    if (shooter.setEngagedTarget(reacquired.teamId, reacquired.soldierId)) {
+      beginFirePrep(state, shooter, combatRange(shooter.gridPosition, reacquired.gridPosition));
+    }
+    return reacquired;
   }
   if (current !== null && !current.isDead && isAutoTargetValid(shooter, current, state)) {
     shooter.engagedTargetLostMsec = 0;

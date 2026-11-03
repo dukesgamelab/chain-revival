@@ -2298,7 +2298,12 @@ func _refresh_enemy_spotting_visuals() -> void:
 				soldier_state.team_id == active_team
 				and soldier_state.soldier_id == active_fireteam.selected_soldier_id
 			)
-			view.apply_spotting_only(is_selected, _fog_visual_for_enemy(soldier_state))
+			var fog_visual := _fog_visual_for_enemy(soldier_state)
+			## Newly spotted: full sync so corner pose / facing computed while hidden is refreshed.
+			if fog_visual == Soldier.FogVisual.REVEALED and view.current_fog_visual() != Soldier.FogVisual.REVEALED:
+				_sync_soldier_view(soldier_state.team_id, soldier_state.soldier_id, is_selected)
+			else:
+				view.apply_spotting_only(is_selected, fog_visual)
 
 
 func _refresh_selection_marks() -> void:
@@ -3406,11 +3411,26 @@ func _on_network_deployment_ended() -> void:
 func _on_network_scenario_time(payload: Dictionary) -> void:
 	if _game_state == null:
 		return
+	RejoinStoreClass.touch()
 	_game_state.scenario_time_remaining_sec = float(payload.get("timeRemainingSec", 0.0))
 	if payload.has("usaKillPoints"):
 		_game_state.team_kill_points[Team.USA] = int(payload.get("usaKillPoints", 0))
 	if payload.has("germanyKillPoints"):
 		_game_state.team_kill_points[Team.GERMANY] = int(payload.get("germanyKillPoints", 0))
+	var stress_changed := false
+	for raw in payload.get("stress", []):
+		if not raw is Dictionary:
+			continue
+		var entry: Dictionary = raw
+		var soldier: SoldierState = _game_state.get_soldier(int(entry.get("teamId", -1)), int(entry.get("soldierId", -1)))
+		if soldier == null or soldier.is_dead:
+			continue
+		var stress := float(entry.get("stress", soldier.stress))
+		if not is_equal_approx(stress, soldier.stress):
+			soldier.stress = stress
+			stress_changed = true
+	if stress_changed:
+		_refresh_command_bar_light()
 	var deploy_time := float(payload.get("deployTimeRemainingSec", -1.0))
 	if deploy_time > 0.0:
 		if not _game_state.timed_deployment:
