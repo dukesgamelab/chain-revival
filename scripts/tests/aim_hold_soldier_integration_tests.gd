@@ -18,9 +18,11 @@ func _ready() -> void:
 	IsometricGrid.set_original_projection_enabled(true)
 	IsometricGrid.set_view_pivot_for_map(64, 64)
 	await _test_engaged_sync_stays_idle_all_cameras()
+	await _test_engaged_at_corner_aims_leaned_out()
 	await _test_post_fire_returns_idle_all_cameras()
 	await _test_stale_fire_frame_cleared_to_idle()
 	await _test_corner_fire_returns_corner_idle()
+	await _test_idle_facing_corner_peeks()
 	print("")
 	print("Idle vs combat pose integration: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -95,6 +97,47 @@ func _test_engaged_sync_stays_idle_all_cameras() -> void:
 		)
 		soldier.queue_free()
 		await get_tree().process_frame
+	IsometricGrid.reset_view_rotation()
+
+
+## Engaged at a corner (e.g. waiting on a blocked target): leaned out with the gun up
+## (held peek-in frame), never the open standing aim pose.
+func _test_engaged_at_corner_aims_leaned_out() -> void:
+	IsometricGrid.current_view_rotation = 0
+	var from_cell := Vector2i(20, 20)
+	var soldier: Soldier = SoldierScene.instantiate() as Soldier
+	add_child(soldier)
+	await get_tree().process_frame
+	soldier.team_id = Team.USA
+	soldier.soldier_id = 1
+	soldier._configure_team_visual()
+	soldier._facing_from_cell = from_cell
+	soldier._fire_target_cell = Vector2i(30, 20)
+	soldier._last_applied_facing = FacingDirection.EAST
+	soldier._applied_position_state = PositionState.UP
+	var state := SoldierStateClass.new()
+	state.soldier_id = 1
+	state.team_id = Team.USA
+	state.grid_position = from_cell
+	state.facing_direction = FacingDirection.EAST
+	state.position_state = PositionState.UP
+	state.fire_control_state = FireControlState.FIRE_AT_WILL
+	state.set_engaged_target(Team.GERMANY, 1)
+	state.fire_ready_after_msec = SimulationClock.get_ticks_msec() + 5000
+	soldier.sync_from_state(
+		state, true, Soldier.FogVisual.REVEALED, true,
+		CoverSystem.PeekSide.LEFT, from_cell + Vector2i(1, 0),
+	)
+	var after := str(soldier._anim.animation)
+	_assert(
+		"engaged at corner → leaned out, gun up (%s)" % after,
+		after.begins_with("corner_peek_enter_")
+		and soldier._corner_phase == Soldier.CornerPresPhase.AIMING
+		and not soldier._fire_aim_hold_active,
+		"phase=%d hold=%s" % [soldier._corner_phase, soldier._fire_aim_hold_active],
+	)
+	soldier.queue_free()
+	await get_tree().process_frame
 	IsometricGrid.reset_view_rotation()
 
 
@@ -180,6 +223,121 @@ func _test_stale_fire_frame_cleared_to_idle() -> void:
 
 
 func _test_corner_fire_returns_corner_idle() -> void:
+	await _run_corner_fire_case(false)
+	await _run_corner_fire_case(true)
+
+
+## Facing around a corner: rest leaned out on lookout (held scan-peek frame L, gun down), and
+## a shot goes straight to the gun-up lean-out. Hugging alongside a wall: hug pose, and every
+## few seconds the OG scan peek (PKA) plays once and he tucks back to the hug pose.
+func _test_idle_facing_corner_peeks() -> void:
+	IsometricGrid.current_view_rotation = 0
+	await _run_corner_lookout_case()
+	for corner_step in [Vector2i(0, 1)]:
+		var soldier := await _make_corner_soldier(corner_step)
+		var world_dir := soldier._world_direction_from_step(FacingDirection.EAST)
+		soldier._play_idle_standing(world_dir)
+		var anim := str(soldier._anim.animation)
+		_assert(
+			"idle beside wall → hug (%s)" % anim,
+			anim.begins_with("corner_idle_left_") and soldier._corner_scan_wait_sec > 0.0,
+			"phase=%d scan_wait=%.2f" % [soldier._corner_phase, soldier._corner_scan_wait_sec],
+		)
+		## Scan timer fires: one-shot peek plays.
+		soldier._corner_scan_wait_sec = 0.01
+		soldier._tick_corner_scan(0.1)
+		anim = str(soldier._anim.animation)
+		_assert(
+			"corner scan peek plays (%s)" % anim,
+			anim.begins_with("corner_peek_left_") and soldier._corner_scan_active,
+			"active=%s" % soldier._corner_scan_active,
+		)
+		## Must be one-shot, or animation_finished never fires to tuck him back in.
+		_assert(
+			"corner scan peek is one-shot (%s)" % anim,
+			not soldier._anim.sprite_frames.get_animation_loop(anim),
+		)
+		## A sync refresh mid-peek must not cut it short.
+		soldier._play_idle_standing(world_dir)
+		_assert(
+			"sync during scan keeps the peek (%s)" % str(soldier._anim.animation),
+			str(soldier._anim.animation).begins_with("corner_peek_left_"),
+		)
+		## Peek finishes: back to the hug pose with the next scan armed.
+		soldier._on_anim_animation_finished()
+		anim = str(soldier._anim.animation)
+		_assert(
+			"after scan → hug again (%s)" % anim,
+			anim.begins_with("corner_idle_left_")
+			and not soldier._corner_scan_active
+			and soldier._corner_scan_wait_sec > 0.0,
+			"active=%s scan_wait=%.2f" % [soldier._corner_scan_active, soldier._corner_scan_wait_sec],
+		)
+		soldier.queue_free()
+		await get_tree().process_frame
+	IsometricGrid.reset_view_rotation()
+
+
+func _make_corner_soldier(corner_step: Vector2i) -> Soldier:
+	var soldier: Soldier = SoldierScene.instantiate() as Soldier
+	add_child(soldier)
+	await get_tree().process_frame
+	soldier.team_id = Team.USA
+	soldier.soldier_id = 2
+	soldier._configure_team_visual()
+	var from_cell := Vector2i(20, 20)
+	soldier._facing_from_cell = from_cell
+	soldier._applied_position_state = PositionState.UP
+	soldier._last_applied_facing = FacingDirection.EAST
+	soldier._idle_peek_side = CoverSystem.PeekSide.LEFT
+	soldier._cover_corner_cell = from_cell + corner_step
+	return soldier
+
+
+func _run_corner_lookout_case() -> void:
+	var soldier := await _make_corner_soldier(Vector2i(1, 0))
+	soldier._play_idle_standing(soldier._world_direction_from_step(FacingDirection.EAST))
+	var anim := str(soldier._anim.animation)
+	_assert(
+		"facing around corner → lookout held (%s frame %d)" % [anim, soldier._anim.frame],
+		anim.begins_with("corner_peek_left_")
+		and not soldier._anim.is_playing()
+		and soldier._anim.frame == Soldier.CORNER_LOOKOUT_FRAME
+		and soldier._corner_scan_wait_sec <= 0.0,
+		"playing=%s scan_wait=%.2f" % [soldier._anim.is_playing(), soldier._corner_scan_wait_sec],
+	)
+	## A sync refresh keeps the held lookout frame.
+	soldier._play_idle_standing(soldier._world_direction_from_step(FacingDirection.EAST))
+	_assert(
+		"sync keeps lookout frame (%d)" % soldier._anim.frame,
+		soldier._anim.frame == Soldier.CORNER_LOOKOUT_FRAME and not soldier._anim.is_playing(),
+	)
+	## Enemy engaged: straight to the gun-up lean-out, no tuck-in / peek-enter.
+	soldier._request_corner_fire(PositionState.UP, FacingDirection.EAST, CoverSystem.PeekSide.LEFT)
+	_assert(
+		"lookout → fire skips peek-enter (phase %d)" % soldier._corner_phase,
+		soldier._corner_phase != Soldier.CornerPresPhase.PEEKING_OUT
+		and (soldier._fire_active or soldier._corner_phase == Soldier.CornerPresPhase.AIMING),
+		"anim=%s" % str(soldier._anim.animation),
+	)
+	## Fight over: lower the gun back to the lookout, no tuck-in.
+	soldier._presentation_engaged = false
+	if soldier._fire_active:
+		soldier._finish_fire(str(soldier._anim.animation))
+	else:
+		soldier._start_corner_peek_exit()
+	var after := str(soldier._anim.animation)
+	_assert(
+		"lookout fight over → lookout again (%s frame %d)" % [after, soldier._anim.frame],
+		after.begins_with("corner_peek_left_") and soldier._anim.frame == Soldier.CORNER_LOOKOUT_FRAME,
+		"phase=%d" % soldier._corner_phase,
+	)
+	soldier.queue_free()
+	await get_tree().process_frame
+
+
+## engaged=false: peek back in (CPA exit) then corner idle. engaged=true: stay peeked out (CAS).
+func _run_corner_fire_case(engaged: bool) -> void:
 	IsometricGrid.current_view_rotation = 0
 	var from_cell := Vector2i(20, 20)
 	var target_cell := Vector2i(30, 20)
@@ -207,14 +365,31 @@ func _test_corner_fire_returns_corner_idle() -> void:
 	if soldier._corner_fire_pending or not soldier._fire_active:
 		soldier._corner_fire_pending = false
 		soldier._begin_fire_sequence(PositionState.UP, facing, CoverSystem.PeekSide.LEFT)
+	soldier._presentation_engaged = engaged
 	var fire_anim := str(soldier._anim.animation)
 	soldier._finish_fire(fire_anim)
 	var after := str(soldier._anim.animation)
-	_assert(
-		"corner post-fire → idle family (%s)" % after,
-		_is_idle_family_anim(after),
-		"phase=%d hold=%s" % [soldier._corner_phase, soldier._fire_aim_hold_active],
-	)
+	if engaged:
+		_assert(
+			"corner post-fire engaged → stays peeked out (%s)" % after,
+			after.begins_with("corner_peek_enter_")
+			and not soldier._anim.is_playing()
+			and soldier._corner_phase == Soldier.CornerPresPhase.AIMING,
+			"phase=%d hold=%s" % [soldier._corner_phase, soldier._fire_aim_hold_active],
+		)
+	else:
+		_assert(
+			"corner post-fire → peeks back in (%s)" % after,
+			after.begins_with("corner_peek_exit_"),
+			"phase=%d" % soldier._corner_phase,
+		)
+		soldier._finish_corner_peek_exit()
+		after = str(soldier._anim.animation)
+		_assert(
+			"corner peek-in → idle family (%s)" % after,
+			_is_idle_family_anim(after),
+			"phase=%d hold=%s" % [soldier._corner_phase, soldier._fire_aim_hold_active],
+		)
 	soldier.queue_free()
 	await get_tree().process_frame
 	IsometricGrid.reset_view_rotation()

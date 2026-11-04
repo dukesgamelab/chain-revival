@@ -36,6 +36,8 @@ export const GRENADE_VAR_C = 30.0;
 export const GRENADE_VAR_D = 5.0;
 /** TUNED divide-by-zero guard for distance denominator */
 export const GRENADE_DISTANCE_DENOM_MIN = 0.5;
+/** TUNED (2026-11-03): stun lasts at least this long anywhere in the blast. Mirrors GrenadePolicy.stun_min_sec. */
+export const GRENADE_STUN_MIN_SEC = 5.0;
 
 // --- Result types ---
 
@@ -93,10 +95,10 @@ function casualtyChanceAtDistance(distance: number): number {
   return Math.min(Math.max(pct / 100, 0), 1);
 }
 
-/** Stun duration in seconds: VarC / (d + VarD). */
-function stunDurationAtDistance(distance: number): number {
+/** Stun duration in seconds: VarC / (d + VarD), floored at GRENADE_STUN_MIN_SEC. */
+export function stunDurationAtDistance(distance: number): number {
   const denom = Math.max(distance + GRENADE_VAR_D, GRENADE_DISTANCE_DENOM_MIN);
-  return Math.max(GRENADE_VAR_C / denom, 0);
+  return Math.max(GRENADE_VAR_C / denom, GRENADE_STUN_MIN_SEC);
 }
 
 /** Walls block blast fragments (stricter than shot LOS: no cover exceptions, no peeks). */

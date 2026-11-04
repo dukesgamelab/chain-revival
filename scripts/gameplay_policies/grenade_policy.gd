@@ -19,6 +19,9 @@ const DEFAULT_VAR_D := WeaponPolicyClass.GRENADE_VAR_D
 ## TUNED — clamps (distance + VarB) so a direct hit never divides by zero.
 ## With VarA=30 this caps casualty at 60% (30 / 0.5), matching the recovered 0.5-tile row.
 const DEFAULT_DISTANCE_DENOM_MIN := 0.5
+## TUNED (Richard 2026-11-03): stun lasts at least this long anywhere in the blast.
+## Recovered VarC/(d+VarD) alone gives 6.0 / 5.0 / 4.3s at 0 / 1 / 2 tiles.
+const DEFAULT_STUN_MIN_SEC := 5.0
 ## 0-based frame index into A–X throw sequence; -1 disables anim-driven release.
 ## Gameplay fuse still arms on command accept until a release frame is visually verified.
 const DEFAULT_THROW_RELEASE_FRAME_USA := -1
@@ -34,6 +37,7 @@ var var_b: float = DEFAULT_VAR_B ## RECOVERED casualty distance offset
 var var_c: float = DEFAULT_VAR_C ## RECOVERED stun numerator
 var var_d: float = DEFAULT_VAR_D ## RECOVERED stun distance offset
 var distance_denom_min: float = DEFAULT_DISTANCE_DENOM_MIN ## TUNED
+var stun_min_sec: float = DEFAULT_STUN_MIN_SEC ## TUNED
 var throw_release_frame_usa: int = DEFAULT_THROW_RELEASE_FRAME_USA
 var throw_release_frame_germany: int = DEFAULT_THROW_RELEASE_FRAME_GERMANY
 var throw_anim_fps: float = DEFAULT_THROW_ANIM_FPS
@@ -49,6 +53,7 @@ func reset_to_defaults() -> void:
 	var_c = DEFAULT_VAR_C
 	var_d = DEFAULT_VAR_D
 	distance_denom_min = DEFAULT_DISTANCE_DENOM_MIN
+	stun_min_sec = DEFAULT_STUN_MIN_SEC
 	throw_release_frame_usa = DEFAULT_THROW_RELEASE_FRAME_USA
 	throw_release_frame_germany = DEFAULT_THROW_RELEASE_FRAME_GERMANY
 	throw_anim_fps = DEFAULT_THROW_ANIM_FPS
@@ -72,10 +77,10 @@ func casualty_chance_at_distance(distance: float) -> float:
 	return clampf(pct / 100.0, 0.0, 1.0)
 
 
-## Stun duration in seconds — every survivor, no roll. VarC / (d + VarD).
+## Stun duration in seconds — every survivor, no roll. VarC / (d + VarD), floored at stun_min_sec.
 func stun_duration_at_distance(distance: float) -> float:
 	var denom := maxf(float(distance) + var_d, distance_denom_min)
-	return maxf(var_c / denom, 0.0)
+	return maxf(var_c / denom, stun_min_sec)
 
 
 func apply_config(section: Dictionary) -> void:
@@ -100,6 +105,8 @@ func apply_config(section: Dictionary) -> void:
 		var_d = float(section.var_d)
 	if section.has("distance_denom_min"):
 		distance_denom_min = float(section.distance_denom_min)
+	if section.has("stun_min_sec"):
+		stun_min_sec = float(section.stun_min_sec)
 	if section.has("throw_release_frame_usa"):
 		throw_release_frame_usa = int(section.throw_release_frame_usa)
 	if section.has("throw_release_frame_germany"):
