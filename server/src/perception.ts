@@ -152,7 +152,10 @@ export class PerceptionSystem {
 
     if (shooter.sustainedFire) {
       if (current !== null && !current.isDead && isPriorityTrackable(shooter, current, state)) {
-        shooter.engagedTargetLostMsec = 0;
+        // While the shot is blocked, leave the lost timer running so combat can switch targets.
+        if (evaluate(shooter.gridPosition, current.gridPosition, state.map, state.losOccupants()).status !== LOS_BLOCKED) {
+          shooter.engagedTargetLostMsec = 0;
+        }
         return;
       }
       if (current !== null && !targetLostGraceElapsed(shooter, now)) {
