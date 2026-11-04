@@ -180,6 +180,12 @@ func _test_stale_fire_frame_cleared_to_idle() -> void:
 
 
 func _test_corner_fire_returns_corner_idle() -> void:
+	await _run_corner_fire_case(false)
+	await _run_corner_fire_case(true)
+
+
+## engaged=false: peek back in (CPA exit) then corner idle. engaged=true: stay peeked out (CAS).
+func _run_corner_fire_case(engaged: bool) -> void:
 	IsometricGrid.current_view_rotation = 0
 	var from_cell := Vector2i(20, 20)
 	var target_cell := Vector2i(30, 20)
@@ -207,14 +213,29 @@ func _test_corner_fire_returns_corner_idle() -> void:
 	if soldier._corner_fire_pending or not soldier._fire_active:
 		soldier._corner_fire_pending = false
 		soldier._begin_fire_sequence(PositionState.UP, facing, CoverSystem.PeekSide.LEFT)
+	soldier._presentation_engaged = engaged
 	var fire_anim := str(soldier._anim.animation)
 	soldier._finish_fire(fire_anim)
 	var after := str(soldier._anim.animation)
-	_assert(
-		"corner post-fire → idle family (%s)" % after,
-		_is_idle_family_anim(after),
-		"phase=%d hold=%s" % [soldier._corner_phase, soldier._fire_aim_hold_active],
-	)
+	if engaged:
+		_assert(
+			"corner post-fire engaged → stays peeked out (%s)" % after,
+			after.begins_with("corner_aim_") and soldier._corner_phase == Soldier.CornerPresPhase.AIMING,
+			"phase=%d hold=%s" % [soldier._corner_phase, soldier._fire_aim_hold_active],
+		)
+	else:
+		_assert(
+			"corner post-fire → peeks back in (%s)" % after,
+			after.begins_with("corner_peek_exit_"),
+			"phase=%d" % soldier._corner_phase,
+		)
+		soldier._finish_corner_peek_exit()
+		after = str(soldier._anim.animation)
+		_assert(
+			"corner peek-in → idle family (%s)" % after,
+			_is_idle_family_anim(after),
+			"phase=%d hold=%s" % [soldier._corner_phase, soldier._fire_aim_hold_active],
+		)
 	soldier.queue_free()
 	await get_tree().process_frame
 	IsometricGrid.reset_view_rotation()

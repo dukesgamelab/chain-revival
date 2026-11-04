@@ -58,21 +58,22 @@ test("lean needs both soldiers at a corner (no piercing a second wall)", () => {
   assert.equal(evaluate(vec(10, 10), vec(14, 12), map, null).status, LOS_BLOCKED);
 });
 
-test("arriving at a corner faces along the longer wall", () => {
+test("arriving at a corner faces around it, along the wall he is lined up with", () => {
   const map = buildingMap();
-  // Beside the long front wall: look down it.
-  assert.deepEqual(cornerWatchFacing(vec(10, 15), map), vec(1, 0));
-  // In line with the long front wall (short side beside him): still look down the front wall.
+  // Below the bottom-left corner: lined up with the left wall, so peek up along it.
+  assert.deepEqual(cornerWatchFacing(vec(10, 15), map), vec(0, -1));
+  // Right of the bottom-right corner: lined up with the front wall, so peek along it.
   assert.deepEqual(cornerWatchFacing(vec(21, 14), map), vec(-1, 0));
+  // Left of the bottom-left corner: lined up with the front wall.
   assert.deepEqual(cornerWatchFacing(vec(9, 14), map), vec(1, 0));
   assert.equal(cornerWatchFacing(vec(5, 5), map), null);
 });
 
-test("lone straight wall: in line with its end does not turn, beside it looks along", () => {
+test("lone straight wall: in line with its end peeks around it, beside it looks along", () => {
   const map = MapData.empty(30, 30);
   for (let x = 5; x <= 10; x++) {
     map.placeObject(vec(x, 5), "wall_straight", "SWAL");
   }
-  assert.equal(cornerWatchFacing(vec(4, 5), map), null);
+  assert.deepEqual(cornerWatchFacing(vec(4, 5), map), vec(1, 0));
   assert.deepEqual(cornerWatchFacing(vec(5, 6), map), vec(1, 0));
 });

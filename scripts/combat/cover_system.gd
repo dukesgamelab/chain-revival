@@ -678,26 +678,31 @@ static func peek_side_from_cross(to_ref: Vector2i, along: Vector2i) -> int:
 	return PeekSide.LEFT
 
 
-## Facing that looks down the side of a structure when standing at its corner or wall tip:
-## along the LONGEST wall run from that cell. A run beside the soldier counts, and so does
-## one continuing straight away from him (he then leans around the corner) - but only at a
-## real corner that also has a beside-run. Ties prefer the beside-run. ZERO when none.
-## Mirrored in server/src/los.ts cornerWatchFacing.
+## Facing when stopping at a structure corner or wall tip: toward the corner, along the wall
+## the soldier is lined up with, so he leans around the corner (OG BehindCorner). Longest
+## such run wins. Without one (beside a wall tip), look along the wall beside him instead.
+## ZERO when there is no wall to use. Mirrored in server/src/los.ts cornerWatchFacing.
 static func corner_watch_facing(from_cell: Vector2i, map_data: MapData) -> Vector2i:
 	if map_data == null:
 		return Vector2i.ZERO
 	var ortho: Array[Vector2i] = [
 		Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
 	]
-	var best := Vector2i.ZERO
-	var best_len := 0
+	var inline_best := Vector2i.ZERO
+	var inline_len := 0
+	var beside_best := Vector2i.ZERO
+	var beside_len := 0
 	for offset in ortho:
 		var wall_cell := from_cell + offset
 		if not _is_corner_peek_blocker(map_data, wall_cell):
 			continue
 		if not _is_structure_corner_or_wall_tip(map_data, wall_cell):
 			continue
-		var has_beside := false
+		if _is_corner_peek_blocker(map_data, wall_cell + offset):
+			var len := _wall_run_length(map_data, wall_cell, offset)
+			if len > inline_len:
+				inline_best = offset
+				inline_len = len
 		for run in ortho:
 			if run == offset or run == -offset:
 				continue
@@ -705,17 +710,11 @@ static func corner_watch_facing(from_cell: Vector2i, map_data: MapData) -> Vecto
 				_is_corner_peek_blocker(map_data, wall_cell + run)
 				and not _is_corner_peek_blocker(map_data, from_cell + run)
 			):
-				has_beside = true
-				var beside_len := _wall_run_length(map_data, wall_cell, run)
-				if beside_len > best_len:
-					best = run
-					best_len = beside_len
-		if has_beside and _is_corner_peek_blocker(map_data, wall_cell + offset):
-			var inline_len := _wall_run_length(map_data, wall_cell, offset)
-			if inline_len > best_len:
-				best = offset
-				best_len = inline_len
-	return best
+				var len := _wall_run_length(map_data, wall_cell, run)
+				if len > beside_len:
+					beside_best = run
+					beside_len = len
+	return inline_best if inline_len > 0 else beside_best
 
 
 ## Count of consecutive blocker cells from `start` (exclusive) along `dir`, capped.

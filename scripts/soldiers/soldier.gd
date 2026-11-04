@@ -291,6 +291,15 @@ func _should_maintain_fire_aim_hold() -> bool:
 	return _aim_hold_should_persist_without_state()
 
 
+## Engaged (or inside the disengage grace) regardless of the current corner phase.
+func _still_engaged_for_aim() -> bool:
+	if _presentation_engaged:
+		return true
+	if _aim_hold_last_target_team_id < 0 or _aim_hold_last_target_soldier_id <= 0:
+		return false
+	return _aim_hold_should_persist_without_state()
+
+
 func _aim_hold_should_persist_without_state() -> bool:
 	if _presentation_fire_control != FireControlState.FIRE_AT_WILL:
 		return false
@@ -2200,6 +2209,13 @@ func _sync_fire_aim_hold(state: SoldierState) -> void:
 		and _aim_hold_disengage_msec < 0
 	):
 		_aim_hold_disengage_msec = SimulationClock.get_ticks_msec()
+	## Peeked out at a corner: keep the corner aim (CAS) while engaged, peek back in when done.
+	if _corner_phase == CornerPresPhase.AIMING:
+		if _fire_aim_hold_active or _fire_aim_enter_active:
+			_clear_fire_aim_hold(false, "sync_corner_aiming")
+		if not _should_maintain_fire_aim_hold_from_state(state):
+			_start_corner_peek_exit()
+		return
 	if _should_maintain_fire_aim_hold_from_state(state):
 		_sync_combat_facing_toward_fire_target()
 		_begin_fire_aim_hold(_aim_hold_position_state(state))
@@ -3199,8 +3215,19 @@ func _finish_fire(anim_name: String) -> void:
 	_fire_active = false
 	_fire_restart_pending = false
 	_log_fire_anim(anim_name, "COMPLETE → post-shot")
-	## Stage 1: after CFA/open fire, between-shot pose is open ASAIS/APAIS at every camera.
-	## Peek enter still plays before the shot; CAS/CIS between shots is Stage 10.
+	## Standing corner shooter: stay peeked out (CAS) between shots while engaged, peek back in
+	## (CPA exit → CIS) once done. Never drop to the open aim pose at a corner.
+	if (
+		_corner_peek_side != CoverSystem.PeekSide.NONE
+		and not _fire_return_prone
+		and _applied_position_state != PositionState.DOWN
+	):
+		_fire_peek_side = CoverSystem.PeekSide.NONE
+		if _still_engaged_for_aim():
+			_start_corner_aim_hold()
+		else:
+			_start_corner_peek_exit()
+		return
 	if _corner_peek_side != CoverSystem.PeekSide.NONE:
 		if DEBUG_AIM_HOLD:
 			GameLog.log_system(

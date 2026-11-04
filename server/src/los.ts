@@ -232,18 +232,26 @@ function wallRunLength(map: MapData, start: Vec2i, dir: Vec2i): number {
   return n;
 }
 
-// Port of CoverSystem.corner_watch_facing: at a corner or wall tip, face along the longest
-// wall run (beside the soldier, or straight away from him at a real corner). Ties prefer
-// the beside-run. Null when there is no wall run to look along.
+// Port of CoverSystem.corner_watch_facing: face toward the corner along the wall the soldier
+// is lined up with (lean around it); longest such run wins. Without one, look along the wall
+// beside him. Null when there is no wall to use.
 export function cornerWatchFacing(from: Vec2i, map: MapData): Vec2i | null {
-  let best: Vec2i | null = null;
-  let bestLen = 0;
+  let inline: Vec2i | null = null;
+  let inlineLen = 0;
+  let beside: Vec2i | null = null;
+  let besideLen = 0;
   for (const offset of ORTHO) {
     const wall = vec(from.x + offset.x, from.y + offset.y);
     if (!isCornerPeekBlocker(map, wall) || !isStructureCornerOrWallTip(map, wall)) {
       continue;
     }
-    let hasBeside = false;
+    if (isCornerPeekBlocker(map, vec(wall.x + offset.x, wall.y + offset.y))) {
+      const len = wallRunLength(map, wall, offset);
+      if (len > inlineLen) {
+        inline = { ...offset };
+        inlineLen = len;
+      }
+    }
     for (const run of ORTHO) {
       if ((run.x === offset.x && run.y === offset.y) || (run.x === -offset.x && run.y === -offset.y)) {
         continue;
@@ -252,23 +260,15 @@ export function cornerWatchFacing(from: Vec2i, map: MapData): Vec2i | null {
         isCornerPeekBlocker(map, vec(wall.x + run.x, wall.y + run.y))
         && !isCornerPeekBlocker(map, vec(from.x + run.x, from.y + run.y))
       ) {
-        hasBeside = true;
         const len = wallRunLength(map, wall, run);
-        if (len > bestLen) {
-          best = { ...run };
-          bestLen = len;
+        if (len > besideLen) {
+          beside = { ...run };
+          besideLen = len;
         }
       }
     }
-    if (hasBeside && isCornerPeekBlocker(map, vec(wall.x + offset.x, wall.y + offset.y))) {
-      const len = wallRunLength(map, wall, offset);
-      if (len > bestLen) {
-        best = { ...offset };
-        bestLen = len;
-      }
-    }
   }
-  return best;
+  return inline ?? beside;
 }
 
 function perpNeighborOpen(map: MapData, cell: Vec2i): boolean {

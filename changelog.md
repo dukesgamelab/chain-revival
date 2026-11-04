@@ -38,7 +38,8 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - Fixed soldiers on Fire At going idle in multiplayer after their target died or slipped out of sight - the server never picked a new target. It now reacquires the nearest visible enemy ahead of the shooter, like single-player (Phase 46, needs server deploy)
 - Fixed soldiers on Fire At staying locked on a visible target they can't hit (e.g. behind a building) while ignoring an exposed enemy. After the 1.5s grace they switch to a hittable enemy (ahead first, then any visible). With nothing else to shoot they keep the chosen target and hold fire until the line clears. Client and server (Phase 46, needs server deploy)
 - Fixed soldiers firing from a corner dropping prone out in the open - the "exposed standing shooter goes prone" check ran after the corner state was cleared, so corner shooters always counted as exposed. Soldiers at a corner now stay in their corner pose (Phase 46)
-- Soldiers arriving at a building corner or wall tip now turn to look down the side of the building instead of keeping their run direction. At a corner they look along the longer wall, even from the tile in line with it (leaning around the corner); a lone straight wall end does not turn them. Skipped while engaged. Client sim and server, facing sent with the move-complete message (Phase 46, needs server deploy)
+- Soldiers arriving at a building corner or wall tip now turn to look down the side of the building instead of keeping their run direction. They face toward the corner along the wall they're lined up with and lean around it (OG BehindCorner); beside a wall tip with nothing lined up, they look along the wall instead. Skipped while engaged. Client sim and server, facing sent with the move-complete message (Phase 46, needs server deploy)
+- Soldiers shooting from a corner now stay peeked out between shots (corner aim pose) instead of dropping to the open aim pose, and peek back into cover once they stop engaging
 - Added server-side disconnect logging to help diagnose reconnect window failures (Phase 46)
 - Fixed server not enforcing panicked Fire At rejection - previously client-only (Phase 45)
 - Fixed server not applying stress movement speed modifier - soldiers moved at full speed regardless of stress in multiplayer (Phase 45)
@@ -324,9 +325,7 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 
 ## Known Bugs
 
-- **Corner cover presentation polish** (follow-up after Phase 46):
-  - Soldiers aiming from a corner between shots use the open standing aim pose instead of peeking around the corner. `soldier.gd` `_finish_fire` switches to open aim after each corner shot; corner aim (CAS) between shots was never implemented ("Stage 10" in the code comments).
-  - Still to check: how far the corner fire step plus the 0.5-tile lean pushes the sprite toward the wall, and whether the Face command feels clunky along walls (clicks snap to 8 directions).
+- **Corner cover presentation polish** - still to check: how far the corner fire step plus the 0.5-tile lean pushes the sprite toward the wall, and whether the Face command feels clunky along walls (clicks snap to 8 directions).
 - **No effective fog of war**: Both teams are visible from across the map, including in the deployment zone before the game starts. Two causes: (1) in 1v1 matches the client draws unspotted enemies as tinted "ghosts" instead of hiding them (`main.gd` `_fog_visual_for_enemy` returns GHOST when `_is_one_v_one_match()`), and (2) the server sends every soldier's position to every client, so even hidden enemies are known to a modified client. Fix: hide unspotted enemies (keep a last-known marker at most) and have the server only send enemy positions the receiving team can see.
 - **Wall rotation on camera turn**: Some wall sprites don't rotate correctly with the camera. Reported by tester on The Fortress map - needs investigation in facet rotation system.
 
