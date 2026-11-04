@@ -148,13 +148,17 @@ func _apply_update() -> void:
 
 	var files := reader.get_files()
 	for file_path in files:
-		if file_path.ends_with("/"):
-			DirAccess.make_dir_recursive_absolute(extract_dir.path_join(file_path))
+		if file_path.contains("..") or file_path.begins_with("/") or file_path.begins_with("\\"):
 			continue
-		var parent := extract_dir.path_join(file_path).get_base_dir()
-		DirAccess.make_dir_recursive_absolute(parent)
+		var resolved := extract_dir.path_join(file_path).simplify_path()
+		if not resolved.begins_with(extract_dir.simplify_path()):
+			continue
+		if file_path.ends_with("/"):
+			DirAccess.make_dir_recursive_absolute(resolved)
+			continue
+		DirAccess.make_dir_recursive_absolute(resolved.get_base_dir())
 		var data := reader.read_file(file_path)
-		var out := FileAccess.open(extract_dir.path_join(file_path), FileAccess.WRITE)
+		var out := FileAccess.open(resolved, FileAccess.WRITE)
 		if out != null:
 			out.store_buffer(data)
 			out.close()

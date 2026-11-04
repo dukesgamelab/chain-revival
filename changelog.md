@@ -6,6 +6,10 @@ Copy this into website patch notes when cutting the next release build. Remove i
 
 - Rotated Supabase service role key - server now uses new-format `sb_secret_` key on both Fly and local dev
 - Legacy JWT-based API keys still active (Godot client depends on legacy `anon` key for auth)
+- Fixed CI shell injection in build workflow - version input now validated with regex and passed via env variable
+- Disabled ban notification emails until an official domain is purchased and verified in Resend
+- Fixed zip slip vulnerability in auto-updater - malicious zip entries with path traversal are now rejected
+- Tightened chat message RLS - regiment and custom channel messages now restricted to members only (migration 033)
 
 ---
 
@@ -299,7 +303,7 @@ Migration 020 - already run.
 
 ## SQL Migrations
 
-All migrations in `server/sql/`, numbered 001-032. All have been run in Supabase.
+All migrations in `server/sql/`, numbered 001-033. All have been run in Supabase.
 
 | Migration | Phase | Purpose |
 |-----------|-------|---------|
@@ -315,6 +319,7 @@ All migrations in `server/sql/`, numbered 001-032. All have been run in Supabase
 | 030 | 41-42 | Custom channel discovery RPCs |
 | 031 | 41-42 | Delete custom channel RPC |
 | 032 | 46 | Security lockdown (column grants, REVOKE/GRANT EXECUTE, auth.uid() hardening, SET search_path) |
+| 033 | 46 | Chat channel RLS - restrict message SELECT/INSERT to channel members |
 
 ---
 
@@ -368,3 +373,5 @@ All migrations in `server/sql/`, numbered 001-032. All have been run in Supabase
 - **Chat online list**: Show who's connected in the chat panel. Requested by tester Pai-ku-han (also asked for PMs, which already exist via `/w` and click-to-whisper).
 - **Admin error logs & event viewer**: Record server error logs and game events to a Supabase table, with a browsable/filterable view in the website admin panel. Replaces needing to SSH into Fly logs for debugging.
 - **Migrate off legacy Supabase API keys**: Switch Godot client from legacy `anon` JWT key to new `publishable` key format, update all GDScript Supabase REST calls, then disable JWT-based API keys in dashboard.
+- **Chat BBCode whitelist**: Allow safe formatting tags (bold, italic, color) in chat while blocking dangerous ones (url, img). Currently all BBCode is escaped.
+- **Official website & domain**: Get a proper domain for the project. Currently served from `chain-revival-ax0q1g.fly.dev`. `chain-revival.com` belongs to the original forked project, not us. Ban notification emails disabled until a domain is purchased and verified in Resend.
