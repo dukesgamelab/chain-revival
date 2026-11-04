@@ -21,6 +21,7 @@ func _ready() -> void:
 	await _test_post_fire_returns_idle_all_cameras()
 	await _test_stale_fire_frame_cleared_to_idle()
 	await _test_corner_fire_returns_corner_idle()
+	await _test_idle_facing_corner_peeks()
 	print("")
 	print("Idle vs combat pose integration: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -182,6 +183,36 @@ func _test_stale_fire_frame_cleared_to_idle() -> void:
 func _test_corner_fire_returns_corner_idle() -> void:
 	await _run_corner_fire_case(false)
 	await _run_corner_fire_case(true)
+
+
+## Idle at a corner facing around it (corner cell dead ahead) holds the peeked-out aim pose;
+## facing along the wall instead keeps the corner hug idle.
+func _test_idle_facing_corner_peeks() -> void:
+	IsometricGrid.current_view_rotation = 0
+	for case in [[Vector2i(1, 0), "corner_aim_"], [Vector2i(0, 1), "corner_idle_"]]:
+		var corner_step: Vector2i = case[0]
+		var soldier: Soldier = SoldierScene.instantiate() as Soldier
+		add_child(soldier)
+		await get_tree().process_frame
+		soldier.team_id = Team.USA
+		soldier.soldier_id = 2
+		soldier._configure_team_visual()
+		var from_cell := Vector2i(20, 20)
+		soldier._facing_from_cell = from_cell
+		soldier._applied_position_state = PositionState.UP
+		soldier._last_applied_facing = FacingDirection.EAST
+		soldier._idle_peek_side = CoverSystem.PeekSide.LEFT
+		soldier._cover_corner_cell = from_cell + corner_step
+		soldier._play_idle_standing(soldier._world_direction_from_step(FacingDirection.EAST))
+		var anim := str(soldier._anim.animation)
+		_assert(
+			"idle with corner at %s → %s* (%s)" % [corner_step, case[1], anim],
+			anim.begins_with(case[1]),
+			"phase=%d" % soldier._corner_phase,
+		)
+		soldier.queue_free()
+		await get_tree().process_frame
+	IsometricGrid.reset_view_rotation()
 
 
 ## engaged=false: peek back in (CPA exit) then corner idle. engaged=true: stay peeked out (CAS).

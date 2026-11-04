@@ -1423,13 +1423,29 @@ func _remap_animation_preserving_progress(anim_name: String, force_pause: bool =
 
 
 func _idle_standing_semantic() -> String:
-	return GameplayPolicies.idle_anim.semantic_for(
+	var semantic: String = GameplayPolicies.idle_anim.semantic_for(
 		_idle_peek_side,
 		_applied_position_state,
 		_presentation_stress,
 		_presentation_fire_control,
 		_post_shot_crouch_remaining > 0.0,
 	)
+	## Facing around a corner (wall end dead ahead): idle peeked out, same pose as between shots.
+	if semantic.begins_with("corner_idle_") and _facing_toward_cover_corner():
+		semantic = semantic.replace("corner_idle_", "corner_aim_")
+	return semantic
+
+
+func _is_corner_idle_semantic(semantic: String) -> bool:
+	return semantic.begins_with("corner_idle_") or semantic.begins_with("corner_aim_")
+
+
+## True when the corner cell is straight ahead of the soldier's facing (he peeks around it).
+func _facing_toward_cover_corner() -> bool:
+	if _cover_corner_cell.x <= -999:
+		return false
+	var step := _cover_corner_cell - _facing_from_cell
+	return step != Vector2i.ZERO and step == FacingDirection.normalize(_last_applied_facing)
 
 
 func _idle_source_family() -> String:
@@ -1485,7 +1501,7 @@ func _play_idle_standing(world_direction: String) -> void:
 			if not _anim.is_playing():
 				_anim.play(anim_name)
 			return
-		if semantic.begins_with("corner_idle_"):
+		if _is_corner_idle_semantic(semantic):
 			_corner_phase = CornerPresPhase.IDLE
 			_corner_peek_side = _idle_peek_side
 			if frame_count <= 1 and _anim.is_playing():
@@ -1514,7 +1530,7 @@ func _play_idle_standing(world_direction: String) -> void:
 		_played_idle_peek_side = _idle_peek_side
 		_log_idle_standing(anim_name, "LOOP_CROUCH")
 		return
-	if semantic.begins_with("corner_idle_"):
+	if _is_corner_idle_semantic(semantic):
 		_cancel_standing_idle(false)
 		_corner_phase = CornerPresPhase.IDLE
 		_corner_peek_side = _idle_peek_side
@@ -2102,6 +2118,10 @@ func _start_corner_aim_hold() -> void:
 func _start_corner_peek_exit() -> void:
 	if _corner_peek_side == CoverSystem.PeekSide.NONE:
 		_clear_corner_presentation(true)
+		return
+	## Facing around the corner his idle is already peeked out - no tuck-in animation.
+	if _facing_toward_cover_corner():
+		_finish_corner_peek_exit()
 		return
 	_corner_phase = CornerPresPhase.PEEKING_IN
 	_corner_fire_pending = false
