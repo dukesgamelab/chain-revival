@@ -1168,8 +1168,8 @@ func _test_grenade_inverse_distance_model() -> void:
 		is_equal_approx(g.stun_duration_at_distance(1.0), 5.0),
 	)
 	_assert(
-		"Stun at distance 2 is ~4.286s",
-		is_equal_approx(g.stun_duration_at_distance(2.0), 30.0 / 7.0),
+		"Stun at distance 2 is floored at 5.0s (recovered ~4.286s)",
+		is_equal_approx(g.stun_duration_at_distance(2.0), 5.0),
 	)
 
 	var map_data := MapDataClass.create_default()
