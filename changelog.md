@@ -1,8 +1,20 @@
 # Chain Revival - Changelog
 
-## Unreleased on develop (since v0.22.8-alpha)
+## Unreleased on develop (since v0.22.9-alpha)
 
 Copy this into website patch notes when cutting the next release build. Remove items as they ship.
+
+*(nothing yet)*
+
+---
+
+## Version History
+
+**Current version:** v0.22.9-alpha
+
+### v0.22.9-alpha
+
+#### Security
 
 - Rotated Supabase service role key - server now uses new-format `sb_secret_` key on both Fly and local dev
 - Legacy JWT-based API keys still active (Godot client depends on legacy `anon` key for auth)
@@ -13,12 +25,6 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - Fixed isTraining exploit - only the first player (before sides assigned) can enable training mode
 - Fixed duplicate account connections - second connection kicks the first, prevents one account holding both sides
 - Removed HS256 fallback that accepted any token when JWT secret was unset
-
----
-
-## Version History
-
-**Current version:** v0.22.8-alpha
 
 ### v0.22.8-alpha
 
