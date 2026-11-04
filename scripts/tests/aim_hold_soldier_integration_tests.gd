@@ -18,6 +18,7 @@ func _ready() -> void:
 	IsometricGrid.set_original_projection_enabled(true)
 	IsometricGrid.set_view_pivot_for_map(64, 64)
 	await _test_engaged_sync_stays_idle_all_cameras()
+	await _test_engaged_at_corner_aims_leaned_out()
 	await _test_post_fire_returns_idle_all_cameras()
 	await _test_stale_fire_frame_cleared_to_idle()
 	await _test_corner_fire_returns_corner_idle()
@@ -96,6 +97,47 @@ func _test_engaged_sync_stays_idle_all_cameras() -> void:
 		)
 		soldier.queue_free()
 		await get_tree().process_frame
+	IsometricGrid.reset_view_rotation()
+
+
+## Engaged at a corner (e.g. waiting on a blocked target): leaned out with the gun up
+## (held peek-in frame), never the open standing aim pose.
+func _test_engaged_at_corner_aims_leaned_out() -> void:
+	IsometricGrid.current_view_rotation = 0
+	var from_cell := Vector2i(20, 20)
+	var soldier: Soldier = SoldierScene.instantiate() as Soldier
+	add_child(soldier)
+	await get_tree().process_frame
+	soldier.team_id = Team.USA
+	soldier.soldier_id = 1
+	soldier._configure_team_visual()
+	soldier._facing_from_cell = from_cell
+	soldier._fire_target_cell = Vector2i(30, 20)
+	soldier._last_applied_facing = FacingDirection.EAST
+	soldier._applied_position_state = PositionState.UP
+	var state := SoldierStateClass.new()
+	state.soldier_id = 1
+	state.team_id = Team.USA
+	state.grid_position = from_cell
+	state.facing_direction = FacingDirection.EAST
+	state.position_state = PositionState.UP
+	state.fire_control_state = FireControlState.FIRE_AT_WILL
+	state.set_engaged_target(Team.GERMANY, 1)
+	state.fire_ready_after_msec = SimulationClock.get_ticks_msec() + 5000
+	soldier.sync_from_state(
+		state, true, Soldier.FogVisual.REVEALED, true,
+		CoverSystem.PeekSide.LEFT, from_cell + Vector2i(1, 0),
+	)
+	var after := str(soldier._anim.animation)
+	_assert(
+		"engaged at corner → leaned out, gun up (%s)" % after,
+		after.begins_with("corner_peek_enter_")
+		and soldier._corner_phase == Soldier.CornerPresPhase.AIMING
+		and not soldier._fire_aim_hold_active,
+		"phase=%d hold=%s" % [soldier._corner_phase, soldier._fire_aim_hold_active],
+	)
+	soldier.queue_free()
+	await get_tree().process_frame
 	IsometricGrid.reset_view_rotation()
 
 

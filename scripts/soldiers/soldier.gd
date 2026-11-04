@@ -2352,6 +2352,17 @@ func _sync_fire_aim_hold(state: SoldierState) -> void:
 		return
 	if _should_maintain_fire_aim_hold_from_state(state):
 		_sync_combat_facing_toward_fire_target()
+		## At a corner, aim leaned out around it with the gun up, not in the open aim pose.
+		if (
+			_idle_peek_side != CoverSystem.PeekSide.NONE
+			and _aim_hold_position_state(state) == PositionState.UP
+		):
+			if _fire_aim_hold_active or _fire_aim_enter_active:
+				_clear_fire_aim_hold(false, "sync_corner_aim")
+			_interrupt_standing_idle_for_action()
+			_corner_peek_side = _idle_peek_side
+			_start_corner_aim_hold()
+			return
 		_begin_fire_aim_hold(_aim_hold_position_state(state))
 	elif _fire_aim_hold_active or _fire_aim_enter_active:
 		_clear_fire_aim_hold(true, "sync_not_aiming")
