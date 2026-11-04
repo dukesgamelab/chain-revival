@@ -1281,7 +1281,7 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		## unless peek side changed or we still need to start the correct idle.
 		elif _applied_position_state != PositionState.DOWN:
 			var idle_semantic := _idle_standing_semantic()
-			var idle_anim_name := "%s_%s" % [idle_semantic, display_dir]
+			var idle_anim_name := _pose_anim_name(idle_semantic, display_dir)
 			if (
 				_idle_peek_side == _played_idle_peek_side
 				and str(_anim.animation) == idle_anim_name
@@ -1440,6 +1440,21 @@ func _is_corner_idle_semantic(semantic: String) -> bool:
 	return semantic.begins_with("corner_idle_") or semantic.begins_with("corner_aim_")
 
 
+## "corner_aim_*" renders as the held last frame of the peek-in (CPA B): a clean peeked-out
+## stance with a smaller step-out. Some recovered CAS frames have a muzzle flash (ARCAS7A).
+func _pose_anim_name(semantic: String, display_dir: String) -> String:
+	if semantic.begins_with("corner_aim_"):
+		return "corner_peek_enter_%s_%s" % [semantic.trim_prefix("corner_aim_"), display_dir]
+	return "%s_%s" % [semantic, display_dir]
+
+
+func _hold_last_frame(anim_name: String) -> void:
+	if str(_anim.animation) != anim_name:
+		_anim.play(anim_name)
+	_anim.pause()
+	_anim.frame = maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
+
+
 ## True when the corner cell is straight ahead of the soldier's facing (he peeks around it).
 func _facing_toward_cover_corner() -> bool:
 	if _cover_corner_cell.x <= -999:
@@ -1468,7 +1483,7 @@ func _prone_idle_source_family() -> String:
 func _play_idle_standing(world_direction: String) -> void:
 	var display_dir := _idle_display_direction(world_direction)
 	var semantic := _idle_standing_semantic()
-	var anim_name := "%s_%s" % [semantic, display_dir]
+	var anim_name := _pose_anim_name(semantic, display_dir)
 	if not _anim.sprite_frames.has_animation(anim_name):
 		## Fall back: crouch → standing; corner → standing.
 		if semantic != "idle_standing":
@@ -1504,7 +1519,9 @@ func _play_idle_standing(world_direction: String) -> void:
 		if _is_corner_idle_semantic(semantic):
 			_corner_phase = CornerPresPhase.IDLE
 			_corner_peek_side = _idle_peek_side
-			if frame_count <= 1 and _anim.is_playing():
+			if semantic.begins_with("corner_aim_"):
+				_hold_last_frame(anim_name)
+			elif frame_count <= 1 and _anim.is_playing():
 				_anim.pause()
 				_anim.frame = 0
 			_refresh_corner_lean_offset()
@@ -1535,7 +1552,9 @@ func _play_idle_standing(world_direction: String) -> void:
 		_corner_phase = CornerPresPhase.IDLE
 		_corner_peek_side = _idle_peek_side
 		_corner_semantic = semantic
-		if frame_count <= 1:
+		if semantic.begins_with("corner_aim_"):
+			_hold_last_frame(anim_name)
+		elif frame_count <= 1:
 			_anim.pause()
 			_anim.frame = 0
 		_refresh_corner_lean_offset()
@@ -2097,15 +2116,11 @@ func _start_corner_aim_hold() -> void:
 	_fire_active = false
 	_corner_semantic = "corner_aim_%s" % _corner_side_token()
 	var display_dir := _idle_display_direction(_body_world_direction())
-	var anim_name := "%s_%s" % [_corner_semantic, display_dir]
+	var anim_name := _pose_anim_name(_corner_semantic, display_dir)
 	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
 		push_warning("Soldier: missing %s" % anim_name)
 	else:
-		_anim.play(anim_name)
-		## One-frame CAS hold — pause so refreshes do not replay.
-		if _anim.sprite_frames.get_frame_count(anim_name) <= 1:
-			_anim.pause()
-			_anim.frame = 0
+		_hold_last_frame(anim_name)
 		_log_fire_anim(anim_name, "CORNER_AIM_HOLD")
 	_refresh_corner_lean_offset()
 

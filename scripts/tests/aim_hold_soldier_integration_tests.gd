@@ -189,7 +189,7 @@ func _test_corner_fire_returns_corner_idle() -> void:
 ## facing along the wall instead keeps the corner hug idle.
 func _test_idle_facing_corner_peeks() -> void:
 	IsometricGrid.current_view_rotation = 0
-	for case in [[Vector2i(1, 0), "corner_aim_"], [Vector2i(0, 1), "corner_idle_"]]:
+	for case in [[Vector2i(1, 0), "corner_peek_enter_"], [Vector2i(0, 1), "corner_idle_"]]:
 		var corner_step: Vector2i = case[0]
 		var soldier: Soldier = SoldierScene.instantiate() as Soldier
 		add_child(soldier)
@@ -205,10 +205,14 @@ func _test_idle_facing_corner_peeks() -> void:
 		soldier._cover_corner_cell = from_cell + corner_step
 		soldier._play_idle_standing(soldier._world_direction_from_step(FacingDirection.EAST))
 		var anim := str(soldier._anim.animation)
+		var held_last := (
+			not soldier._anim.is_playing()
+			and soldier._anim.frame == soldier._anim.sprite_frames.get_frame_count(anim) - 1
+		)
 		_assert(
 			"idle with corner at %s → %s* (%s)" % [corner_step, case[1], anim],
-			anim.begins_with(case[1]),
-			"phase=%d" % soldier._corner_phase,
+			anim.begins_with(case[1]) and (case[1] != "corner_peek_enter_" or held_last),
+			"phase=%d frame=%d playing=%s" % [soldier._corner_phase, soldier._anim.frame, soldier._anim.is_playing()],
 		)
 		soldier.queue_free()
 		await get_tree().process_frame
@@ -251,7 +255,9 @@ func _run_corner_fire_case(engaged: bool) -> void:
 	if engaged:
 		_assert(
 			"corner post-fire engaged → stays peeked out (%s)" % after,
-			after.begins_with("corner_aim_") and soldier._corner_phase == Soldier.CornerPresPhase.AIMING,
+			after.begins_with("corner_peek_enter_")
+			and not soldier._anim.is_playing()
+			and soldier._corner_phase == Soldier.CornerPresPhase.AIMING,
 			"phase=%d hold=%s" % [soldier._corner_phase, soldier._fire_aim_hold_active],
 		)
 	else:
