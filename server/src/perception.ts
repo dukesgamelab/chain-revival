@@ -6,7 +6,7 @@
 
 import { beginFirePrep } from "./fire_prep";
 import type { GameState } from "./game_state";
-import { euclidean, isFacingTowardTarget, manhattan, soldierKey } from "./grid";
+import { euclidean, isFacingTowardTarget, isInSpottingForwardArc, manhattan, soldierKey } from "./grid";
 import { COVER_COMPLETE, COVER_MODERATE, COVER_NONE } from "./map_objects";
 import { evaluate, evaluateSpotting, isSpottingLineBlocked, LOS_BLOCKED } from "./los";
 import type { SoldierState } from "./soldier_state";
@@ -152,7 +152,10 @@ export class PerceptionSystem {
 
     if (shooter.sustainedFire) {
       if (current !== null && !current.isDead && isPriorityTrackable(shooter, current, state)) {
-        shooter.engagedTargetLostMsec = 0;
+        // While the shot is blocked, leave the lost timer running so combat can switch targets.
+        if (evaluate(shooter.gridPosition, current.gridPosition, state.map, state.losOccupants()).status !== LOS_BLOCKED) {
+          shooter.engagedTargetLostMsec = 0;
+        }
         return;
       }
       if (current !== null && !targetLostGraceElapsed(shooter, now)) {
@@ -401,6 +404,38 @@ export function findBestAutoTarget(state: GameState, shooter: SoldierState): Sol
       bestScore = score;
       best = enemy;
     }
+  }
+  return best;
+}
+
+// Sustained Fire At lost its target: nearest visible, unblocked enemy ahead of the shooter.
+// Stand-in for CombatSystem.find_best_cone_target (forward arc instead of the exact cone).
+export function findSustainedTarget(state: GameState, shooter: SoldierState): SoldierState | null {
+  if (shooter.isDead) {
+    return null;
+  }
+  const occupants = state.losOccupants();
+  let best: SoldierState | null = null;
+  let bestDist = Number.POSITIVE_INFINITY;
+  for (const enemy of state.soldiers) {
+    if (enemy.teamId === shooter.teamId || enemy.isDead) {
+      continue;
+    }
+    if (!state.perception.isVisibleToTeam(shooter.teamId, enemy.teamId, enemy.soldierId)) {
+      continue;
+    }
+    const dist = euclidean(shooter.gridPosition, enemy.gridPosition);
+    if (dist > WEAPON_RANGE_TILES || dist >= bestDist) {
+      continue;
+    }
+    if (!isInSpottingForwardArc(shooter.gridPosition, shooter.facing, enemy.gridPosition, WEAPON_RANGE_TILES)) {
+      continue;
+    }
+    if (evaluate(shooter.gridPosition, enemy.gridPosition, state.map, occupants).status === LOS_BLOCKED) {
+      continue;
+    }
+    best = enemy;
+    bestDist = dist;
   }
   return best;
 }

@@ -452,6 +452,11 @@ static func apply_movement_tick(game_state: GameStateClass, payload: Dictionary)
 		var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
 		if soldier != null:
 			soldier.clear_path()
+			## Server may turn the soldier on arrival (corner watch facing).
+			if done.has("facing"):
+				var facing := _cell(done.get("facing", {}))
+				if facing != Vector2i.ZERO:
+					soldier.facing_direction = FacingDirection.from_step(facing)
 		result.movement_completions.append({
 			"team_id": team_id,
 			"soldier_id": soldier_id,

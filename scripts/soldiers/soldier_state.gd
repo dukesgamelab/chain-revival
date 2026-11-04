@@ -305,7 +305,7 @@ func recover_from_stun_if_expired() -> bool:
 	return true
 
 
-func activity_status_label() -> String:
+func activity_status_label(map_data = null) -> String:
 	if is_dead:
 		return "Dead"
 	if is_stunned():
@@ -318,9 +318,23 @@ func activity_status_label() -> String:
 		return "Aiming"
 	if stress >= GameplayPolicies.suppression.band_nervous:
 		return StressLabelsClass.state_label(stress)
+	var in_cover := _has_adjacent_cover(map_data)
 	if position_state == PositionStateClass.DOWN:
-		return "Prone"
-	return "Standing"
+		return "Cover (Prone)" if in_cover else "Prone"
+	return "Cover" if in_cover else "Standing"
+
+
+func _has_adjacent_cover(map_data) -> bool:
+	if map_data == null:
+		return false
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			if dx == 0 and dy == 0:
+				continue
+			var cell := grid_position + Vector2i(dx, dy)
+			if map_data.obstruction_height(cell) >= 1:
+				return true
+	return false
 
 
 func set_engaged_target(target_team_id: int, target_soldier_id: int) -> bool:

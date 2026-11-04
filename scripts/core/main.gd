@@ -29,6 +29,7 @@ const AssignWeaponsDialogScene := preload("res://scenes/ui/assign_weapons_dialog
 const AdjustAmmoCommandClass := preload("res://scripts/commands/adjust_ammo_command.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
+const RejoinStoreClass := preload("res://scripts/network/rejoin_store.gd")
 const AiCommanderFrameworkClass := preload("res://scripts/ai/ai_commander_framework.gd")
 const IssueAiOrderCommandClass := preload("res://scripts/commands/issue_ai_order_command.gd")
 const PlayerSlotOwnershipClass := preload("res://scripts/core/player_slot_ownership.gd")
@@ -95,6 +96,8 @@ var _grass_layer_visible: bool = true
 var _ai_framework: AiCommanderFrameworkClass = null
 var _survival_mode: SurvivalModeControllerClass = null
 var _tutorial_controller: TutorialControllerClass = null
+var _reconnect_countdown_sec: int = 0
+var _reconnect_countdown_timer: Timer = null
 var _tutorial_overlay: TutorialOverlayClass = null
 var _fire_at_preview_accum_sec: float = 0.0
 var _fire_at_hit_accum_sec: float = 0.0
@@ -213,7 +216,6 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_boot_complete = true
 	_hide_loading_overlay()
-	AudioManager.start_ambient()
 	if GameModeManager.is_local_multiplayer():
 		NetworkClient.send_client_ready()
 	if _is_survival_mode():
@@ -2295,7 +2297,12 @@ func _refresh_enemy_spotting_visuals() -> void:
 				soldier_state.team_id == active_team
 				and soldier_state.soldier_id == active_fireteam.selected_soldier_id
 			)
-			view.apply_spotting_only(is_selected, _fog_visual_for_enemy(soldier_state))
+			var fog_visual := _fog_visual_for_enemy(soldier_state)
+			## Newly spotted: full sync so corner pose / facing computed while hidden is refreshed.
+			if fog_visual == Soldier.FogVisual.REVEALED and view.current_fog_visual() != Soldier.FogVisual.REVEALED:
+				_sync_soldier_view(soldier_state.team_id, soldier_state.soldier_id, is_selected)
+			else:
+				view.apply_spotting_only(is_selected, fog_visual)
 
 
 func _refresh_selection_marks() -> void:
@@ -2517,10 +2524,11 @@ func _refresh_armed_movement_views(soldier_id: int) -> void:
 
 func _refresh_command_bar() -> void:
 	var fireteam: Fireteam = _control_fireteam()
+	var md = _game_state.map_data if _game_state != null else null
 	for i in range(fireteam.soldiers.size()):
 		var soldier_state: SoldierState = fireteam.soldiers[i]
 		var hit_pct := _hit_pct_for_command_row(soldier_state)
-		_command_bar.sync_soldier_row(i, soldier_state, hit_pct)
+		_command_bar.sync_soldier_row(i, soldier_state, hit_pct, md)
 		## Human only interacts with locally owned fireteam soldiers.
 		var owned := _session.can_local_control_soldier(
 			soldier_state.team_id,
@@ -2537,10 +2545,11 @@ func _refresh_command_bar() -> void:
 func _refresh_command_bar_light() -> void:
 	var fireteam: Fireteam = _control_fireteam()
 	var need_hit := _should_update_hit_columns()
+	var md = _game_state.map_data if _game_state != null else null
 	for i in range(fireteam.soldiers.size()):
 		var soldier_state: SoldierState = fireteam.soldiers[i]
 		var hit_pct := _hit_pct_for_command_row(soldier_state) if need_hit else -1.0
-		_command_bar.sync_soldier_row(i, soldier_state, hit_pct)
+		_command_bar.sync_soldier_row(i, soldier_state, hit_pct, md)
 		var owned := _session.can_local_control_soldier(
 			soldier_state.team_id,
 			soldier_state.soldier_id,
@@ -2891,7 +2900,6 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 		var thrower: SoldierState = _game_state.get_soldier(int(order.team_id), int(order.soldier_id))
 		if throw_view != null and thrower != null:
 			throw_view.play_throw_grenade(thrower.position_state, thrower.facing_direction)
-			AudioManager.play_grenade_throw()
 
 	if result.sync_fire_at_ui:
 		_sync_fire_at_ui_from_engagements()
@@ -3402,11 +3410,26 @@ func _on_network_deployment_ended() -> void:
 func _on_network_scenario_time(payload: Dictionary) -> void:
 	if _game_state == null:
 		return
+	RejoinStoreClass.touch()
 	_game_state.scenario_time_remaining_sec = float(payload.get("timeRemainingSec", 0.0))
 	if payload.has("usaKillPoints"):
 		_game_state.team_kill_points[Team.USA] = int(payload.get("usaKillPoints", 0))
 	if payload.has("germanyKillPoints"):
 		_game_state.team_kill_points[Team.GERMANY] = int(payload.get("germanyKillPoints", 0))
+	var stress_changed := false
+	for raw in payload.get("stress", []):
+		if not raw is Dictionary:
+			continue
+		var entry: Dictionary = raw
+		var soldier: SoldierState = _game_state.get_soldier(int(entry.get("teamId", -1)), int(entry.get("soldierId", -1)))
+		if soldier == null or soldier.is_dead:
+			continue
+		var stress := float(entry.get("stress", soldier.stress))
+		if not is_equal_approx(stress, soldier.stress):
+			soldier.stress = stress
+			stress_changed = true
+	if stress_changed:
+		_refresh_command_bar_light()
 	var deploy_time := float(payload.get("deployTimeRemainingSec", -1.0))
 	if deploy_time > 0.0:
 		if not _game_state.timed_deployment:
@@ -3453,6 +3476,8 @@ func _on_network_vp_update(payload: Dictionary) -> void:
 
 
 func _on_network_match_ended(payload: Dictionary) -> void:
+	_stop_reconnect_countdown()
+	RejoinStoreClass.clear()
 	if _game_state == null:
 		return
 	## Apply authoritative end state from the server.
@@ -3474,6 +3499,8 @@ func _on_network_match_ended(payload: Dictionary) -> void:
 
 func _on_kicked_from_server(reason: String) -> void:
 	GameLog.log_system("[Main] Kicked from server: %s" % reason)
+	_stop_reconnect_countdown()
+	RejoinStoreClass.clear()
 	NetworkClient.disconnect_from_server()
 	# Set game state to ended so the debrief can open
 	if _game_state != null:
@@ -3496,10 +3523,13 @@ func _on_kicked_from_server(reason: String) -> void:
 func _on_opponent_disconnected(side_name: String, reconnect_window_sec: int) -> void:
 	if _command_bar != null:
 		_command_bar.append_chat_system("OPPONENT DISCONNECTED: %s player lost connection. Waiting %ds for reconnect." % [side_name, reconnect_window_sec])
-		_command_bar.show_status("Opponent disconnected — waiting for reconnect (%ds)." % reconnect_window_sec)
+	_reconnect_countdown_sec = reconnect_window_sec
+	_update_reconnect_countdown_status()
+	_start_reconnect_countdown()
 
 
 func _on_opponent_reconnected(side_name: String) -> void:
+	_stop_reconnect_countdown()
 	if _command_bar != null:
 		_command_bar.append_chat_system("OPPONENT RECONNECTED: %s player is back." % side_name)
 		_command_bar.show_status("Opponent reconnected. Match continues.")
@@ -3512,12 +3542,42 @@ func _on_reconnect_started() -> void:
 
 
 func _on_reconnect_failed() -> void:
+	_stop_reconnect_countdown()
 	GameLog.log_system("[Main] Reconnect failed — returning to lobby.")
 	NetworkClient.disconnect_from_server()
 	if _command_bar != null:
 		_command_bar.show_status("Reconnect failed. Returning to lobby.")
 		_command_bar.cleanup_chat()
 	get_tree().call_deferred("change_scene_to_file", "res://scenes/lobby_browser.tscn")
+
+
+func _start_reconnect_countdown() -> void:
+	_stop_reconnect_countdown()
+	_reconnect_countdown_timer = Timer.new()
+	_reconnect_countdown_timer.wait_time = 1.0
+	_reconnect_countdown_timer.timeout.connect(_on_reconnect_countdown_tick)
+	add_child(_reconnect_countdown_timer)
+	_reconnect_countdown_timer.start()
+
+
+func _stop_reconnect_countdown() -> void:
+	if _reconnect_countdown_timer != null:
+		_reconnect_countdown_timer.stop()
+		_reconnect_countdown_timer.queue_free()
+		_reconnect_countdown_timer = null
+
+
+func _on_reconnect_countdown_tick() -> void:
+	_reconnect_countdown_sec -= 1
+	if _reconnect_countdown_sec <= 0:
+		_stop_reconnect_countdown()
+		return
+	_update_reconnect_countdown_status()
+
+
+func _update_reconnect_countdown_status() -> void:
+	if _command_bar != null:
+		_command_bar.show_status("Opponent disconnected - waiting for reconnect (%ds)." % _reconnect_countdown_sec)
 
 
 func _on_network_target_sync(payload: Dictionary) -> void:
@@ -4047,9 +4107,21 @@ func _on_soldier_step_reached(_team_id: int, _soldier_id: int, _tile: Vector2i, 
 	pass
 
 
-func _on_soldier_movement_finished(_team_id: int, _soldier_id: int) -> void:
+func _on_soldier_movement_finished(team_id: int, soldier_id: int) -> void:
 	## Presentation reached the dest (MP sim may have finished earlier). Drop that diamond.
 	_sync_run_to_destination_overlay()
+	## The sim's completion sync can land while the run anim is still playing, so the
+	## corner-hug idle was never picked. Re-sync once the sprite has actually stopped.
+	if _game_state == null or _session == null:
+		return
+	var state: SoldierState = _game_state.get_soldier(team_id, soldier_id)
+	if state == null or state.is_moving or not state.is_alive():
+		return
+	var is_selected: bool = (
+		team_id == _session.active_team_id
+		and soldier_id == _control_fireteam().selected_soldier_id
+	)
+	_sync_soldier_view(team_id, soldier_id, is_selected)
 
 
 func _on_soldier_stance_transition_finished(

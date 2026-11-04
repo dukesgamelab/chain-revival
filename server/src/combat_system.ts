@@ -18,6 +18,7 @@ import { COVER_COMPLETE, COVER_MODERATE } from "./map_objects";
 import {
   COMBAT_SCAN_TICKS,
   findBestAutoTarget,
+  findSustainedTarget,
   isAutoTargetValid,
   isPriorityTrackable,
   TARGET_LOST_GRACE_MSEC,
@@ -353,15 +354,32 @@ function resolveEngagedTarget(
     ? state.getSoldier(shooter.engagedTargetTeamId, shooter.engagedTargetSoldierId)
     : null;
   if (sustained) {
-    if (current !== null && !current.isDead && isPriorityTrackable(shooter, current, state)) {
+    const trackable = current !== null && !current.isDead && isPriorityTrackable(shooter, current, state);
+    if (
+      trackable
+      && evaluate(shooter.gridPosition, current!.gridPosition, state.map, state.losOccupants()).status !== LOS_BLOCKED
+    ) {
       shooter.engagedTargetLostMsec = 0;
       return current;
     }
     if (current !== null && !targetLostGrace(shooter, now)) {
       return current;
     }
-    shooter.clearEngagedTarget();
-    return null;
+    // Target dead, gone, or shot blocked past grace: switch to one we can hit
+    // (ahead first, then any visible). Mirrors CombatSystem._acquire_sustained_target.
+    const reacquired = findSustainedTarget(state, shooter) ?? findBestAutoTarget(state, shooter);
+    if (reacquired === null) {
+      // Nothing hittable: keep a still-visible priority target and hold fire until LOS clears.
+      if (trackable) {
+        return current;
+      }
+      shooter.clearEngagedTarget();
+      return null;
+    }
+    if (shooter.setEngagedTarget(reacquired.teamId, reacquired.soldierId)) {
+      beginFirePrep(state, shooter, combatRange(shooter.gridPosition, reacquired.gridPosition));
+    }
+    return reacquired;
   }
   if (current !== null && !current.isDead && isAutoTargetValid(shooter, current, state)) {
     shooter.engagedTargetLostMsec = 0;

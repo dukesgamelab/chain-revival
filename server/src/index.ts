@@ -840,6 +840,8 @@ wss.on("connection", (ws: WebSocket) => {
     const record = getClient(clientId);
     const disconnectedSide = record?.assignedSide ?? null;
     const disconnectedUserId = record?.userId ?? null;
+    console.log("[Disconnect] clientId=%s userId=%s side=%s matchPhase=%s",
+      clientId, disconnectedUserId ?? "null", disconnectedSide ?? "null", match.matchPhase);
 
     // Authenticated player disconnects during a running match → reconnect window
     if (disconnectedUserId && disconnectedSide !== null && match.matchPhase === "running") {
@@ -885,7 +887,9 @@ wss.on("connection", (ws: WebSocket) => {
     // Unauthenticated player or non-running match: immediate cleanup
     if (disconnectedSide !== null && match.matchPhase === "running") {
       const disconnectedTeamId = sideToTeamId(disconnectedSide);
-      console.log("Player on %s disconnected during match, ending as forfeit.", disconnectedSide);
+      console.log("[Disconnect] IMMEDIATE FORFEIT: side=%s userId=%s matchPhase=%s (no reconnect window - player was %s)",
+        disconnectedSide, disconnectedUserId ?? "null", match.matchPhase,
+        disconnectedUserId ? "authenticated but condition failed" : "unauthenticated");
       match.forceEndMatchForfeit(disconnectedTeamId);
     }
 

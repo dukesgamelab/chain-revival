@@ -27,6 +27,7 @@ const FireControlCommandClass := preload("res://scripts/commands/fire_control_co
 const FireCommandClass := preload("res://scripts/commands/fire_command.gd")
 const GrenadeCommandClass := preload("res://scripts/commands/grenade_command.gd")
 const AuthoritativeSyncClass := preload("res://scripts/network/authoritative_sync.gd")
+const RejoinStoreClass := preload("res://scripts/network/rejoin_store.gd")
 
 signal connection_changed(connected: bool)
 signal status_changed(status_text: String)
@@ -65,6 +66,8 @@ var _side_request_pending := false
 var _side_request_resolved := false
 var _side_request_success := false
 var match_ready_received := false
+## True when the server's welcome said this connection resumed a held match slot.
+var welcome_reconnected := false
 var client_id: String = ""
 var match_id: String = ""
 var last_snapshot: Dictionary = {}
@@ -379,6 +382,7 @@ func _reset_socket() -> void:
 	client_id = ""
 	match_id = ""
 	match_ready_received = false
+	welcome_reconnected = false
 	last_snapshot.clear()
 	_pending_waits.clear()
 	set_process(false)
@@ -497,6 +501,7 @@ func _handle_message(message: Dictionary) -> void:
 		"welcome":
 			client_id = str(message.get("clientId", ""))
 			match_id = str(message.get("matchId", match_id))
+			welcome_reconnected = bool(message.get("reconnected", false))
 			GameLog.log_system(
 				"[NetworkClient] Welcome: %s (clientId=%s matchId=%s)"
 				% [str(message.get("message", "")), client_id, match_id]
@@ -727,6 +732,8 @@ func send_client_ready() -> void:
 
 
 func send_leave_match() -> void:
+	## Leaving forfeits the slot - never offer Rejoin for it, even if we exit before match_ended.
+	RejoinStoreClass.clear()
 	if not _connected:
 		return
 	send_json({"type": "leave_match"})

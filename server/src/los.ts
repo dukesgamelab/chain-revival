@@ -7,6 +7,7 @@ import {
   chebyshev,
   DIR8,
   gridLine,
+  isInSpottingForwardArc,
   lineCellsBetween,
   manhattan,
   snapToCoverOffset,
@@ -34,6 +35,7 @@ export interface LosOccupant {
   cell: Vec2i;
   isDead: boolean;
   positionState: number;
+  facing?: Vec2i;
 }
 
 export interface LosResult {
@@ -191,18 +193,56 @@ function isCornerPeekBlocker(map: MapData, cell: Vec2i): boolean {
   return map.obstructionHeight(cell) >= 2;
 }
 
+// Positive cross -> RIGHT to match wallEndPeekSide's (-dy, dx) "left" and the client's L/R corner art.
 function peekSideFromCross(toRef: Vec2i, along: Vec2i): number {
   const cross = toRef.x * along.y - toRef.y * along.x;
   if (cross > 0) {
-    return PEEK_LEFT;
+    return PEEK_RIGHT;
   }
   if (cross < 0) {
-    return PEEK_RIGHT;
+    return PEEK_LEFT;
   }
   if ((toRef.x === 0 && toRef.y === 0) || (along.x === 0 && along.y === 0)) {
     return PEEK_NONE;
   }
   return PEEK_LEFT;
+}
+
+const ORTHO: Vec2i[] = [vec(-1, 0), vec(1, 0), vec(0, -1), vec(0, 1)];
+
+// Wall tip (1 closed ortho) or building corner (2 adjacent closed). Not a mid-run face.
+function isStructureCornerOrWallTip(map: MapData, wall: Vec2i): boolean {
+  const closed = ORTHO.filter((d) => isCornerPeekBlocker(map, vec(wall.x + d.x, wall.y + d.y)));
+  if (closed.length <= 1) {
+    return true;
+  }
+  if (closed.length >= 3) {
+    return false;
+  }
+  return closed[0].x + closed[1].x !== 0 || closed[0].y + closed[1].y !== 0;
+}
+
+// Port of CoverSystem.corner_watch_facing: look down the side of the structure when
+// standing beside its corner or wall tip. Null when there is no wall run to look along.
+export function cornerWatchFacing(from: Vec2i, map: MapData): Vec2i | null {
+  for (const offset of ORTHO) {
+    const wall = vec(from.x + offset.x, from.y + offset.y);
+    if (!isCornerPeekBlocker(map, wall) || !isStructureCornerOrWallTip(map, wall)) {
+      continue;
+    }
+    for (const run of ORTHO) {
+      if ((run.x === offset.x && run.y === offset.y) || (run.x === -offset.x && run.y === -offset.y)) {
+        continue;
+      }
+      if (
+        isCornerPeekBlocker(map, vec(wall.x + run.x, wall.y + run.y))
+        && !isCornerPeekBlocker(map, vec(from.x + run.x, from.y + run.y))
+      ) {
+        return { ...run };
+      }
+    }
+  }
+  return null;
 }
 
 function perpNeighborOpen(map: MapData, cell: Vec2i): boolean {
@@ -502,8 +542,86 @@ export function isSpottingLineBlocked(
   return findSpottingBlockingTile(from, to, map, observerProne, targetProne).blocked;
 }
 
-/** Shot LOS. COVER still allows a conceptual shot; BLOCKED does not. */
+// Open tiles a soldier hugging a structure corner or wall tip can lean into: beside him,
+// perpendicular to the wall, past the wall's end. Port of CoverSystem.corner_peek_cells.
+export function cornerPeekCells(cell: Vec2i, map: MapData): Vec2i[] {
+  const out: Vec2i[] = [];
+  for (const o of ORTHO) {
+    const wall = vec(cell.x + o.x, cell.y + o.y);
+    if (!isCornerPeekBlocker(map, wall) || !isStructureCornerOrWallTip(map, wall)) {
+      continue;
+    }
+    for (const p of ORTHO) {
+      if (p.x * o.x + p.y * o.y !== 0) {
+        continue;
+      }
+      const peek = vec(cell.x + p.x, cell.y + p.y);
+      if (
+        map.isInBounds(peek)
+        && !isCornerPeekBlocker(map, peek)
+        && !isCornerPeekBlocker(map, vec(wall.x + p.x, wall.y + p.y))
+        && !out.some((c) => vecEq(c, peek))
+      ) {
+        out.push(peek);
+      }
+    }
+  }
+  return out;
+}
+
+function lineTouches(from: Vec2i, to: Vec2i, cells: Vec2i[]): boolean {
+  return lineCellsBetween(from, to).some((c) => cells.some((x) => vecEq(c, x)));
+}
+
+/**
+ * Shot LOS. COVER still allows a conceptual shot; BLOCKED does not.
+ * Corner-to-corner: when the direct line is blocked, soldiers hugging a corner lean out
+ * (shooter always; target only when facing the shooter) and the shot uses those tiles.
+ */
 export function evaluate(
+  from: Vec2i,
+  to: Vec2i,
+  map: MapData,
+  occupants: LosOccupant[] | null = null,
+): LosResult {
+  const direct = evaluateDirect(from, to, map, occupants);
+  // Only a line blocked partway (around a corner) qualifies; a target hugging the wall
+  // straight between the two keeps its complete cover.
+  if (direct.status !== LOS_BLOCKED) {
+    return direct;
+  }
+  // Corner to corner only: both soldiers must be hugging a corner or wall tip.
+  const fromPeeks = cornerPeekCells(from, map);
+  const toPeeks = cornerPeekCells(to, map);
+  if (fromPeeks.length === 0 || toPeeks.length === 0) {
+    return direct;
+  }
+  const targetFacing = occupants?.find((o) => !o.isDead && vecEq(o.cell, to))?.facing;
+  const targetCanLean = targetFacing === undefined || isInSpottingForwardArc(to, targetFacing, from, 999);
+  const fromCells = [from, ...fromPeeks];
+  const toCells = targetCanLean ? [to, ...toPeeks] : [to];
+  for (const f of fromCells) {
+    for (const t of toCells) {
+      if ((vecEq(f, from) && vecEq(t, to)) || lineTouches(f, t, [from, to])) {
+        continue;
+      }
+      const peek = evaluateDirect(f, t, map, occupants);
+      if (peek.status === LOS_BLOCKED || peek.targetUsingWallCover) {
+        continue;
+      }
+      peek.cornerPeek = true;
+      // A target leaning out of a corner is only half exposed.
+      if (!vecEq(t, to) && peek.coverType === COVER_NONE) {
+        peek.coverType = COVER_MODERATE;
+        peek.status = LOS_COVER;
+      }
+      return peek;
+    }
+  }
+  return direct;
+}
+
+function evaluateDirect(
   from: Vec2i,
   to: Vec2i,
   map: MapData,

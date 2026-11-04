@@ -5,7 +5,7 @@
 
 import { facingName, teamDisplayName, towardCell, towardWorldPoint } from "./facing";
 import type { GameState } from "./game_state";
-import { evaluate, LOS_BLOCKED } from "./los";
+import { cornerWatchFacing, evaluate, LOS_BLOCKED } from "./los";
 import { speedMultiplier, stepCostMsec } from "./movement_policy";
 import { beginFirePrep } from "./fire_prep";
 import { combatRange } from "./hit_resolution";
@@ -405,7 +405,7 @@ function advanceSoldier(
   result: ActionResult,
 ): void {
   if (soldier.currentPath.length < 2 || soldier.pathIndex <= 0) {
-    completeMove(soldier, result);
+    completeMove(gameState, soldier, result);
     return;
   }
   soldier.moveAccumMsec += tickMsec;
@@ -414,11 +414,11 @@ function advanceSoldier(
     const from = soldier.currentPath[soldier.pathIndex - 1];
     const to = soldier.currentPath[soldier.pathIndex];
     if (gameState.map.isBlocked(to)) {
-      completeMove(soldier, result);
+      completeMove(gameState, soldier, result);
       return;
     }
     if (chebyshev(from, to) > 1) {
-      completeMove(soldier, result);
+      completeMove(gameState, soldier, result);
       return;
     }
     const stepDelta = vec(to.x - from.x, to.y - from.y);
@@ -438,7 +438,7 @@ function advanceSoldier(
     gameState.markPerceptionDirty();
     soldier.pathIndex += 1;
     if (soldier.pathIndex >= soldier.currentPath.length) {
-      completeMove(soldier, result);
+      completeMove(gameState, soldier, result);
       return;
     }
     soldier.moveStepCostMsec = stepCostMsec(
@@ -449,11 +449,20 @@ function advanceSoldier(
   }
 }
 
-function completeMove(soldier: SoldierState, result: ActionResult): void {
+function completeMove(gameState: GameState, soldier: SoldierState, result: ActionResult): void {
   soldier.clearPath();
+  // Settling at a corner: look down the side of the building, not the run direction.
+  if (!soldier.isEngaged()) {
+    const watch = cornerWatchFacing(soldier.gridPosition, gameState.map);
+    if (watch !== null) {
+      soldier.facing = watch;
+      gameState.markPerceptionDirty();
+    }
+  }
   result.movementCompletions.push({
     teamId: soldier.teamId,
     soldierId: soldier.soldierId,
+    facing: { ...soldier.facing },
   });
 }
 

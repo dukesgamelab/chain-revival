@@ -213,6 +213,11 @@ static func on_movement_complete(
 	game_state.session.get_fireteam(team_id).on_soldier_finished_moving(soldier_id)
 	var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
 	if soldier != null:
+		## Settling at a corner: look down the side of the building, not the run direction.
+		if not soldier.is_engaged():
+			var watch := CoverSystem.corner_watch_facing(soldier.grid_position, game_state.map_data)
+			if watch != Vector2i.ZERO:
+				soldier.facing_direction = watch
 		CombatSystem.notify_soldier_perception_dirty(game_state, soldier)
 
 

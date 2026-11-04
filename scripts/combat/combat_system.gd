@@ -1872,10 +1872,20 @@ static func _resolve_engaged_target(
 	var target := _get_engaged_target(game_state, shooter)
 	if target != null:
 		if shooter.is_sustained_fire():
-			if is_priority_target_trackable(shooter, target, game_state):
+			var trackable := is_priority_target_trackable(shooter, target, game_state)
+			if trackable and not LOSSystemClass.is_shot_blocked(
+				shooter.grid_position, target.grid_position, game_state.map_data, game_state
+			):
 				shooter.engaged_target_lost_msec = 0
 				return target
 			if not _target_lost_grace_elapsed(shooter):
+				return target
+			## Dead, gone, or shot blocked past grace: switch to a target we can hit.
+			var switched := _acquire_sustained_target(game_state, shooter)
+			if switched != null:
+				return switched
+			## Nothing hittable: keep a still-visible priority target, hold fire until LOS clears.
+			if trackable:
 				return target
 			shooter.clear_engaged_target()
 			return null
@@ -1916,7 +1926,10 @@ static func _acquire_sustained_target(
 		shooter.end_sustained_fire()
 		return null
 
+	## Ahead first, then any visible enemy we can hit (mirrors server findBestAutoTarget fallback).
 	var target := find_best_cone_target(game_state, shooter)
+	if target == null:
+		target = find_best_auto_target(game_state, shooter)
 	if target == null:
 		return null
 

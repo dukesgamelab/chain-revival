@@ -18,9 +18,28 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - **Panicked restrictions** (Phase 45) - Panicked soldiers (stress >= 70) cannot use Fire At. Grenades still allowed. Server-side enforcement added
 - **Stress UI feedback** (Phase 45) - Stress label shows band name + color (Nervous/Suppressed/Pinned/Panicked). Fire At button greys out when panicked. Soldier sprites get a subtle warm tint at high stress
 - **Dev server toggle** - Create `dev_server.txt` in project root with local server URL to test develop branch in multiplayer without deploying. Lobby shows yellow LOCAL indicator
+- **Cover status display** (Phase 46) - Soldiers next to obstructions now show "Cover" or "Cover (Prone)" in the command row instead of just "Standing"/"Prone". Cover label shows in green
+- **Reconnect countdown** (Phase 46) - Opponent disconnect message now counts down second-by-second instead of showing a static "90s" message
+- **Corner-to-corner shooting** (Phase 46) - Two soldiers hugging corners can now trade fire around a building (OG behavior). When the direct line is blocked partway, the shot is checked from each soldier's lean-out tile past his corner. The target only leans out when facing the shooter, and takes moderate cover when he does. A soldier hugging the wall straight between the two keeps complete cover. Client and server (needs server deploy)
+- **Rejoin after closing the game** (Phase 46) - If you close the game mid-match, your room shows a "Rejoin" button when you come back to the lobby. It reconnects you to your held slot within the 90s window, or tells you the match has ended. Previously the room just showed "In Game" with no way back, and a host's in-progress lobby was deleted on relaunch. Rejoin hides itself once the game has been away longer than the 90s window. Note: on a local `npm run dev` server, rooms stay "in progress" after a match unless `SUPABASE_SERVICE_ROLE_KEY` is also set, because closing lobbies needs it
 
 ### Bug Fixes
 
+- Removed footstep sounds - constant clicking noise during soldier movement (Phase 46)
+- Removed ambient wind loop - distracting background audio (Phase 46)
+- Removed grenade throw whistle sound - generated placeholder sounded unnatural (Phase 46)
+- Fixed status and stress column colors never showing - tints were applied with modulate over a fixed font color, so Cover/Stunned/Pinned/Panicked and stress bands all rendered plain red/black. Now use dark tones readable on the gray cells (Phase 46)
+- Fixed soldiers not taking the corner-hug pose when arriving at a corner - in multiplayer the server finishes the move before the run animation does, so the pose only appeared after the next click. Soldier now re-syncs when the animation reaches the tile (Phase 46)
+- Fixed soldiers hugging the far side of a corner being drawn on top of the wall when the camera is rotated - the corner lean moved the soldier's sort position, so a lean toward the camera pulled him in front of the wall. Lean now shifts only the sprite and overhead markers (Phase 46)
+- Fixed corner pose leaning the wrong way when the wall is straight ahead - it always took the LEFT tie-break; now leans toward the wall end's open side (Phase 46)
+- Fixed corner left/right being swapped - the cross-product side helper was mirrored relative to the screen (map x-flip) and to the shot-line peek convention, so soldiers hugged a corner facing away from the wall and stepped out into the open when firing instead of around the corner. Client and server (Phase 46, needs server deploy)
+- Fixed enemy soldiers standing in the open instead of in their corner pose on the opponent's screen - a soldier who reached a corner while hidden by fog kept the plain pose after being spotted, because spotting only refreshed visibility. Newly spotted enemies now get a full refresh (Phase 46)
+- Fixed soldiers staying "Panicked" forever in multiplayer - the server decays stress every half second but never sent it, so clients only saw stress go up (via shots) and kept panicked restrictions like the greyed-out Fire At. Stress now rides along with the scenario clock message (Phase 46, needs server deploy)
+- Fixed soldiers on Fire At going idle in multiplayer after their target died or slipped out of sight - the server never picked a new target. It now reacquires the nearest visible enemy ahead of the shooter, like single-player (Phase 46, needs server deploy)
+- Fixed soldiers on Fire At staying locked on a visible target they can't hit (e.g. behind a building) while ignoring an exposed enemy. After the 1.5s grace they switch to a hittable enemy (ahead first, then any visible). With nothing else to shoot they keep the chosen target and hold fire until the line clears. Client and server (Phase 46, needs server deploy)
+- Fixed soldiers firing from a corner dropping prone out in the open - the "exposed standing shooter goes prone" check ran after the corner state was cleared, so corner shooters always counted as exposed. Soldiers at a corner now stay in their corner pose (Phase 46)
+- Soldiers arriving at a building corner or wall tip now turn to look down the side of the building instead of keeping their run direction. Skipped while engaged. Client sim and server, facing sent with the move-complete message (Phase 46, needs server deploy)
+- Added server-side disconnect logging to help diagnose reconnect window failures (Phase 46)
 - Fixed server not enforcing panicked Fire At rejection - previously client-only (Phase 45)
 - Fixed server not applying stress movement speed modifier - soldiers moved at full speed regardless of stress in multiplayer (Phase 45)
 - Fixed Fire At button not disabling when panicked - set_row_enabled was overriding the panicked disable (Phase 45)
@@ -289,7 +308,7 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 |-------|------|-------|----------|
 | ~~44~~ | ~~Combat realism~~ | ~~Done - friendly grenades, lethality 0.6, movement fixes~~ | ~~Complete~~ |
 | ~~45~~ | ~~Suppression & pinning~~ | ~~Done - sustained fire 1.5x suppression, panicked blocks, UI stress feedback~~ | ~~Complete~~ |
-| 46 | Reconnect fix | Fix broken 90s reconnect - timer, countdown, "no games available" bug | v1 required |
+| ~~46~~ | ~~Reconnect fix~~ | ~~Done - countdown, lobby Rejoin after closing the game, cover status, tester audio fixes~~ | ~~Complete~~ |
 | 47 | Combat keybinds | OG-style keyboard shortcuts (D/W/R/C/F/G/P/H etc.), field report panel | v1 required |
 | 48 | PP balance & career rewards | PP lost on killed-by-rank, Medal of Courage payouts | v1 required |
 | 49 | Regiment officer promotions | CO promotes members to officer ranks, promotion slots by member count | v1 required |
@@ -305,10 +324,16 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 
 ## Known Bugs
 
-- **Reconnect on game close (BROKEN)**: Closing the game window triggers `player_disconnected` and shows "90s" message, but: (1) countdown never ticks down visually, (2) match forfeits way before 90 seconds, (3) disconnected player's PC shows "no games available" within ~5 seconds. Needs investigation in `server/src/index.ts` disconnect handler and `match.ts` reconnect logic.
-- **Fog of war showing enemies in DZ**: Enemy soldiers visible in their deployment zone before the game starts. Can see enemy units across the entire map. Observed in LAN multiplayer - needs investigation.
+- **Corner cover presentation polish** (follow-up after Phase 46):
+  - Soldiers aiming from a corner between shots use the open standing aim pose instead of peeking around the corner. `soldier.gd` `_finish_fire` switches to open aim after each corner shot; corner aim (CAS) between shots was never implemented ("Stage 10" in the code comments).
+  - Arrival facing picks the wall the soldier is standing beside. At a building corner, Richard expects the soldier to look along the front (long) wall even from the tile in line with it. Consider preferring the wall run toward known enemies, or the longer run.
+  - Still to check: how far the corner fire step plus the 0.5-tile lean pushes the sprite toward the wall, and whether the Face command feels clunky along walls (clicks snap to 8 directions).
+- **No effective fog of war**: Both teams are visible from across the map, including in the deployment zone before the game starts. Two causes: (1) in 1v1 matches the client draws unspotted enemies as tinted "ghosts" instead of hiding them (`main.gd` `_fog_visual_for_enemy` returns GHOST when `_is_one_v_one_match()`), and (2) the server sends every soldier's position to every client, so even hidden enemies are known to a modified client. Fix: hide unspotted enemies (keep a last-known marker at most) and have the server only send enemy positions the receiving team can see.
+- **Wall rotation on camera turn**: Some wall sprites don't rotate correctly with the camera. Reported by tester on The Fortress map - needs investigation in facet rotation system.
 
 ### Fixed Bugs (for reference)
+
+- **Reconnect on game close** (Phase 46): Countdown was stuck at 90s, and a player who closed the game had no way back (room showed "In Game", host's lobby got deleted on relaunch). Fixed with a working countdown and a lobby Rejoin button. Note: local `npm run dev` needs `SUPABASE_URL` set or logins can't be verified, everyone joins as a guest, and the reconnect window never opens.
 
 - **PP not accumulated after match**: Migration 022 (Phase 35) accidentally dropped prestige_points, total_kills, and rank updates from both `record_match_result` and `record_player_result` RPCs. Fixed by migration `027_fix_pp_tracking.sql`.
 - **Regiment leave from Godot client broken**: `regiment_client.gd` did a raw REST DELETE on `regiment_members` instead of calling the `leave_regiment` RPC. Fixed in Phase 40.
@@ -321,3 +346,4 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 - **More maps**: OG has 30+ scenarios, Chain Revival has 7. Deferred until existing maps are tweaked and playtested.
 - **Soldier stacking prevention**: Currently soldiers can occupy the same tile (OG allowed this too). Could add collision/stacking rules later.
 - **Rich text editor for announcements**: Replace plain textarea with markdown toolbar editor. Body already renders via `ReactMarkdown`.
+- **Chat online list**: Show who's connected in the chat panel. Requested by tester Pai-ku-han (also asked for PMs, which already exist via `/w` and click-to-whisper).

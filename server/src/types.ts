@@ -216,7 +216,7 @@ export interface MovementTickPayload {
     tile: Vec2i;
     stepDelta: Vec2i;
   }>;
-  movementCompletions: Array<{ teamId: number; soldierId: number }>;
+  movementCompletions: Array<{ teamId: number; soldierId: number; facing: Vec2i }>;
 }
 
 export interface MoveCommandIntent {

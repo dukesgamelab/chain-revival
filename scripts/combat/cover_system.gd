@@ -558,7 +558,13 @@ static func cover_relative_corner_at_cell(
 				continue
 			if prefer_facing == 0 and not is_facing_toward_corner(aim, from_cell, wall_cell):
 				continue
-			var side := peek_side_from_cross(wall_cell - from_cell, aim)
+			var to_wall := wall_cell - from_cell
+			var side := peek_side_from_cross(to_wall, aim)
+			## Wall dead ahead: lean toward the wall end's open side, not the LEFT tie-break.
+			if to_wall.x * aim.y - to_wall.y * aim.x == 0:
+				var open_side := _wall_end_peek_side(from_cell, from_cell + aim, wall_cell, map_data)
+				if open_side != PeekSide.NONE:
+					side = open_side
 			if side == PeekSide.NONE:
 				continue
 			result.is_corner = true
@@ -658,16 +664,73 @@ static func presentation_corner_result(
 
 
 ## Shared LEFT/RIGHT from 2-D cross product (to_ref × along).
-## Positive → LEFT, negative → RIGHT; zero ties LEFT.
+## Positive → RIGHT, negative → LEFT; zero ties LEFT. Matches _wall_end_peek_side's
+## (-dy, dx) "left" and the on-screen side once the map's x-flip is applied, which is
+## what the L/R corner art (ALCIS/ALCFA...) is drawn for.
 static func peek_side_from_cross(to_ref: Vector2i, along: Vector2i) -> int:
 	var cross := to_ref.x * along.y - to_ref.y * along.x
 	if cross > 0:
-		return PeekSide.LEFT
-	if cross < 0:
 		return PeekSide.RIGHT
+	if cross < 0:
+		return PeekSide.LEFT
 	if to_ref == Vector2i.ZERO or along == Vector2i.ZERO:
 		return PeekSide.NONE
 	return PeekSide.LEFT
+
+
+## Facing that looks down the side of a structure when standing beside its corner or
+## wall tip: along the wall run that starts at that cell. ZERO when there is no such run.
+## Mirrored in server/src/los.ts cornerWatchFacing.
+static func corner_watch_facing(from_cell: Vector2i, map_data: MapData) -> Vector2i:
+	if map_data == null:
+		return Vector2i.ZERO
+	var ortho: Array[Vector2i] = [
+		Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
+	]
+	for offset in ortho:
+		var wall_cell := from_cell + offset
+		if not _is_corner_peek_blocker(map_data, wall_cell):
+			continue
+		if not _is_structure_corner_or_wall_tip(map_data, wall_cell):
+			continue
+		for run in ortho:
+			if run == offset or run == -offset:
+				continue
+			if (
+				_is_corner_peek_blocker(map_data, wall_cell + run)
+				and not _is_corner_peek_blocker(map_data, from_cell + run)
+			):
+				return run
+	return Vector2i.ZERO
+
+
+## Open tiles a soldier hugging a structure corner or wall tip can lean into: beside him,
+## perpendicular to the wall, past the wall's end. Mirrored in server/src/los.ts cornerPeekCells.
+static func corner_peek_cells(cell: Vector2i, map_data: MapData) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if map_data == null:
+		return out
+	var ortho: Array[Vector2i] = [
+		Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
+	]
+	for o in ortho:
+		var wall_cell := cell + o
+		if not _is_corner_peek_blocker(map_data, wall_cell):
+			continue
+		if not _is_structure_corner_or_wall_tip(map_data, wall_cell):
+			continue
+		for p in ortho:
+			if p.x * o.x + p.y * o.y != 0:
+				continue
+			var peek := cell + p
+			if (
+				map_data.is_in_bounds(peek)
+				and not _is_corner_peek_blocker(map_data, peek)
+				and not _is_corner_peek_blocker(map_data, wall_cell + p)
+				and not out.has(peek)
+			):
+				out.append(peek)
+	return out
 
 
 ## Wall tip (1 closed ortho) or building corner (2 adjacent closed). Not a mid-run face.
