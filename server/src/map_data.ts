@@ -92,6 +92,9 @@ export class MapData {
   }
 
   static loadFromRepo(mapId: string): MapData {
+    if (!/^[a-zA-Z0-9_-]+$/.test(mapId)) {
+      throw new Error(`Invalid mapId: ${mapId.slice(0, 60)}`);
+    }
     const repoRoot = resolve(__dirname, "../..");
     const filePath = resolve(repoRoot, "maps", `${mapId}.json`);
     const raw = JSON.parse(readFileSync(filePath, "utf8")) as Record<string, unknown>;
