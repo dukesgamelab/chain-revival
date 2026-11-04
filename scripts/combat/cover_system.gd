@@ -267,7 +267,42 @@ static func find_blocking_tile(
 		result.blocking_type_id = object_def.type_id if object_def != null else "terrain"
 		return result
 
+	var graze := _diagonal_wall_graze(from_cell, to_cell, cells, map_data, result)
+	if graze.x != -999:
+		result.blocked = true
+		result.blocking_cell = graze
+		var graze_def := map_data.get_object_def(graze)
+		result.blocking_type_id = graze_def.type_id if graze_def != null else "terrain"
 	return result
+
+
+## A diagonal step in the shot line that squeezes past a tall wall on either side is blocked
+## (no corner cutting, like the pathfinder). Exempt: walls next to the shooter (the corner he
+## leans around) and the peeked corner's wall run. Mirrored in server los.ts diagonalWallGraze.
+static func _diagonal_wall_graze(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	cells: Array[Vector2i],
+	map_data: MapData,
+	block: BlockResult,
+) -> Vector2i:
+	var prev := from_cell
+	var steps: Array[Vector2i] = cells.duplicate()
+	steps.append(to_cell)
+	for cell in steps:
+		if cell.x != prev.x and cell.y != prev.y:
+			for side in [Vector2i(cell.x, prev.y), Vector2i(prev.x, cell.y)]:
+				if not _is_corner_peek_blocker(map_data, side) or _is_orthogonal_adjacent(side, from_cell):
+					continue
+				if (
+					block.corner_peek
+					and block.corner_cell.x != -999
+					and (side == block.corner_cell or _is_orthogonal_adjacent(side, block.corner_cell))
+				):
+					continue
+				return side
+		prev = cell
+	return Vector2i(-999, -999)
 
 
 ## Spotting LOS: height/terrain blockers; walls never block rays; soldier cells never block.

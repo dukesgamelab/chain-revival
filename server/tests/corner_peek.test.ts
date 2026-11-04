@@ -77,3 +77,36 @@ test("lone straight wall: in line with its end peeks around it, beside it looks 
   assert.deepEqual(cornerWatchFacing(vec(4, 5), map), vec(1, 0));
   assert.deepEqual(cornerWatchFacing(vec(5, 6), map), vec(1, 0));
 });
+
+// Doorway at (24,40) in a wall row, porch side walls at (23,41) and (25,41).
+function doorMap(): MapData {
+  const map = MapData.empty(50, 50);
+  for (const c of [vec(22, 40), vec(23, 40), vec(25, 40), vec(26, 40), vec(23, 41), vec(25, 41)]) {
+    map.placeObject(c, "wall_straight", "SWAL");
+  }
+  return map;
+}
+
+test("diagonal shot grazing past a wall corner is blocked", () => {
+  const map = doorMap();
+  const shooter = vec(24, 40);
+  const target = vec(25, 42);
+  // Target facing away: the line cuts past the porch wall end at (25,41) - blocked.
+  const away = evaluate(shooter, target, map, [occupant(shooter, vec(0, 1)), occupant(target, vec(0, 1))]);
+  assert.equal(away.status, LOS_BLOCKED);
+  assert.deepEqual(away.blockingCell, vec(25, 41));
+});
+
+test("target facing the doorway leans out and can be hit, with moderate cover", () => {
+  const map = doorMap();
+  const shooter = vec(24, 40);
+  const target = vec(25, 42);
+  const facing = evaluate(shooter, target, map, [occupant(shooter, vec(0, 1)), occupant(target, vec(-1, -1))]);
+  assert.notEqual(facing.status, LOS_BLOCKED);
+  assert.equal(facing.coverType, COVER_MODERATE);
+});
+
+test("straight shot out of the doorway is unaffected", () => {
+  const map = doorMap();
+  assert.notEqual(evaluate(vec(24, 40), vec(24, 45), map, null).status, LOS_BLOCKED);
+});

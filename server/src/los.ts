@@ -500,7 +500,45 @@ export function findBlockingTile(
     result.blockingType = def?.typeId ?? "terrain";
     return result;
   }
+  const graze = diagonalWallGraze(from, to, cells, map, result);
+  if (graze !== null) {
+    result.blocked = true;
+    result.blockingCell = graze;
+    result.blockingType = map.getObjectDef(graze)?.typeId ?? "terrain";
+  }
   return result;
+}
+
+// A diagonal step in the shot line that squeezes past a tall wall on either side is blocked
+// (no corner cutting, like the pathfinder). Exempt: walls next to the shooter (the corner he
+// leans around) and the peeked corner's wall run. Port of CoverSystem._diagonal_wall_graze.
+function diagonalWallGraze(
+  from: Vec2i,
+  to: Vec2i,
+  cells: Vec2i[],
+  map: MapData,
+  block: BlockResult,
+): Vec2i | null {
+  let prev = from;
+  for (const cell of [...cells, to]) {
+    if (cell.x !== prev.x && cell.y !== prev.y) {
+      for (const side of [vec(cell.x, prev.y), vec(prev.x, cell.y)]) {
+        if (!isCornerPeekBlocker(map, side) || isOrthogonalAdjacent(side, from)) {
+          continue;
+        }
+        if (
+          block.cornerPeek
+          && block.cornerCell.x !== -999
+          && (vecEq(side, block.cornerCell) || isOrthogonalAdjacent(side, block.cornerCell))
+        ) {
+          continue;
+        }
+        return side;
+      }
+    }
+    prev = cell;
+  }
+  return null;
 }
 
 function spottingCellBlocks(
