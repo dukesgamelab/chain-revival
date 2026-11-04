@@ -185,12 +185,11 @@ func _test_corner_fire_returns_corner_idle() -> void:
 	await _run_corner_fire_case(true)
 
 
-## Idle at a corner facing around it (corner cell dead ahead) holds the peeked-out aim pose;
-## facing along the wall instead keeps the corner hug idle.
+## Idle at a corner (facing around it or along the wall) is the hug pose, gun down. Every few
+## seconds the OG scan peek (PKA) plays once and he tucks back to the hug pose.
 func _test_idle_facing_corner_peeks() -> void:
 	IsometricGrid.current_view_rotation = 0
-	for case in [[Vector2i(1, 0), "corner_peek_enter_"], [Vector2i(0, 1), "corner_idle_"]]:
-		var corner_step: Vector2i = case[0]
+	for corner_step in [Vector2i(1, 0), Vector2i(0, 1)]:
 		var soldier: Soldier = SoldierScene.instantiate() as Soldier
 		add_child(soldier)
 		await get_tree().process_frame
@@ -203,16 +202,43 @@ func _test_idle_facing_corner_peeks() -> void:
 		soldier._last_applied_facing = FacingDirection.EAST
 		soldier._idle_peek_side = CoverSystem.PeekSide.LEFT
 		soldier._cover_corner_cell = from_cell + corner_step
-		soldier._play_idle_standing(soldier._world_direction_from_step(FacingDirection.EAST))
+		var world_dir := soldier._world_direction_from_step(FacingDirection.EAST)
+		soldier._play_idle_standing(world_dir)
 		var anim := str(soldier._anim.animation)
-		var held_last := (
-			not soldier._anim.is_playing()
-			and soldier._anim.frame == soldier._anim.sprite_frames.get_frame_count(anim) - 1
-		)
 		_assert(
-			"idle with corner at %s → %s* (%s)" % [corner_step, case[1], anim],
-			anim.begins_with(case[1]) and (case[1] != "corner_peek_enter_" or held_last),
-			"phase=%d frame=%d playing=%s" % [soldier._corner_phase, soldier._anim.frame, soldier._anim.is_playing()],
+			"idle with corner at %s → hug (%s)" % [corner_step, anim],
+			anim.begins_with("corner_idle_left_") and soldier._corner_scan_wait_sec > 0.0,
+			"phase=%d scan_wait=%.2f" % [soldier._corner_phase, soldier._corner_scan_wait_sec],
+		)
+		## Scan timer fires: one-shot peek plays.
+		soldier._corner_scan_wait_sec = 0.01
+		soldier._tick_corner_scan(0.1)
+		anim = str(soldier._anim.animation)
+		_assert(
+			"corner scan peek plays (%s)" % anim,
+			anim.begins_with("corner_peek_left_") and soldier._corner_scan_active,
+			"active=%s" % soldier._corner_scan_active,
+		)
+		## Must be one-shot, or animation_finished never fires to tuck him back in.
+		_assert(
+			"corner scan peek is one-shot (%s)" % anim,
+			not soldier._anim.sprite_frames.get_animation_loop(anim),
+		)
+		## A sync refresh mid-peek must not cut it short.
+		soldier._play_idle_standing(world_dir)
+		_assert(
+			"sync during scan keeps the peek (%s)" % str(soldier._anim.animation),
+			str(soldier._anim.animation).begins_with("corner_peek_left_"),
+		)
+		## Peek finishes: back to the hug pose with the next scan armed.
+		soldier._on_anim_animation_finished()
+		anim = str(soldier._anim.animation)
+		_assert(
+			"after scan → hug again (%s)" % anim,
+			anim.begins_with("corner_idle_left_")
+			and not soldier._corner_scan_active
+			and soldier._corner_scan_wait_sec > 0.0,
+			"active=%s scan_wait=%.2f" % [soldier._corner_scan_active, soldier._corner_scan_wait_sec],
 		)
 		soldier.queue_free()
 		await get_tree().process_frame
