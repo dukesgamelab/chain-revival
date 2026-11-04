@@ -51,7 +51,7 @@ function sortChannels(chs: ChatChannel[]): ChatChannel[] {
   })
 }
 
-export function GlobalChat({ userId, displayName, regimentTag, regimentId, isBanned, isAdmin, isModerator }: GlobalChatProps) {
+export function GlobalChat({ userId, displayName, regimentTag, regimentId: _regimentId, isBanned, isAdmin, isModerator }: GlobalChatProps) {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [unread, setUnread] = useState(0)
