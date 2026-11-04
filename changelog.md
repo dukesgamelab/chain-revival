@@ -10,6 +10,9 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - Disabled ban notification emails until an official domain is purchased and verified in Resend
 - Fixed zip slip vulnerability in auto-updater - malicious zip entries with path traversal are now rejected
 - Tightened chat message RLS - regiment and custom channel messages now restricted to members only (migration 033)
+- Fixed isTraining exploit - only the first player (before sides assigned) can enable training mode
+- Fixed duplicate account connections - second connection kicks the first, prevents one account holding both sides
+- Removed HS256 fallback that accepted any token when JWT secret was unset
 
 ---
 
