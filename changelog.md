@@ -324,8 +324,11 @@ All migrations in `server/sql/`, numbered 001-031. All have been run in Supabase
 
 ## Known Bugs
 
-- **Corner cover presentation polish**: Left/right swap and arrival facing fixed in Phase 46. Still to check in game: how far the corner fire step plus the 0.5-tile lean pushes the sprite toward the wall, and whether the Face command feels clunky when aiming along a wall (clicks snap to 8 directions).
-- **Fog of war showing enemies in DZ**: Enemy soldiers visible in their deployment zone before the game starts. Can see enemy units across the entire map. Observed in LAN multiplayer - needs investigation.
+- **Corner cover presentation polish** (follow-up after Phase 46):
+  - Soldiers aiming from a corner between shots use the open standing aim pose instead of peeking around the corner. `soldier.gd` `_finish_fire` switches to open aim after each corner shot; corner aim (CAS) between shots was never implemented ("Stage 10" in the code comments).
+  - Arrival facing picks the wall the soldier is standing beside. At a building corner, Richard expects the soldier to look along the front (long) wall even from the tile in line with it. Consider preferring the wall run toward known enemies, or the longer run.
+  - Still to check: how far the corner fire step plus the 0.5-tile lean pushes the sprite toward the wall, and whether the Face command feels clunky along walls (clicks snap to 8 directions).
+- **No effective fog of war**: Both teams are visible from across the map, including in the deployment zone before the game starts. Two causes: (1) in 1v1 matches the client draws unspotted enemies as tinted "ghosts" instead of hiding them (`main.gd` `_fog_visual_for_enemy` returns GHOST when `_is_one_v_one_match()`), and (2) the server sends every soldier's position to every client, so even hidden enemies are known to a modified client. Fix: hide unspotted enemies (keep a last-known marker at most) and have the server only send enemy positions the receiving team can see.
 - **Wall rotation on camera turn**: Some wall sprites don't rotate correctly with the camera. Reported by tester on The Fortress map - needs investigation in facet rotation system.
 
 ### Fixed Bugs (for reference)
