@@ -202,8 +202,7 @@ export function verifyToken(token: string): JwtPayload | null {
   if (alg === "HS256") {
     verified = verifyHS256(decoded);
     if (!verified && JWT_SECRET === "") {
-      console.warn("[SupabaseAuth] SUPABASE_JWT_SECRET not set; skipping HS256 verification.");
-      verified = true; // dev/LAN fallback
+      console.warn("[SupabaseAuth] SUPABASE_JWT_SECRET not set; rejecting HS256 token. Set the env var or use ES256.");
     }
   } else if (alg === "ES256") {
     verified = verifyES256(decoded);

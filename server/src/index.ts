@@ -308,6 +308,20 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
           return;
         }
 
+        // Kick any existing connection with the same userId (prevents one
+        // account from holding both sides). Skip if there's a pending
+        // reconnect - that path is handled below.
+        if (!pendingReconnects.has(userId)) {
+          const existing = getClientByUserId(userId);
+          if (existing && existing.clientId !== clientId) {
+            console.log("[Hello] Duplicate connection for user %s, kicking old client %s", userId, existing.clientId);
+            sendJson(existing.ws, { type: "kicked", reason: "Connected from another session" });
+            removeClient(existing.clientId);
+            match.removeClient(existing.clientId);
+            existing.ws.close();
+          }
+        }
+
         setClientUserId(clientId, userId);
         console.log("Authenticated user %s (%s)", userId, clientName);
 
@@ -320,7 +334,8 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       }
     }
 
-    if (message.isTraining === true && match.matchPhase === "created") {
+    if (message.isTraining === true && match.matchPhase === "created"
+        && sideCount("USA") === 0 && sideCount("GERMANY") === 0) {
       isTrainingMatch = true;
       console.log("[Hello] Training match - PP awards disabled.");
     }
