@@ -222,14 +222,28 @@ function isStructureCornerOrWallTip(map: MapData, wall: Vec2i): boolean {
   return closed[0].x + closed[1].x !== 0 || closed[0].y + closed[1].y !== 0;
 }
 
-// Port of CoverSystem.corner_watch_facing: look down the side of the structure when
-// standing beside its corner or wall tip. Null when there is no wall run to look along.
+function wallRunLength(map: MapData, start: Vec2i, dir: Vec2i): number {
+  let n = 0;
+  let cell = vec(start.x + dir.x, start.y + dir.y);
+  while (n < 64 && isCornerPeekBlocker(map, cell)) {
+    n += 1;
+    cell = vec(cell.x + dir.x, cell.y + dir.y);
+  }
+  return n;
+}
+
+// Port of CoverSystem.corner_watch_facing: at a corner or wall tip, face along the longest
+// wall run (beside the soldier, or straight away from him at a real corner). Ties prefer
+// the beside-run. Null when there is no wall run to look along.
 export function cornerWatchFacing(from: Vec2i, map: MapData): Vec2i | null {
+  let best: Vec2i | null = null;
+  let bestLen = 0;
   for (const offset of ORTHO) {
     const wall = vec(from.x + offset.x, from.y + offset.y);
     if (!isCornerPeekBlocker(map, wall) || !isStructureCornerOrWallTip(map, wall)) {
       continue;
     }
+    let hasBeside = false;
     for (const run of ORTHO) {
       if ((run.x === offset.x && run.y === offset.y) || (run.x === -offset.x && run.y === -offset.y)) {
         continue;
@@ -238,11 +252,23 @@ export function cornerWatchFacing(from: Vec2i, map: MapData): Vec2i | null {
         isCornerPeekBlocker(map, vec(wall.x + run.x, wall.y + run.y))
         && !isCornerPeekBlocker(map, vec(from.x + run.x, from.y + run.y))
       ) {
-        return { ...run };
+        hasBeside = true;
+        const len = wallRunLength(map, wall, run);
+        if (len > bestLen) {
+          best = { ...run };
+          bestLen = len;
+        }
+      }
+    }
+    if (hasBeside && isCornerPeekBlocker(map, vec(wall.x + offset.x, wall.y + offset.y))) {
+      const len = wallRunLength(map, wall, offset);
+      if (len > bestLen) {
+        best = { ...offset };
+        bestLen = len;
       }
     }
   }
-  return null;
+  return best;
 }
 
 function perpNeighborOpen(map: MapData, cell: Vec2i): boolean {

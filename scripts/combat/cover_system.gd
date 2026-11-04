@@ -678,8 +678,10 @@ static func peek_side_from_cross(to_ref: Vector2i, along: Vector2i) -> int:
 	return PeekSide.LEFT
 
 
-## Facing that looks down the side of a structure when standing beside its corner or
-## wall tip: along the wall run that starts at that cell. ZERO when there is no such run.
+## Facing that looks down the side of a structure when standing at its corner or wall tip:
+## along the LONGEST wall run from that cell. A run beside the soldier counts, and so does
+## one continuing straight away from him (he then leans around the corner) - but only at a
+## real corner that also has a beside-run. Ties prefer the beside-run. ZERO when none.
 ## Mirrored in server/src/los.ts cornerWatchFacing.
 static func corner_watch_facing(from_cell: Vector2i, map_data: MapData) -> Vector2i:
 	if map_data == null:
@@ -687,12 +689,15 @@ static func corner_watch_facing(from_cell: Vector2i, map_data: MapData) -> Vecto
 	var ortho: Array[Vector2i] = [
 		Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
 	]
+	var best := Vector2i.ZERO
+	var best_len := 0
 	for offset in ortho:
 		var wall_cell := from_cell + offset
 		if not _is_corner_peek_blocker(map_data, wall_cell):
 			continue
 		if not _is_structure_corner_or_wall_tip(map_data, wall_cell):
 			continue
+		var has_beside := false
 		for run in ortho:
 			if run == offset or run == -offset:
 				continue
@@ -700,8 +705,27 @@ static func corner_watch_facing(from_cell: Vector2i, map_data: MapData) -> Vecto
 				_is_corner_peek_blocker(map_data, wall_cell + run)
 				and not _is_corner_peek_blocker(map_data, from_cell + run)
 			):
-				return run
-	return Vector2i.ZERO
+				has_beside = true
+				var beside_len := _wall_run_length(map_data, wall_cell, run)
+				if beside_len > best_len:
+					best = run
+					best_len = beside_len
+		if has_beside and _is_corner_peek_blocker(map_data, wall_cell + offset):
+			var inline_len := _wall_run_length(map_data, wall_cell, offset)
+			if inline_len > best_len:
+				best = offset
+				best_len = inline_len
+	return best
+
+
+## Count of consecutive blocker cells from `start` (exclusive) along `dir`, capped.
+static func _wall_run_length(map_data: MapData, start: Vector2i, dir: Vector2i) -> int:
+	var n := 0
+	var cell := start + dir
+	while n < 64 and _is_corner_peek_blocker(map_data, cell):
+		n += 1
+		cell += dir
+	return n
 
 
 ## Open tiles a soldier hugging a structure corner or wall tip can lean into: beside him,
