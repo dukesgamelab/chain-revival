@@ -185,28 +185,19 @@ func _test_corner_fire_returns_corner_idle() -> void:
 	await _run_corner_fire_case(true)
 
 
-## Idle at a corner (facing around it or along the wall) is the hug pose, gun down. Every few
-## seconds the OG scan peek (PKA) plays once and he tucks back to the hug pose.
+## Facing around a corner: rest leaned out on lookout (held scan-peek frame L, gun down), and
+## a shot goes straight to the gun-up lean-out. Hugging alongside a wall: hug pose, and every
+## few seconds the OG scan peek (PKA) plays once and he tucks back to the hug pose.
 func _test_idle_facing_corner_peeks() -> void:
 	IsometricGrid.current_view_rotation = 0
-	for corner_step in [Vector2i(1, 0), Vector2i(0, 1)]:
-		var soldier: Soldier = SoldierScene.instantiate() as Soldier
-		add_child(soldier)
-		await get_tree().process_frame
-		soldier.team_id = Team.USA
-		soldier.soldier_id = 2
-		soldier._configure_team_visual()
-		var from_cell := Vector2i(20, 20)
-		soldier._facing_from_cell = from_cell
-		soldier._applied_position_state = PositionState.UP
-		soldier._last_applied_facing = FacingDirection.EAST
-		soldier._idle_peek_side = CoverSystem.PeekSide.LEFT
-		soldier._cover_corner_cell = from_cell + corner_step
+	await _run_corner_lookout_case()
+	for corner_step in [Vector2i(0, 1)]:
+		var soldier := await _make_corner_soldier(corner_step)
 		var world_dir := soldier._world_direction_from_step(FacingDirection.EAST)
 		soldier._play_idle_standing(world_dir)
 		var anim := str(soldier._anim.animation)
 		_assert(
-			"idle with corner at %s → hug (%s)" % [corner_step, anim],
+			"idle beside wall → hug (%s)" % anim,
 			anim.begins_with("corner_idle_left_") and soldier._corner_scan_wait_sec > 0.0,
 			"phase=%d scan_wait=%.2f" % [soldier._corner_phase, soldier._corner_scan_wait_sec],
 		)
@@ -243,6 +234,64 @@ func _test_idle_facing_corner_peeks() -> void:
 		soldier.queue_free()
 		await get_tree().process_frame
 	IsometricGrid.reset_view_rotation()
+
+
+func _make_corner_soldier(corner_step: Vector2i) -> Soldier:
+	var soldier: Soldier = SoldierScene.instantiate() as Soldier
+	add_child(soldier)
+	await get_tree().process_frame
+	soldier.team_id = Team.USA
+	soldier.soldier_id = 2
+	soldier._configure_team_visual()
+	var from_cell := Vector2i(20, 20)
+	soldier._facing_from_cell = from_cell
+	soldier._applied_position_state = PositionState.UP
+	soldier._last_applied_facing = FacingDirection.EAST
+	soldier._idle_peek_side = CoverSystem.PeekSide.LEFT
+	soldier._cover_corner_cell = from_cell + corner_step
+	return soldier
+
+
+func _run_corner_lookout_case() -> void:
+	var soldier := await _make_corner_soldier(Vector2i(1, 0))
+	soldier._play_idle_standing(soldier._world_direction_from_step(FacingDirection.EAST))
+	var anim := str(soldier._anim.animation)
+	_assert(
+		"facing around corner → lookout held (%s frame %d)" % [anim, soldier._anim.frame],
+		anim.begins_with("corner_peek_left_")
+		and not soldier._anim.is_playing()
+		and soldier._anim.frame == Soldier.CORNER_LOOKOUT_FRAME
+		and soldier._corner_scan_wait_sec <= 0.0,
+		"playing=%s scan_wait=%.2f" % [soldier._anim.is_playing(), soldier._corner_scan_wait_sec],
+	)
+	## A sync refresh keeps the held lookout frame.
+	soldier._play_idle_standing(soldier._world_direction_from_step(FacingDirection.EAST))
+	_assert(
+		"sync keeps lookout frame (%d)" % soldier._anim.frame,
+		soldier._anim.frame == Soldier.CORNER_LOOKOUT_FRAME and not soldier._anim.is_playing(),
+	)
+	## Enemy engaged: straight to the gun-up lean-out, no tuck-in / peek-enter.
+	soldier._request_corner_fire(PositionState.UP, FacingDirection.EAST, CoverSystem.PeekSide.LEFT)
+	_assert(
+		"lookout → fire skips peek-enter (phase %d)" % soldier._corner_phase,
+		soldier._corner_phase != Soldier.CornerPresPhase.PEEKING_OUT
+		and (soldier._fire_active or soldier._corner_phase == Soldier.CornerPresPhase.AIMING),
+		"anim=%s" % str(soldier._anim.animation),
+	)
+	## Fight over: lower the gun back to the lookout, no tuck-in.
+	soldier._presentation_engaged = false
+	if soldier._fire_active:
+		soldier._finish_fire(str(soldier._anim.animation))
+	else:
+		soldier._start_corner_peek_exit()
+	var after := str(soldier._anim.animation)
+	_assert(
+		"lookout fight over → lookout again (%s frame %d)" % [after, soldier._anim.frame],
+		after.begins_with("corner_peek_left_") and soldier._anim.frame == Soldier.CORNER_LOOKOUT_FRAME,
+		"phase=%d" % soldier._corner_phase,
+	)
+	soldier.queue_free()
+	await get_tree().process_frame
 
 
 ## engaged=false: peek back in (CPA exit) then corner idle. engaged=true: stay peeked out (CAS).

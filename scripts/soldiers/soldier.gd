@@ -121,6 +121,8 @@ var _corner_scan_wait_sec: float = -1.0
 var _corner_scan_active: bool = false
 const CORNER_SCAN_MIN_SEC := 3.0
 const CORNER_SCAN_MAX_SEC := 7.0
+## Scan peek (PKA, frames A-P) frame L: crouched and leaned out past the corner, gun down.
+const CORNER_LOOKOUT_FRAME := 11
 var _idle_rng := RandomNumberGenerator.new()
 ## Seconds remaining until next fidget roll (−1 = inactive). Ticked in _process.
 var _idle_wait_remaining_sec: float = -1.0
@@ -1430,32 +1432,68 @@ func _remap_animation_preserving_progress(anim_name: String, force_pause: bool =
 
 
 func _idle_standing_semantic() -> String:
-	return GameplayPolicies.idle_anim.semantic_for(
+	var semantic: String = GameplayPolicies.idle_anim.semantic_for(
 		_idle_peek_side,
 		_applied_position_state,
 		_presentation_stress,
 		_presentation_fire_control,
 		_post_shot_crouch_remaining > 0.0,
 	)
+	## Facing around a corner: rest leaned out, gun down, looking down the wall (OG lookout).
+	if semantic.begins_with("corner_idle_") and _facing_toward_cover_corner():
+		semantic = semantic.replace("corner_idle_", "corner_lookout_")
+	return semantic
 
 
 func _is_corner_idle_semantic(semantic: String) -> bool:
-	return semantic.begins_with("corner_idle_") or semantic.begins_with("corner_aim_")
+	return (
+		semantic.begins_with("corner_idle_")
+		or semantic.begins_with("corner_aim_")
+		or semantic.begins_with("corner_lookout_")
+	)
+
+
+## True when the corner cell is straight ahead of the soldier's facing (he peeks around it).
+func _facing_toward_cover_corner() -> bool:
+	if _cover_corner_cell.x <= -999:
+		return false
+	var step := _cover_corner_cell - _facing_from_cell
+	return step != Vector2i.ZERO and step == FacingDirection.normalize(_last_applied_facing)
 
 
 ## "corner_aim_*" renders as the held last frame of the peek-in (CPA B): a clean peeked-out
 ## stance with a smaller step-out. Some recovered CAS frames have a muzzle flash (ARCAS7A).
+## "corner_lookout_*" renders as a held mid frame of the scan peek (PKA): leaned out, gun down.
 func _pose_anim_name(semantic: String, display_dir: String) -> String:
 	if semantic.begins_with("corner_aim_"):
 		return "corner_peek_enter_%s_%s" % [semantic.trim_prefix("corner_aim_"), display_dir]
+	if semantic.begins_with("corner_lookout_"):
+		return "corner_peek_%s_%s" % [semantic.trim_prefix("corner_lookout_"), display_dir]
 	return "%s_%s" % [semantic, display_dir]
 
 
 func _hold_last_frame(anim_name: String) -> void:
+	_hold_frame(anim_name, _anim.sprite_frames.get_frame_count(anim_name) - 1)
+
+
+func _hold_frame(anim_name: String, frame_index: int) -> void:
 	if str(_anim.animation) != anim_name:
 		_anim.play(anim_name)
 	_anim.pause()
-	_anim.frame = maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0)
+	_anim.frame = clampi(frame_index, 0, maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0))
+
+
+## Hold the pose for a corner idle semantic. Returns true for the lookout (no scan needed).
+func _hold_corner_idle_pose(semantic: String, anim_name: String, frame_count: int) -> bool:
+	if semantic.begins_with("corner_lookout_"):
+		_hold_frame(anim_name, CORNER_LOOKOUT_FRAME)
+		return true
+	if semantic.begins_with("corner_aim_"):
+		_hold_last_frame(anim_name)
+	elif frame_count <= 1:
+		_anim.pause()
+		_anim.frame = 0
+	return false
 
 
 ## OG corner scan: while hugging a corner (not engaged), periodically play the one-shot
@@ -1570,13 +1608,10 @@ func _play_idle_standing(world_direction: String) -> void:
 		if _is_corner_idle_semantic(semantic):
 			_corner_phase = CornerPresPhase.IDLE
 			_corner_peek_side = _idle_peek_side
-			if semantic.begins_with("corner_aim_"):
-				_hold_last_frame(anim_name)
-			elif frame_count <= 1 and _anim.is_playing():
-				_anim.pause()
-				_anim.frame = 0
+			var lookout := _hold_corner_idle_pose(semantic, anim_name, frame_count)
 			_refresh_corner_lean_offset()
-			_arm_corner_scan()
+			if not lookout:
+				_arm_corner_scan()
 			return
 	_anim.play(anim_name)
 	if semantic == "idle_standing":
@@ -1604,13 +1639,10 @@ func _play_idle_standing(world_direction: String) -> void:
 		_corner_phase = CornerPresPhase.IDLE
 		_corner_peek_side = _idle_peek_side
 		_corner_semantic = semantic
-		if semantic.begins_with("corner_aim_"):
-			_hold_last_frame(anim_name)
-		elif frame_count <= 1:
-			_anim.pause()
-			_anim.frame = 0
+		var lookout := _hold_corner_idle_pose(semantic, anim_name, frame_count)
 		_refresh_corner_lean_offset()
-		_arm_corner_scan()
+		if not lookout:
+			_arm_corner_scan()
 	elif _corner_phase == CornerPresPhase.IDLE:
 		_clear_corner_presentation(false)
 	_played_idle_peek_side = _idle_peek_side
@@ -2108,6 +2140,13 @@ func _request_corner_fire(
 	peek_side: int,
 ) -> void:
 	_fire_return_prone = position_state == PositionState.DOWN
+	## Captured before the combat facing commit, which may swap the sprite.
+	var was_lookout := (
+		_corner_phase == CornerPresPhase.IDLE
+		and not _corner_scan_active
+		and _is_corner_scan_anim(str(_anim.animation))
+		and not _anim.is_playing()
+	)
 	_commit_combat_facing(facing_direction, _fire_target_cell)
 
 	## Lock peek side for the whole enter/aim/fire/exit chain.
@@ -2132,6 +2171,13 @@ func _request_corner_fire(
 		## Re-acquire during exit — restart enter after canceling exit pose.
 		_corner_fire_pending = true
 		_start_corner_peek_enter()
+		return
+
+	## Already leaned out on lookout: raise the gun and fire, no tuck-in/peek-out.
+	if was_lookout:
+		_interrupt_standing_idle_for_action()
+		_corner_fire_pending = true
+		_start_corner_aim_hold()
 		return
 
 	## From CIS / open: peek out once, then fire.
@@ -2186,6 +2232,10 @@ func _start_corner_aim_hold() -> void:
 func _start_corner_peek_exit() -> void:
 	if _corner_peek_side == CoverSystem.PeekSide.NONE:
 		_clear_corner_presentation(true)
+		return
+	## Facing around the corner he rests leaned out (lookout) - lower the gun, no tuck-in.
+	if _facing_toward_cover_corner():
+		_finish_corner_peek_exit()
 		return
 	_corner_phase = CornerPresPhase.PEEKING_IN
 	_corner_fire_pending = false
@@ -3579,9 +3629,9 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return "GLCAS" if team_id == Team.GERMANY else "ALCAS"
 		"corner_aim_right":
 			return "GRCAS" if team_id == Team.GERMANY else "ARCAS"
-		"corner_peek_left":
+		"corner_peek_left", "corner_lookout_left":
 			return "GLPKA" if team_id == Team.GERMANY else "ALPKA"
-		"corner_peek_right":
+		"corner_peek_right", "corner_lookout_right":
 			return "GRPKA" if team_id == Team.GERMANY else "ARPKA"
 		"corner_peek_enter_left", "corner_peek_exit_left":
 			return "GLCPA" if team_id == Team.GERMANY else "ALCPA"
