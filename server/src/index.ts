@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket, type RawData } from "ws";
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { resolve, extname, join } from "node:path";
+import { resolve, extname, join, sep } from "node:path";
 import { existsSync, realpathSync } from "node:fs";
 import {
   LocalMatch,
@@ -274,8 +274,6 @@ function broadcastToAssigned(payload: unknown, excludeClientId?: string): void {
 }
 
 async function handleMessage(ws: WebSocket, clientId: string, raw: string): Promise<void> {
-  console.log("Received message:", raw);
-
   const message = safeParseJson(raw);
   if (message === null) {
     console.log("Message is not valid JSON object");
@@ -322,9 +320,9 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       }
     }
 
-    if (message.isTraining === true) {
+    if (message.isTraining === true && match.matchPhase === "created") {
       isTrainingMatch = true;
-      console.log("[Hello] Training match — PP awards disabled.");
+      console.log("[Hello] Training match - PP awards disabled.");
     }
 
     if (message.isRegimental === true) {
@@ -391,7 +389,9 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     }
 
     const requestedMap = typeof message.mapId === "string" ? message.mapId : "";
-    if (requestedMap !== "" && match.matchPhase === "created" && requestedMap !== match.gameState.map.mapId) {
+    if (requestedMap !== "" && !/^[a-zA-Z0-9_-]+$/.test(requestedMap)) {
+      console.log("Rejected invalid mapId: %s", requestedMap.slice(0, 60));
+    } else if (requestedMap !== "" && match.matchPhase === "created" && requestedMap !== match.gameState.map.mapId) {
       try {
         resetSides();
         const opts: MatchOptions = {};
@@ -530,8 +530,16 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       return;
     }
 
+    const record = getClient(clientId);
+    if (record?.userId) {
+      const existing = getClientByUserId(record.userId);
+      if (existing && existing.clientId !== clientId && existing.assignedSide !== null) {
+        sendJson(ws, { type: "side_denied", reason: "Account already has a side assigned" });
+        return;
+      }
+    }
+
     if (isRegimentalMatch) {
-      const record = getClient(clientId);
       const regId = record?.regimentId ?? "";
       const assignedTeam = regId !== "" ? regimentTeamMap.get(regId) : undefined;
       if (assignedTeam !== undefined) {
@@ -743,7 +751,7 @@ async function serveStatic(req: import("node:http").IncomingMessage, res: import
     const buildFile = join(BUILDS_DIR, url.slice("/builds/".length));
     try {
       const realPath = realpathSync(buildFile);
-      if (!realPath.startsWith(realpathSync(BUILDS_DIR))) {
+      if (!realPath.startsWith(realpathSync(BUILDS_DIR) + sep)) {
         res.writeHead(403);
         res.end("Forbidden");
         return;
@@ -781,7 +789,7 @@ async function serveStatic(req: import("node:http").IncomingMessage, res: import
 
   try {
     const realPath = realpathSync(filePath);
-    if (!realPath.startsWith(realpathSync(WEBSITE_DIR))) {
+    if (!realPath.startsWith(realpathSync(WEBSITE_DIR) + sep)) {
       res.writeHead(403);
       res.end("Forbidden");
       return;
@@ -815,7 +823,7 @@ async function serveStatic(req: import("node:http").IncomingMessage, res: import
 // HTTP server handles website + health checks; WebSocket upgrades attach to it.
 const httpServer = createServer(serveStatic);
 
-const wss = new WebSocketServer({ server: httpServer });
+const wss = new WebSocketServer({ server: httpServer, maxPayload: 64 * 1024 });
 
 httpServer.listen(PORT, HOST, () => {
   console.log(`Chain Revival multiplayer server running on ws://${HOST}:${PORT}`);
@@ -829,7 +837,6 @@ httpServer.listen(PORT, HOST, () => {
 wss.on("connection", (ws: WebSocket) => {
   const clientId = randomUUID();
   registerClient(ws, clientId);
-  match.attachClient(clientId, ws);
   console.log("Client connected (%s)", clientId);
 
   ws.on("message", (data: RawData) => {
