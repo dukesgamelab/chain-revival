@@ -4,7 +4,8 @@
 
 Copy this into website patch notes when cutting the next release build. Remove items as they ship.
 
-_(nothing yet)_
+- Rotated Supabase service role key - server now uses new-format `sb_secret_` key on both Fly and local dev
+- Legacy JWT-based API keys still active (Godot client depends on legacy `anon` key for auth)
 
 ---
 
@@ -365,3 +366,5 @@ All migrations in `server/sql/`, numbered 001-032. All have been run in Supabase
 - **Soldier stacking prevention**: Currently soldiers can occupy the same tile (OG allowed this too). Could add collision/stacking rules later.
 - **Rich text editor for announcements**: Replace plain textarea with markdown toolbar editor. Body already renders via `ReactMarkdown`.
 - **Chat online list**: Show who's connected in the chat panel. Requested by tester Pai-ku-han (also asked for PMs, which already exist via `/w` and click-to-whisper).
+- **Admin error logs & event viewer**: Record server error logs and game events to a Supabase table, with a browsable/filterable view in the website admin panel. Replaces needing to SSH into Fly logs for debugging.
+- **Migrate off legacy Supabase API keys**: Switch Godot client from legacy `anon` JWT key to new `publishable` key format, update all GDScript Supabase REST calls, then disable JWT-based API keys in dashboard.

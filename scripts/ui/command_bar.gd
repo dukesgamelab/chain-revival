@@ -669,7 +669,7 @@ func _echo_local_message(msg: String) -> void:
 		display_hour = 12
 	var time_display := "%d:%02d %s" % [display_hour, minute, ampm]
 	chat_log.append_text("[color=gray]%s[/color] [color=cyan][%s][/color] %s\n" % [
-		time_display, tagged_name, msg
+		time_display, TextUtils.escape_bbcode(tagged_name), TextUtils.escape_bbcode(msg)
 	])
 
 
@@ -715,8 +715,8 @@ func _on_chat_realtime_message(record: Dictionary) -> void:
 	if _ignore_list.has(sender_id):
 		return
 
-	var sender: String = record.get("display_name", "???")
-	var text: String = record.get("message", "")
+	var sender: String = TextUtils.escape_bbcode(record.get("display_name", "???"))
+	var text: String = TextUtils.escape_bbcode(record.get("message", ""))
 	var timestamp_str: String = record.get("created_at", "")
 	var time_display := _chat_format_time(timestamp_str)
 
