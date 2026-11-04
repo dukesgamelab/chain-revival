@@ -83,6 +83,7 @@ export class GameState {
       cell: s.gridPosition,
       isDead: s.isDead,
       positionState: s.positionState,
+      facing: s.facing,
     }));
   }
 

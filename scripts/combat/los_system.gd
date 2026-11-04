@@ -46,7 +46,58 @@ class LossResult extends RefCounted:
 	var corner_cell: Vector2i = Vector2i(-999, -999)
 
 
+## Corner-to-corner: when the direct line is blocked, soldiers hugging a corner lean out
+## (shooter always; target only when facing the shooter). Mirrors server los.ts evaluate.
 static func evaluate(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	map_data: MapData,
+	game_state: GameState = null,
+) -> LossResult:
+	var direct := _evaluate_direct(from_cell, to_cell, map_data, game_state)
+	## Only a line blocked partway (around a corner) qualifies; a target hugging the wall
+	## straight between the two keeps its complete cover.
+	if direct.status != Status.BLOCKED:
+		return direct
+	if map_data == null:
+		return direct
+	## Corner to corner only: both soldiers must be hugging a corner or wall tip.
+	var from_peeks := CoverSystem.corner_peek_cells(from_cell, map_data)
+	var to_peeks := CoverSystem.corner_peek_cells(to_cell, map_data)
+	if from_peeks.is_empty() or to_peeks.is_empty():
+		return direct
+	var target_can_lean := true
+	if game_state != null:
+		var target := game_state.find_living_soldier_at_cell(to_cell)
+		if target != null:
+			target_can_lean = ConeOfFire.is_in_spotting_forward_arc(
+				to_cell, target.facing_direction, from_cell, 999
+			)
+	var from_cells: Array[Vector2i] = [from_cell]
+	from_cells.append_array(from_peeks)
+	var to_cells: Array[Vector2i] = [to_cell]
+	if target_can_lean:
+		to_cells.append_array(to_peeks)
+	for f in from_cells:
+		for t in to_cells:
+			if f == from_cell and t == to_cell:
+				continue
+			var line := CoverSystem.line_cells_between(f, t)
+			if line.has(from_cell) or line.has(to_cell):
+				continue
+			var peek := _evaluate_direct(f, t, map_data, game_state)
+			if peek.status == Status.BLOCKED or peek.target_using_wall_cover:
+				continue
+			peek.corner_peek = true
+			## A target leaning out of a corner is only half exposed.
+			if t != to_cell and peek.cover_type == CoverSystem.CoverType.NONE:
+				peek.cover_type = CoverSystem.CoverType.MODERATE
+				peek.status = Status.COVER
+			return peek
+	return direct
+
+
+static func _evaluate_direct(
 	from_cell: Vector2i,
 	to_cell: Vector2i,
 	map_data: MapData,
