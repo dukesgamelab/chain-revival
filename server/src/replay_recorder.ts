@@ -36,7 +36,7 @@ const RECORDED_EVENT_TYPES = new Set([
   "position_result",
   "fire_at_result",
   "fire_control_result",
-  "grenade_result",
+  "grenade_thrown",
   "grenade_explode",
   "combat_shots",
   "deployment_ended",

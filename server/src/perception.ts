@@ -10,6 +10,7 @@ import { euclidean, isFacingTowardTarget, isInSpottingForwardArc, manhattan, sol
 import { COVER_COMPLETE, COVER_MODERATE, COVER_NONE } from "./map_objects";
 import { evaluate, evaluateSpotting, isSpottingLineBlocked, LOS_BLOCKED } from "./los";
 import type { SoldierState } from "./soldier_state";
+import { getWeapon, WEAPON_LMG, WEAPON_SMG } from "./weapons";
 import {
   FIRE_AT_WILL,
   MOVEMENT_RUN,
@@ -45,6 +46,8 @@ const AUTO_COMPLETE = 25;
 const AUTO_MOVING = 10;
 const AUTO_PRONE = 20;
 const AUTO_FACING = 15;
+const AUTO_SMG_LMG = 20;
+const AUTO_ENGAGED = 10;
 
 export interface PerceptionTickResult {
   visibilityChanged: boolean;
@@ -365,6 +368,13 @@ export function scoreAutoTarget(shooter: SoldierState, target: SoldierState, sta
   const aim = faceToward(shooter.gridPosition, target.gridPosition);
   if (aim.x === shooter.facing.x && aim.y === shooter.facing.y) {
     score += AUTO_FACING;
+  }
+  const targetWeapon = getWeapon(target.weaponId);
+  if (targetWeapon !== null && (targetWeapon.weaponType === WEAPON_SMG || targetWeapon.weaponType === WEAPON_LMG)) {
+    score += AUTO_SMG_LMG;
+  }
+  if (shooter.engagedTargetTeamId === target.teamId && shooter.engagedTargetSoldierId === target.soldierId) {
+    score += AUTO_ENGAGED;
   }
   return score;
 }

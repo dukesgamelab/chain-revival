@@ -36,6 +36,7 @@ func _ready() -> void:
 	_test_squad_run_to_redirect_keeps_formation()
 	_test_firing()
 	_test_grenade_throwing()
+	_test_timed_deployment_locks_grenades()
 	_test_grenade_rejects_friendly_blast()
 	_test_grenade_skips_friendly_stun()
 	_test_grenade_halt_and_throw_while_moving()
@@ -469,6 +470,33 @@ func _park_friendlies_away(game_state: GameState, thrower_team: int, thrower_id:
 				continue
 			state.grid_position = Vector2i(2, 2)
 			state.clear_path()
+
+
+## Matches the server: no grenades during the timed deployment countdown.
+func _test_timed_deployment_locks_grenades() -> void:
+	_bootstrap()
+	var game_state := _make_game_state()
+	var thrower := game_state.get_soldier(Team.USA, 1)
+	thrower.grid_position = Vector2i(20, 30)
+	thrower.clear_path()
+	_park_friendlies_away(game_state, Team.USA, 1)
+	var count_before := thrower.grenade_count
+	var cmd := GrenadeCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = 1
+	cmd.target_cell = Vector2i(24, 30)
+	game_state.begin_timed_deployment(10.0)
+	var locked := ActionResolverClass.execute_grenade(game_state, cmd, CommandContextClass.new())
+	_assert(
+		"Grenade refused during timed deployment",
+		not locked.success
+		and locked.status_message == ActionResolverClass.DEPLOYMENT_GRENADE_LOCKED_MSG
+		and thrower.grenade_count == count_before,
+		locked.status_message,
+	)
+	game_state.begin_running_phase()
+	var allowed := ActionResolverClass.execute_grenade(game_state, cmd, CommandContextClass.new())
+	_assert("Grenade allowed once deployment ends", allowed.success, allowed.status_message)
 
 
 func _test_grenade_throwing() -> void:

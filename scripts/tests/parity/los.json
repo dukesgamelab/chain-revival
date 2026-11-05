@@ -1,0 +1,525 @@
+[
+  {
+    "name": "los_open_ground_clear",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": null,
+      "cornerCell": null,
+      "cornerPeek": false,
+      "coverType": 0,
+      "peekSide": 0,
+      "status": 0,
+      "targetUsingWallCover": false
+    }
+  },
+  {
+    "name": "los_wall_blocks",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 10],
+          "to": [20, 10]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [15, 5],
+        "facing": [0, 1]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 16],
+        "facing": [0, -1]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": [15, 10],
+      "cornerCell": null,
+      "cornerPeek": false,
+      "coverType": 0,
+      "peekSide": 0,
+      "status": 2,
+      "targetUsingWallCover": false
+    }
+  },
+  {
+    "name": "los_standing_friendly_blocks",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0]
+      },
+      {
+        "team": 1,
+        "id": 2,
+        "cell": [10, 20],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": [10, 20],
+      "cornerCell": null,
+      "cornerPeek": false,
+      "coverType": 0,
+      "peekSide": 0,
+      "status": 2,
+      "targetUsingWallCover": false
+    }
+  },
+  {
+    "name": "los_prone_friendly_does_not_block",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0]
+      },
+      {
+        "team": 1,
+        "id": 2,
+        "cell": [10, 20],
+        "facing": [1, 0],
+        "stance": "down"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": null,
+      "cornerCell": null,
+      "cornerPeek": false,
+      "coverType": 0,
+      "peekSide": 0,
+      "status": 0,
+      "targetUsingWallCover": false
+    }
+  },
+  {
+    "name": "los_tree_blocks",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "tree",
+          "at": [10, 20]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": [10, 20],
+      "cornerCell": null,
+      "cornerPeek": false,
+      "coverType": 0,
+      "peekSide": 0,
+      "status": 2,
+      "targetUsingWallCover": false
+    }
+  },
+  {
+    "name": "los_haybail_gives_cover_not_block",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "haybail",
+          "at": [14, 20]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": null,
+      "cornerCell": null,
+      "cornerPeek": false,
+      "coverType": 1,
+      "peekSide": 0,
+      "status": 1,
+      "targetUsingWallCover": false
+    }
+  },
+  {
+    "name": "los_target_hugging_wall",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 10],
+          "to": [20, 10]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [15, 5],
+        "facing": [0, 1]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 11],
+        "facing": [0, 1]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": null,
+      "cornerCell": null,
+      "cornerPeek": false,
+      "coverType": 2,
+      "peekSide": 0,
+      "status": 1,
+      "targetUsingWallCover": true
+    }
+  },
+  {
+    "name": "los_corner_to_corner_facing",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 10],
+          "to": [20, 10]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 14],
+          "to": [20, 14]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 11],
+          "to": [10, 13]
+        },
+        {
+          "type": "wall_straight",
+          "from": [20, 11],
+          "to": [20, 13]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [10, 15],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [21, 14],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": null,
+      "cornerCell": null,
+      "cornerPeek": true,
+      "coverType": 1,
+      "peekSide": 0,
+      "status": 1,
+      "targetUsingWallCover": false
+    }
+  },
+  {
+    "name": "los_corner_hugger_facing_away",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 10],
+          "to": [20, 10]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 14],
+          "to": [20, 14]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 11],
+          "to": [10, 13]
+        },
+        {
+          "type": "wall_straight",
+          "from": [20, 11],
+          "to": [20, 13]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [10, 15],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [21, 14],
+        "facing": [0, -1]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": [16, 14],
+      "cornerCell": null,
+      "cornerPeek": false,
+      "coverType": 0,
+      "peekSide": 0,
+      "status": 2,
+      "targetUsingWallCover": true
+    }
+  },
+  {
+    "name": "los_doorway_diagonal_graze_facing_away",
+    "map": {
+      "width": 50,
+      "height": 50,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "at": [22, 40]
+        },
+        {
+          "type": "wall_straight",
+          "at": [23, 40]
+        },
+        {
+          "type": "wall_straight",
+          "at": [25, 40]
+        },
+        {
+          "type": "wall_straight",
+          "at": [26, 40]
+        },
+        {
+          "type": "wall_straight",
+          "at": [23, 41]
+        },
+        {
+          "type": "wall_straight",
+          "at": [25, 41]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [24, 40],
+        "facing": [0, 1]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [25, 42],
+        "facing": [0, 1]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": [25, 41],
+      "cornerCell": null,
+      "cornerPeek": false,
+      "coverType": 0,
+      "peekSide": 0,
+      "status": 2,
+      "targetUsingWallCover": false
+    }
+  },
+  {
+    "name": "los_doorway_diagonal_target_facing_door",
+    "map": {
+      "width": 50,
+      "height": 50,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "at": [22, 40]
+        },
+        {
+          "type": "wall_straight",
+          "at": [23, 40]
+        },
+        {
+          "type": "wall_straight",
+          "at": [25, 40]
+        },
+        {
+          "type": "wall_straight",
+          "at": [26, 40]
+        },
+        {
+          "type": "wall_straight",
+          "at": [23, 41]
+        },
+        {
+          "type": "wall_straight",
+          "at": [25, 41]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [24, 40],
+        "facing": [0, 1]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [25, 42],
+        "facing": [-1, -1]
+      }
+    ],
+    "query": {
+      "kind": "los",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "blockingCell": null,
+      "cornerCell": null,
+      "cornerPeek": true,
+      "coverType": 1,
+      "peekSide": 0,
+      "status": 1,
+      "targetUsingWallCover": false
+    }
+  }
+]

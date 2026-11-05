@@ -47,6 +47,7 @@ signal combat_shots_received(payload: Dictionary)
 signal grenade_thrown_received(result: ActionResultClass)
 signal grenade_explode_received(payload: Dictionary)
 signal scenario_time_received(payload: Dictionary)
+signal soldier_sync_received(payload: Dictionary)
 signal vp_update_received(payload: Dictionary)
 signal deployment_ended_received
 signal match_ended_received(payload: Dictionary)
@@ -75,9 +76,10 @@ var _pending_waits: Dictionary = {}
 var _request_seq := 0
 var _reconnecting := false
 var _reconnect_attempts := 0
-const MAX_RECONNECT_ATTEMPTS := 6
 const RECONNECT_INTERVAL_SEC := 3.0
-const CLIENT_RECONNECT_WINDOW_SEC := 120.0
+## Keep retrying for most of the server's 90s hold. A late attempt is still safe: the
+## welcome says whether the slot was kept, and a lost slot ends the loop at once.
+const CLIENT_RECONNECT_WINDOW_SEC := 85.0
 var _reconnect_deadline_msec: int = 0
 
 
@@ -187,7 +189,8 @@ func get_multiplayer_status_lines() -> PackedStringArray:
 	var lines := PackedStringArray()
 	lines.append("Mode: LOCAL_MULTIPLAYER")
 	if _reconnecting:
-		lines.append("Reconnecting... (%d/%d)" % [_reconnect_attempts, MAX_RECONNECT_ATTEMPTS])
+		var left_sec := maxi(0, int((_reconnect_deadline_msec - Time.get_ticks_msec()) / 1000))
+		lines.append("Reconnecting... (attempt %d, %ds left)" % [_reconnect_attempts + 1, left_sec])
 	else:
 		lines.append("Connected: %s" % ("Yes" if _connected else "No"))
 	if not match_id.is_empty():
@@ -408,9 +411,8 @@ func _on_connected() -> void:
 	_connected = true
 	_connecting = false
 	if _reconnecting:
-		GameLog.log_system("[NetworkClient] Reconnected to server.")
-		_reconnecting = false
-		_reconnect_attempts = 0
+		## Not reconnected yet: the welcome decides whether the server still holds our slot.
+		GameLog.log_system("[NetworkClient] Socket reopened; waiting for the server to confirm our slot.")
 	else:
 		GameLog.log_system("[NetworkClient] Connected to server.")
 	_emit_status()
@@ -428,10 +430,11 @@ func _on_disconnected() -> void:
 		_start_reconnect_loop()
 		return
 
-	if _reconnecting and was_connecting:
+	## Also covers a socket that opened during reconnect but closed before the welcome.
+	if _reconnecting and (was_connecting or was_connected):
 		_reconnect_attempts += 1
-		GameLog.log_system("[NetworkClient] Reconnect attempt %d/%d failed." % [_reconnect_attempts, MAX_RECONNECT_ATTEMPTS])
-		if _reconnect_attempts >= MAX_RECONNECT_ATTEMPTS or Time.get_ticks_msec() > _reconnect_deadline_msec:
+		GameLog.log_system("[NetworkClient] Reconnect attempt %d failed." % _reconnect_attempts)
+		if Time.get_ticks_msec() > _reconnect_deadline_msec:
 			_abort_reconnect()
 		else:
 			_schedule_reconnect_retry()
@@ -506,6 +509,15 @@ func _handle_message(message: Dictionary) -> void:
 				"[NetworkClient] Welcome: %s (clientId=%s matchId=%s)"
 				% [str(message.get("message", "")), client_id, match_id]
 			)
+			if _reconnecting:
+				if welcome_reconnected:
+					GameLog.log_system("[NetworkClient] Reconnected to match.")
+					_reconnecting = false
+					_reconnect_attempts = 0
+					_emit_status()
+				else:
+					GameLog.log_system("[NetworkClient] Server no longer holds our slot.")
+					call_deferred("_abort_reconnect")
 		"match_snapshot":
 			_on_match_snapshot(message)
 		"pong":
@@ -545,6 +557,8 @@ func _handle_message(message: Dictionary) -> void:
 			grenade_explode_received.emit(message)
 		"scenario_time":
 			scenario_time_received.emit(message)
+		"soldier_sync":
+			soldier_sync_received.emit(message)
 		"vp_update":
 			vp_update_received.emit(message)
 		"deployment_ended":
@@ -552,6 +566,8 @@ func _handle_message(message: Dictionary) -> void:
 		"match_starting":
 			pass
 		"match_ended":
+			## No longer in a match: a socket close after this must not start the reconnect loop.
+			match_ready_received = false
 			match_ended_received.emit(message)
 			GameLog.log_system(
 				"[NetworkClient] Match ended: %s (%s)"
@@ -582,6 +598,7 @@ func _handle_message(message: Dictionary) -> void:
 			GameLog.log_system("[NetworkClient] Opponent (%s) reconnected." % recon_side)
 			player_reconnected_received.emit(recon_side)
 		"leave_confirmed":
+			match_ready_received = false
 			GameLog.log_system("[NetworkClient] Leave confirmed by server.")
 		_:
 			GameLog.log_system("[NetworkClient] Unhandled message type: %s" % msg_type)
@@ -630,6 +647,7 @@ func _on_move_result(payload: Dictionary) -> void:
 	_resolve_command_wait(request_id, result)
 	## Issuer applies after wait; the other window applies from this signal.
 	if not waiting:
+		_strip_foreign_status(result)
 		move_result_received.emit(result, request_id)
 
 
@@ -640,6 +658,7 @@ func _on_face_result(payload: Dictionary) -> void:
 	var waiting := _is_waiting_for(request_id)
 	_resolve_command_wait(request_id, result)
 	if not waiting:
+		_strip_foreign_status(result)
 		face_result_received.emit(result, request_id)
 
 
@@ -650,6 +669,7 @@ func _on_position_result(payload: Dictionary) -> void:
 	var waiting := _is_waiting_for(request_id)
 	_resolve_command_wait(request_id, result)
 	if not waiting:
+		_strip_foreign_status(result)
 		position_result_received.emit(result, request_id)
 
 
@@ -661,6 +681,7 @@ func _on_fire_control_result(payload: Dictionary) -> void:
 	var waiting := _is_waiting_for(request_id)
 	_resolve_command_wait(request_id, result)
 	if not waiting:
+		_strip_foreign_status(result)
 		fire_control_result_received.emit(result, request_id)
 
 
@@ -672,7 +693,14 @@ func _on_fire_at_result(payload: Dictionary) -> void:
 	var waiting := _is_waiting_for(request_id)
 	_resolve_command_wait(request_id, result)
 	if not waiting:
+		_strip_foreign_status(result)
 		fire_at_result_received.emit(result, request_id)
+
+
+## Results for the opponent's orders still carry state (halts, stance, facing) but their
+## status text ("Target is out of grenade range.") is not for this player.
+static func _strip_foreign_status(result: ActionResultClass) -> void:
+	result.status_message = ""
 
 
 func _is_waiting_for(request_id: String) -> bool:
@@ -721,6 +749,7 @@ func _on_grenade_thrown(payload: Dictionary) -> void:
 	var waiting := _is_waiting_for(request_id)
 	_resolve_command_wait(request_id, result)
 	if not waiting:
+		_strip_foreign_status(result)
 		grenade_thrown_received.emit(result)
 
 
@@ -734,6 +763,8 @@ func send_client_ready() -> void:
 func send_leave_match() -> void:
 	## Leaving forfeits the slot - never offer Rejoin for it, even if we exit before match_ended.
 	RejoinStoreClass.clear()
+	## Retreat: the server may close the socket before leave_confirmed arrives.
+	match_ready_received = false
 	if not _connected:
 		return
 	send_json({"type": "leave_match"})
@@ -774,7 +805,7 @@ func _attempt_reconnect() -> void:
 	if err != OK:
 		_connecting = false
 		_reconnect_attempts += 1
-		if _reconnect_attempts >= MAX_RECONNECT_ATTEMPTS:
+		if Time.get_ticks_msec() > _reconnect_deadline_msec:
 			_abort_reconnect()
 		else:
 			_schedule_reconnect_retry()

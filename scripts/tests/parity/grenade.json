@@ -1,0 +1,248 @@
+[
+  {
+    "name": "grenade_open_by_distance",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 15],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 15],
+        "facing": [-1, 0],
+        "stance": "down"
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [16, 15],
+        "facing": [-1, 0],
+        "stance": "down"
+      },
+      {
+        "team": 2,
+        "id": 3,
+        "cell": [15, 17],
+        "facing": [-1, 0],
+        "stance": "down"
+      },
+      {
+        "team": 2,
+        "id": 4,
+        "cell": [18, 15],
+        "facing": [-1, 0],
+        "stance": "down"
+      }
+    ],
+    "query": {
+      "kind": "grenade",
+      "thrower": [1, 1],
+      "cell": [15, 15]
+    },
+    "expect": {
+      "killed": [],
+      "stunned": [[2, 1, 6], [2, 2, 5], [2, 3, 5]]
+    }
+  },
+  {
+    "name": "grenade_diagonal_distance",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 15],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [16, 16],
+        "facing": [-1, 0],
+        "stance": "down"
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [17, 17],
+        "facing": [-1, 0],
+        "stance": "down"
+      }
+    ],
+    "query": {
+      "kind": "grenade",
+      "thrower": [1, 1],
+      "cell": [15, 15]
+    },
+    "expect": {
+      "killed": [],
+      "stunned": [[2, 1, 5]]
+    }
+  },
+  {
+    "name": "grenade_wall_between_shields",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 16],
+          "to": [20, 16]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 10],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 17],
+        "facing": [0, -1],
+        "stance": "down"
+      }
+    ],
+    "query": {
+      "kind": "grenade",
+      "thrower": [1, 1],
+      "cell": [15, 15]
+    },
+    "expect": {
+      "killed": [],
+      "stunned": []
+    }
+  },
+  {
+    "name": "grenade_victim_hugging_far_wall",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 17],
+          "to": [20, 17]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 10],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 16],
+        "facing": [0, 1],
+        "stance": "up"
+      }
+    ],
+    "query": {
+      "kind": "grenade",
+      "thrower": [1, 1],
+      "cell": [15, 15]
+    },
+    "expect": {
+      "killed": [],
+      "stunned": [[2, 1, 5]]
+    }
+  },
+  {
+    "name": "grenade_standing_soldier_in_the_way",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 10],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [16, 15],
+        "facing": [-1, 0],
+        "stance": "up"
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [17, 15],
+        "facing": [-1, 0],
+        "stance": "up"
+      }
+    ],
+    "query": {
+      "kind": "grenade",
+      "thrower": [1, 1],
+      "cell": [15, 15]
+    },
+    "expect": {
+      "killed": [],
+      "stunned": [[2, 1, 5], [2, 2, 5]]
+    }
+  },
+  {
+    "name": "grenade_hits_friendly",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 10],
+        "facing": [1, 0]
+      },
+      {
+        "team": 1,
+        "id": 2,
+        "cell": [15, 16],
+        "facing": [1, 0],
+        "stance": "down"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 14],
+        "facing": [-1, 0],
+        "stance": "down"
+      }
+    ],
+    "query": {
+      "kind": "grenade",
+      "thrower": [1, 1],
+      "cell": [15, 15]
+    },
+    "expect": {
+      "killed": [],
+      "stunned": [[1, 2, 5], [2, 1, 5]]
+    }
+  }
+]

@@ -1,0 +1,173 @@
+[
+  {
+    "name": "cover_open_none",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [15, 5],
+        "facing": [0, 1]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 15],
+        "facing": [0, -1]
+      }
+    ],
+    "query": {
+      "kind": "cover",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "coverType": 0
+    }
+  },
+  {
+    "name": "cover_haybail_moderate",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "haybail",
+          "at": [15, 14]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [15, 5],
+        "facing": [0, 1]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 15],
+        "facing": [0, -1]
+      }
+    ],
+    "query": {
+      "kind": "cover",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "coverType": 1
+    }
+  },
+  {
+    "name": "cover_wall_adjacent_complete",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 14],
+          "to": [20, 14]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [15, 5],
+        "facing": [0, 1]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 15],
+        "facing": [0, -1]
+      }
+    ],
+    "query": {
+      "kind": "cover",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "coverType": 2
+    }
+  },
+  {
+    "name": "cover_haybail_behind_target_none",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "haybail",
+          "at": [15, 16]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [15, 5],
+        "facing": [0, 1]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 15],
+        "facing": [0, -1]
+      }
+    ],
+    "query": {
+      "kind": "cover",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "coverType": 0
+    }
+  },
+  {
+    "name": "cover_haybail_diagonal_approach",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "haybail",
+          "at": [14, 14]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [8, 8],
+        "facing": [1, 1]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 15],
+        "facing": [-1, -1]
+      }
+    ],
+    "query": {
+      "kind": "cover",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "coverType": 1
+    }
+  }
+]

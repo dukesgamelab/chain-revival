@@ -5,6 +5,14 @@
 Copy this into website patch notes when cutting the next release build. Remove items as they ship.
 
 - Fixed reconnecting after a network drop mid-match - if the server still had the old connection open, the duplicate-account kick freed the player's side and left their soldiers unowned. The new connection now takes over the side directly (server-only, hotfix)
+- Multiplayer soldier state now stays in sync - the server sends every soldier's stance, facing, stress, grenades, ammo, stun and Fire At target twice a second, so the other player's screen corrects itself (Phase 47)
+- Fixed grenade count stuck at 5 in multiplayer (Phase 47)
+- Fixed soldiers getting up after a grenade stun not showing for the other player (Phase 47)
+- Multiplayer combat now follows the same rules as single-player: soldiers no longer shield each other from a grenade blast and a wall right next to the victim now blocks it, suppression lands on soldiers hugging a wall, and Fire At Will prefers SMG/LMG gunners and favors its current target (Phase 47)
+- Fire At and grenades can no longer be ordered during the deployment countdown, in single-player and multiplayer (Phase 47)
+- The opponent's order messages ("Target is out of grenade range") no longer show on your status bar (Phase 47)
+- Fixed a forfeit after the 90-second reconnect window not recording the match result (Phase 47)
+- Reconnecting mid-match is more reliable: the game keeps trying for 85 seconds instead of giving up after 6 tries, restores the full battlefield when it gets back in, and returns to the lobby straight away if the slot is gone. Retreating no longer triggers a reconnect attempt (Phase 47)
 
 ---
 
@@ -343,7 +351,7 @@ All migrations in `server/sql/`, numbered 001-033. All have been run in Supabase
 | ~~44~~ | ~~Combat realism~~ | ~~Done - friendly grenades, lethality 0.6, movement fixes~~ | ~~Complete~~ |
 | ~~45~~ | ~~Suppression & pinning~~ | ~~Done - sustained fire 1.5x suppression, panicked blocks, UI stress feedback~~ | ~~Complete~~ |
 | ~~46~~ | ~~Reconnect fix~~ | ~~Done - countdown, lobby Rejoin after closing the game, cover status, tester audio fixes~~ | ~~Complete~~ |
-| 47 | Sim parity | Server-client rule alignment, soldier sync, parity test harness, reconnect fixes | v1 required |
+| 47 | Sim parity | **Code complete** - soldier sync, parity test harness, server drift fixes, message and reconnect fixes. Quick in-game reconnect check before the release build | v1 required |
 | 48 | Fog of war | Server-side position filtering, hide unspotted enemies, last-known markers (v0.23.0) | v1 required |
 | 49 | Combat keybinds | OG-style keyboard shortcuts (D/W/R/C/F/G/P/H etc.), field report panel | v1 required |
 | 50 | PP balance & career rewards | PP lost on killed-by-rank, Medal of Courage payouts | v1 required |
@@ -360,6 +368,7 @@ All migrations in `server/sql/`, numbered 001-033. All have been run in Supabase
 
 ## Known Bugs
 
+- **Camera rotation drops the corner pose**: a soldier who arrives at a building corner and looks down the wall loses that pose when the camera is rotated (Q/E), and stays in a normal stand even after rotating back to the start. Seen in multiplayer on Farm Fight (Store Rooms corner). Rotation redraws via `main.gd` `_refresh_view_rotation` -> `_sync_soldier_view`, which recomputes the corner pose from tile + facing; arrival sets it another way. Not caused by the Phase 47 soldier sync.
 - **Corner cover presentation polish** - still to check: how far the corner fire step plus the 0.5-tile lean pushes the sprite toward the wall, and whether the Face command feels clunky along walls (clicks snap to 8 directions).
 - **Bullet hits never stun or wound**: a rifle hit kills at 60% (lethality 0.6) and otherwise does nothing lasting; stun only comes from grenades. Richard expected hits to sometimes stun. Combat balance decision.
 - **Grenade stuns feel ineffective**: Richard reports never landing a stun without getting shot, even a few tiles away. Stunned soldiers cannot fire (checked on client and server). Main cause found and fixed: in single-player a thrower shot during the 1.8s fuse lost his grenade. Remaining possibilities: other enemies, throws landing outside the 2-tile blast or behind a wall. The stun hold also reuses the normal prone idle after the ~2s knockdown, so it can look like the stun ended early. Next occurrence: read the game log ("stunned by grenade blast" / "killed by grenade blast" lines). Consider a clearer stunned pose or marker.

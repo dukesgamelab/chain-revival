@@ -130,6 +130,11 @@ export function resolveShot(
   shot.ammoCurrent = shooter.ammoCurrent;
   shot.fireReadyAfterMsec = shooter.fireReadyAfterMsec;
 
+  // Suppression lands on every fired shot before the hit roll, wall huggers included
+  // (GDScript order: apply_suppression_from_shot, then the wall-cover return).
+  applySuppressionFromShot(state, shooter, target, los);
+  shot.targetStress = target.stress;
+
   if (los.targetUsingWallCover) {
     shot.hadCover = true;
     return shot;
@@ -156,12 +161,6 @@ export function resolveShot(
     applyKill(state, shooter, target, shot);
   }
 
-  // Apply suppression to target from this shot (hit or miss).
-  if (!target.isDead) {
-    applySuppressionFromShot(state, shooter, target, los);
-  }
-
-  shot.targetStress = target.stress;
   void autoEngagement;
   return shot;
 }
@@ -282,7 +281,7 @@ export function processCombatTick(state: GameState): CombatTickResult {
  * Port of CombatSystem.apply_suppression_from_shot.
  * Gain = (stressLimitTiles - range) * stressFactor * STRESS_SCALE * coverMult * stanceMult.
  */
-function applySuppressionFromShot(
+export function applySuppressionFromShot(
   state: GameState,
   shooter: SoldierState,
   target: SoldierState,

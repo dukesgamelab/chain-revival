@@ -118,6 +118,9 @@ export interface MatchOptions {
 }
 
 const DIAG_INTERVAL_MSEC = 5000;
+// Same text as ActionResolver.DEPLOYMENT_*_LOCKED_MSG in GDScript.
+export const DEPLOYMENT_FIRE_LOCKED_MSG = "Cannot fire until deployment ends.";
+export const DEPLOYMENT_GRENADE_LOCKED_MSG = "Cannot throw grenades until deployment ends.";
 
 export interface MatchClient {
   clientId: string;
@@ -130,6 +133,8 @@ export class LocalMatch {
   readonly dbMatchId: string;
   readonly gameState: GameState;
   private readonly clients = new Map<string, MatchClient>();
+  /** clientId -> team for players who dropped mid-match and may still reconnect. */
+  private readonly heldTeams = new Map<string, number>();
   private tickTimer: NodeJS.Timeout | null = null;
   private lastPumpHrTime: bigint | null = null;
   private lastDiagMsec = 0;
@@ -276,6 +281,27 @@ export class LocalMatch {
 
   removeClient(clientId: string): void {
     this.clients.delete(clientId);
+    this.heldTeams.delete(clientId);
+  }
+
+  /**
+   * Stop sending to a client that dropped mid-match while its slot is held for reconnect,
+   * but keep its team so a forfeit or normal end still records both players.
+   */
+  holdClientTeam(clientId: string): void {
+    const client = this.clients.get(clientId);
+    if (client !== undefined && client.teamId !== null) {
+      this.heldTeams.set(clientId, client.teamId);
+    }
+    this.clients.delete(clientId);
+  }
+
+  private resultClientTeams(): Map<string, number | null> {
+    const teams = new Map<string, number | null>(this.heldTeams);
+    for (const [cid, mc] of this.clients) {
+      teams.set(cid, mc.teamId);
+    }
+    return teams;
   }
 
   sendSnapshot(ws: WebSocket): void {
@@ -355,10 +381,7 @@ export class LocalMatch {
     this.stopDriver();
 
     if (this.onMatchEnded) {
-      const clientTeams = new Map<string, number | null>();
-      for (const [cid, mc] of this.clients) {
-        clientTeams.set(cid, mc.teamId);
-      }
+      const clientTeams = this.resultClientTeams();
       this.onMatchEnded({
         matchId: this.matchId,
         dbMatchId: this.dbMatchId,
@@ -641,6 +664,20 @@ export class LocalMatch {
       });
       return;
     }
+    if (this.deploymentRemainingSec > 0) {
+      this.sendTo(clientId, {
+        type: "fire_at_result",
+        matchId: this.matchId,
+        requestId: intent.requestId,
+        success: false,
+        statusMessage: DEPLOYMENT_FIRE_LOCKED_MSG,
+        syncFireAtUi: false,
+        movementHalts: [],
+        faceUpdates: [],
+        targetUpdates: [],
+      });
+      return;
+    }
     const result = executeFireAt(this.gameState, intent, client.teamId);
     this.broadcast(toFireAtResultPayload(this.matchId, intent.requestId, result));
   }
@@ -652,35 +689,33 @@ export class LocalMatch {
   }
 
   handleGrenade(clientId: string, intent: GrenadeCommandIntent): void {
-    if (this.phase === "ended") {
+    // Failed throws use the same message type as successes: the client only handles grenade_thrown.
+    const reject = (statusMessage: string): void => {
       this.sendTo(clientId, {
-        type: "grenade_result",
+        type: "grenade_thrown",
         matchId: this.matchId,
+        simMsec: this.clock.getTicksMsec(),
         requestId: intent.requestId,
         success: false,
-        statusMessage: "Match has ended.",
+        statusMessage,
         throwerTeamId: intent.teamId,
         throwerId: intent.soldierId,
         targetCell: intent.targetCell,
         grenadeCount: 0,
         facing: { x: 0, y: 0 },
       });
+    };
+    if (this.phase === "ended") {
+      reject("Match has ended.");
       return;
     }
     const client = this.clients.get(clientId);
     if (client === undefined || client.teamId === null) {
-      this.sendTo(clientId, {
-        type: "grenade_result",
-        matchId: this.matchId,
-        requestId: intent.requestId,
-        success: false,
-        statusMessage: "Join a side before issuing orders.",
-        throwerTeamId: intent.teamId,
-        throwerId: intent.soldierId,
-        targetCell: intent.targetCell,
-        grenadeCount: 0,
-        facing: { x: 0, y: 0 },
-      });
+      reject("Join a side before issuing orders.");
+      return;
+    }
+    if (this.deploymentRemainingSec > 0) {
+      reject(DEPLOYMENT_GRENADE_LOCKED_MSG);
       return;
     }
     const result = executeGrenade(this.gameState, intent, client.teamId);
@@ -740,6 +775,7 @@ export class LocalMatch {
           timeRemainingSec: this.gameState.scenario.timeRemainingSec,
           deployTimeRemainingSec: this.deploymentRemainingSec,
         });
+        this.broadcastSoldierSync();
       }
       if (this.deploymentRemainingSec <= 0) {
         console.log("Deployment phase ended — scenario running!");
@@ -800,11 +836,8 @@ export class LocalMatch {
           timeRemainingSec: this.gameState.scenario.timeRemainingSec,
           usaKillPoints: this.gameState.scenario.killPoints[1] ?? 0,
           germanyKillPoints: this.gameState.scenario.killPoints[2] ?? 0,
-          // Stress decays here every scan; clients otherwise only see it rise via shots.
-          stress: this.gameState.soldiers
-            .filter((s) => !s.isDead)
-            .map((s) => ({ teamId: s.teamId, soldierId: s.soldierId, stress: s.stress })),
         });
+        this.broadcastSoldierSync();
         if (this.gameState.scenario.vpDirty) {
           this.gameState.scenario.vpDirty = false;
           this.broadcast({
@@ -861,10 +894,7 @@ export class LocalMatch {
 
         // Notify index.ts so it can record the result in Supabase
         if (this.onMatchEnded) {
-          const clientTeams = new Map<string, number | null>();
-          for (const [cid, mc] of this.clients) {
-            clientTeams.set(cid, mc.teamId);
-          }
+          const clientTeams = this.resultClientTeams();
           this.onMatchEnded({
             matchId: this.matchId,
             dbMatchId: this.dbMatchId,
@@ -950,6 +980,35 @@ export class LocalMatch {
     if (client !== undefined && client.ws.readyState === client.ws.OPEN) {
       client.ws.send(JSON.stringify(payload));
     }
+  }
+
+  /**
+   * Safety net for state the server changes without an action result (AI orders,
+   * stress decay, stun recovery, grenade counts). Grid position rides movement_tick.
+   */
+  private broadcastSoldierSync(): void {
+    this.broadcast({
+      type: "soldier_sync",
+      matchId: this.matchId,
+      simMsec: this.clock.getTicksMsec(),
+      soldiers: this.gameState.soldiers
+        .filter((s) => !s.isDead)
+        .map((s) => ({
+          teamId: s.teamId,
+          soldierId: s.soldierId,
+          positionState: s.positionState,
+          movementMode: s.movementMode,
+          facing: { ...s.facing },
+          stress: s.stress,
+          grenadeCount: s.grenadeCount,
+          ammoCurrent: s.ammoCurrent,
+          stunnedUntilMsec: s.stunnedUntilMsec,
+          fireControlState: s.fireControlState,
+          engagedTargetTeamId: s.engagedTargetTeamId,
+          engagedTargetSoldierId: s.engagedTargetSoldierId,
+          sustainedFire: s.sustainedFire,
+        })),
+    });
   }
 
   private broadcast(payload: unknown): void {
