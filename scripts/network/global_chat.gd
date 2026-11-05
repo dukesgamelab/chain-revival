@@ -934,8 +934,8 @@ func _refresh_message_display() -> void:
 
 
 func _render_message(msg: Dictionary) -> void:
-	var sender: String = msg.get("display_name", "???")
-	var text: String = msg.get("message", "")
+	var sender: String = TextUtils.escape_bbcode(msg.get("display_name", "???"))
+	var text: String = TextUtils.escape_bbcode(msg.get("message", ""))
 	var timestamp_str: String = msg.get("created_at", "")
 	var time_display := _format_chat_time(timestamp_str)
 	var is_whisper: bool = msg.get("is_whisper", false)
@@ -954,7 +954,7 @@ func _render_message(msg: Dictionary) -> void:
 		var whisper_name: String
 		if is_self:
 			var target_id: String = str(msg.get("whisper_to", ""))
-			whisper_name = _display_name_cache.get(target_id, target_id)
+			whisper_name = TextUtils.escape_bbcode(_display_name_cache.get(target_id, target_id))
 			line.text = "[color=gray]%s[/color] [color=magenta][whisper to %s][/color] %s" % [
 				time_display, whisper_name, text
 			]

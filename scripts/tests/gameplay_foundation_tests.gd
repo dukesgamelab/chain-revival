@@ -510,6 +510,23 @@ func _test_grenade_throwing() -> void:
 		% [tick.grenade_explosions.size(), thrower.has_pending_grenade()],
 	)
 
+	## Thrower shot during the fuse: the grenade already in the air still goes off.
+	thrower.grenade_count = 5
+	var cmd2 := GrenadeCommandClass.new()
+	cmd2.team_id = Team.USA
+	cmd2.soldier_id = 1
+	cmd2.target_cell = target_cell
+	ActionResolverClass.execute_grenade(game_state, cmd2, CommandContextClass.new())
+	thrower.mark_killed()
+	_assert("Thrower killed mid-fuse keeps grenade in flight", thrower.has_pending_grenade())
+	SimulationClock.advance_msec(GameplayPolicies.grenade.fuse_msec + 1)
+	var tick2 := ActionResolverClass.process_combat_tick(game_state)
+	_assert(
+		"Grenade from a dead thrower still explodes",
+		tick2.grenade_explosions.size() == 1,
+		"explosions=%d" % tick2.grenade_explosions.size(),
+	)
+
 
 func _test_grenade_rejects_friendly_blast() -> void:
 	_bootstrap()
@@ -1168,8 +1185,8 @@ func _test_grenade_inverse_distance_model() -> void:
 		is_equal_approx(g.stun_duration_at_distance(1.0), 5.0),
 	)
 	_assert(
-		"Stun at distance 2 is ~4.286s",
-		is_equal_approx(g.stun_duration_at_distance(2.0), 30.0 / 7.0),
+		"Stun at distance 2 is floored at 5.0s (recovered ~4.286s)",
+		is_equal_approx(g.stun_duration_at_distance(2.0), 5.0),
 	)
 
 	var map_data := MapDataClass.create_default()

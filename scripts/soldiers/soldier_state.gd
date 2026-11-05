@@ -232,7 +232,8 @@ func mark_killed() -> void:
 	clear_path()
 	end_sustained_fire()
 	reset_fire_prep()
-	clear_pending_grenade()
+	## A grenade already thrown still goes off if the thrower is shot during the fuse
+	## (matches the server; previously it silently vanished).
 	_select_death_sprite_family_once()
 
 

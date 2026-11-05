@@ -116,6 +116,13 @@ var _stance_transition_world_direction: String = "n"
 ## Presentation-only standing fidget (OG: rare oneshot, then back to held pose A).
 var _idle_fidget_active: bool = false
 var _idle_fidget_semantic: String = ""
+## Corner scan (OG): seconds until the next peek-around while hugging a corner (-1 = off).
+var _corner_scan_wait_sec: float = -1.0
+var _corner_scan_active: bool = false
+const CORNER_SCAN_MIN_SEC := 3.0
+const CORNER_SCAN_MAX_SEC := 7.0
+## Scan peek (PKA, frames A-P) frame L: crouched and leaned out past the corner, gun down.
+const CORNER_LOOKOUT_FRAME := 11
 var _idle_rng := RandomNumberGenerator.new()
 ## Seconds remaining until next fidget roll (−1 = inactive). Ticked in _process.
 var _idle_wait_remaining_sec: float = -1.0
@@ -284,6 +291,15 @@ func _is_standing_covered_vs_threat() -> bool:
 func _should_maintain_fire_aim_hold() -> bool:
 	if _fire_active or _corner_phase_blocks_locomotion():
 		return false
+	if _presentation_engaged:
+		return true
+	if _aim_hold_last_target_team_id < 0 or _aim_hold_last_target_soldier_id <= 0:
+		return false
+	return _aim_hold_should_persist_without_state()
+
+
+## Engaged (or inside the disengage grace) regardless of the current corner phase.
+func _still_engaged_for_aim() -> bool:
 	if _presentation_engaged:
 		return true
 	if _aim_hold_last_target_team_id < 0 or _aim_hold_last_target_soldier_id <= 0:
@@ -929,6 +945,7 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 func _process(delta: float) -> void:
 	## Standing fidget wait is presentation-only and must tick even when not translating.
 	_tick_standing_idle_wait(delta)
+	_tick_corner_scan(delta)
 	_tick_post_shot_crouch(delta)
 	_maybe_arm_standing_idle_timer()
 	if not _is_moving or _blocks_locomotion():
@@ -936,6 +953,7 @@ func _process(delta: float) -> void:
 			_idle_wait_remaining_sec > 0.0
 			or _idle_fidget_active
 			or _post_shot_crouch_remaining > 0.0
+			or _corner_scan_wait_sec > 0.0
 		)
 		if not idle_work_active and not _is_moving:
 			set_process(false)
@@ -1272,7 +1290,7 @@ func _play_locomotion(direction: String, walking: bool) -> void:
 		## unless peek side changed or we still need to start the correct idle.
 		elif _applied_position_state != PositionState.DOWN:
 			var idle_semantic := _idle_standing_semantic()
-			var idle_anim_name := "%s_%s" % [idle_semantic, display_dir]
+			var idle_anim_name := _pose_anim_name(idle_semantic, display_dir)
 			if (
 				_idle_peek_side == _played_idle_peek_side
 				and str(_anim.animation) == idle_anim_name
@@ -1414,13 +1432,119 @@ func _remap_animation_preserving_progress(anim_name: String, force_pause: bool =
 
 
 func _idle_standing_semantic() -> String:
-	return GameplayPolicies.idle_anim.semantic_for(
+	var semantic: String = GameplayPolicies.idle_anim.semantic_for(
 		_idle_peek_side,
 		_applied_position_state,
 		_presentation_stress,
 		_presentation_fire_control,
 		_post_shot_crouch_remaining > 0.0,
 	)
+	## Facing around a corner: rest leaned out, gun down, looking down the wall (OG lookout).
+	if semantic.begins_with("corner_idle_") and _facing_toward_cover_corner():
+		semantic = semantic.replace("corner_idle_", "corner_lookout_")
+	return semantic
+
+
+func _is_corner_idle_semantic(semantic: String) -> bool:
+	return (
+		semantic.begins_with("corner_idle_")
+		or semantic.begins_with("corner_aim_")
+		or semantic.begins_with("corner_lookout_")
+	)
+
+
+## True when the corner cell is straight ahead of the soldier's facing (he peeks around it).
+func _facing_toward_cover_corner() -> bool:
+	if _cover_corner_cell.x <= -999:
+		return false
+	var step := _cover_corner_cell - _facing_from_cell
+	return step != Vector2i.ZERO and step == FacingDirection.normalize(_last_applied_facing)
+
+
+## "corner_aim_*" renders as the held last frame of the peek-in (CPA B): a clean peeked-out
+## stance with a smaller step-out. Some recovered CAS frames have a muzzle flash (ARCAS7A).
+## "corner_lookout_*" renders as a held mid frame of the scan peek (PKA): leaned out, gun down.
+func _pose_anim_name(semantic: String, display_dir: String) -> String:
+	if semantic.begins_with("corner_aim_"):
+		return "corner_peek_enter_%s_%s" % [semantic.trim_prefix("corner_aim_"), display_dir]
+	if semantic.begins_with("corner_lookout_"):
+		return "corner_peek_%s_%s" % [semantic.trim_prefix("corner_lookout_"), display_dir]
+	return "%s_%s" % [semantic, display_dir]
+
+
+func _hold_last_frame(anim_name: String) -> void:
+	_hold_frame(anim_name, _anim.sprite_frames.get_frame_count(anim_name) - 1)
+
+
+func _hold_frame(anim_name: String, frame_index: int) -> void:
+	if str(_anim.animation) != anim_name:
+		_anim.play(anim_name)
+	_anim.pause()
+	_anim.frame = clampi(frame_index, 0, maxi(_anim.sprite_frames.get_frame_count(anim_name) - 1, 0))
+
+
+## Hold the pose for a corner idle semantic. Returns true for the lookout (no scan needed).
+func _hold_corner_idle_pose(semantic: String, anim_name: String, frame_count: int) -> bool:
+	if semantic.begins_with("corner_lookout_"):
+		_hold_frame(anim_name, CORNER_LOOKOUT_FRAME)
+		return true
+	if semantic.begins_with("corner_aim_"):
+		_hold_last_frame(anim_name)
+	elif frame_count <= 1:
+		_anim.pause()
+		_anim.frame = 0
+	return false
+
+
+## OG corner scan: while hugging a corner (not engaged), periodically play the one-shot
+## peek (PKA) around it and tuck back to the hug pose.
+func _arm_corner_scan() -> void:
+	if _corner_scan_active or _corner_scan_wait_sec > 0.0:
+		return
+	_corner_scan_wait_sec = _idle_rng.randf_range(CORNER_SCAN_MIN_SEC, CORNER_SCAN_MAX_SEC)
+	set_process(true)
+
+
+func _can_corner_scan() -> bool:
+	return (
+		_corner_phase == CornerPresPhase.IDLE
+		and _corner_peek_side != CoverSystem.PeekSide.NONE
+		and _applied_position_state != PositionState.DOWN
+		and not _is_moving
+		and not _is_dead
+		and not _fire_active
+		and not _fire_aim_hold_active
+		and not _presentation_stunned
+		and not _still_engaged_for_aim()
+	)
+
+
+func _tick_corner_scan(delta: float) -> void:
+	if _corner_scan_active or _corner_scan_wait_sec < 0.0:
+		return
+	if not _can_corner_scan():
+		_corner_scan_wait_sec = -1.0
+		return
+	_corner_scan_wait_sec -= delta
+	if _corner_scan_wait_sec > 0.0:
+		return
+	_corner_scan_wait_sec = -1.0
+	var anim_name := "corner_peek_%s_%s" % [
+		_corner_side_token(), _idle_display_direction(_body_world_direction())
+	]
+	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
+		return
+	_corner_scan_active = true
+	_anim.play(anim_name)
+
+
+func _cancel_corner_scan() -> void:
+	_corner_scan_wait_sec = -1.0
+	_corner_scan_active = false
+
+
+func _is_corner_scan_anim(anim_name: String) -> bool:
+	return anim_name.begins_with("corner_peek_left_") or anim_name.begins_with("corner_peek_right_")
 
 
 func _idle_source_family() -> String:
@@ -1441,9 +1565,14 @@ func _prone_idle_source_family() -> String:
 
 
 func _play_idle_standing(world_direction: String) -> void:
+	## Let a corner scan peek finish; a sync refresh must not cut it short.
+	if _corner_scan_active:
+		if _is_corner_scan_anim(str(_anim.animation)) and _anim.is_playing() and _can_corner_scan():
+			return
+		_corner_scan_active = false
 	var display_dir := _idle_display_direction(world_direction)
 	var semantic := _idle_standing_semantic()
-	var anim_name := "%s_%s" % [semantic, display_dir]
+	var anim_name := _pose_anim_name(semantic, display_dir)
 	if not _anim.sprite_frames.has_animation(anim_name):
 		## Fall back: crouch → standing; corner → standing.
 		if semantic != "idle_standing":
@@ -1476,13 +1605,13 @@ func _play_idle_standing(world_direction: String) -> void:
 			if not _anim.is_playing():
 				_anim.play(anim_name)
 			return
-		if semantic.begins_with("corner_idle_"):
+		if _is_corner_idle_semantic(semantic):
 			_corner_phase = CornerPresPhase.IDLE
 			_corner_peek_side = _idle_peek_side
-			if frame_count <= 1 and _anim.is_playing():
-				_anim.pause()
-				_anim.frame = 0
+			var lookout := _hold_corner_idle_pose(semantic, anim_name, frame_count)
 			_refresh_corner_lean_offset()
+			if not lookout:
+				_arm_corner_scan()
 			return
 	_anim.play(anim_name)
 	if semantic == "idle_standing":
@@ -1505,15 +1634,15 @@ func _play_idle_standing(world_direction: String) -> void:
 		_played_idle_peek_side = _idle_peek_side
 		_log_idle_standing(anim_name, "LOOP_CROUCH")
 		return
-	if semantic.begins_with("corner_idle_"):
+	if _is_corner_idle_semantic(semantic):
 		_cancel_standing_idle(false)
 		_corner_phase = CornerPresPhase.IDLE
 		_corner_peek_side = _idle_peek_side
 		_corner_semantic = semantic
-		if frame_count <= 1:
-			_anim.pause()
-			_anim.frame = 0
+		var lookout := _hold_corner_idle_pose(semantic, anim_name, frame_count)
 		_refresh_corner_lean_offset()
+		if not lookout:
+			_arm_corner_scan()
 	elif _corner_phase == CornerPresPhase.IDLE:
 		_clear_corner_presentation(false)
 	_played_idle_peek_side = _idle_peek_side
@@ -2011,6 +2140,13 @@ func _request_corner_fire(
 	peek_side: int,
 ) -> void:
 	_fire_return_prone = position_state == PositionState.DOWN
+	## Captured before the combat facing commit, which may swap the sprite.
+	var was_lookout := (
+		_corner_phase == CornerPresPhase.IDLE
+		and not _corner_scan_active
+		and _is_corner_scan_anim(str(_anim.animation))
+		and not _anim.is_playing()
+	)
 	_commit_combat_facing(facing_direction, _fire_target_cell)
 
 	## Lock peek side for the whole enter/aim/fire/exit chain.
@@ -2035,6 +2171,13 @@ func _request_corner_fire(
 		## Re-acquire during exit — restart enter after canceling exit pose.
 		_corner_fire_pending = true
 		_start_corner_peek_enter()
+		return
+
+	## Already leaned out on lookout: raise the gun and fire, no tuck-in/peek-out.
+	if was_lookout:
+		_interrupt_standing_idle_for_action()
+		_corner_fire_pending = true
+		_start_corner_aim_hold()
 		return
 
 	## From CIS / open: peek out once, then fire.
@@ -2072,15 +2215,11 @@ func _start_corner_aim_hold() -> void:
 	_fire_active = false
 	_corner_semantic = "corner_aim_%s" % _corner_side_token()
 	var display_dir := _idle_display_direction(_body_world_direction())
-	var anim_name := "%s_%s" % [_corner_semantic, display_dir]
+	var anim_name := _pose_anim_name(_corner_semantic, display_dir)
 	if _anim.sprite_frames == null or not _anim.sprite_frames.has_animation(anim_name):
 		push_warning("Soldier: missing %s" % anim_name)
 	else:
-		_anim.play(anim_name)
-		## One-frame CAS hold — pause so refreshes do not replay.
-		if _anim.sprite_frames.get_frame_count(anim_name) <= 1:
-			_anim.pause()
-			_anim.frame = 0
+		_hold_last_frame(anim_name)
 		_log_fire_anim(anim_name, "CORNER_AIM_HOLD")
 	_refresh_corner_lean_offset()
 
@@ -2093,6 +2232,10 @@ func _start_corner_aim_hold() -> void:
 func _start_corner_peek_exit() -> void:
 	if _corner_peek_side == CoverSystem.PeekSide.NONE:
 		_clear_corner_presentation(true)
+		return
+	## Facing around the corner he rests leaned out (lookout) - lower the gun, no tuck-in.
+	if _facing_toward_cover_corner():
+		_finish_corner_peek_exit()
 		return
 	_corner_phase = CornerPresPhase.PEEKING_IN
 	_corner_fire_pending = false
@@ -2200,8 +2343,26 @@ func _sync_fire_aim_hold(state: SoldierState) -> void:
 		and _aim_hold_disengage_msec < 0
 	):
 		_aim_hold_disengage_msec = SimulationClock.get_ticks_msec()
+	## Peeked out at a corner: keep the corner aim (CAS) while engaged, peek back in when done.
+	if _corner_phase == CornerPresPhase.AIMING:
+		if _fire_aim_hold_active or _fire_aim_enter_active:
+			_clear_fire_aim_hold(false, "sync_corner_aiming")
+		if not _should_maintain_fire_aim_hold_from_state(state):
+			_start_corner_peek_exit()
+		return
 	if _should_maintain_fire_aim_hold_from_state(state):
 		_sync_combat_facing_toward_fire_target()
+		## At a corner, aim leaned out around it with the gun up, not in the open aim pose.
+		if (
+			_idle_peek_side != CoverSystem.PeekSide.NONE
+			and _aim_hold_position_state(state) == PositionState.UP
+		):
+			if _fire_aim_hold_active or _fire_aim_enter_active:
+				_clear_fire_aim_hold(false, "sync_corner_aim")
+			_interrupt_standing_idle_for_action()
+			_corner_peek_side = _idle_peek_side
+			_start_corner_aim_hold()
+			return
 		_begin_fire_aim_hold(_aim_hold_position_state(state))
 	elif _fire_aim_hold_active or _fire_aim_enter_active:
 		_clear_fire_aim_hold(true, "sync_not_aiming")
@@ -3106,6 +3267,11 @@ func _on_anim_animation_finished() -> void:
 
 	var anim_name := str(_anim.animation)
 
+	if _corner_scan_active and _is_corner_scan_anim(anim_name):
+		_corner_scan_active = false
+		_play_idle_standing(_standing_idle_world_direction())
+		return
+
 	if (
 		_stun_phase == StunPresPhase.KNOCKDOWN
 		and not _death_sequence_active
@@ -3199,8 +3365,19 @@ func _finish_fire(anim_name: String) -> void:
 	_fire_active = false
 	_fire_restart_pending = false
 	_log_fire_anim(anim_name, "COMPLETE → post-shot")
-	## Stage 1: after CFA/open fire, between-shot pose is open ASAIS/APAIS at every camera.
-	## Peek enter still plays before the shot; CAS/CIS between shots is Stage 10.
+	## Standing corner shooter: stay peeked out (CAS) between shots while engaged, peek back in
+	## (CPA exit → CIS) once done. Never drop to the open aim pose at a corner.
+	if (
+		_corner_peek_side != CoverSystem.PeekSide.NONE
+		and not _fire_return_prone
+		and _applied_position_state != PositionState.DOWN
+	):
+		_fire_peek_side = CoverSystem.PeekSide.NONE
+		if _still_engaged_for_aim():
+			_start_corner_aim_hold()
+		else:
+			_start_corner_peek_exit()
+		return
 	if _corner_peek_side != CoverSystem.PeekSide.NONE:
 		if DEBUG_AIM_HOLD:
 			GameLog.log_system(
@@ -3463,9 +3640,9 @@ func _source_family_for_semantic(semantic: String) -> String:
 			return "GLCAS" if team_id == Team.GERMANY else "ALCAS"
 		"corner_aim_right":
 			return "GRCAS" if team_id == Team.GERMANY else "ARCAS"
-		"corner_peek_left":
+		"corner_peek_left", "corner_lookout_left":
 			return "GLPKA" if team_id == Team.GERMANY else "ALPKA"
-		"corner_peek_right":
+		"corner_peek_right", "corner_lookout_right":
 			return "GRPKA" if team_id == Team.GERMANY else "ARPKA"
 		"corner_peek_enter_left", "corner_peek_exit_left":
 			return "GLCPA" if team_id == Team.GERMANY else "ALCPA"
@@ -3764,9 +3941,10 @@ func _cancel_standing_idle(resume_hold_pose: bool = true) -> void:
 	_play_idle_standing(world_dir)
 
 
-## Drop open idle (wait, fidget, post-shot crouch) so combat / move / stance can take over.
+## Drop open idle (wait, fidget, post-shot crouch, corner scan) so combat / move / stance can take over.
 func _interrupt_standing_idle_for_action() -> void:
 	_cancel_standing_idle(false)
+	_cancel_corner_scan()
 
 
 func _is_idle_fidget_anim_name(anim_name: String) -> bool:

@@ -222,13 +222,35 @@ function isStructureCornerOrWallTip(map: MapData, wall: Vec2i): boolean {
   return closed[0].x + closed[1].x !== 0 || closed[0].y + closed[1].y !== 0;
 }
 
-// Port of CoverSystem.corner_watch_facing: look down the side of the structure when
-// standing beside its corner or wall tip. Null when there is no wall run to look along.
+function wallRunLength(map: MapData, start: Vec2i, dir: Vec2i): number {
+  let n = 0;
+  let cell = vec(start.x + dir.x, start.y + dir.y);
+  while (n < 64 && isCornerPeekBlocker(map, cell)) {
+    n += 1;
+    cell = vec(cell.x + dir.x, cell.y + dir.y);
+  }
+  return n;
+}
+
+// Port of CoverSystem.corner_watch_facing: face toward the corner along the wall the soldier
+// is lined up with (lean around it); longest such run wins. Without one, look along the wall
+// beside him. Null when there is no wall to use.
 export function cornerWatchFacing(from: Vec2i, map: MapData): Vec2i | null {
+  let inline: Vec2i | null = null;
+  let inlineLen = 0;
+  let beside: Vec2i | null = null;
+  let besideLen = 0;
   for (const offset of ORTHO) {
     const wall = vec(from.x + offset.x, from.y + offset.y);
     if (!isCornerPeekBlocker(map, wall) || !isStructureCornerOrWallTip(map, wall)) {
       continue;
+    }
+    if (isCornerPeekBlocker(map, vec(wall.x + offset.x, wall.y + offset.y))) {
+      const len = wallRunLength(map, wall, offset);
+      if (len > inlineLen) {
+        inline = { ...offset };
+        inlineLen = len;
+      }
     }
     for (const run of ORTHO) {
       if ((run.x === offset.x && run.y === offset.y) || (run.x === -offset.x && run.y === -offset.y)) {
@@ -238,11 +260,15 @@ export function cornerWatchFacing(from: Vec2i, map: MapData): Vec2i | null {
         isCornerPeekBlocker(map, vec(wall.x + run.x, wall.y + run.y))
         && !isCornerPeekBlocker(map, vec(from.x + run.x, from.y + run.y))
       ) {
-        return { ...run };
+        const len = wallRunLength(map, wall, run);
+        if (len > besideLen) {
+          beside = { ...run };
+          besideLen = len;
+        }
       }
     }
   }
-  return null;
+  return inline ?? beside;
 }
 
 function perpNeighborOpen(map: MapData, cell: Vec2i): boolean {
@@ -474,7 +500,45 @@ export function findBlockingTile(
     result.blockingType = def?.typeId ?? "terrain";
     return result;
   }
+  const graze = diagonalWallGraze(from, to, cells, map, result);
+  if (graze !== null) {
+    result.blocked = true;
+    result.blockingCell = graze;
+    result.blockingType = map.getObjectDef(graze)?.typeId ?? "terrain";
+  }
   return result;
+}
+
+// A diagonal step in the shot line that squeezes past a tall wall on either side is blocked
+// (no corner cutting, like the pathfinder). Exempt: walls next to the shooter (the corner he
+// leans around) and the peeked corner's wall run. Port of CoverSystem._diagonal_wall_graze.
+function diagonalWallGraze(
+  from: Vec2i,
+  to: Vec2i,
+  cells: Vec2i[],
+  map: MapData,
+  block: BlockResult,
+): Vec2i | null {
+  let prev = from;
+  for (const cell of [...cells, to]) {
+    if (cell.x !== prev.x && cell.y !== prev.y) {
+      for (const side of [vec(cell.x, prev.y), vec(prev.x, cell.y)]) {
+        if (!isCornerPeekBlocker(map, side) || isOrthogonalAdjacent(side, from)) {
+          continue;
+        }
+        if (
+          block.cornerPeek
+          && block.cornerCell.x !== -999
+          && (vecEq(side, block.cornerCell) || isOrthogonalAdjacent(side, block.cornerCell))
+        ) {
+          continue;
+        }
+        return side;
+      }
+    }
+    prev = cell;
+  }
+  return null;
 }
 
 function spottingCellBlocks(

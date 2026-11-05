@@ -14,7 +14,7 @@ chain-revival/
     src/index.ts    Main server - WebSocket handler + static file serving
     src/match.ts    Authoritative match simulation
     src/supabase_auth.ts  Auth verification
-    sql/            Numbered migrations (001-031)
+    sql/            Numbered migrations (001-033)
   website/          React + Vite + Tailwind SPA
     src/pages/      Home, Login, Leaderboard, Player, Regiments, RegimentManage, Download, Appeal, Admin
     src/hooks/      AuthProvider, useRealtimeQuery, useSiteSettings
@@ -85,38 +85,29 @@ Enabled on: `player_profiles`, `match_history`, `regiments`, `regiment_members`,
 - **Remote:** GitHub, user `dukesgamelab`
 - **No Claude attribution.** Never add `Co-Authored-By` lines or any Claude/Anthropic references to commits or PRs. All commits must appear as solely by `dukesgamelab`.
 
-## Current Work - Suppression & Pinning (branch: suppression-pinning)
+## Current Work - Security Hardening (complete)
 
-**No SQL migrations needed.**
+**Security lockdown** (merged to `main` 2026-11-03, PR #8, deployed to Fly)
+- Column-level grants, REVOKE/GRANT EXECUTE on RPCs, auth.uid() hardening, SET search_path
+- Server input validation, WebSocket payload limits
+- Migration 032 run in Supabase
 
-**Features complete:**
-- Sustained fire suppression bonus - Fire At shots generate 1.5x suppression stress (configurable)
-- Panicked Fire At block - soldiers at stress >= 70 cannot use Fire At (grenades still allowed)
-- Server-side panicked enforcement - Fire At rejection now enforced server-side (was client-only)
-- UI stress colors and band labels - "Pinned 52%" with color coding (white/yellow/orange/red/dark red)
-- Button disabling - Fire At greys out when soldier is panicked
-- Soldier sprite stress tint - subtle warm modulate at pinned/panicked thresholds
-- Server-side stress movement speed modifier - multiplayer movement now reflects stress bands
-- Dev server toggle - `dev_server.txt` for local testing without deploying
-- Exported `isStressPinned()` / `isStressPanicked()` helpers on server
+**Security hardening** (merged to `develop` 2026-11-04, PR #9)
+- CI shell injection fix - version input validated with regex, passed via env variable
+- Ban notification emails disabled until official domain is set up
+- Auto-updater zip slip fix - malicious zip entries with path traversal rejected
+- Chat channel RLS tightened - regiment and custom channel messages restricted to members only
+- Migration 033 run in Supabase
 
-**Key files changed:**
-- `scripts/combat/combat_system.gd` - Sustained fire suppression multiplier in `apply_suppression_from_shot`
-- `scripts/core/action_resolver.gd` - Panicked Fire At rejection
-- `scripts/ui/soldier_command_row.gd` - Stress color/label, button enable methods, status colors, force-disable flag
-- `scripts/ui/command_bar.gd` - Panicked Fire At button disabling in `sync_soldier_row`
-- `scripts/soldiers/soldier.gd` - Stress tint in `_apply_fog_visual`
-- `scripts/gameplay_policies/suppression_policy.gd` - `sustained_fire_suppression_mult` field
-- `assets/data/gameplay_policies.json` - Added `sustained_fire_suppression_mult: 1.5`
-- `server/src/stress_accuracy.ts` - Exported `isStressPinned`, `isStressPanicked`, band constants
-- `server/src/action_resolver.ts` - Server-side panicked Fire At rejection, stress movement speed modifier
-- `server/src/combat_system.ts` - Server sustained fire suppression multiplier
-- `server/src/stress_accuracy.ts` - `movementModifier()` export for server movement speed
-- `scripts/network/network_client.gd` - Dev server toggle via `dev_server.txt` or `--server=` flag
-- `scripts/ui/lobby_browser.gd` - `_effective_server_url()`, LOCAL indicator in lobby title
-- `scripts/tests/gameplay_foundation_tests.gd` - Tests for sustained fire mult, panicked grenade allowance, stress labels
+**Server security** (merged to `develop` 2026-11-04, PR #10)
+- isTraining exploit fix - only works before any players join a side
+- Duplicate account connections - second connection kicks the first
+- HS256 JWT fallback removed - rejects tokens when secret is unset instead of accepting them
+- **Needs Fly deploy after merging develop to main**
 
-**Status:** All changes committed on `suppression-pinning` branch. When ready to merge, PR should target `develop`.
+**Remaining:** Fog of war (server sends all unit positions to all clients) - big architectural change, deferred.
+
+**Status:** All security PRs merged to develop. Develop needs to merge to main, then deploy.
 
 ## Deployment
 

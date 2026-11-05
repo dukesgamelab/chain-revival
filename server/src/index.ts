@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket, type RawData } from "ws";
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { resolve, extname, join } from "node:path";
+import { resolve, extname, join, sep } from "node:path";
 import { existsSync, realpathSync } from "node:fs";
 import {
   LocalMatch,
@@ -274,8 +274,6 @@ function broadcastToAssigned(payload: unknown, excludeClientId?: string): void {
 }
 
 async function handleMessage(ws: WebSocket, clientId: string, raw: string): Promise<void> {
-  console.log("Received message:", raw);
-
   const message = safeParseJson(raw);
   if (message === null) {
     console.log("Message is not valid JSON object");
@@ -297,6 +295,7 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     // and associate the user ID with this connection.  LAN play works
     // without a token.
     let userId: string | null = null;
+    let takeover: { side: SideName; teamId: number } | null = null;
     if (typeof message.authToken === "string" && message.authToken !== "") {
       userId = getUserId(message.authToken);
       if (userId !== null) {
@@ -308,6 +307,28 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
           sendJson(ws, { type: "banned", reason: banReason });
           ws.close();
           return;
+        }
+
+        // Kick any existing connection with the same userId (prevents one
+        // account from holding both sides). Skip if there's a pending
+        // reconnect - that path is handled below.
+        if (!pendingReconnects.has(userId)) {
+          const existing = getClientByUserId(userId);
+          if (existing && existing.clientId !== clientId) {
+            // No server heartbeat, so after a network drop the old socket can
+            // still look open when the client reconnects. Keep the side.
+            if (existing.assignedSide !== null && match.matchPhase === "running") {
+              takeover = { side: existing.assignedSide, teamId: sideToTeamId(existing.assignedSide) };
+              console.log("[Hello] User %s reconnected while old client %s still open; taking over %s",
+                userId, existing.clientId, existing.assignedSide);
+            } else {
+              console.log("[Hello] Duplicate connection for user %s, kicking old client %s", userId, existing.clientId);
+            }
+            sendJson(existing.ws, { type: "kicked", reason: "Connected from another session" });
+            removeClient(existing.clientId);
+            match.removeClient(existing.clientId);
+            existing.ws.close();
+          }
         }
 
         setClientUserId(clientId, userId);
@@ -322,9 +343,10 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       }
     }
 
-    if (message.isTraining === true) {
+    if (message.isTraining === true && match.matchPhase === "created"
+        && sideCount("USA") === 0 && sideCount("GERMANY") === 0) {
       isTrainingMatch = true;
-      console.log("[Hello] Training match — PP awards disabled.");
+      console.log("[Hello] Training match - PP awards disabled.");
     }
 
     if (message.isRegimental === true) {
@@ -348,19 +370,24 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     }
 
     // --- Reconnect detection ---
-    if (userId !== null && pendingReconnects.has(userId)) {
-      const reconnect = pendingReconnects.get(userId)!;
+    let resume: { side: SideName; teamId: number } | null = takeover;
+    const fromPending = userId !== null && pendingReconnects.has(userId);
+    if (fromPending) {
+      const reconnect = pendingReconnects.get(userId!)!;
       clearTimeout(reconnect.timer);
-      pendingReconnects.delete(userId);
+      pendingReconnects.delete(userId!);
 
       // Remove ghost client, reassign side/team to new connection
       match.removeClient(reconnect.oldClientId);
       removeClient(reconnect.oldClientId);
+      resume = { side: reconnect.side, teamId: reconnect.teamId };
+    }
 
-      const sideResult = requestSide(clientId, reconnect.side);
+    if (resume !== null) {
+      const sideResult = requestSide(clientId, resume.side);
       if (sideResult.ok) {
-        match.setClientTeam(clientId, reconnect.teamId);
-        console.log("[Reconnect] Player %s reconnected as %s (new clientId=%s)", userId, reconnect.side, clientId);
+        match.setClientTeam(clientId, resume.teamId);
+        console.log("[Reconnect] Player %s reconnected as %s (new clientId=%s)", userId, resume.side, clientId);
 
         sendJson(ws, {
           type: "welcome",
@@ -373,9 +400,9 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
         });
         sendJson(ws, {
           type: "side_assigned",
-          side: reconnect.side,
+          side: resume.side,
           matchId: MATCH_ID,
-          teamId: reconnect.teamId,
+          teamId: resume.teamId,
           usaCount: sideCount("USA"),
           germanyCount: sideCount("GERMANY"),
           teamSize: getTeamSize(),
@@ -383,15 +410,19 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
         sendJson(ws, { type: "match_ready" });
         match.sendSnapshot(ws);
 
-        broadcastToAssigned({ type: "player_reconnected", side: reconnect.side }, clientId);
+        if (fromPending) {
+          broadcastToAssigned({ type: "player_reconnected", side: resume.side }, clientId);
+        }
       } else {
-        console.error("[Reconnect] Failed to reassign side %s for %s: %s", reconnect.side, userId, sideResult.reason);
+        console.error("[Reconnect] Failed to reassign side %s for %s: %s", resume.side, userId, sideResult.reason);
       }
       return;
     }
 
     const requestedMap = typeof message.mapId === "string" ? message.mapId : "";
-    if (requestedMap !== "" && match.matchPhase === "created" && requestedMap !== match.gameState.map.mapId) {
+    if (requestedMap !== "" && !/^[a-zA-Z0-9_-]+$/.test(requestedMap)) {
+      console.log("Rejected invalid mapId: %s", requestedMap.slice(0, 60));
+    } else if (requestedMap !== "" && match.matchPhase === "created" && requestedMap !== match.gameState.map.mapId) {
       try {
         resetSides();
         const opts: MatchOptions = {};
@@ -530,8 +561,16 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       return;
     }
 
+    const record = getClient(clientId);
+    if (record?.userId) {
+      const existing = getClientByUserId(record.userId);
+      if (existing && existing.clientId !== clientId && existing.assignedSide !== null) {
+        sendJson(ws, { type: "side_denied", reason: "Account already has a side assigned" });
+        return;
+      }
+    }
+
     if (isRegimentalMatch) {
-      const record = getClient(clientId);
       const regId = record?.regimentId ?? "";
       const assignedTeam = regId !== "" ? regimentTeamMap.get(regId) : undefined;
       if (assignedTeam !== undefined) {
@@ -743,7 +782,7 @@ async function serveStatic(req: import("node:http").IncomingMessage, res: import
     const buildFile = join(BUILDS_DIR, url.slice("/builds/".length));
     try {
       const realPath = realpathSync(buildFile);
-      if (!realPath.startsWith(realpathSync(BUILDS_DIR))) {
+      if (!realPath.startsWith(realpathSync(BUILDS_DIR) + sep)) {
         res.writeHead(403);
         res.end("Forbidden");
         return;
@@ -781,7 +820,7 @@ async function serveStatic(req: import("node:http").IncomingMessage, res: import
 
   try {
     const realPath = realpathSync(filePath);
-    if (!realPath.startsWith(realpathSync(WEBSITE_DIR))) {
+    if (!realPath.startsWith(realpathSync(WEBSITE_DIR) + sep)) {
       res.writeHead(403);
       res.end("Forbidden");
       return;
@@ -815,7 +854,7 @@ async function serveStatic(req: import("node:http").IncomingMessage, res: import
 // HTTP server handles website + health checks; WebSocket upgrades attach to it.
 const httpServer = createServer(serveStatic);
 
-const wss = new WebSocketServer({ server: httpServer });
+const wss = new WebSocketServer({ server: httpServer, maxPayload: 64 * 1024 });
 
 httpServer.listen(PORT, HOST, () => {
   console.log(`Chain Revival multiplayer server running on ws://${HOST}:${PORT}`);
@@ -829,7 +868,6 @@ httpServer.listen(PORT, HOST, () => {
 wss.on("connection", (ws: WebSocket) => {
   const clientId = randomUUID();
   registerClient(ws, clientId);
-  match.attachClient(clientId, ws);
   console.log("Client connected (%s)", clientId);
 
   ws.on("message", (data: RawData) => {

@@ -267,7 +267,42 @@ static func find_blocking_tile(
 		result.blocking_type_id = object_def.type_id if object_def != null else "terrain"
 		return result
 
+	var graze := _diagonal_wall_graze(from_cell, to_cell, cells, map_data, result)
+	if graze.x != -999:
+		result.blocked = true
+		result.blocking_cell = graze
+		var graze_def := map_data.get_object_def(graze)
+		result.blocking_type_id = graze_def.type_id if graze_def != null else "terrain"
 	return result
+
+
+## A diagonal step in the shot line that squeezes past a tall wall on either side is blocked
+## (no corner cutting, like the pathfinder). Exempt: walls next to the shooter (the corner he
+## leans around) and the peeked corner's wall run. Mirrored in server los.ts diagonalWallGraze.
+static func _diagonal_wall_graze(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	cells: Array[Vector2i],
+	map_data: MapData,
+	block: BlockResult,
+) -> Vector2i:
+	var prev := from_cell
+	var steps: Array[Vector2i] = cells.duplicate()
+	steps.append(to_cell)
+	for cell in steps:
+		if cell.x != prev.x and cell.y != prev.y:
+			for side in [Vector2i(cell.x, prev.y), Vector2i(prev.x, cell.y)]:
+				if not _is_corner_peek_blocker(map_data, side) or _is_orthogonal_adjacent(side, from_cell):
+					continue
+				if (
+					block.corner_peek
+					and block.corner_cell.x != -999
+					and (side == block.corner_cell or _is_orthogonal_adjacent(side, block.corner_cell))
+				):
+					continue
+				return side
+		prev = cell
+	return Vector2i(-999, -999)
 
 
 ## Spotting LOS: height/terrain blockers; walls never block rays; soldier cells never block.
@@ -678,21 +713,31 @@ static func peek_side_from_cross(to_ref: Vector2i, along: Vector2i) -> int:
 	return PeekSide.LEFT
 
 
-## Facing that looks down the side of a structure when standing beside its corner or
-## wall tip: along the wall run that starts at that cell. ZERO when there is no such run.
-## Mirrored in server/src/los.ts cornerWatchFacing.
+## Facing when stopping at a structure corner or wall tip: toward the corner, along the wall
+## the soldier is lined up with, so he leans around the corner (OG BehindCorner). Longest
+## such run wins. Without one (beside a wall tip), look along the wall beside him instead.
+## ZERO when there is no wall to use. Mirrored in server/src/los.ts cornerWatchFacing.
 static func corner_watch_facing(from_cell: Vector2i, map_data: MapData) -> Vector2i:
 	if map_data == null:
 		return Vector2i.ZERO
 	var ortho: Array[Vector2i] = [
 		Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
 	]
+	var inline_best := Vector2i.ZERO
+	var inline_len := 0
+	var beside_best := Vector2i.ZERO
+	var beside_len := 0
 	for offset in ortho:
 		var wall_cell := from_cell + offset
 		if not _is_corner_peek_blocker(map_data, wall_cell):
 			continue
 		if not _is_structure_corner_or_wall_tip(map_data, wall_cell):
 			continue
+		if _is_corner_peek_blocker(map_data, wall_cell + offset):
+			var len := _wall_run_length(map_data, wall_cell, offset)
+			if len > inline_len:
+				inline_best = offset
+				inline_len = len
 		for run in ortho:
 			if run == offset or run == -offset:
 				continue
@@ -700,8 +745,21 @@ static func corner_watch_facing(from_cell: Vector2i, map_data: MapData) -> Vecto
 				_is_corner_peek_blocker(map_data, wall_cell + run)
 				and not _is_corner_peek_blocker(map_data, from_cell + run)
 			):
-				return run
-	return Vector2i.ZERO
+				var len := _wall_run_length(map_data, wall_cell, run)
+				if len > beside_len:
+					beside_best = run
+					beside_len = len
+	return inline_best if inline_len > 0 else beside_best
+
+
+## Count of consecutive blocker cells from `start` (exclusive) along `dir`, capped.
+static func _wall_run_length(map_data: MapData, start: Vector2i, dir: Vector2i) -> int:
+	var n := 0
+	var cell := start + dir
+	while n < 64 and _is_corner_peek_blocker(map_data, cell):
+		n += 1
+		cell += dir
+	return n
 
 
 ## Open tiles a soldier hugging a structure corner or wall tip can lean into: beside him,
