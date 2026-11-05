@@ -4,7 +4,7 @@
 
 Copy this into website patch notes when cutting the next release build. Remove items as they ship.
 
-*(nothing yet)*
+- Fixed reconnecting after a network drop mid-match - if the server still had the old connection open, the duplicate-account kick freed the player's side and left their soldiers unowned. The new connection now takes over the side directly (server-only, hotfix)
 
 ---
 
@@ -334,25 +334,27 @@ All migrations in `server/sql/`, numbered 001-033. All have been run in Supabase
 
 ## Version Roadmap
 
-**Current version:** v0.22.8-alpha
+**Current version:** v0.22.9-alpha
 
-**Path to v1.0.0-alpha** - Core gameplay and progression must feel complete and stable. After phase 50, do a bug fix pass based on tester feedback, then cut v1.0.0-alpha.
+**Path to v1.0.0-alpha** - Core gameplay and progression must feel complete and stable. After phase 51, do a bug fix pass based on tester feedback, then cut v1.0.0-alpha.
 
 | Phase | Name | Scope | Priority |
 |-------|------|-------|----------|
 | ~~44~~ | ~~Combat realism~~ | ~~Done - friendly grenades, lethality 0.6, movement fixes~~ | ~~Complete~~ |
 | ~~45~~ | ~~Suppression & pinning~~ | ~~Done - sustained fire 1.5x suppression, panicked blocks, UI stress feedback~~ | ~~Complete~~ |
 | ~~46~~ | ~~Reconnect fix~~ | ~~Done - countdown, lobby Rejoin after closing the game, cover status, tester audio fixes~~ | ~~Complete~~ |
-| 47 | Combat keybinds | OG-style keyboard shortcuts (D/W/R/C/F/G/P/H etc.), field report panel | v1 required |
-| 48 | PP balance & career rewards | PP lost on killed-by-rank, Medal of Courage payouts | v1 required |
-| 49 | Regiment officer promotions | CO promotes members to officer ranks, promotion slots by member count | v1 required |
+| 47 | Sim parity | Server-client rule alignment, soldier sync, parity test harness, reconnect fixes | v1 required |
+| 48 | Fog of war | Server-side position filtering, hide unspotted enemies, last-known markers (v0.23.0) | v1 required |
+| 49 | Combat keybinds | OG-style keyboard shortcuts (D/W/R/C/F/G/P/H etc.), field report panel | v1 required |
+| 50 | PP balance & career rewards | PP lost on killed-by-rank, Medal of Courage payouts | v1 required |
+| 51 | Regiment officer promotions | CO promotes members to officer ranks, promotion slots by member count | v1 required |
 | -- | Bug fix pass | Tester feedback, stability, polish | v1 required |
 | -- | v1.0.0-alpha release | Build, tag, deploy | - |
-| 50 | Community forum | Torn-style threaded forum - categories, thread lists, replies, admin pins | Post-v1 |
-| 51 | Newsletter & notifications | Resend email sending, double opt-in, announcement push to client | Post-v1 |
-| 52 | Replay polish | Movement animation, "View Match" button, OG meta tags | Post-v1 |
+| 52 | Community forum | Torn-style threaded forum - categories, thread lists, replies, admin pins | Post-v1 |
+| 53 | Newsletter & notifications | Resend email sending, double opt-in, announcement push to client | Post-v1 |
+| 54 | Replay polish | Movement animation, "View Match" button, OG meta tags | Post-v1 |
 
-**Versioning:** Bump patch (0.22.8, 0.22.9) for bug fixes, minor (0.23, 0.24) for each phase. Jump to 1.0.0-alpha after the bug fix pass following phase 49.
+**Versioning:** Bump patch (0.22.8, 0.22.9) for bug fixes, minor (0.23, 0.24) for each phase. Jump to 1.0.0-alpha after the bug fix pass following phase 51.
 
 ---
 

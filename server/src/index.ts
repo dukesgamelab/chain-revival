@@ -295,6 +295,7 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     // and associate the user ID with this connection.  LAN play works
     // without a token.
     let userId: string | null = null;
+    let takeover: { side: SideName; teamId: number } | null = null;
     if (typeof message.authToken === "string" && message.authToken !== "") {
       userId = getUserId(message.authToken);
       if (userId !== null) {
@@ -314,7 +315,15 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
         if (!pendingReconnects.has(userId)) {
           const existing = getClientByUserId(userId);
           if (existing && existing.clientId !== clientId) {
-            console.log("[Hello] Duplicate connection for user %s, kicking old client %s", userId, existing.clientId);
+            // No server heartbeat, so after a network drop the old socket can
+            // still look open when the client reconnects. Keep the side.
+            if (existing.assignedSide !== null && match.matchPhase === "running") {
+              takeover = { side: existing.assignedSide, teamId: sideToTeamId(existing.assignedSide) };
+              console.log("[Hello] User %s reconnected while old client %s still open; taking over %s",
+                userId, existing.clientId, existing.assignedSide);
+            } else {
+              console.log("[Hello] Duplicate connection for user %s, kicking old client %s", userId, existing.clientId);
+            }
             sendJson(existing.ws, { type: "kicked", reason: "Connected from another session" });
             removeClient(existing.clientId);
             match.removeClient(existing.clientId);
@@ -361,19 +370,24 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     }
 
     // --- Reconnect detection ---
-    if (userId !== null && pendingReconnects.has(userId)) {
-      const reconnect = pendingReconnects.get(userId)!;
+    let resume: { side: SideName; teamId: number } | null = takeover;
+    const fromPending = userId !== null && pendingReconnects.has(userId);
+    if (fromPending) {
+      const reconnect = pendingReconnects.get(userId!)!;
       clearTimeout(reconnect.timer);
-      pendingReconnects.delete(userId);
+      pendingReconnects.delete(userId!);
 
       // Remove ghost client, reassign side/team to new connection
       match.removeClient(reconnect.oldClientId);
       removeClient(reconnect.oldClientId);
+      resume = { side: reconnect.side, teamId: reconnect.teamId };
+    }
 
-      const sideResult = requestSide(clientId, reconnect.side);
+    if (resume !== null) {
+      const sideResult = requestSide(clientId, resume.side);
       if (sideResult.ok) {
-        match.setClientTeam(clientId, reconnect.teamId);
-        console.log("[Reconnect] Player %s reconnected as %s (new clientId=%s)", userId, reconnect.side, clientId);
+        match.setClientTeam(clientId, resume.teamId);
+        console.log("[Reconnect] Player %s reconnected as %s (new clientId=%s)", userId, resume.side, clientId);
 
         sendJson(ws, {
           type: "welcome",
@@ -386,9 +400,9 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
         });
         sendJson(ws, {
           type: "side_assigned",
-          side: reconnect.side,
+          side: resume.side,
           matchId: MATCH_ID,
-          teamId: reconnect.teamId,
+          teamId: resume.teamId,
           usaCount: sideCount("USA"),
           germanyCount: sideCount("GERMANY"),
           teamSize: getTeamSize(),
@@ -396,9 +410,11 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
         sendJson(ws, { type: "match_ready" });
         match.sendSnapshot(ws);
 
-        broadcastToAssigned({ type: "player_reconnected", side: reconnect.side }, clientId);
+        if (fromPending) {
+          broadcastToAssigned({ type: "player_reconnected", side: resume.side }, clientId);
+        }
       } else {
-        console.error("[Reconnect] Failed to reassign side %s for %s: %s", reconnect.side, userId, sideResult.reason);
+        console.error("[Reconnect] Failed to reassign side %s for %s: %s", resume.side, userId, sideResult.reason);
       }
       return;
     }
