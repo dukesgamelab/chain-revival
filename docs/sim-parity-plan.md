@@ -28,7 +28,7 @@ One periodic message fixes the whole "client never heard about it" class of bugs
   - Location: `server/src/match.ts` `broadcastSoldierSync()`, sent during deployment and the running match.
 - [x] Client: apply in `scripts/network/authoritative_sync.gd` `apply_soldier_sync()`. `main.gd` `_on_network_soldier_sync()` animates stance changes and redraws only soldiers whose view changed; stress/ammo/grenades only refresh the command bar.
 - [x] Remove the now-redundant stress list from `scenario_time`.
-- [ ] In-game check (see Done when).
+- [x] In-game check (local 1v1, 2026-11-05): no flicker at corners or in the open; grenade count, stun recovery, stress decay and stance all show on the other client.
 
 **Deploy note:** server and client must ship together. A 0.22.9 client on the new server loses stress decay (it read stress from `scenario_time`), so soldiers would look stuck at their peak stress until the client updates.
 
