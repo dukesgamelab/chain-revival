@@ -85,29 +85,33 @@ Enabled on: `player_profiles`, `match_history`, `regiments`, `regiment_members`,
 - **Remote:** GitHub, user `dukesgamelab`
 - **No Claude attribution.** Never add `Co-Authored-By` lines or any Claude/Anthropic references to commits or PRs. All commits must appear as solely by `dukesgamelab`.
 
-## Current Work - Security Hardening (complete)
+## Current Work - Phase 47 Sim Parity (branch: sim-parity)
 
-**Security lockdown** (merged to `main` 2026-11-03, PR #8, deployed to Fly)
-- Column-level grants, REVOKE/GRANT EXECUTE on RPCs, auth.uid() hardening, SET search_path
-- Server input validation, WebSocket payload limits
-- Migration 032 run in Supabase
+Goal: multiplayer plays the same as single-player. Single-player (GDScript) is the reference; the server's TypeScript copy of the rules is brought in line with it. Full plan and checklist: [docs/sim-parity-plan.md](docs/sim-parity-plan.md).
 
-**Security hardening** (merged to `develop` 2026-11-04, PR #9)
-- CI shell injection fix - version input validated with regex, passed via env variable
-- Ban notification emails disabled until official domain is set up
-- Auto-updater zip slip fix - malicious zip entries with path traversal rejected
-- Chat channel RLS tightened - regiment and custom channel messages restricted to members only
-- Migration 033 run in Supabase
+**No SQL migrations needed.**
 
-**Server security** (merged to `develop` 2026-11-04, PR #10)
-- isTraining exploit fix - only works before any players join a side
-- Duplicate account connections - second connection kicks the first
-- HS256 JWT fallback removed - rejects tokens when secret is unset instead of accepting them
-- **Needs Fly deploy after merging develop to main**
+| Step | What | Status |
+|---|---|---|
+| 1 | Soldier sync - server sends every soldier's stance, facing, stress, grenades, ammo, stun and Fire At state every 0.5s | Done, tested in a local 1v1 |
+| 2 | Parity test harness - shared rule fixtures run by both sides | Done |
+| 3 | Fix known server drift (8 items) | Next |
+| 4 | Message and reconnect fixes | Open |
 
-**Remaining:** Fog of war (server sends all unit positions to all clients) - big architectural change, deferred.
+**Key files:**
+- `server/src/match.ts` - `broadcastSoldierSync()` (stress no longer rides on `scenario_time`)
+- `scripts/network/authoritative_sync.gd` - `apply_soldier_sync()`
+- `scripts/core/main.gd` - `_on_network_soldier_sync()`
+- `scripts/tests/parity/*.json` - shared fixtures (format in its README)
+- `server/tests/parity.test.ts` and `scripts/tests/parity_tests.tscn` - the two runners
 
-**Status:** All security PRs merged to develop. Develop needs to merge to main, then deploy.
+**Parity tests:** `cd server && npm test` runs the server side (fixtures marked `knownDrift` show as TODO). Client side: `Godot --headless --path . res://scripts/tests/parity_tests.tscn`.
+
+**Release note:** server and client must ship together. A 0.22.9 client on the new server loses stress decay (it read stress from `scenario_time`).
+
+**Pre-existing test failures (not from this work):** server "lethality is applied to hit chance" still expects the pre-Phase 44 value 0.9; client "Pinned (not panicked) soldier can still throw" in gameplay_foundation_tests.
+
+**Previous work:** security lockdown and hardening (PRs #8, #9, #10, plus the reconnect-takeover hotfix) shipped in v0.22.9-alpha and are deployed. Fog of war is Phase 48.
 
 ## Deployment
 

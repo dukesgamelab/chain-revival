@@ -7,7 +7,6 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - Fixed reconnecting after a network drop mid-match - if the server still had the old connection open, the duplicate-account kick freed the player's side and left their soldiers unowned. The new connection now takes over the side directly (server-only, hotfix)
 - Multiplayer soldier state now stays in sync - the server sends every soldier's stance, facing, stress, grenades, ammo, stun and Fire At target twice a second, so the other player's screen corrects itself (Phase 47)
 - Fixed grenade count stuck at 5 in multiplayer (Phase 47)
-- Fixed AI stance, facing and Fire At changes not showing for the other player (Phase 47)
 - Fixed soldiers getting up after a grenade stun not showing for the other player (Phase 47)
 
 ---
@@ -347,7 +346,7 @@ All migrations in `server/sql/`, numbered 001-033. All have been run in Supabase
 | ~~44~~ | ~~Combat realism~~ | ~~Done - friendly grenades, lethality 0.6, movement fixes~~ | ~~Complete~~ |
 | ~~45~~ | ~~Suppression & pinning~~ | ~~Done - sustained fire 1.5x suppression, panicked blocks, UI stress feedback~~ | ~~Complete~~ |
 | ~~46~~ | ~~Reconnect fix~~ | ~~Done - countdown, lobby Rejoin after closing the game, cover status, tester audio fixes~~ | ~~Complete~~ |
-| 47 | Sim parity | Server-client rule alignment, soldier sync, parity test harness, reconnect fixes | v1 required |
+| 47 | Sim parity | **In progress** - soldier sync and parity test harness done; server drift fixes and reconnect fixes next | v1 required |
 | 48 | Fog of war | Server-side position filtering, hide unspotted enemies, last-known markers (v0.23.0) | v1 required |
 | 49 | Combat keybinds | OG-style keyboard shortcuts (D/W/R/C/F/G/P/H etc.), field report panel | v1 required |
 | 50 | PP balance & career rewards | PP lost on killed-by-rank, Medal of Courage payouts | v1 required |

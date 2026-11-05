@@ -1,0 +1,264 @@
+[
+  {
+    "name": "suppression_open_range_10",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "suppression",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "gain": 53.57
+    }
+  },
+  {
+    "name": "suppression_open_range_30",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [35, 20],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "suppression",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "gain": 0
+    }
+  },
+  {
+    "name": "suppression_prone_target",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0],
+        "stance": "down"
+      }
+    ],
+    "query": {
+      "kind": "suppression",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "gain": 40.18
+    }
+  },
+  {
+    "name": "suppression_moderate_cover",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": [
+        {
+          "type": "haybail",
+          "at": [14, 20]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "suppression",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "gain": 34.82
+    }
+  },
+  {
+    "name": "suppression_sustained_fire",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand",
+        "sustainedFire": true
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "suppression",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "gain": 80.36
+    }
+  },
+  {
+    "name": "suppression_mg42_range_15",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [30, 20],
+        "facing": [-1, 0],
+        "weapon": "mg42"
+      },
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [1, 0]
+      }
+    ],
+    "query": {
+      "kind": "suppression",
+      "shooter": [2, 1],
+      "target": [1, 1]
+    },
+    "expect": {
+      "gain": 85.71
+    }
+  },
+  {
+    "name": "suppression_caps_at_max",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [8, 20],
+        "facing": [-1, 0],
+        "stress": 99
+      }
+    ],
+    "query": {
+      "kind": "suppression",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "gain": 1
+    }
+  },
+  {
+    "name": "suppression_wall_hugging_target",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 10],
+          "to": [20, 10]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [15, 5],
+        "facing": [0, 1],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 11],
+        "facing": [0, 1]
+      }
+    ],
+    "query": {
+      "kind": "suppression",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "gain": 67.86
+    }
+  }
+]

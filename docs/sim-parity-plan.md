@@ -45,25 +45,30 @@ One periodic message fixes the whole "client never heard about it" class of bugs
 
 Catch drift as it happens instead of after testers find it.
 
-- [ ] Shared fixtures in `tests/parity/*.json`. Each fixture has:
+- [x] Shared fixtures in `scripts/tests/parity/*.json` (under `scripts/tests/` so the Godot export already leaves them out). Format and query kinds are in `scripts/tests/parity/README.md`. Each fixture has:
   - map size and wall/object cells
   - soldiers (cell, facing, stance, stress, weapon)
   - one query
-  - expected outcome
-- [ ] Server runner: `server/tests/parity.test.ts`, loads each fixture and asserts the expected outcome.
-- [ ] Client runner: `scripts/tests/parity_tests.tscn`, loads the same fixtures and asserts the same outcomes headless.
-  - Run with: `Godot --headless --path . res://scripts/tests/parity_tests.tscn`
-- [ ] First fixtures (pure rule functions):
-  - shot LOS status and blocking cell
-  - cover type
-  - corner peek (side, lean, corner-to-corner)
-  - hit chance at a range
-  - suppression gain
-  - grenade damage / stun by distance and wall
-  - auto-target choice
-  - arrival facing at a corner
+  - expected outcome (taken from the GDScript run, since single-player is the reference)
+  - optional `knownDrift`: the server reports the case as TODO until the Step 3 fix lands
+- [x] Server runner: `server/tests/parity.test.ts`, loads each fixture and asserts the expected outcome.
+- [x] Client runner: `scripts/tests/parity_tests.tscn`, loads the same fixtures and asserts the same outcomes headless.
+  - Run with: `Godot --headless --path . res://scripts/tests/parity_tests.tscn` (add `-- --print` to print every actual result)
+- [x] First fixtures (53 cases):
+  - shot LOS status and blocking cell (11)
+  - cover type (5)
+  - corner peek (side, lean, corner-to-corner) - covered by the LOS cases at building corners and a doorway
+  - hit chance at a range (10)
+  - suppression gain (8)
+  - grenade stun by distance and wall (6) - kills forced off on both sides, since the two RNGs differ
+  - auto-target choice (6)
+  - arrival facing at a corner (7)
 
 **Done when:** both runners pass on the same fixtures, and a deliberately changed constant on one side makes the other side's run fail.
+
+**Result (2026-11-05):** client 53/53. Server 51 pass + 2 known drift (auto-target SMG/LMG bonus, grenade blast through a wall next to the victim). Changing the moderate-cover suppression multiplier from 0.65 to 0.7 failed exactly `suppression_moderate_cover` on each side.
+
+**Not covered yet:** the suppression drift below sits in `resolveShot` ordering (it returns before suppression for wall-huggers), and the suppression fixtures call `applySuppressionFromShot` directly, so they can't see it. Step 3 needs a resolve-shot fixture for it.
 
 ## Step 3 - Port known server drift
 
@@ -72,7 +77,7 @@ Each item gets a parity fixture first (it should fail), then the fix (it should 
 - [ ] **Suppression on wall-hugging targets.** `combat_system.ts:132-135` returns before suppression; GDScript applies it first (`combat_system.gd:375-382`).
 - [ ] **Grenade blast blocking.** `grenade_system.ts:103-110` uses shot LOS, so the blast passes through walls next to the victim and is blocked by standing soldiers. GDScript uses a wall-only check (`combat_system.gd:2431-2451`).
 - [ ] **Auto-target scoring.** `perception.ts` `scoreAutoTarget` lacks the SMG/LMG and stick-with-current-target bonuses (`combat_system.gd:1283-1293`).
-- [ ] **Thrower killed during the fuse.** `soldier_state.ts` `markKilled` keeps the pending grenade; GDScript cancels it.
+- [ ] **Thrower killed during the fuse.** `soldier_state.ts` `markKilled` keeps the pending grenade; GDScript cancels it. *Check first:* v0.22.8 changed GDScript so the grenade still goes off (`soldier_state.gd` `mark_killed` comment says it now matches the server), so this may already be resolved.
 - [ ] **Squad path diagonal cut.** `action_resolver.ts:353-361` translated squad paths skip the pathfinder's no-diagonal-between-walls rule.
 - [ ] **AI clock mix-up.** `ai_commander.ts:1406,1460` use `Date.now()` against sim time. Fire dedup never blocks and the watchdog never fires; the AI re-sends Fire At and resets aim. Use sim time everywhere in AI.
 - [ ] **Grenade fuse timing.** `match.ts:758` checks only on 0.5s scans, so the 1.8s fuse resolves at 2.0-2.3s.

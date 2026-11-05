@@ -1,0 +1,233 @@
+[
+  {
+    "name": "auto_target_closer_enemy",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [25, 20],
+        "facing": [-1, 0]
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [13, 24],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "auto_target",
+      "shooter": [1, 1]
+    },
+    "expect": {
+      "target": [2, 2]
+    }
+  },
+  {
+    "name": "auto_target_skips_blocked",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [9, 22],
+          "to": [9, 26]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 24],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [25, 20],
+        "facing": [-1, 0]
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [13, 24],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "auto_target",
+      "shooter": [1, 1]
+    },
+    "expect": {
+      "target": null
+    }
+  },
+  {
+    "name": "auto_target_prefers_open_over_cover",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": [
+        {
+          "type": "haybail",
+          "at": [14, 20]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [16, 25],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "auto_target",
+      "shooter": [1, 1]
+    },
+    "expect": {
+      "target": [2, 2]
+    }
+  },
+  {
+    "name": "auto_target_prefers_smg_gunner",
+    "knownDrift": "Step 3 auto-target scoring: server scoreAutoTarget lacks the SMG/LMG bonus",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 18],
+        "facing": [-1, 0],
+        "weapon": "kar98k"
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [15, 22],
+        "facing": [-1, 0],
+        "weapon": "mp40"
+      }
+    ],
+    "query": {
+      "kind": "auto_target",
+      "shooter": [1, 1]
+    },
+    "expect": {
+      "target": [2, 2]
+    }
+  },
+  {
+    "name": "auto_target_prone_penalty",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [14, 20],
+        "facing": [-1, 0],
+        "stance": "down"
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [16, 23],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "auto_target",
+      "shooter": [1, 1]
+    },
+    "expect": {
+      "target": [2, 1]
+    }
+  },
+  {
+    "name": "auto_target_none_visible",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [9, 15],
+          "to": [9, 25]
+        }
+      ]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "auto_target",
+      "shooter": [1, 1]
+    },
+    "expect": {
+      "target": null
+    }
+  }
+]

@@ -282,7 +282,7 @@ export function processCombatTick(state: GameState): CombatTickResult {
  * Port of CombatSystem.apply_suppression_from_shot.
  * Gain = (stressLimitTiles - range) * stressFactor * STRESS_SCALE * coverMult * stanceMult.
  */
-function applySuppressionFromShot(
+export function applySuppressionFromShot(
   state: GameState,
   shooter: SoldierState,
   target: SoldierState,

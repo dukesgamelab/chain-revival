@@ -1,0 +1,210 @@
+[
+  {
+    "name": "arrival_below_bottom_left_corner",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 10],
+          "to": [20, 10]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 14],
+          "to": [20, 14]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 11],
+          "to": [10, 13]
+        },
+        {
+          "type": "wall_straight",
+          "from": [20, 11],
+          "to": [20, 13]
+        }
+      ]
+    },
+    "soldiers": [],
+    "query": {
+      "kind": "arrival_facing",
+      "cell": [10, 15]
+    },
+    "expect": {
+      "facing": [0, -1]
+    }
+  },
+  {
+    "name": "arrival_right_of_bottom_right_corner",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 10],
+          "to": [20, 10]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 14],
+          "to": [20, 14]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 11],
+          "to": [10, 13]
+        },
+        {
+          "type": "wall_straight",
+          "from": [20, 11],
+          "to": [20, 13]
+        }
+      ]
+    },
+    "soldiers": [],
+    "query": {
+      "kind": "arrival_facing",
+      "cell": [21, 14]
+    },
+    "expect": {
+      "facing": [-1, 0]
+    }
+  },
+  {
+    "name": "arrival_left_of_bottom_left_corner",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 10],
+          "to": [20, 10]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 14],
+          "to": [20, 14]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 11],
+          "to": [10, 13]
+        },
+        {
+          "type": "wall_straight",
+          "from": [20, 11],
+          "to": [20, 13]
+        }
+      ]
+    },
+    "soldiers": [],
+    "query": {
+      "kind": "arrival_facing",
+      "cell": [9, 14]
+    },
+    "expect": {
+      "facing": [1, 0]
+    }
+  },
+  {
+    "name": "arrival_mid_wall_no_corner",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [10, 10],
+          "to": [20, 10]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 14],
+          "to": [20, 14]
+        },
+        {
+          "type": "wall_straight",
+          "from": [10, 11],
+          "to": [10, 13]
+        },
+        {
+          "type": "wall_straight",
+          "from": [20, 11],
+          "to": [20, 13]
+        }
+      ]
+    },
+    "soldiers": [],
+    "query": {
+      "kind": "arrival_facing",
+      "cell": [15, 15]
+    },
+    "expect": {
+      "facing": null
+    }
+  },
+  {
+    "name": "arrival_open_ground",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": []
+    },
+    "soldiers": [],
+    "query": {
+      "kind": "arrival_facing",
+      "cell": [5, 5]
+    },
+    "expect": {
+      "facing": null
+    }
+  },
+  {
+    "name": "arrival_lone_wall_in_line_with_end",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [5, 5],
+          "to": [10, 5]
+        }
+      ]
+    },
+    "soldiers": [],
+    "query": {
+      "kind": "arrival_facing",
+      "cell": [4, 5]
+    },
+    "expect": {
+      "facing": [1, 0]
+    }
+  },
+  {
+    "name": "arrival_lone_wall_beside_end",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [
+        {
+          "type": "wall_straight",
+          "from": [5, 5],
+          "to": [10, 5]
+        }
+      ]
+    },
+    "soldiers": [],
+    "query": {
+      "kind": "arrival_facing",
+      "cell": [5, 6]
+    },
+    "expect": {
+      "facing": [1, 0]
+    }
+  }
+]
