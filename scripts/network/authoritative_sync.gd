@@ -127,6 +127,90 @@ static func apply_snapshot(game_state: GameStateClass, snapshot: Dictionary) -> 
 			)
 
 
+## Periodic server soldier state. Returns one entry per soldier that changed:
+## {team_id, soldier_id, stance_changed, view_changed}. Stress/ammo/grenades alone
+## leave view_changed false (command bar only).
+static func apply_soldier_sync(game_state: GameStateClass, payload: Dictionary) -> Array[Dictionary]:
+	var changed: Array[Dictionary] = []
+	if game_state == null:
+		return changed
+	apply_sim_time(payload)
+	for raw in payload.get("soldiers", []):
+		if not raw is Dictionary:
+			continue
+		var entry: Dictionary = raw
+		var soldier: SoldierState = game_state.get_soldier(
+			int(entry.get("teamId", -1)), int(entry.get("soldierId", -1))
+		)
+		if soldier == null or soldier.is_dead:
+			continue
+		var stance_changed := false
+		var view_changed := false
+		var any_changed := false
+
+		var stance := int(entry.get("positionState", soldier.position_state))
+		if stance != soldier.position_state:
+			soldier.position_state = stance
+			soldier.clear_pending_position()
+			stance_changed = true
+		var mode := int(entry.get("movementMode", soldier.movement_mode))
+		if mode != soldier.movement_mode:
+			soldier.movement_mode = mode
+			view_changed = true
+		## Moving soldiers get facing from movement_tick steps; don't fight them.
+		if not soldier.is_moving and entry.has("facing"):
+			var step := _cell(entry.get("facing", {}))
+			if step != Vector2i.ZERO:
+				var facing := FacingDirection.from_step(step)
+				if facing != soldier.facing_direction:
+					soldier.facing_direction = facing
+					view_changed = true
+		var stunned_until := int(entry.get("stunnedUntilMsec", soldier.stunned_until_msec))
+		if stunned_until != soldier.stunned_until_msec:
+			soldier.stunned_until_msec = stunned_until
+			view_changed = true
+
+		var fire_control := int(entry.get("fireControlState", soldier.fire_control_state))
+		var target_team := int(entry.get("engagedTargetTeamId", soldier.engaged_target_team_id))
+		var target_id := int(entry.get("engagedTargetSoldierId", soldier.engaged_target_soldier_id))
+		var sustained := bool(entry.get("sustainedFire", soldier.sustained_fire))
+		if (
+			fire_control != soldier.fire_control_state
+			or target_team != soldier.engaged_target_team_id
+			or target_id != soldier.engaged_target_soldier_id
+			or sustained != soldier.sustained_fire
+		):
+			soldier.fire_control_state = fire_control
+			soldier.engaged_target_team_id = target_team
+			soldier.engaged_target_soldier_id = target_id
+			soldier.sustained_fire = sustained
+			if not soldier.sustained_fire and not soldier.is_engaged():
+				soldier.reset_fire_prep()
+			view_changed = true
+
+		var stress := float(entry.get("stress", soldier.stress))
+		if not is_equal_approx(stress, soldier.stress):
+			soldier.stress = stress
+			any_changed = true
+		var grenades := int(entry.get("grenadeCount", soldier.grenade_count))
+		if grenades != soldier.grenade_count:
+			soldier.grenade_count = grenades
+			any_changed = true
+		var ammo := int(entry.get("ammoCurrent", soldier.ammo_current))
+		if ammo != soldier.ammo_current:
+			soldier.ammo_current = ammo
+			any_changed = true
+
+		if stance_changed or view_changed or any_changed:
+			changed.append({
+				"team_id": soldier.team_id,
+				"soldier_id": soldier.soldier_id,
+				"stance_changed": stance_changed,
+				"view_changed": stance_changed or view_changed,
+			})
+	return changed
+
+
 static func apply_combat_shots(game_state: GameStateClass, payload: Dictionary) -> ActionResultClass:
 	apply_sim_time(payload)
 	var result := ActionResultClass.new()

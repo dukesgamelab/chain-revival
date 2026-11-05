@@ -18,16 +18,21 @@ Single-player is the reference. The server is brought in line with it, not the o
 
 One periodic message fixes the whole "client never heard about it" class of bugs, including future ones.
 
-- [ ] Server: every combat scan (0.5s), broadcast a compact `soldier_sync` with, for each living soldier:
-  - position state and pending stance
-  - facing
+- [x] Server: every combat scan (0.5s), broadcast a compact `soldier_sync` with, for each living soldier:
+  - position state and movement mode (pending stance left out: the client treats pending differently and a mismatch is cleared when the stance itself differs)
+  - facing (client ignores it while the soldier is moving; `movement_tick` owns facing then)
   - stress
   - grenade count, ammo
   - stunned / stun-until
-  - engaged target, sustained-fire flag
-  - Location: `server/src/match.ts`, next to the `scenario_time` broadcast (stress already rides there; move it into this message).
-- [ ] Client: apply in `scripts/network/authoritative_sync.gd`. Refresh views and the command bar only when something changed.
-- [ ] Remove the now-redundant stress list from `scenario_time`.
+  - fire control state, engaged target, sustained-fire flag
+  - Location: `server/src/match.ts` `broadcastSoldierSync()`, sent during deployment and the running match.
+- [x] Client: apply in `scripts/network/authoritative_sync.gd` `apply_soldier_sync()`. `main.gd` `_on_network_soldier_sync()` animates stance changes and redraws only soldiers whose view changed; stress/ammo/grenades only refresh the command bar.
+- [x] Remove the now-redundant stress list from `scenario_time`.
+- [ ] In-game check (see Done when).
+
+**Deploy note:** server and client must ship together. A 0.22.9 client on the new server loses stress decay (it read stress from `scenario_time`), so soldiers would look stuck at their peak stress until the client updates.
+
+**Tests:** `server/tests/soldier_sync.test.ts`, and the `soldier sync` cases in `scripts/tests/authoritative_sync_tests.gd`.
 
 **Fixes:**
 - Grenade count stuck at 5 in the UI.

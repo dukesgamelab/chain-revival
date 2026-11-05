@@ -23,6 +23,9 @@ func _ready() -> void:
 	_test_move_result_stance_and_mode()
 	_test_snapshot_restores_facing_stance_mode()
 	_test_fire_control_and_target_both_replicas()
+	_test_soldier_sync_applies_state()
+	_test_soldier_sync_reports_only_changes()
+	_test_soldier_sync_skips_facing_while_moving()
 	print("")
 	print("Authoritative sync tests: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -228,3 +231,93 @@ func _test_fire_control_and_target_both_replicas() -> void:
 		and not a.is_engaged()
 		and not b.is_engaged(),
 	)
+
+
+func _sync_entry(soldier: SoldierState, overrides: Dictionary = {}) -> Dictionary:
+	var entry := {
+		"teamId": soldier.team_id,
+		"soldierId": soldier.soldier_id,
+		"positionState": soldier.position_state,
+		"movementMode": soldier.movement_mode,
+		"facing": {"x": soldier.facing_direction.x, "y": soldier.facing_direction.y},
+		"stress": soldier.stress,
+		"grenadeCount": soldier.grenade_count,
+		"ammoCurrent": soldier.ammo_current,
+		"stunnedUntilMsec": soldier.stunned_until_msec,
+		"fireControlState": soldier.fire_control_state,
+		"engagedTargetTeamId": soldier.engaged_target_team_id,
+		"engagedTargetSoldierId": soldier.engaged_target_soldier_id,
+		"sustainedFire": soldier.sustained_fire,
+	}
+	entry.merge(overrides, true)
+	return entry
+
+
+func _test_soldier_sync_applies_state() -> void:
+	var game_state := _make_game_state()
+	var soldier: SoldierState = game_state.get_soldier(Team.GERMANY, 1)
+	var payload := {
+		"soldiers": [
+			_sync_entry(soldier, {
+				"positionState": PositionStateClass.DOWN,
+				"movementMode": MovementModeClass.CRAWL,
+				"facing": {"x": 1, "y": 0},
+				"stress": 42.0,
+				"grenadeCount": 2,
+				"ammoCurrent": 3,
+				"stunnedUntilMsec": 9000,
+				"engagedTargetTeamId": Team.USA,
+				"engagedTargetSoldierId": 2,
+				"sustainedFire": true,
+			}),
+		],
+	}
+	var changed := AuthoritativeSyncClass.apply_soldier_sync(game_state, payload)
+	_assert("sync stance", soldier.position_state == PositionStateClass.DOWN)
+	_assert("sync movementMode", soldier.movement_mode == MovementModeClass.CRAWL)
+	_assert("sync facing", soldier.facing_direction == Vector2i(1, 0))
+	_assert("sync stress", is_equal_approx(soldier.stress, 42.0))
+	_assert("sync grenades", soldier.grenade_count == 2)
+	_assert("sync ammo", soldier.ammo_current == 3)
+	_assert("sync stun", soldier.stunned_until_msec == 9000)
+	_assert(
+		"sync fire-at target",
+		soldier.sustained_fire and soldier.engaged_target_team_id == Team.USA
+		and soldier.engaged_target_soldier_id == 2,
+	)
+	_assert(
+		"sync reports stance change",
+		changed.size() == 1 and bool(changed[0].stance_changed) and bool(changed[0].view_changed),
+		str(changed),
+	)
+
+
+func _test_soldier_sync_reports_only_changes() -> void:
+	var game_state := _make_game_state()
+	var soldier: SoldierState = game_state.get_soldier(Team.USA, 1)
+	var same := AuthoritativeSyncClass.apply_soldier_sync(game_state, {"soldiers": [_sync_entry(soldier)]})
+	_assert("sync unchanged reports nothing", same.is_empty(), str(same))
+	var counts := AuthoritativeSyncClass.apply_soldier_sync(
+		game_state, {"soldiers": [_sync_entry(soldier, {"grenadeCount": soldier.grenade_count - 1})]}
+	)
+	_assert(
+		"sync grenade-only change skips view refresh",
+		counts.size() == 1 and not bool(counts[0].view_changed),
+		str(counts),
+	)
+
+
+func _test_soldier_sync_skips_facing_while_moving() -> void:
+	var game_state := _make_game_state()
+	var soldier: SoldierState = game_state.get_soldier(Team.USA, 1)
+	var start := soldier.grid_position
+	var path: Array[Vector2i] = [start, start + Vector2i(1, 0)]
+	soldier.assign_path(path, 1.0)
+	var before := soldier.facing_direction
+	var flipped := Vector2i(-before.x, -before.y)
+	if flipped == Vector2i.ZERO:
+		flipped = Vector2i(1, 0)
+	AuthoritativeSyncClass.apply_soldier_sync(
+		game_state, {"soldiers": [_sync_entry(soldier, {"facing": {"x": flipped.x, "y": flipped.y}})]}
+	)
+	_assert("sync leaves moving soldier's facing", soldier.facing_direction == before)

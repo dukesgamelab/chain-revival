@@ -740,6 +740,7 @@ export class LocalMatch {
           timeRemainingSec: this.gameState.scenario.timeRemainingSec,
           deployTimeRemainingSec: this.deploymentRemainingSec,
         });
+        this.broadcastSoldierSync();
       }
       if (this.deploymentRemainingSec <= 0) {
         console.log("Deployment phase ended — scenario running!");
@@ -800,11 +801,8 @@ export class LocalMatch {
           timeRemainingSec: this.gameState.scenario.timeRemainingSec,
           usaKillPoints: this.gameState.scenario.killPoints[1] ?? 0,
           germanyKillPoints: this.gameState.scenario.killPoints[2] ?? 0,
-          // Stress decays here every scan; clients otherwise only see it rise via shots.
-          stress: this.gameState.soldiers
-            .filter((s) => !s.isDead)
-            .map((s) => ({ teamId: s.teamId, soldierId: s.soldierId, stress: s.stress })),
         });
+        this.broadcastSoldierSync();
         if (this.gameState.scenario.vpDirty) {
           this.gameState.scenario.vpDirty = false;
           this.broadcast({
@@ -950,6 +948,35 @@ export class LocalMatch {
     if (client !== undefined && client.ws.readyState === client.ws.OPEN) {
       client.ws.send(JSON.stringify(payload));
     }
+  }
+
+  /**
+   * Safety net for state the server changes without an action result (AI orders,
+   * stress decay, stun recovery, grenade counts). Grid position rides movement_tick.
+   */
+  private broadcastSoldierSync(): void {
+    this.broadcast({
+      type: "soldier_sync",
+      matchId: this.matchId,
+      simMsec: this.clock.getTicksMsec(),
+      soldiers: this.gameState.soldiers
+        .filter((s) => !s.isDead)
+        .map((s) => ({
+          teamId: s.teamId,
+          soldierId: s.soldierId,
+          positionState: s.positionState,
+          movementMode: s.movementMode,
+          facing: { ...s.facing },
+          stress: s.stress,
+          grenadeCount: s.grenadeCount,
+          ammoCurrent: s.ammoCurrent,
+          stunnedUntilMsec: s.stunnedUntilMsec,
+          fireControlState: s.fireControlState,
+          engagedTargetTeamId: s.engagedTargetTeamId,
+          engagedTargetSoldierId: s.engagedTargetSoldierId,
+          sustainedFire: s.sustainedFire,
+        })),
+    });
   }
 
   private broadcast(payload: unknown): void {

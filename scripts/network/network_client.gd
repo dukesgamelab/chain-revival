@@ -47,6 +47,7 @@ signal combat_shots_received(payload: Dictionary)
 signal grenade_thrown_received(result: ActionResultClass)
 signal grenade_explode_received(payload: Dictionary)
 signal scenario_time_received(payload: Dictionary)
+signal soldier_sync_received(payload: Dictionary)
 signal vp_update_received(payload: Dictionary)
 signal deployment_ended_received
 signal match_ended_received(payload: Dictionary)
@@ -545,6 +546,8 @@ func _handle_message(message: Dictionary) -> void:
 			grenade_explode_received.emit(message)
 		"scenario_time":
 			scenario_time_received.emit(message)
+		"soldier_sync":
+			soldier_sync_received.emit(message)
 		"vp_update":
 			vp_update_received.emit(message)
 		"deployment_ended":
