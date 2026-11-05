@@ -74,26 +74,28 @@ Catch drift as it happens instead of after testers find it.
 
 Each item gets a parity fixture first (it should fail), then the fix (it should pass).
 
-- [ ] **Suppression on wall-hugging targets.** `combat_system.ts:132-135` returns before suppression; GDScript applies it first (`combat_system.gd:375-382`).
-- [ ] **Grenade blast blocking.** `grenade_system.ts:103-110` uses shot LOS, so the blast passes through walls next to the victim and is blocked by standing soldiers. GDScript uses a wall-only check (`combat_system.gd:2431-2451`).
-- [ ] **Auto-target scoring.** `perception.ts` `scoreAutoTarget` lacks the SMG/LMG and stick-with-current-target bonuses (`combat_system.gd:1283-1293`).
-- [ ] **Thrower killed during the fuse.** `soldier_state.ts` `markKilled` keeps the pending grenade; GDScript cancels it. *Check first:* v0.22.8 changed GDScript so the grenade still goes off (`soldier_state.gd` `mark_killed` comment says it now matches the server), so this may already be resolved.
-- [ ] **Squad path diagonal cut.** `action_resolver.ts:353-361` translated squad paths skip the pathfinder's no-diagonal-between-walls rule.
-- [ ] **AI clock mix-up.** `ai_commander.ts:1406,1460` use `Date.now()` against sim time. Fire dedup never blocks and the watchdog never fires; the AI re-sends Fire At and resets aim. Use sim time everywhere in AI.
-- [ ] **Grenade fuse timing.** `match.ts:758` checks only on 0.5s scans, so the 1.8s fuse resolves at 2.0-2.3s.
-- [ ] **Orders during deployment.** Grenades and Fire At are accepted during the deployment countdown (`match.ts:600-687`). Lock them like moves.
+- [x] **Suppression on wall-hugging targets.** Server `resolveShot` now applies suppression right after firing, before the wall-cover return, like GDScript. Test: `server/tests/sim_parity_drift.test.ts` (stress matches the `suppression_wall_hugging_target` fixture, 67.86).
+- [x] **Grenade blast blocking.** Server `blastBlocked` is now a port of `_grenade_blast_blocked`: complete walls and vision-blocking tiles only; soldiers never shield. Fixture: `grenade_wall_between_shields`.
+- [x] **Auto-target scoring.** Server `scoreAutoTarget` now adds the SMG/LMG bonus (+20) and the stick-with-current-target bonus (+10). Fixtures: `auto_target_prefers_smg_gunner`, `auto_target_sticks_with_engaged_target`.
+- [x] **Thrower killed during the fuse.** No drift: since v0.22.8 both sides let a thrown grenade go off after the thrower dies, and both cancel it when the thrower is stunned.
+- [x] **Squad path diagonal cut.** No drift: GDScript `_assign_translated_squad_path` translates the lead path the same way (walkable-cell check only). If diagonal corner-cutting in squad moves is a gameplay problem, fix it on both sides together.
+- [x] **AI clock mix-up.** `AiCommander` stores the tick's sim time (`simNowMsec`) and uses it for move/face dedup and the watchdog instead of `Date.now()`. Low impact today: server AI is never switched on for online matches (`setupAi` is not called).
+- [x] **Grenade fuse timing.** No drift: single-player also resolves fuses in the 0.5s combat scan, so both sides go off at 2.0-2.3s.
+- [x] **Orders during deployment.** Fire At and grenades are refused during the timed deployment countdown on both sides (server `deploymentRemainingSec > 0`, client `locks_deployment_zone()`). Hold Fire / Fire At Will toggles still work. Tests: `sim_parity_drift.test.ts`, `gameplay_foundation_tests` "Grenade refused during timed deployment".
 
 ## Step 4 - Message and reconnect correctness
 
-- [ ] **`grenade_result` vs `grenade_thrown`.** The server sends `grenade_result` for failed throws (`index.ts:677`, `match.ts:657,673`). The client only handles `grenade_thrown`, so each failure waits 3s and times out. The replay recorder also whitelists the wrong name.
-- [ ] **Command results go to both sides.** `match.ts:447,493,548,597,645,687`. The opponent's failed orders show on your status bar. Send results only to the issuing team.
-- [ ] **Forfeit after the reconnect window records no result.** `index.ts:853` removes the client before the forfeit, so `clientTeams` misses the quitter. Keep the team mapping for pending reconnects.
-- [ ] **Reconnect snapshot ignored.** `network_client.gd:618` emits `match_snapshot_received` and nothing listens. Re-apply the snapshot on a confirmed reconnect.
-- [ ] **Any `welcome` counts as a reconnect.** Check `reconnected: true` (`network_client.gd:403-413`).
-- [ ] **Retreat starts the reconnect loop.** Clear the in-match flag on `leave_confirmed` / `match_ended`.
-- [ ] **Client gives up too early.** Base retries on elapsed time (about 85s), not a count of 6.
+- [x] **`grenade_result` vs `grenade_thrown`.** Every failed throw now replies `grenade_thrown` (`match.ts` `handleGrenade`, `index.ts` invalid-command reply); the replay recorder records `grenade_thrown`.
+- [x] **Command results go to both sides.** Kept the broadcast, because the opponent's client needs the state in it (halts, stance, facing). Instead `network_client.gd` clears the status text on any result that is not for one of our own pending requests (`_strip_foreign_status`).
+- [x] **Forfeit after the reconnect window records no result.** A player who drops mid-match is now held with `match.holdClientTeam` instead of removed, and both match-end paths report held teams (`resultClientTeams`). A reconnect removes the held entry. Tests in `sim_parity_drift.test.ts`.
+- [x] **Reconnect snapshot ignored.** `main.gd` `_on_network_match_snapshot` re-applies the server snapshot after a confirmed reconnect and redraws.
+- [x] **Any `welcome` counts as a reconnect.** The client stays in the reconnect loop until the welcome; `reconnected: true` ends it, anything else gives up at once.
+- [x] **Retreat starts the reconnect loop.** `match_ready_received` is cleared on retreat (`send_leave_match`), `leave_confirmed` and `match_ended`.
+- [x] **Client gives up too early.** No attempt cap; retries every 3s until 85s have passed.
 
-## Step 5 (optional) - Real fog of war
+- [ ] **In-game reconnect check (before the release build, not blocking the PR):** two clients; cut one player's network for about 10s mid-match and press Retreat. Optional: close-and-rejoin, and a reconnect after the 90s window (should return to the lobby with the result recorded).
+
+## Step 5 - Real fog of war (moved to Phase 48)
 
 - [ ] **Client:** hide unspotted enemies in 1v1 too (`main.gd` `_fog_visual_for_enemy` currently returns GHOST). At most keep a fading last-known marker.
 - [ ] **Server:** only send each team the enemy positions it can see (snapshots, movement ticks).

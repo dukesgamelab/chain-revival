@@ -41,6 +41,8 @@ const LOSSystemClass := preload("res://scripts/combat/los_system.gd")
 ## TUNED — keep fireteams together without stranding a click just outside the bubble.
 const FIRETEAM_COHESION_RADIUS := 14
 const FIRETEAM_COHESION_FAIL_MSG := "Cannot move that far from fireteam"
+const DEPLOYMENT_FIRE_LOCKED_MSG := "Cannot fire until deployment ends."
+const DEPLOYMENT_GRENADE_LOCKED_MSG := "Cannot throw grenades until deployment ends."
 ## TUNED — AI squad offsets clamped so wide spawn spreads compact on the first bound.
 const AI_FORMATION_OFFSET_MAX := 2
 
@@ -811,6 +813,8 @@ static func execute_fire(
 	## Manual Fire At = assign priority target(s); fully blocked LOS holds fire but keeps assignment.
 	if context == null or cmd.aim_world == Vector2.ZERO:
 		return ActionResult.fail("Fire command requires aim_world.")
+	if game_state.locks_deployment_zone():
+		return ActionResult.fail(DEPLOYMENT_FIRE_LOCKED_MSG)
 
 	var fireteam := _order_fireteam(game_state, cmd.team_id, context)
 	var shooter_ids := _resolve_shooter_ids(fireteam, cmd, context)
@@ -1087,6 +1091,8 @@ static func execute_grenade(
 	var soldier: SoldierState = game_state.get_soldier(cmd.team_id, cmd.soldier_id)
 	if soldier == null or soldier.is_dead:
 		return ActionResult.fail("Soldier unavailable.")
+	if game_state.locks_deployment_zone():
+		return ActionResult.fail(DEPLOYMENT_GRENADE_LOCKED_MSG)
 	if soldier.is_stunned():
 		return ActionResult.fail("Soldier is stunned.")
 	if soldier.has_pending_grenade():

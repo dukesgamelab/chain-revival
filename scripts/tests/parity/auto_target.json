@@ -1,5 +1,78 @@
 [
   {
+    "name": "auto_target_baseline_without_engagement",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [0, -1],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [17, 21],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "auto_target",
+      "shooter": [1, 1]
+    },
+    "expect": {
+      "target": [2, 1]
+    }
+  },
+  {
+    "name": "auto_target_sticks_with_engaged_target",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": []
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 20],
+        "facing": [0, -1],
+        "weapon": "m1_garand",
+        "engagedTarget": [2, 2]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 20],
+        "facing": [-1, 0]
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [17, 21],
+        "facing": [-1, 0]
+      }
+    ],
+    "query": {
+      "kind": "auto_target",
+      "shooter": [1, 1]
+    },
+    "expect": {
+      "target": [2, 2]
+    }
+  },
+  {
     "name": "auto_target_closer_enemy",
     "map": {
       "width": 40,
@@ -120,7 +193,6 @@
   },
   {
     "name": "auto_target_prefers_smg_gunner",
-    "knownDrift": "Step 3 auto-target scoring: server scoreAutoTarget lacks the SMG/LMG bonus",
     "map": {
       "width": 40,
       "height": 40,

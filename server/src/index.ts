@@ -713,7 +713,7 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     const intent = parseGrenadeIntent(message);
     if (intent === null) {
       sendJson(ws, {
-        type: "grenade_result",
+        type: "grenade_thrown",
         matchId: MATCH_ID,
         requestId: typeof message.requestId === "string" ? message.requestId : "",
         success: false,
@@ -888,7 +888,8 @@ wss.on("connection", (ws: WebSocket) => {
         disconnectedUserId, disconnectedSide, RECONNECT_WINDOW_SEC);
 
       // Detach from match broadcasts but keep side_ownership record (ghost blocks slot)
-      match.removeClient(clientId);
+      // and the team, so a forfeit after the window still records both players.
+      match.holdClientTeam(clientId);
 
       // Notify remaining players
       broadcastToAssigned({

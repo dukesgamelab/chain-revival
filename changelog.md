@@ -8,6 +8,12 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - Multiplayer soldier state now stays in sync - the server sends every soldier's stance, facing, stress, grenades, ammo, stun and Fire At target twice a second, so the other player's screen corrects itself (Phase 47)
 - Fixed grenade count stuck at 5 in multiplayer (Phase 47)
 - Fixed soldiers getting up after a grenade stun not showing for the other player (Phase 47)
+- Multiplayer combat now follows the same rules as single-player: grenade blasts are stopped by walls the same way, suppression lands on soldiers hugging a wall, and Fire At Will prefers SMG/LMG gunners and keeps its current target (Phase 47)
+- Fire At and grenades can no longer be ordered during the deployment countdown, in single-player and multiplayer (Phase 47)
+- Fixed a failed grenade throw in multiplayer taking 3 seconds to report back (Phase 47)
+- The opponent's order messages ("Target is out of grenade range") no longer show on your status bar (Phase 47)
+- Fixed a forfeit after the 90-second reconnect window not recording the match result (Phase 47)
+- Reconnecting mid-match is more reliable: the game keeps trying for 85 seconds instead of giving up after 6 tries, restores the full battlefield when it gets back in, and returns to the lobby straight away if the slot is gone. Retreating no longer triggers a reconnect attempt (Phase 47)
 
 ---
 
@@ -346,7 +352,7 @@ All migrations in `server/sql/`, numbered 001-033. All have been run in Supabase
 | ~~44~~ | ~~Combat realism~~ | ~~Done - friendly grenades, lethality 0.6, movement fixes~~ | ~~Complete~~ |
 | ~~45~~ | ~~Suppression & pinning~~ | ~~Done - sustained fire 1.5x suppression, panicked blocks, UI stress feedback~~ | ~~Complete~~ |
 | ~~46~~ | ~~Reconnect fix~~ | ~~Done - countdown, lobby Rejoin after closing the game, cover status, tester audio fixes~~ | ~~Complete~~ |
-| 47 | Sim parity | **In progress** - soldier sync and parity test harness done; server drift fixes and reconnect fixes next | v1 required |
+| 47 | Sim parity | **Code complete** - soldier sync, parity test harness, server drift fixes, message and reconnect fixes. Quick in-game reconnect check before the release build | v1 required |
 | 48 | Fog of war | Server-side position filtering, hide unspotted enemies, last-known markers (v0.23.0) | v1 required |
 | 49 | Combat keybinds | OG-style keyboard shortcuts (D/W/R/C/F/G/P/H etc.), field report panel | v1 required |
 | 50 | PP balance & career rewards | PP lost on killed-by-rank, Medal of Courage payouts | v1 required |

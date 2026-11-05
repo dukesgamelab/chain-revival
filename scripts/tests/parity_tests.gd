@@ -103,6 +103,9 @@ func _build_state(fixture: Dictionary) -> GameState:
 		soldier.stress = float(entry.get("stress", 0.0))
 		soldier.marksman = float(entry.get("marksman", 0.0))
 		soldier.sustained_fire = bool(entry.get("sustainedFire", false))
+		var engaged: Array = entry.get("engagedTarget", [-1, -1])
+		soldier.engaged_target_team_id = int(engaged[0])
+		soldier.engaged_target_soldier_id = int(engaged[1])
 	for team_id in [Team.USA, Team.GERMANY]:
 		for soldier_id in range(1, 5):
 			var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)

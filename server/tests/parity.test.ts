@@ -29,6 +29,7 @@ interface SoldierSpec {
   weapon?: string;
   marksman?: number;
   sustainedFire?: boolean;
+  engagedTarget?: Pair;
 }
 interface ObjectSpec {
   type: string;
@@ -80,6 +81,9 @@ function buildState(f: Fixture): GameState {
     s.stress = spec.stress ?? 0;
     s.marksman = spec.marksman ?? 0;
     s.sustainedFire = spec.sustainedFire ?? false;
+    const [engagedTeam, engagedId] = spec.engagedTarget ?? [-1, -1];
+    s.engagedTargetTeamId = engagedTeam;
+    s.engagedTargetSoldierId = engagedId;
   }
   for (const s of state.soldiers) {
     if (!listed.has(s)) s.isDead = true;

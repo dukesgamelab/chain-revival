@@ -23,7 +23,7 @@ Each `*.json` file is an array of cases:
 ```
 
 - `objects`: `at` for one cell, or `from`/`to` for a straight row or column (inclusive). Types are plain map object ids (`wall_straight`, `tree`, `haybail`); no asset family.
-- `soldiers`: team 1 = USA, 2 = Germany, ids 1-4. Soldiers not listed are marked dead. Optional fields: `facing` (default `[0, 1]`), `stance` (`up`/`down`), `stress`, `weapon`, `marksman`, `sustainedFire`.
+- `soldiers`: team 1 = USA, 2 = Germany, ids 1-4. Soldiers not listed are marked dead. Optional fields: `facing` (default `[0, 1]`), `stance` (`up`/`down`), `stress`, `weapon`, `marksman`, `sustainedFire`, `engagedTarget` (`[team, id]`).
 - `knownDrift`: the server runner reports the case as a TODO instead of failing. Remove it when the server fix lands.
 
 ## Query kinds

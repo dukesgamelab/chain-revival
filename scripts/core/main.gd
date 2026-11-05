@@ -3277,6 +3277,8 @@ func _ensure_multiplayer_result_signals() -> void:
 		NetworkClient.scenario_time_received.connect(_on_network_scenario_time)
 	if not NetworkClient.soldier_sync_received.is_connected(_on_network_soldier_sync):
 		NetworkClient.soldier_sync_received.connect(_on_network_soldier_sync)
+	if not NetworkClient.match_snapshot_received.is_connected(_on_network_match_snapshot):
+		NetworkClient.match_snapshot_received.connect(_on_network_match_snapshot)
 	if not NetworkClient.vp_update_received.is_connected(_on_network_vp_update):
 		NetworkClient.vp_update_received.connect(_on_network_vp_update)
 	if not NetworkClient.deployment_ended_received.is_connected(_on_network_deployment_ended):
@@ -3432,6 +3434,23 @@ func _on_network_scenario_time(payload: Dictionary) -> void:
 	if rem_i != _last_scenario_hud_sec:
 		_last_scenario_hud_sec = rem_i
 		_refresh_scenario_hud()
+
+
+## Mid-match reconnect: the server resends the full state after the welcome. The first
+## snapshot of a match is applied in _ready from NetworkClient.last_snapshot instead.
+func _on_network_match_snapshot(snapshot: Dictionary) -> void:
+	if _game_state == null or not NetworkClient.welcome_reconnected:
+		return
+	AuthoritativeSyncClass.apply_snapshot(_game_state, snapshot)
+	_invalidate_fog_cache()
+	_ensure_active_selection_alive()
+	_refresh_all_views()
+	_refresh_enemy_spotting_visuals()
+	_refresh_command_bar()
+	_sync_run_to_destination_overlay()
+	if _command_bar != null:
+		_command_bar.show_status("Reconnected. Match continues.")
+	GameLog.log_system("[Main] Reconnect snapshot applied.")
 
 
 func _on_network_soldier_sync(payload: Dictionary) -> void:

@@ -470,6 +470,8 @@ export class AiCommander {
   private lastFireKey = "";
   private lastFireMsec = -999999;
   private lastSuccessMsec = 0;
+  /** Sim time of the current tick; dedup and watchdog compare against sim time, never wall clock. */
+  private simNowMsec = 0;
 
   // Defensive posts
   private defensivePosts = new Map<number, Vec2i>();
@@ -499,6 +501,7 @@ export class AiCommander {
     nowMsec: number,
     snapshot: AiBattlefieldSnapshot | null = null,
   ): Vec2i {
+    this.simNowMsec = nowMsec;
     this.commandsThisTick = 0;
     this.snapshot = snapshot ?? buildSnapshot(state, [this.playerId]);
 
@@ -1403,7 +1406,7 @@ export class AiCommander {
   }
 
   private dedupExpired(stampMsec: number): boolean {
-    return stampMsec < 0 || Date.now() - stampMsec >= DEDUP_EXPIRE_MSEC;
+    return stampMsec < 0 || this.simNowMsec - stampMsec >= DEDUP_EXPIRE_MSEC;
   }
 
   private clearMoveDedup(): void {
@@ -1413,7 +1416,7 @@ export class AiCommander {
 
   private noteMoveDedup(cell: Vec2i): void {
     this.lastMoveCell = { ...cell };
-    this.lastMoveMsec = Date.now();
+    this.lastMoveMsec = this.simNowMsec;
   }
 
   private moveDedupBlocks(target: Vec2i, leadCell: Vec2i): boolean {
@@ -1457,7 +1460,7 @@ export class AiCommander {
     const result = submit(command);
     if (!result.success) return false;
     this.commandsThisTick++;
-    this.lastSuccessMsec = Date.now();
+    this.lastSuccessMsec = this.simNowMsec;
     return true;
   }
 
@@ -1502,7 +1505,7 @@ export class AiCommander {
     });
     if (success) {
       this.lastFaceCell = { ...targetCell };
-      this.lastFaceMsec = Date.now();
+      this.lastFaceMsec = this.simNowMsec;
     }
     return success;
   }

@@ -6,7 +6,8 @@
 import type { GameState } from "./game_state";
 import { towardCell } from "./facing";
 import { combatRange } from "./hit_resolution";
-import { evaluate as evaluateLos, LOS_BLOCKED } from "./los";
+import { lineCellsBetween } from "./grid";
+import { isCompleteCoverWall, tileBlocksVision } from "./los";
 import type { SoldierState } from "./soldier_state";
 import { LETHALITY_MULTIPLIER } from "./hit_resolution";
 import { onSoldierKilled } from "./scenario_rules";
@@ -101,14 +102,26 @@ export function stunDurationAtDistance(distance: number): number {
   return Math.max(GRENADE_VAR_C / denom, GRENADE_STUN_MIN_SEC);
 }
 
-/** Walls block blast fragments (stricter than shot LOS: no cover exceptions, no peeks). */
+/**
+ * Walls / opaque tiles between blast and victim block fragments. Port of
+ * CombatSystem._grenade_blast_blocked: no wall-hugging cover exception, no corner
+ * peeks, and soldiers never shield each other.
+ */
 function blastBlocked(from: Vec2i, to: Vec2i, state: GameState): boolean {
   if (from.x === to.x && from.y === to.y) {
     return false;
   }
-  // Use shot LOS as a conservative check. If LOS is blocked, blast is blocked.
-  const los = evaluateLos(from, to, state.map, state.losOccupants());
-  return los.status === LOS_BLOCKED;
+  const map = state.map;
+  for (const cell of lineCellsBetween(from, to)) {
+    const def = map.getObjectDef(cell);
+    if (def === null && !map.hasObject(cell)) {
+      continue;
+    }
+    if (isCompleteCoverWall(def) || tileBlocksVision(map, cell, def, false, false)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // --- Throw validation ---

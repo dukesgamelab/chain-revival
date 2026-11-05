@@ -93,7 +93,6 @@
   },
   {
     "name": "grenade_wall_between_shields",
-    "knownDrift": "Step 3 grenade blast blocking: server uses shot LOS, so a victim hugging the wall is not shielded",
     "map": {
       "width": 30,
       "height": 30,

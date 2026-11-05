@@ -95,17 +95,24 @@ Goal: multiplayer plays the same as single-player. Single-player (GDScript) is t
 |---|---|---|
 | 1 | Soldier sync - server sends every soldier's stance, facing, stress, grenades, ammo, stun and Fire At state every 0.5s | Done, tested in a local 1v1 |
 | 2 | Parity test harness - shared rule fixtures run by both sides | Done |
-| 3 | Fix known server drift (8 items) | Next |
-| 4 | Message and reconnect fixes | Open |
+| 3 | Fix known server drift (auto-target bonuses, grenade blast walls, wall-hugger suppression, deployment lock, AI clock; 3 items turned out not to be drift) | Done |
+| 4 | Message and reconnect fixes (grenade reply name, opponent status text, forfeit result, reconnect loop) | Done |
+
+**Status:** code complete, all tests pass except the two pre-existing failures below. Ready for a PR to `develop`.
+
+**Before the release build:** one local 1v1 reconnect check with two clients - cut one player's network for ~10s mid-match (should rejoin with the battlefield intact) and press Retreat (should not try to reconnect). Optional: close-and-rejoin from the lobby, and a disconnect past 90s (back to lobby, result recorded). Skipped for now because the risk is low: the server's only mid-match welcome is the reconnect path, which always sends `reconnected: true`, and the worst case (back to lobby) is no worse than the old behavior.
 
 **Key files:**
-- `server/src/match.ts` - `broadcastSoldierSync()` (stress no longer rides on `scenario_time`)
+- `server/src/match.ts` - `broadcastSoldierSync()`, deployment lock in `handleFireAt` / `handleGrenade`, `holdClientTeam()` for reconnect-window results
+- `server/src/perception.ts`, `grenade_system.ts`, `combat_system.ts` - drift fixes
 - `scripts/network/authoritative_sync.gd` - `apply_soldier_sync()`
-- `scripts/core/main.gd` - `_on_network_soldier_sync()`
+- `scripts/network/network_client.gd` - reconnect loop, `_strip_foreign_status()`
+- `scripts/core/main.gd` - `_on_network_soldier_sync()`, `_on_network_match_snapshot()`
 - `scripts/tests/parity/*.json` - shared fixtures (format in its README)
-- `server/tests/parity.test.ts` and `scripts/tests/parity_tests.tscn` - the two runners
+- `server/tests/parity.test.ts` and `scripts/tests/parity_tests.tscn` - the two parity runners
+- `server/tests/sim_parity_drift.test.ts` - drift fixes that need the full server flow
 
-**Parity tests:** `cd server && npm test` runs the server side (fixtures marked `knownDrift` show as TODO). Client side: `Godot --headless --path . res://scripts/tests/parity_tests.tscn`.
+**Parity tests:** `cd server && npm test` runs the server side (fixtures marked `knownDrift` show as TODO; none right now). Client side: `Godot --headless --path . res://scripts/tests/parity_tests.tscn`.
 
 **Release note:** server and client must ship together. A 0.22.9 client on the new server loses stress decay (it read stress from `scenario_time`).
 
@@ -169,4 +176,4 @@ Not every commit is a release. Releases are for milestones players should get:
 - **Godot export exclude filter:** `export_presets.cfg` exclude_filter was stripping scenes from builds. Always verify new scenes aren't in the exclude list.
 - **Godot export:** Requires export templates matching the Godot version (4.7.2).
 - **Godot `.uid` files:** Godot 4.7.2 generates `.uid` resource tracking files. These are gitignored.
-- **Reconnect window:** The 90s server timer and 120s client retry window are intentionally offset - the client gives up 30s after the server would forfeit anyway, avoiding a race where the client reconnects just as the server forfeits.
+- **Reconnect window:** The server holds a dropped player's slot for 90s. The client retries every 3s for 85s. The welcome message decides the outcome: `reconnected: true` resumes the match, anything else ends the loop at once and returns to the lobby, so a reconnect that lands just as the server forfeits is handled cleanly.
