@@ -14,6 +14,8 @@ const SAMPLE_WALL_FAMILIES := [
 	"SCOR", "SICR", "SWAI", "SWAL", "SWAQ", "SWAR",
 	"WH00", "WH01", "WH02", "WH11",
 ]
+## Door-frame pieces drawn with their own art (no cross-family borrows).
+const DOOR_FRAME_FAMILIES := ["WWAQ", "WWAR", "SWAQ", "SWAR"]
 
 var _failed: int = 0
 var _passed: int = 0
@@ -40,6 +42,9 @@ func _ready() -> void:
 	_test_sample_families_resolve()
 	_test_camera_rotation_does_not_alter_gameplay()
 	_test_wh02_authored_sprite_square()
+	_test_lihw_half_wall_turns_with_camera()
+	_test_door_frames_spec_letter_order()
+	_test_half_walls_rotate_back()
 
 	print("")
 	print("Facet camera rotation tests: %d passed, %d failed" % [_passed, _failed])
@@ -343,3 +348,91 @@ func _test_wh02_authored_sprite_square() -> void:
 			int(counts.get(stem, 0)) == 4,
 			"got %d counts=%s" % [int(counts.get(stem, 0)), str(counts)],
 		)
+
+
+func _test_lihw_half_wall_turns_with_camera() -> void:
+	## LIHW borrows narrow wood pieces that cover half of a tile edge. The four relative
+	## facets must be the four distinct halves, each 180° pair mirrored through the tile
+	## centre. Regression: 0 and 180 both used WWAR_s and 270 used WWAQ_s (wrong diagonal),
+	## so interior half walls (ff_farm Big House, The Fortress) did not turn with the camera.
+	MapAssetRegistry.reload()
+	var feet: Dictionary = {}
+	var centre := Vector2.ZERO
+	for key in [0, 90, 180, 270]:
+		var info := CocSpriteResolver.resolve_authored_variant("LIHW", key)
+		var hotspot: Vector2 = info.get("hotspot", CocTileCatalog.DEFAULT_HOTSPOT)
+		feet[key] = _footprint(str(info.get("path", "")), hotspot)
+		centre += feet[key] / 4.0
+	for key in [0, 90]:
+		var a: Vector2 = feet[key] - centre
+		var b: Vector2 = feet[key + 180] - centre
+		_assert(
+			"LIHW facets %d and %d sit on opposite halves of the tile" % [key, key + 180],
+			absf(a.x) > 2.0 and absf(b.x) > 2.0 and absf(a.y) > 1.0 and absf(b.y) > 1.0
+			and signf(a.x) == -signf(b.x) and signf(a.y) == -signf(b.y),
+			"offsets %s vs %s" % [a, b],
+		)
+	var d0: Vector2 = feet[0] - centre
+	var d90: Vector2 = feet[90] - centre
+	_assert(
+		"LIHW facets 0 and 90 lie on different diagonals",
+		signf(d0.x * d0.y) != signf(d90.x * d90.y),
+		"offsets %s vs %s" % [d0, d90],
+	)
+
+
+func _test_door_frames_spec_letter_order() -> void:
+	## Door frames keep their own art in the spec column order 0/90/180/270 → e/s/w/n
+	## (same as WWAL/SWAL/WCOR/WH02). Regression: they stayed on e/n/w/s, so at camera
+	## 90/270 each frame drew on the doorway side of its tile, apart from its wall.
+	MapAssetRegistry.reload()
+	for fam in DOOR_FRAME_FAMILIES:
+		for i in 4:
+			var info := CocSpriteResolver.resolve_authored_variant(fam, i * 90)
+			var stem := str(info.get("path", "")).get_file().get_basename()
+			var want := "%s_%s" % [fam, CocFacetSelector.LETTERS_4[i]]
+			_assert("%s facet %d → %s" % [fam, i * 90, want], stem == want, "got %s" % stem)
+
+
+func _test_half_walls_rotate_back() -> void:
+	## Four quarter turns show four different pieces and land back on the start sprite,
+	## in both directions.
+	MapAssetRegistry.reload()
+	for fam in ["LIHW"] + DOOR_FRAME_FAMILIES:
+		for world_dir in [0, 90, 180, 270]:
+			IsometricGrid.reset_view_rotation()
+			var start := str(CocSpriteResolver.resolve_placement(fam, world_dir).get("path", ""))
+			var seen := {}
+			for _i in 4:
+				seen[str(CocSpriteResolver.resolve_placement(fam, world_dir).get("path", ""))] = true
+				IsometricGrid.rotate_view_right()
+			var after_right := str(CocSpriteResolver.resolve_placement(fam, world_dir).get("path", ""))
+			IsometricGrid.rotate_view_right()
+			IsometricGrid.rotate_view_left()
+			var after_left := str(CocSpriteResolver.resolve_placement(fam, world_dir).get("path", ""))
+			IsometricGrid.reset_view_rotation()
+			_assert(
+				"%s dir=%d shows 4 pieces over 4 turns and rotates back" % [fam, world_dir],
+				seen.size() == 4 and after_right == start and after_left == start,
+				"pieces=%d start=%s right=%s left=%s"
+				% [seen.size(), start.get_file(), after_right.get_file(), after_left.get_file()],
+			)
+
+
+## Mean of each column's lowest opaque pixel, relative to the sprite's ground-contact point.
+func _footprint(path: String, hotspot: Vector2) -> Vector2:
+	var img := Image.load_from_file(ProjectSettings.globalize_path(path))
+	if img == null:
+		return Vector2.ZERO
+	img.convert(Image.FORMAT_RGBA8)
+	var sum := Vector2.ZERO
+	var count := 0
+	for x in img.get_width():
+		for y in range(img.get_height() - 1, -1, -1):
+			if img.get_pixel(x, y).a > 0.5:
+				sum += Vector2(x, y)
+				count += 1
+				break
+	if count == 0:
+		return Vector2.ZERO
+	return sum / count + hotspot
