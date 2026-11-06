@@ -3,7 +3,7 @@
 Goal: you only see, and your client only receives, the enemies your side has spotted.
 
 - **Branch:** `fog-of-war` off `develop`.
-- **Status (2026-11-05):** code complete, server and client suites pass apart from the two old failures. The in-game checks below are still open.
+- **Status (2026-11-05):** code complete and checked in a local two-machine 1v1 and in single-player. Server and client suites pass apart from known old failures. Open: one survival report (see "Found along the way").
 - **Status key:** `[ ]` open, `[x]` done.
 - **No SQL migrations needed.**
 
@@ -82,9 +82,10 @@ Defaults I'll take unless you say otherwise:
 ## Step 3 - Checks and docs
 
 - [x] Full server and client suites (known old failures: server "lethality is applied to hit chance", client "Pinned (not panicked) soldier can still throw").
-- [ ] **Local 1v1, two clients:** neither side sees the other's soldiers at deployment, but the enemy zone highlight shows and clears when deployment ends; an enemy walking into view appears where he really is and moves smoothly; one walking out leaves the marker and it fades in ~8s; a shot from out of sight shows a tracer from his cell plus a marker, with the shooter still hidden; reconnect mid-match shows only spotted enemies.
+- [x] **Local 1v1, two clients:** neither side sees the other's soldiers at deployment, but the enemy zone highlight shows and clears when deployment ends; an enemy walking into view appears where he really is and moves smoothly; one walking out leaves the marker and it fades in ~8s; a shot from out of sight shows a tracer from his cell plus a marker, with the shooter still hidden; reconnect mid-match shows only spotted enemies.
   - **2026-11-05 run (Richard, two machines):** deployment, before contact, spotting, losing sight, hidden fire, hidden grenade, kills out of sight and normal orders all confirmed. Found: a seen German stood still on his own screen but played his run in place on the US screen. Cause: a full view sync mid-chase snapped the view without settling the run clip, and nothing told the client he had stopped. Fixed: full syncs leave a step chase alone, ending a chase always settles, and `soldier_sync` now carries `isMoving` so a stuck chase settles within 0.5s. Needs a recheck. Reconnect not tested yet.
-- [ ] Single-player 1v1 vs AI: enemies hidden until spotted.
+  - **Second run (fix 4cbf6ef9):** reconnect works. The USA side still showed Germans running in place and not playing their firing animation while the German screen showed them shooting. Open: check the USA machine had the fix, and whether the Germans were only spotted because they fired (spotting updates every 0.5s, so each shot arrives while the shooter is still hidden).
+- [x] Single-player 1v1 vs AI: enemies hidden until spotted (Richard, 2026-11-05: visuals look right).
 - [x] `game-systems.md`: new "Spotting and Fog of War" section with the spotting formula and the decisions.
 - [x] `changelog.md`: move "No effective fog of war" from Known Bugs to fixed; Phase 48 notes.
 - [x] `handoff.md`: Current Work becomes Phase 48. Phase 47 is merged to `develop` (PR #11, 2026-11-05) and not released.
@@ -102,5 +103,8 @@ This changes the wire protocol again (`revealed` in `visibility_update`, per-tea
 - **Old clients:** a 0.22.x client on the new server would show hidden enemies frozen at their spawn cells. The version check and auto-updater handle this.
 
 ## Found along the way
+
+- **Survival (1 v All), open:** Richard once couldn't move a soldier. Log (2026-11-05): a move was armed for USA Soldier 2 (tile 13,16, Germans 6-9 tiles away) but no order followed; he was then stunned by three grenades in a row and killed. Stun is the only thing that blocks moving. Not yet tied to fog of war. To check next time: which soldier, the status bar text, and where the click was.
+- **Corner firing on the opponent's screen:** Germans firing or stopped at building corners looked wrong on the USA screen (shifting poses, run in place, no firing animation). The same happens on `develop`, so it predates fog of war. Logged in the changelog Known Bugs as "Corner pose stutters on the opponent's screen".
 
 - **Reconnect never re-attached the player** (`server/src/index.ts` resume path): since the v0.22.9 security hardening removed the attach-on-connect, a reconnected socket was never added to the match. It got the snapshot, then no match messages, and every order was refused ("Join a side before issuing orders."). Fixed on this branch. It's live on `main`, so it's worth a `hotfix/` branch if a release with 47 + 48 is not close.

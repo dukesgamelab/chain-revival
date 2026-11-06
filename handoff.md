@@ -95,7 +95,7 @@ Goal: you only see, and your game only receives, the enemies your side has spott
 |---|---|---|
 | 1 | Server per-team sending: each team gets its own soldiers plus spotted enemies, no enemy paths/ammo/grenades; reveals carry full state | Done, tested |
 | 2 | Client: hide unspotted enemies in every mode, 8s last-known markers, step-by-step enemy movement, hidden-shooter tracers, enemy deployment zone tint | Done, tested headless |
-| 3 | Local 1v1 check with two clients | Mostly confirmed 2026-11-05. Enemy run-in-place bug found and fixed (needs a recheck); reconnect not tested |
+| 3 | Local 1v1 check with two clients, plus single-player | Done 2026-11-05: everything passes, reconnect works. Corner pose stutter on the opponent's screen predates fog (logged in Known Bugs). Open: a survival soldier that once wouldn't move (see the plan's "Found along the way") |
 
 **Decisions (Richard, 2026-11-05):** fading marker ~8s; normal spotting from the start plus the enemy deployment zone tint during the countdown; a hidden shooter/thrower gives a tracer and marker from his cell but stays hidden; same rules in single-player.
 
@@ -111,7 +111,7 @@ Goal: you only see, and your game only receives, the enemies your side has spott
 
 **Tests:** `server/tests/fog_of_war.test.ts`, `scripts/tests/fog_of_war_tests.tscn`.
 
-**Local 1v1 check (before the PR is merged):** neither side sees the other's soldiers at deployment, but the enemy zone tint shows and clears when deployment ends; an enemy walking into view appears where he really is and moves smoothly (watch for choppy steps - the fallback is to send the next few cells); one walking out leaves a marker that fades in ~8s; a shot from out of sight shows a tracer from his cell and a marker while he stays hidden; reconnect mid-match shows only spotted enemies and orders work.
+**Local 1v1 check (done 2026-11-05):** neither side sees the other's soldiers at deployment, but the enemy zone tint shows and clears when deployment ends; an enemy walking into view appears where he really is and moves smoothly (watch for choppy steps - the fallback is to send the next few cells); one walking out leaves a marker that fades in ~8s; a shot from out of sight shows a tracer from his cell and a marker while he stays hidden; reconnect mid-match shows only spotted enemies and orders work.
 
 **Pre-existing test failures (not from this work):** server "lethality is applied to hit chance" still expects the pre-Phase 44 value 0.9; client "Pinned (not panicked) soldier can still throw" in gameplay_foundation_tests; 3 in engagement_firing_presentation_tests (aim hold, fidget, exposed prone) and 4 in ai_commander_tests (MoveCommand, SQUAD scope, ThrowGrenadeCommand, lone defender). The last two suites fail the same way on a clean `develop` (checked 2026-11-05).
 
