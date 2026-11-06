@@ -13,6 +13,12 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - The opponent's order messages ("Target is out of grenade range") no longer show on your status bar (Phase 47)
 - Fixed a forfeit after the 90-second reconnect window not recording the match result (Phase 47)
 - Reconnecting mid-match is more reliable: the game keeps trying for 85 seconds instead of giving up after 6 tries, restores the full battlefield when it gets back in, and returns to the lobby straight away if the slot is gone. Retreating no longer triggers a reconnect attempt (Phase 47)
+- **Fog of war** - you only see enemies your soldiers have spotted, in every mode. No more seeing the other side's deployment or watching ghosts walk around the map (Phase 48)
+- When a spotted enemy drops out of sight, a faded marker stays where he was last seen for about 8 seconds (Phase 48)
+- Being shot at or grenaded by an enemy you can't see shows a tracer from where he fired and a last-known marker there, but he stays hidden until someone spots him (Phase 48)
+- The enemy's deployment zone is highlighted on the map during the deployment countdown (Phase 48)
+- The server now only sends each player the enemy soldiers they can see, so a modified game can't reveal hidden enemies or their destinations (Phase 48)
+- Fixed a reconnected player getting no further match updates and having every order refused ("Join a side before issuing orders") (Phase 48)
 
 ---
 
@@ -167,6 +173,26 @@ Copy this into website patch notes when cutting the next release build. Remove i
 ---
 
 ## Phase Details
+
+### Phase 48 - Fog of War
+
+**Goal:** You only see, and your game only receives, the enemies your side has spotted. Full plan: [docs/fog-of-war-plan.md](docs/fog-of-war-plan.md).
+
+**What Changed:**
+
+- **Per-team sending** (`server/src/fog_filter.ts`, `match.ts`): Every game-state message is filtered per team. A team gets its own soldiers in full and a spotted enemy's position, stance, facing, movement mode, stress, stun and target, never his path, ammo or grenades. An unspotted enemy is left out except for the roster and deaths (bodies are public). A client with no side gets no soldier data. Replays still record the full match
+- **Spotting reveals** (`match.ts`): Spotting now runs before movement goes out each tick. When an enemy is first spotted, `visibility_update` carries his full current state in `revealed`, and each team only gets its own visible list
+- **Enemy orders without paths**: The other side's order results only list soldiers it can see, with no path (the path was the destination) and no status text. Seen enemies move step by step from `movement_tick` (`soldier.gd` `chase_remote_step`)
+- **Hidden shooters and throwers**: Shots and throws from a hidden enemy come with only his cell (`shooterCell` / `throwerCell`). The client draws the tracer from there and drops a marker, but he stays hidden
+- **Hide unspotted enemies in every mode** (`main.gd` `_fog_visual_for_enemy`): The 1v1 ghosts that followed the enemy's true position are gone, in single-player too
+- **Last-known markers** (`scripts/effects/last_known_markers.gd`): A frozen ghost of the enemy's last seen pose stays at his last cell and fades out over 8 seconds. Fire At can still pick a marker in its first 2 seconds (the server's recently-seen rule)
+- **Enemy deployment zone** (`scripts/effects/deployment_zone_overlay.gd`): The enemy's deployment cells are tinted during the deployment countdown
+- **Picking**: Mouse picking and the Fire At cone no longer find hidden enemies at their old positions
+- **Reconnect fix** (`server/src/index.ts`): A reconnecting player was never re-attached to the match, so after the reconnect snapshot they got no match messages and their orders were refused. Present since v0.22.9 (the security hardening removed the attach-on-connect)
+
+**Tests:** `server/tests/fog_of_war.test.ts` (no hidden enemy data in any message to a team; reveals; filters), `scripts/tests/fog_of_war_tests.tscn` (client sync, markers, step chase, overlay).
+
+No migration needed. Server and client must ship together (wire protocol change).
 
 ### Phase 45 - Suppression & Pinning
 
@@ -351,8 +377,8 @@ All migrations in `server/sql/`, numbered 001-033. All have been run in Supabase
 | ~~44~~ | ~~Combat realism~~ | ~~Done - friendly grenades, lethality 0.6, movement fixes~~ | ~~Complete~~ |
 | ~~45~~ | ~~Suppression & pinning~~ | ~~Done - sustained fire 1.5x suppression, panicked blocks, UI stress feedback~~ | ~~Complete~~ |
 | ~~46~~ | ~~Reconnect fix~~ | ~~Done - countdown, lobby Rejoin after closing the game, cover status, tester audio fixes~~ | ~~Complete~~ |
-| 47 | Sim parity | **Code complete** - soldier sync, parity test harness, server drift fixes, message and reconnect fixes. Quick in-game reconnect check before the release build | v1 required |
-| 48 | Fog of war | Server-side position filtering, hide unspotted enemies, last-known markers (v0.23.0) | v1 required |
+| 47 | Sim parity | **Merged to develop** (PR #11, 2026-11-05), not released - soldier sync, parity test harness, server drift fixes, message and reconnect fixes. Quick in-game reconnect check before the release build | v1 required |
+| 48 | Fog of war | **Code complete, tested in a local 1v1** - server-side per-team filtering, hide unspotted enemies, last-known markers, enemy deployment zone highlight. PR to develop (v0.23.0) | v1 required |
 | 49 | Combat keybinds | OG-style keyboard shortcuts (D/W/R/C/F/G/P/H etc.), field report panel | v1 required |
 | 50 | PP balance & career rewards | PP lost on killed-by-rank, Medal of Courage payouts | v1 required |
 | 51 | Regiment officer promotions | CO promotes members to officer ranks, promotion slots by member count | v1 required |
@@ -369,14 +395,15 @@ All migrations in `server/sql/`, numbered 001-033. All have been run in Supabase
 ## Known Bugs
 
 - **Camera rotation drops the corner pose**: a soldier who arrives at a building corner and looks down the wall loses that pose when the camera is rotated (Q/E), and stays in a normal stand even after rotating back to the start. Seen in multiplayer on Farm Fight (Store Rooms corner). Rotation redraws via `main.gd` `_refresh_view_rotation` -> `_sync_soldier_view`, which recomputes the corner pose from tile + facing; arrival sets it another way. Not caused by the Phase 47 soldier sync.
+- **Corner pose stutters on the opponent's screen**: a soldier who stops or fires at a building corner keeps shifting between poses (and can look like he is running in place or not firing) on the other player's screen, while on his own screen he stands still or fires normally. Seen on Farm Fight at the Big House east end. Present on `develop` before fog of war (A/B checked 2026-11-05), so not caused by Phase 48. Likely the corner aim/lean presentation reacting to the periodic soldier updates; a headless replay of the move alone does not stutter.
 - **Corner cover presentation polish** - still to check: how far the corner fire step plus the 0.5-tile lean pushes the sprite toward the wall, and whether the Face command feels clunky along walls (clicks snap to 8 directions).
 - **Bullet hits never stun or wound**: a rifle hit kills at 60% (lethality 0.6) and otherwise does nothing lasting; stun only comes from grenades. Richard expected hits to sometimes stun. Combat balance decision.
 - **Grenade stuns feel ineffective**: Richard reports never landing a stun without getting shot, even a few tiles away. Stunned soldiers cannot fire (checked on client and server). Main cause found and fixed: in single-player a thrower shot during the 1.8s fuse lost his grenade. Remaining possibilities: other enemies, throws landing outside the 2-tile blast or behind a wall. The stun hold also reuses the normal prone idle after the ~2s knockdown, so it can look like the stun ended early. Next occurrence: read the game log ("stunned by grenade blast" / "killed by grenade blast" lines). Consider a clearer stunned pose or marker.
-- **No effective fog of war**: Both teams are visible from across the map, including in the deployment zone before the game starts. Two causes: (1) in 1v1 matches the client draws unspotted enemies as tinted "ghosts" instead of hiding them (`main.gd` `_fog_visual_for_enemy` returns GHOST when `_is_one_v_one_match()`), and (2) the server sends every soldier's position to every client, so even hidden enemies are known to a modified client. Fix: hide unspotted enemies (keep a last-known marker at most) and have the server only send enemy positions the receiving team can see.
 - **Wall rotation on camera turn**: Some wall sprites don't rotate correctly with the camera. Reported by tester on The Fortress map - needs investigation in facet rotation system.
 
 ### Fixed Bugs (for reference)
 
+- **No effective fog of war** (Phase 48): Both teams were visible from across the map, including at deployment. The client drew unspotted enemies as ghosts in 1v1, and the server sent every soldier to every client. Fixed by hiding unspotted enemies in every mode and filtering every server message per team.
 - **Reconnect on game close** (Phase 46): Countdown was stuck at 90s, and a player who closed the game had no way back (room showed "In Game", host's lobby got deleted on relaunch). Fixed with a working countdown and a lobby Rejoin button. Note: local `npm run dev` needs `SUPABASE_URL` set or logins can't be verified, everyone joins as a guest, and the reconnect window never opens.
 
 - **PP not accumulated after match**: Migration 022 (Phase 35) accidentally dropped prestige_points, total_kills, and rank updates from both `record_match_result` and `record_player_result` RPCs. Fixed by migration `027_fix_pp_tracking.sql`.

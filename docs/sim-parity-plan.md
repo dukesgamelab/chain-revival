@@ -95,7 +95,7 @@ Each item gets a parity fixture first (it should fail), then the fix (it should 
 
 - [ ] **In-game reconnect check (before the release build, not blocking the PR):** two clients; cut one player's network for about 10s mid-match and press Retreat. Optional: close-and-rejoin, and a reconnect after the 90s window (should return to the lobby with the result recorded).
 
-## Step 5 - Real fog of war (moved to Phase 48)
+## Step 5 - Real fog of war (moved to Phase 48, see [fog-of-war-plan.md](fog-of-war-plan.md))
 
 - [ ] **Client:** hide unspotted enemies in 1v1 too (`main.gd` `_fog_visual_for_enemy` currently returns GHOST). At most keep a fading last-known marker.
 - [ ] **Server:** only send each team the enemy positions it can see (snapshots, movement ticks).

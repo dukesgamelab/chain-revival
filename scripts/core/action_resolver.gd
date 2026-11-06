@@ -1131,6 +1131,7 @@ static func execute_grenade(
 	result.throw_orders.append({
 		"team_id": soldier.team_id,
 		"soldier_id": soldier.soldier_id,
+		"target_cell": cmd.target_cell,
 	})
 	result.sync_fire_at_ui = true
 	result.refresh_views = true

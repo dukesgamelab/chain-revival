@@ -220,6 +220,32 @@ Display rank uses the regiment-assigned rank when set, otherwise falls back to P
 - Server validates DZ boundaries - moves outside your team's DZ are blocked
 - Client-side pre-validation gives instant feedback without waiting for server round-trip
 
+## Spotting and Fog of War
+
+Visibility is per side: one soldier spotting an enemy reveals him to the whole side. Rebuilt every 0.5s combat scan, and on the next tick after any move, facing or stance change. Same rules on client (`combat_system.gd`) and server (`perception.ts`).
+
+An observer spots a target when all of these hold:
+- the target is within 50 tiles (Manhattan; weapon range 40 + 10)
+- the target is inside the observer's forward arc
+- the spot score is 0 or more: `100 - 4 x distance`, +15 if the target is running, +10 if walking, +25 for 2s after he fires
+- the line is not blocked (prone observer or target uses the prone line). Moderate cover on the line costs 20 and then x0.65, checked only when the score is under 20
+
+In practice: ~25 tiles for a standing target, ~29 running, ~31 just after firing. Every map's deployment zones are 41+ tiles apart, so nobody is spotted at deployment.
+
+**What a player sees (Phase 48, every mode):**
+- Unspotted enemies are not drawn
+- **Last-known marker:** when a spotted enemy drops out of sight, a frozen ghost of his last seen pose stays at that cell and fades out over 8s (full for the first 2s). It goes at once if he is spotted again or dies. Fire At can still pick it in its first 2s (the server allows a target seen within the last 2s, clicked within 2 tiles of where he was seen)
+- **Hidden fire:** a shot or grenade from an unspotted enemy shows the tracer from his cell and drops a marker there. He is not spotted by it, though firing adds +25 to his spot score for 2s
+- **Deployment:** the enemy's deployment cells are tinted during the countdown. Map data only, no soldiers
+- **Deaths are public:** kill points are on the scoreboard, and a body is drawn where the soldier fell
+
+**What the server sends each side (multiplayer):**
+- Own soldiers: everything
+- Spotted enemies: position, stance, facing, movement mode, stress, stun, Fire At target. Never path, ammo or grenades
+- Unspotted enemies: roster only (id, weapon, dead or alive, body cell if dead)
+- Enemy order results: only for spotted soldiers, without path or status text. Seen enemies move step by step
+- Shots and throws from a hidden enemy: only his cell at that moment
+
 ## Key Config Files
 
 | File | Purpose |

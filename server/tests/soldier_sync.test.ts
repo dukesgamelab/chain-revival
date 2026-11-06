@@ -24,6 +24,8 @@ function makeMatch(): { match: LocalMatch; ws: WebSocket & { sent: Msg[] } } {
   const match = new LocalMatch("ff_farm", { startDriver: false });
   const ws = fakeWs();
   match.attachClient("usa", ws);
+  // Fog of war: a client only hears about its own team (and enemies it can see).
+  match.setClientTeam("usa", TEAM_USA);
   return { match, ws };
 }
 
@@ -50,6 +52,7 @@ test("soldier_sync is sent every combat scan with the full field set", () => {
   for (const key of [
     "positionState",
     "movementMode",
+    "isMoving",
     "facing",
     "stress",
     "grenadeCount",

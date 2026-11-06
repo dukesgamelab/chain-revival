@@ -113,6 +113,11 @@ const _FACE_REVERT_DELAY_MSEC := 3000
 ## Fog lookup rebuilt once per need (move/combat), not per soldier per sync.
 var _fog_spotted_cache: Dictionary = {} ## Team.soldier_key -> bool
 var _fog_cache_valid: bool = false
+## Fog of war: ghost markers where enemies were last seen, and the enemies currently drawn.
+var _last_known: LastKnownMarkers = null
+var _revealed_enemy_keys: Dictionary = {} ## Team.soldier_key -> true
+## Enemy deployment zone tint, shown during the deployment countdown only.
+var _enemy_dz_overlay: DeploymentZoneOverlay = null
 ## Dev counters — verify movers sync without full-roster refresh.
 var _debug_sync_calls_this_tick: int = 0
 var _debug_full_refresh_calls: int = 0
@@ -679,6 +684,14 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 		if step_view == null or step_state == null:
 			continue
 		if networked:
+			## Fog of war: an enemy's path is never sent, only his steps while seen.
+			if _is_remote_enemy_without_path(step_state):
+				var to_cell: Vector2i = step.tile
+				var from_cell: Vector2i = to_cell - (step.step_delta as Vector2i)
+				step_view.sync_locomotion_mode_from_state(step_state)
+				step_view.chase_remote_step(from_cell, to_cell, step_state.move_speed_mult)
+				_debug_sync_calls_this_tick += 1
+				continue
 			## Replica (or a missed move_result) never started the chase — start it once.
 			if not step_view.is_moving() and step_state.is_moving and step_state.current_path.size() > 1:
 				step_view.sync_locomotion_mode_from_state(step_state)
@@ -696,6 +709,8 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 		var soldier_id := int(done.soldier_id)
 		var state: SoldierState = _game_state.get_soldier(team_id, soldier_id)
 		var view: Soldier = _get_view(team_id, soldier_id)
+		if view != null and view.is_remote_chasing():
+			view.end_remote_chase()
 		if view != null and state != null:
 			var is_selected: bool = (
 				team_id == _session.active_team_id
@@ -1591,6 +1606,7 @@ func _on_timed_deployment_finished() -> void:
 		_command_bar.append_chat_system("ATTENTION: Scenario Running")
 		_refresh_scenario_hud()
 		_command_bar.show_status("Deployment complete. Chain of command ready.")
+	_refresh_enemy_deployment_overlay()
 	_invalidate_fog_cache()
 	_refresh_enemy_spotting_visuals()
 	_refresh_ai_plan_hud()
@@ -1603,6 +1619,30 @@ func _sync_deployment_hud() -> void:
 		_command_bar.set_deployment_phase(true, _game_state.deployment_time_remaining_sec)
 	else:
 		_command_bar.set_deployment_phase(_game_state.is_deployment_phase())
+	_refresh_enemy_deployment_overlay()
+
+
+## Fog of war: during the deployment countdown, tint the enemy's deployment cells (map
+## data only; his soldiers stay hidden). Cleared once the scenario runs.
+func _refresh_enemy_deployment_overlay() -> void:
+	if _game_state == null or _session == null or _map_data == null:
+		return
+	if not _game_state.locks_deployment_zone():
+		if _enemy_dz_overlay != null:
+			_enemy_dz_overlay.clear()
+		return
+	if _enemy_dz_overlay == null:
+		_enemy_dz_overlay = DeploymentZoneOverlay.new()
+		_enemy_dz_overlay.name = "EnemyDeploymentZone"
+		_iso_map.add_child(_enemy_dz_overlay)
+	var enemy_team := _game_state.enemy_team_id(_session.active_team_id)
+	var cells: Array[Vector2i] = (
+		_map_data.team_1_spawn_points if enemy_team == Team.USA else _map_data.team_2_spawn_points
+	)
+	if _enemy_dz_overlay.cell_count() != cells.size():
+		_enemy_dz_overlay.show_cells(cells)
+	else:
+		_enemy_dz_overlay.refresh_view_rotation()
 
 
 func _refresh_scenario_hud() -> void:
@@ -2007,6 +2047,11 @@ func _spawn_all_soldier_views() -> void:
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			spawned += _spawn_soldier_view(state, movers_root)
+	if _last_known == null:
+		_last_known = LastKnownMarkers.new()
+		_last_known.name = "LastKnownMarkers"
+		add_child(_last_known)
+		_last_known.setup(movers_root)
 	GameLog.log_system(
 		"[Load] spawned %d soldier views in %.0fms"
 		% [spawned, float(Time.get_ticks_usec() - t0) / 1000.0]
@@ -2298,6 +2343,7 @@ func _refresh_enemy_spotting_visuals() -> void:
 				and soldier_state.soldier_id == active_fireteam.selected_soldier_id
 			)
 			var fog_visual := _fog_visual_for_enemy(soldier_state)
+			_note_enemy_fog_transition(soldier_state, view, fog_visual)
 			## Newly spotted: full sync so corner pose / facing computed while hidden is refreshed.
 			if fog_visual == Soldier.FogVisual.REVEALED and view.current_fog_visual() != Soldier.FogVisual.REVEALED:
 				_sync_soldier_view(soldier_state.team_id, soldier_state.soldier_id, is_selected)
@@ -2330,8 +2376,10 @@ func _sync_soldier_view(team_id: int, soldier_id: int, is_selected: bool = false
 		return
 	view.set_presentation_map_data(_map_data)
 	var fog_visual: int = Soldier.FogVisual.REVEALED
-	if soldier_state.team_id != _session.active_team_id and soldier_state.is_alive():
-		fog_visual = _fog_visual_for_enemy(soldier_state)
+	if soldier_state.team_id != _session.active_team_id:
+		if soldier_state.is_alive():
+			fog_visual = _fog_visual_for_enemy(soldier_state)
+		_note_enemy_fog_transition(soldier_state, view, fog_visual)
 	var local_control := _session.can_local_control_soldier(
 		soldier_state.team_id, soldier_state.soldier_id
 	)
@@ -2392,25 +2440,92 @@ func _overhead_name_for_soldier(soldier_state: SoldierState) -> String:
 	return ""
 
 
-## 1v1: always show the other side as ghosts when out of LOS. 2v2: hide until spotted.
-func _is_one_v_one_match() -> bool:
-	if _session != null and _session.match_config != null:
-		return (
-			_session.match_config.match_type
-			== MatchConfigClass.MatchType.ONE_V_ONE
-		)
-	## Offline quick-start / legacy sessions without config — treat two owned FTs as 1v1.
-	return _session != null and _session.owned_fireteams.size() <= 2
-
-
+## Fog of war, every mode: an enemy is drawn only while spotted. Where he was last seen
+## is shown by a separate fading marker (_last_known), never by the view itself.
 func _fog_visual_for_enemy(enemy: SoldierState) -> int:
 	if enemy == null or not enemy.is_alive():
 		return Soldier.FogVisual.HIDDEN
 	if _cached_enemy_spotted(enemy):
 		return Soldier.FogVisual.REVEALED
-	if _is_one_v_one_match():
-		return Soldier.FogVisual.GHOST
 	return Soldier.FogVisual.HIDDEN
+
+
+## Leave a last-known marker when a drawn enemy drops out of sight; clear it when he is
+## spotted again or dies. MP: a hidden enemy's view stops, since no more steps arrive.
+func _note_enemy_fog_transition(enemy: SoldierState, view: Soldier, fog_visual: int) -> void:
+	if enemy == null or view == null:
+		return
+	var key := Team.soldier_key(enemy.team_id, enemy.soldier_id)
+	if fog_visual == Soldier.FogVisual.REVEALED and enemy.is_alive():
+		_revealed_enemy_keys[key] = true
+		if _last_known != null:
+			_last_known.clear(key)
+		return
+	if not enemy.is_alive():
+		_revealed_enemy_keys.erase(key)
+		if _last_known != null:
+			_last_known.clear(key)
+		return
+	if not _revealed_enemy_keys.has(key):
+		return
+	_revealed_enemy_keys.erase(key)
+	if _last_known != null:
+		_last_known.drop(key, view, IsometricGrid.world_to_cell_at_point(view.position))
+	if GameModeManager.is_local_multiplayer():
+		view.stop_movement()
+		enemy.clear_path()
+
+
+## A hidden enemy fired or threw from `cell`: leave a marker there (he stays hidden).
+func _mark_hidden_enemy_action(enemy: SoldierState, cell: Vector2i, toward: Vector2i) -> void:
+	if enemy == null or _last_known == null:
+		return
+	var view: Soldier = _get_view(enemy.team_id, enemy.soldier_id)
+	if view == null:
+		return
+	var facing := Vector2i(signi(toward.x - cell.x), signi(toward.y - cell.y))
+	view.place_at_cell(cell, facing)
+	_last_known.drop(Team.soldier_key(enemy.team_id, enemy.soldier_id), view, cell)
+
+
+## MP enemy moving on steps alone (the server never sends his path).
+func _is_remote_enemy_without_path(soldier_state: SoldierState) -> bool:
+	return (
+		GameModeManager.is_local_multiplayer()
+		and soldier_state != null
+		and _session != null
+		and soldier_state.team_id != _session.active_team_id
+		and soldier_state.current_path.size() <= 1
+	)
+
+
+## Fog of war safety net: soldier_sync says a seen enemy has stopped, but his view is
+## still holding a step chase (a missed completion), so settle it instead of running in place.
+func _settle_stopped_remote_enemies(payload: Dictionary) -> void:
+	if _session == null:
+		return
+	for raw in payload.get("soldiers", []):
+		if not raw is Dictionary:
+			continue
+		var entry: Dictionary = raw
+		if not entry.has("isMoving") or bool(entry.get("isMoving", false)):
+			continue
+		var team_id := int(entry.get("teamId", -1))
+		if team_id == _session.active_team_id:
+			continue
+		var view: Soldier = _get_view(team_id, int(entry.get("soldierId", -1)))
+		if view != null and view.is_remote_chasing():
+			view.end_remote_chase()
+
+
+func _is_hidden_enemy(soldier_state: SoldierState) -> bool:
+	return (
+		soldier_state != null
+		and _session != null
+		and soldier_state.team_id != _session.active_team_id
+		and soldier_state.is_alive()
+		and not _cached_enemy_spotted(soldier_state)
+	)
 
 
 ## Aim cell for corner idle — committed face override, engaged target, else Fire At preview.
@@ -2668,6 +2783,9 @@ func _refresh_view_rotation() -> void:
 		var soldier_view: Soldier = view
 		soldier_view.refresh_movement_visual()
 		soldier_view.refresh_action_visual_for_camera()
+	if _last_known != null:
+		_last_known.refresh_view_rotation()
+	_refresh_enemy_deployment_overlay()
 	_command_bar.show_status(
 		"Camera %d° — Q/E or Rotate. Simulation grid unchanged."
 		% IsometricGrid.camera_direction_degrees(),
@@ -2804,6 +2922,9 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 
 	for order in result.move_orders:
 		var order_view: Soldier = _get_view(order.team_id, order.soldier_id)
+		## Fog of war: an enemy's order has no path; his steps drive the view instead.
+		if GameModeManager.is_local_multiplayer() and (order.path as Array).size() <= 1:
+			continue
 		if order_view != null:
 			var mover: SoldierState = _game_state.get_soldier(int(order.team_id), int(order.soldier_id))
 			if mover != null:
@@ -2868,7 +2989,7 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 			var sid := int(order.get("soldier_id", -1))
 			var state: SoldierState = _game_state.get_soldier(tid, sid)
 			var view: Soldier = _get_view(tid, sid)
-			if view != null and state != null:
+			if view != null and state != null and not _is_remote_enemy_without_path(state):
 				view.sync_movement_chase_from_state(state)
 		_refresh_enemy_spotting_visuals()
 		_refresh_command_bar_light()
@@ -2898,6 +3019,17 @@ func _present_action_result(result: ActionResultClass, combat_tick: bool = false
 	for order in result.throw_orders:
 		var throw_view: Soldier = _get_view(int(order.team_id), int(order.soldier_id))
 		var thrower: SoldierState = _game_state.get_soldier(int(order.team_id), int(order.soldier_id))
+		if _is_hidden_enemy(thrower):
+			## Fog of war: a hidden thrower stays hidden; mark where the grenade came from.
+			var throw_cell: Variant = order.get("cell", null)
+			if throw_cell is Vector2i:
+				thrower.grid_position = throw_cell
+			_mark_hidden_enemy_action(
+				thrower,
+				thrower.grid_position,
+				order.get("target_cell", thrower.grid_position),
+			)
+			continue
 		if throw_view != null and thrower != null:
 			throw_view.play_throw_grenade(thrower.position_state, thrower.facing_direction)
 
@@ -2950,6 +3082,9 @@ func _trigger_grenade_death_animations(explosions: Array) -> void:
 			var threat_step := blast_cell - victim.grid_position
 			AudioManager.play_death(team_id)
 			var view: Soldier = _get_view(team_id, soldier_id)
+			if view != null and view.current_fog_visual() != Soldier.FogVisual.REVEALED:
+				## Killed out of sight: the body is public, so put the view where he fell.
+				view.place_at_cell(victim.grid_position)
 			if view != null:
 				view.play_death_sequence(threat_step, victim.stance_at_death, victim.death_sprite_family)
 	## mark_killed clears paths; drop red run-to diamonds for dead movers.
@@ -3354,6 +3489,12 @@ func _on_network_movement_tick(payload: Dictionary) -> void:
 
 
 func _on_network_visibility_update(payload: Dictionary) -> void:
+	## Fog of war: newly spotted enemies come with their real state; place them first.
+	var revealed: Array[String] = AuthoritativeSyncClass.apply_revealed(_game_state, payload)
+	for key in revealed:
+		var view: Soldier = _soldier_views.get(key)
+		if view != null:
+			view.stop_movement()
 	AuthoritativeSyncClass.apply_visibility(payload)
 	_invalidate_fog_cache()
 	_refresh_enemy_spotting_visuals()
@@ -3457,6 +3598,7 @@ func _on_network_soldier_sync(payload: Dictionary) -> void:
 	if _game_state == null:
 		return
 	var changed: Array[Dictionary] = AuthoritativeSyncClass.apply_soldier_sync(_game_state, payload)
+	_settle_stopped_remote_enemies(payload)
 	if changed.is_empty():
 		return
 	var any_view := false
@@ -4061,10 +4203,18 @@ func _finalize_shot_result(
 ) -> Array[String]:
 	if result.fired:
 		GameplayPolicies.fire_anim.note_authoritative_shot()
+		## Fog of war: a hidden shooter stays hidden; his tracer and a marker come from his cell.
+		var shooter_hidden := _is_hidden_enemy(shooter)
+		if shooter_hidden:
+			_mark_hidden_enemy_action(
+				shooter,
+				shooter.grid_position,
+				target.grid_position if target != null else shooter.grid_position,
+			)
 		if shooter != null:
 			AudioManager.play_weapon_fire(shooter.weapon_id)
 			var shooter_view: Soldier = _get_view(shooter.team_id, shooter.soldier_id)
-			if shooter_view != null:
+			if shooter_view != null and not shooter_hidden:
 				var fire_aim := (
 					target.grid_position
 					if target != null
@@ -4095,6 +4245,9 @@ func _finalize_shot_result(
 	if result.killed and target != null:
 		var threat_step := shooter.grid_position - target.grid_position
 		var target_view: Soldier = _get_view(target.team_id, target.soldier_id)
+		if target_view != null and target_view.current_fog_visual() != Soldier.FogVisual.REVEALED:
+			## Killed out of sight: the body is public, so put the view where he fell.
+			target_view.place_at_cell(target.grid_position)
 		if target_view != null:
 			## Use stance_at_death — mark_killed already forced position_state DOWN.
 			target_view.play_death_sequence(threat_step, target.stance_at_death, target.death_sprite_family)
@@ -4116,6 +4269,8 @@ func _finalize_shot_result(
 func _spawn_shot_tracers(shooter: SoldierState, target: SoldierState, count: int) -> void:
 	## Visual/audio only: stagger rounds within a burst (~0.04s). Hit resolution is one roll.
 	var from_world := _get_soldier_tracer_point(shooter)
+	if _is_hidden_enemy(shooter):
+		from_world = IsometricGrid.soldier_aim_point(shooter.grid_position)
 	var to_world := _get_soldier_tracer_point(target)
 	var interval := GameplayPolicies.hit.burst_round_interval_sec
 	for i in range(count):
@@ -4440,7 +4595,15 @@ func _find_enemy_in_fire_at_aim_cone(aim_world: Vector2, click_cell: Vector2i) -
 			var enemy: SoldierState = state
 			if enemy == null or enemy.is_dead:
 				continue
-			var enemy_world := IsometricGrid.soldier_aim_point(enemy.grid_position)
+			## Fog of war: hidden enemies can't be picked, except a fresh marker (the server
+			## still accepts a target seen within the last 2s near where he was seen).
+			var enemy_cell := enemy.grid_position
+			if _is_hidden_enemy(enemy):
+				var key := Team.soldier_key(enemy.team_id, enemy.soldier_id)
+				if _last_known == null or not _last_known.is_recent(key):
+					continue
+				enemy_cell = _last_known.marker_cell(key)
+			var enemy_world := IsometricGrid.soldier_aim_point(enemy_cell)
 			if not ConeOfFireClass.is_world_point_in_aim_cone(
 				from_world,
 				aim_world,
@@ -4452,12 +4615,12 @@ func _find_enemy_in_fire_at_aim_cone(aim_world: Vector2, click_cell: Vector2i) -
 			var click_dist := 0.0
 			if click_cell.x > -900:
 				click_dist = float(
-					absi(click_cell.x - enemy.grid_position.x)
-					+ absi(click_cell.y - enemy.grid_position.y)
+					absi(click_cell.x - enemy_cell.x)
+					+ absi(click_cell.y - enemy_cell.y)
 				)
 			var shooter_dist := float(
-				absi(shooter.grid_position.x - enemy.grid_position.x)
-				+ absi(shooter.grid_position.y - enemy.grid_position.y)
+				absi(shooter.grid_position.x - enemy_cell.x)
+				+ absi(shooter.grid_position.y - enemy_cell.y)
 			)
 			## Prefer the enemy nearest the clicked tile so a new aim direction retargets.
 			var dist := click_dist * 100.0 + shooter_dist
@@ -4473,7 +4636,7 @@ func _find_living_soldier_at_mouse() -> SoldierState:
 	var clicked_cell := IsometricGrid.world_to_cell_at_point(world)
 
 	var exact: SoldierState = _game_state.find_living_soldier_at_cell(clicked_cell)
-	if exact != null:
+	if exact != null and not _is_hidden_enemy(exact):
 		return exact
 
 	const PICK_RADIUS := TileSizeConfig.SOLDIER_PICK_RADIUS
@@ -4484,7 +4647,7 @@ func _find_living_soldier_at_mouse() -> SoldierState:
 	for fireteam in _session.all_fireteams():
 		for state in fireteam.soldiers:
 			var soldier_state: SoldierState = state
-			if soldier_state.is_dead:
+			if soldier_state.is_dead or _is_hidden_enemy(soldier_state):
 				continue
 			var view: Soldier = _get_view(soldier_state.team_id, soldier_state.soldier_id)
 			var pick_center := IsometricGrid.soldier_aim_point(soldier_state.grid_position)

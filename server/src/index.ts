@@ -386,6 +386,10 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     if (resume !== null) {
       const sideResult = requestSide(clientId, resume.side);
       if (sideResult.ok) {
+        // Nothing else attaches a reconnecting socket to the match: without this it gets
+        // no match messages, its orders are refused, and (fog of war) its snapshot has
+        // no team to filter for.
+        match.attachClient(clientId, ws);
         match.setClientTeam(clientId, resume.teamId);
         console.log("[Reconnect] Player %s reconnected as %s (new clientId=%s)", userId, resume.side, clientId);
 
