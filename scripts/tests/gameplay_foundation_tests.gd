@@ -44,6 +44,7 @@ func _ready() -> void:
 	_test_climb_short_wall_fire_over()
 	_test_wall_cover_fixture()
 	_test_corner_peek_around_wall_end()
+	_test_no_shooting_through_walls()
 	_test_corner_idle_at_wall_end()
 	_test_directional_cover()
 	_test_rng_seed_reproducibility()
@@ -866,18 +867,16 @@ func _test_corner_peek_around_wall_end() -> void:
 	)
 
 	## Bresenham diagonal cut: line misses the corner cell the shooter leans on, then
-	## hits the next tiles of the wall run — still a corner peek, not a mid-wall block.
-	## Mirrors ff_farm Stables SW: S(42,50)→T(46,48) past WCOR(43,49).
+	## hits the next tile of the wall run. Allowed only while the line crosses the run at
+	## the wall end; one full tile further along it is a shot through the wall.
 	for cell in map_data.get_object_cells():
 		map_data.clear_object(cell)
-	var cut_shooter := Vector2i(10, 11)
 	var cut_corner := Vector2i(11, 10)
-	var cut_run_a := Vector2i(12, 10)
-	var cut_run_b := Vector2i(13, 10)
-	var cut_target := Vector2i(14, 9)
 	map_data.set_object(cut_corner, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
-	map_data.set_object(cut_run_a, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
-	map_data.set_object(cut_run_b, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	map_data.set_object(Vector2i(12, 10), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	map_data.set_object(Vector2i(13, 10), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var cut_shooter := Vector2i(12, 11)
+	var cut_target := Vector2i(10, 7)
 	var cut_los := LOSSystemClass.evaluate(cut_shooter, cut_target, map_data, null)
 	_assert(
 		"Corner peek survives Bresenham diagonal cut past wall end",
@@ -892,7 +891,15 @@ func _test_corner_peek_around_wall_end() -> void:
 	_assert(
 		"Diagonal-cut corner peek sets lean side",
 		cut_los.corner_peek and cut_los.peek_side != CoverSystemClass.PeekSide.NONE,
-		"peek=%s side=%s" % [cut_los.corner_peek, cut_los.peek_side],
+		"peek=%s side=%s cell=%s" % [cut_los.corner_peek, cut_los.peek_side, cut_los.corner_cell],
+	)
+	## Was allowed before: crosses the run at (12,10), a full tile past the tip.
+	## Same shape as ff_farm Stables SW: S(42,50) -> T(46,48) is inside the stables.
+	var through_los := LOSSystemClass.evaluate(Vector2i(10, 11), Vector2i(14, 9), map_data, null)
+	_assert(
+		"Corner peek cannot cut through the wall run behind the tip",
+		through_los.status == LOSSystemClass.Status.BLOCKED,
+		"status=%s peek=%s" % [LOSSystemClass.status_name(through_los.status), through_los.corner_peek],
 	)
 
 	## Target of a peek shot still receives cover eval (PseudoCover / corner when geometry fits).
@@ -902,6 +909,57 @@ func _test_corner_peek_around_wall_end() -> void:
 		cover != null,
 		"cover_type=%s qualifier=%s" % [cover.cover_type, cover.qualifier],
 	)
+
+
+func _test_no_shooting_through_walls() -> void:
+	## Farm Fight bug: a soldier hugging a wall was treated as leaning around a wall end on
+	## any shot that was not exactly perpendicular, so the line went through the wall and
+	## the target had no cover. Mirrors server corner_peek.test.ts.
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	## Building perimeter x 10..20, y 10..14; front wall is row 14.
+	for x in range(10, 21):
+		map_data.set_object(Vector2i(x, 10), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+		map_data.set_object(Vector2i(x, 14), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	for y in range(11, 14):
+		map_data.set_object(Vector2i(10, y), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+		map_data.set_object(Vector2i(20, y), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var pairs: Array = [
+		[Vector2i(15, 15), Vector2i(16, 11)],
+		[Vector2i(15, 15), Vector2i(17, 12)],
+		[Vector2i(15, 15), Vector2i(12, 11)],
+		[Vector2i(16, 11), Vector2i(15, 15)],
+		[Vector2i(15, 13), Vector2i(17, 18)],
+		[Vector2i(9, 9), Vector2i(13, 12)],
+		[Vector2i(11, 11), Vector2i(6, 6)],
+	]
+	for pair in pairs:
+		var los := LOSSystemClass.evaluate(pair[0], pair[1], map_data, null)
+		_assert(
+			"No shot through building wall %s -> %s" % [pair[0], pair[1]],
+			los.status == LOSSystemClass.Status.BLOCKED,
+			"status=%s peek=%s corner=%s"
+			% [LOSSystemClass.status_name(los.status), los.corner_peek, los.corner_cell],
+		)
+
+	## The real spots on Farm Fight (server test uses the same cells).
+	var farm := MapDataClass.load_from_file("res://maps/ff_farm.json")
+	var farm_pairs: Array = [
+		[Vector2i(42, 50), Vector2i(46, 48)], ## into the stables through its south wall
+		[Vector2i(21, 37), Vector2i(10, 35)], ## through the middle of a house wall
+		[Vector2i(22, 42), Vector2i(37, 41)],
+		[Vector2i(21, 45), Vector2i(23, 61)], ## out of a room through its south wall
+	]
+	for pair in farm_pairs:
+		var farm_los := LOSSystemClass.evaluate(pair[0], pair[1], farm, null)
+		_assert(
+			"ff_farm no shot through wall %s -> %s" % [pair[0], pair[1]],
+			farm_los.status == LOSSystemClass.Status.BLOCKED,
+			"status=%s peek=%s corner=%s"
+			% [LOSSystemClass.status_name(farm_los.status), farm_los.corner_peek, farm_los.corner_cell],
+		)
 
 
 func _test_corner_idle_at_wall_end() -> void:

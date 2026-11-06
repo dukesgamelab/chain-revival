@@ -300,6 +300,40 @@ function wallEndPeekSide(from: Vec2i, to: Vec2i, wall: Vec2i, map: MapData): num
   return peekSideFromCross(vec(wall.x - from.x, wall.y - from.y), vec(to.x - from.x, to.y - from.y));
 }
 
+// A lean only goes around the wall's open end: never through a mid-run face, through the
+// run behind a wall tip, or into the corner a building corner closes. wallEndPeekSide alone
+// cannot tell, since a diagonal shot checks diagonal neighbours that are open on any run.
+// Port of CoverSystem._shot_clears_wall_end.
+function shotClearsWallEnd(from: Vec2i, to: Vec2i, wall: Vec2i, map: MapData): boolean {
+  if (!isStructureCornerOrWallTip(map, wall)) {
+    return false;
+  }
+  const closed = ORTHO.filter((d) => isCornerPeekBlocker(map, vec(wall.x + d.x, wall.y + d.y)));
+  const s = vec(from.x - wall.x, from.y - wall.y);
+  const t = vec(to.x - wall.x, to.y - wall.y);
+  const dot = (a: Vec2i, b: Vec2i): number => a.x * b.x + a.y * b.y;
+  if (closed.length === 2) {
+    const inside = (p: Vec2i): boolean => dot(p, closed[0]) > 0 && dot(p, closed[1]) > 0;
+    if (inside(s) !== inside(t)) {
+      return false;
+    }
+  }
+  for (const run of closed) {
+    const perp = vec(-run.y, run.x);
+    const a = dot(s, perp);
+    const b = dot(t, perp);
+    if (a === 0 || (b !== 0 && Math.sign(a) === Math.sign(b))) {
+      continue;
+    }
+    // Where the shot crosses the run's centre line, in tiles along the run from this wall.
+    const along = dot(s, run) + (a / (a - b)) * (dot(t, run) - dot(s, run));
+    if (along > 0.5) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function cornerPeekAtCell(
   from: Vec2i,
   to: Vec2i,
@@ -308,6 +342,9 @@ function cornerPeekAtCell(
 ): { isCorner: boolean; peekSide: number; cornerCell: Vec2i } {
   const empty = { isCorner: false, peekSide: PEEK_NONE, cornerCell: { ...MISSING } };
   if (!isAdjacent(from, wall) || !isCornerPeekBlocker(map, wall)) {
+    return empty;
+  }
+  if (!shotClearsWallEnd(from, to, wall, map)) {
     return empty;
   }
   const side = wallEndPeekSide(from, to, wall, map);
@@ -332,7 +369,8 @@ function remoteCornerPeek(
   }
   for (const offset of DIR8) {
     const wall = vec(from.x + offset.x, from.y + offset.y);
-    if (vecEq(wall, blocking) || !isAdjacent(wall, blocking)) {
+    // Only the next tile of the leaned corner's own run; a diagonal neighbour is another wall.
+    if (!isOrthogonalAdjacent(wall, blocking)) {
       continue;
     }
     const at = cornerPeekAtCell(from, to, wall, map);

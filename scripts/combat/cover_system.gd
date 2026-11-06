@@ -521,6 +521,8 @@ static func corner_peek_at_cell(
 		return result
 	if not _is_corner_peek_blocker(map_data, wall_cell):
 		return result
+	if not _shot_clears_wall_end(from_cell, to_cell, wall_cell, map_data):
+		return result
 	var side := _wall_end_peek_side(from_cell, to_cell, wall_cell, map_data)
 	if side == PeekSide.NONE:
 		return result
@@ -528,6 +530,46 @@ static func corner_peek_at_cell(
 	result.peek_side = side
 	result.corner_cell = wall_cell
 	return result
+
+
+## A lean only goes around the wall's open end: never through a mid-run face, through the
+## run behind a wall tip, or into the corner a building corner closes. _wall_end_peek_side
+## alone cannot tell, since a diagonal shot checks diagonal neighbours that are open on any
+## run. Mirrored in server los.ts shotClearsWallEnd.
+static func _shot_clears_wall_end(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	wall_cell: Vector2i,
+	map_data: MapData,
+) -> bool:
+	if not _is_structure_corner_or_wall_tip(map_data, wall_cell):
+		return false
+	var closed: Array[Vector2i] = []
+	for d in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
+		if _is_corner_peek_blocker(map_data, wall_cell + d):
+			closed.append(d)
+	var s := from_cell - wall_cell
+	var t := to_cell - wall_cell
+	if closed.size() == 2:
+		var shooter_inside := _dot_i(s, closed[0]) > 0 and _dot_i(s, closed[1]) > 0
+		var target_inside := _dot_i(t, closed[0]) > 0 and _dot_i(t, closed[1]) > 0
+		if shooter_inside != target_inside:
+			return false
+	for run in closed:
+		var perp := Vector2i(-run.y, run.x)
+		var a := _dot_i(s, perp)
+		var b := _dot_i(t, perp)
+		if a == 0 or (b != 0 and signi(a) == signi(b)):
+			continue
+		## Where the shot crosses the run's centre line, in tiles along the run from this wall.
+		var along := float(_dot_i(s, run)) + float(a) / float(a - b) * float(_dot_i(t, run) - _dot_i(s, run))
+		if along > 0.5:
+			return false
+	return true
+
+
+static func _dot_i(a: Vector2i, b: Vector2i) -> int:
+	return a.x * b.x + a.y * b.y
 
 
 ## When Bresenham misses the corner tile, the first hard hit is often the next wall cell.
@@ -546,7 +588,8 @@ static func _remote_corner_peek_for_blocker(
 		return result
 	for offset in ADJACENT_OFFSETS:
 		var wall_cell := from_cell + offset
-		if wall_cell == blocking_cell or not _is_adjacent(wall_cell, blocking_cell):
+		## Only the next tile of the leaned corner's own run; a diagonal neighbour is another wall.
+		if not _is_orthogonal_adjacent(wall_cell, blocking_cell):
 			continue
 		var at := corner_peek_at_cell(from_cell, to_cell, wall_cell, map_data)
 		if at.is_corner:

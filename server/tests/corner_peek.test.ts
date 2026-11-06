@@ -110,3 +110,56 @@ test("straight shot out of the doorway is unaffected", () => {
   const map = doorMap();
   assert.notEqual(evaluate(vec(24, 40), vec(24, 45), map, null).status, LOS_BLOCKED);
 });
+
+// Soldiers shooting through walls (Farm Fight): a soldier hugging a wall was treated as
+// leaning around a wall end on any shot that was not exactly perpendicular, so the line
+// went straight through the wall and the target had no cover.
+test("hugging the middle of a wall does not let him shoot diagonally through it", () => {
+  const map = buildingMap();
+  const outside = vec(15, 15);
+  for (const inside of [vec(16, 11), vec(17, 12), vec(12, 11), vec(19, 13)]) {
+    assert.equal(evaluate(outside, inside, map, null).status, LOS_BLOCKED, `(15,15)->(${inside.x},${inside.y})`);
+    assert.equal(evaluate(inside, outside, map, null).status, LOS_BLOCKED, `(${inside.x},${inside.y})->(15,15)`);
+  }
+  // Inside, hugging the front wall from the room side.
+  assert.equal(evaluate(vec(15, 13), vec(17, 18), map, null).status, LOS_BLOCKED);
+});
+
+test("diagonal shot through a building corner into the building is blocked", () => {
+  const map = buildingMap();
+  assert.equal(evaluate(vec(9, 9), vec(13, 12), map, null).status, LOS_BLOCKED);
+  assert.equal(evaluate(vec(11, 11), vec(6, 6), map, null).status, LOS_BLOCKED);
+});
+
+test("leaning past a wall tip cannot cut through the run behind it", () => {
+  const map = MapData.empty(30, 30);
+  for (const c of [vec(11, 10), vec(12, 10), vec(13, 10)]) {
+    map.placeObject(c, "wall_straight", "SWAL");
+  }
+  // Crosses the run's centre line at (12,10), a full tile past the tip.
+  assert.equal(evaluate(vec(10, 11), vec(14, 9), map, null).status, LOS_BLOCKED);
+  // Past the open end is still a corner shot.
+  const around = evaluate(vec(11, 11), vec(10, 6), map, null);
+  assert.notEqual(around.status, LOS_BLOCKED);
+  assert.equal(around.cornerPeek, true);
+});
+
+test("a lean only skips the leaned corner's own wall run, not a wall diagonal to it", () => {
+  // Room corner: west wall x=20 (y 44..46), south wall y=46 (x 20..25). Shooter in the room.
+  const map = MapData.empty(40, 70);
+  for (const c of [vec(20, 44), vec(20, 45), vec(20, 46), vec(21, 46), vec(22, 46), vec(23, 46)]) {
+    map.placeObject(c, "wall_straight", "SWAL");
+  }
+  assert.equal(evaluate(vec(21, 45), vec(23, 61), map, null).status, LOS_BLOCKED);
+});
+
+test("Farm Fight: no shooting through the stables or farmhouse walls", () => {
+  const map = MapData.loadFromRepo("ff_farm");
+  // Outside the stables SW corner into the stables, through its south wall.
+  assert.equal(evaluate(vec(42, 50), vec(46, 48), map, null).status, LOS_BLOCKED);
+  // Hugging a house wall from outside, shooting in through its middle.
+  assert.equal(evaluate(vec(21, 37), vec(10, 35), map, null).status, LOS_BLOCKED);
+  assert.equal(evaluate(vec(22, 42), vec(37, 41), map, null).status, LOS_BLOCKED);
+  // Out of a room through its south wall.
+  assert.equal(evaluate(vec(21, 45), vec(23, 61), map, null).status, LOS_BLOCKED);
+});
