@@ -2499,6 +2499,25 @@ func _is_remote_enemy_without_path(soldier_state: SoldierState) -> bool:
 	)
 
 
+## Fog of war safety net: soldier_sync says a seen enemy has stopped, but his view is
+## still holding a step chase (a missed completion), so settle it instead of running in place.
+func _settle_stopped_remote_enemies(payload: Dictionary) -> void:
+	if _session == null:
+		return
+	for raw in payload.get("soldiers", []):
+		if not raw is Dictionary:
+			continue
+		var entry: Dictionary = raw
+		if not entry.has("isMoving") or bool(entry.get("isMoving", false)):
+			continue
+		var team_id := int(entry.get("teamId", -1))
+		if team_id == _session.active_team_id:
+			continue
+		var view: Soldier = _get_view(team_id, int(entry.get("soldierId", -1)))
+		if view != null and view.is_remote_chasing():
+			view.end_remote_chase()
+
+
 func _is_hidden_enemy(soldier_state: SoldierState) -> bool:
 	return (
 		soldier_state != null
@@ -3579,6 +3598,7 @@ func _on_network_soldier_sync(payload: Dictionary) -> void:
 	if _game_state == null:
 		return
 	var changed: Array[Dictionary] = AuthoritativeSyncClass.apply_soldier_sync(_game_state, payload)
+	_settle_stopped_remote_enemies(payload)
 	if changed.is_empty():
 		return
 	var any_view := false

@@ -28,6 +28,7 @@ func _ready() -> void:
 	_test_grenade_kill_body_cell()
 	_test_marker_lifecycle()
 	_test_remote_chase_holds_and_extends()
+	_test_remote_chase_survives_full_sync()
 	_test_deployment_overlay()
 	print("")
 	print("Fog of war tests: %d passed, %d failed" % [_passed, _failed])
@@ -217,6 +218,33 @@ func _test_remote_chase_holds_and_extends() -> void:
 		"settled on the last step",
 		view.position.distance_to(IsometricGrid.grid_to_world(Vector2i(12, 10))) < 1.0,
 	)
+	view.queue_free()
+
+
+## A full view sync (soldier_sync facing change) mid-chase used to snap the view and
+## leave the run clip looping in place on the other player's screen.
+func _test_remote_chase_survives_full_sync() -> void:
+	var gs := _make_game_state()
+	var state: SoldierState = gs.get_soldier(Team.GERMANY, 3)
+	state.grid_position = Vector2i(10, 10)
+	var view: Soldier = SoldierScene.instantiate() as Soldier
+	view.soldier_id = 3
+	view.team_id = Team.GERMANY
+	add_child(view)
+	view.sync_from_state(state, false, Soldier.FogVisual.REVEALED, false)
+	view.chase_remote_step(Vector2i(10, 10), Vector2i(11, 10), 1.0)
+	for i in range(120):
+		view._process(1.0 / 60.0)
+	## The replica never has an enemy path, so state.is_moving is false here.
+	state.grid_position = Vector2i(11, 10)
+	view.sync_from_state(state, false, Soldier.FogVisual.REVEALED, false)
+	_assert("full sync leaves the step chase running", view.is_moving() and view.is_remote_chasing())
+	view.chase_remote_step(Vector2i(11, 10), Vector2i(12, 10), 1.0)
+	_assert("chase still extends after the sync", view.presentation_destination_cell() == Vector2i(12, 10))
+	## Stopped mid-hold by something else: ending the chase still settles.
+	view._is_moving = false
+	view.end_remote_chase()
+	_assert("ending a stopped chase clears it", not view.is_remote_chasing() and not view.is_moving())
 	view.queue_free()
 
 

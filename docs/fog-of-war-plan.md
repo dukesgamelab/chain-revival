@@ -83,6 +83,7 @@ Defaults I'll take unless you say otherwise:
 
 - [x] Full server and client suites (known old failures: server "lethality is applied to hit chance", client "Pinned (not panicked) soldier can still throw").
 - [ ] **Local 1v1, two clients:** neither side sees the other's soldiers at deployment, but the enemy zone highlight shows and clears when deployment ends; an enemy walking into view appears where he really is and moves smoothly; one walking out leaves the marker and it fades in ~8s; a shot from out of sight shows a tracer from his cell plus a marker, with the shooter still hidden; reconnect mid-match shows only spotted enemies.
+  - **2026-11-05 run (Richard, two machines):** deployment, before contact, spotting, losing sight, hidden fire, hidden grenade, kills out of sight and normal orders all confirmed. Found: a seen German stood still on his own screen but played his run in place on the US screen. Cause: a full view sync mid-chase snapped the view without settling the run clip, and nothing told the client he had stopped. Fixed: full syncs leave a step chase alone, ending a chase always settles, and `soldier_sync` now carries `isMoving` so a stuck chase settles within 0.5s. Needs a recheck. Reconnect not tested yet.
 - [ ] Single-player 1v1 vs AI: enemies hidden until spotted.
 - [x] `game-systems.md`: new "Spotting and Fog of War" section with the spotting formula and the decisions.
 - [x] `changelog.md`: move "No effective fog of war" from Known Bugs to fixed; Phase 48 notes.

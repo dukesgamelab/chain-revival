@@ -498,6 +498,13 @@ func sync_from_state(
 		return
 
 	_dead_marker.visible = false
+	if _remote_chase and _is_moving:
+		## Fog of war (MP): this enemy's steps drive the view and the replica never holds
+		## his path, so a full sync must not snap or settle the chase.
+		_apply_fog_visual(fog_visual, is_selected)
+		set_selected(is_selected)
+		_refresh_id_marker(state)
+		return
 	if state.is_moving:
 		sync_movement_chase_from_state(state)
 	elif _should_let_presentation_finish_move(state):
@@ -986,7 +993,13 @@ func end_remote_chase() -> void:
 		return
 	_remote_chase = false
 	_remote_catch_up = 1.0
-	if _is_moving and _path_index >= _path.size():
+	if not _is_moving:
+		## Something stopped the view mid-hold without settling the clip; do it now so
+		## the run does not loop in place.
+		if _uses_og_frames() and not _blocks_action_override():
+			_update_locomotion_visual(_last_applied_facing, false)
+		return
+	if _path_index >= _path.size():
 		_finish_presentation_move()
 
 

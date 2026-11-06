@@ -95,7 +95,7 @@ Goal: you only see, and your game only receives, the enemies your side has spott
 |---|---|---|
 | 1 | Server per-team sending: each team gets its own soldiers plus spotted enemies, no enemy paths/ammo/grenades; reveals carry full state | Done, tested |
 | 2 | Client: hide unspotted enemies in every mode, 8s last-known markers, step-by-step enemy movement, hidden-shooter tracers, enemy deployment zone tint | Done, tested headless |
-| 3 | Local 1v1 check with two clients | **Not done yet** |
+| 3 | Local 1v1 check with two clients | Mostly confirmed 2026-11-05. Enemy run-in-place bug found and fixed (needs a recheck); reconnect not tested |
 
 **Decisions (Richard, 2026-11-05):** fading marker ~8s; normal spotting from the start plus the enemy deployment zone tint during the countdown; a hidden shooter/thrower gives a tracer and marker from his cell but stays hidden; same rules in single-player.
 

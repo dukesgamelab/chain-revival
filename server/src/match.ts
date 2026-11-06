@@ -1020,6 +1020,8 @@ export class LocalMatch {
           soldierId: s.soldierId,
           positionState: s.positionState,
           movementMode: s.movementMode,
+          // Fog of war: clients never get an enemy's path, so this is how they know he stopped.
+          isMoving: s.isMoving,
           facing: { ...s.facing },
           stress: s.stress,
           grenadeCount: s.grenadeCount,

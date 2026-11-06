@@ -227,6 +227,7 @@ test("enemy walking into view is revealed with his real cell, then tracked", () 
     (s) => s.teamId === TEAM_GERMANY && s.soldierId === 2,
   )!;
   assert.ok(syncEntry && "positionState" in syncEntry);
+  assert.equal(syncEntry.isMoving, false, "seen enemy's moving flag lets the client settle his view");
   assert.ok(!("ammoCurrent" in syncEntry) && !("grenadeCount" in syncEntry));
   // A second scan with no change does not reveal him again.
   usa.sent.length = 0;

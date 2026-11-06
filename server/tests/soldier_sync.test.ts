@@ -52,6 +52,7 @@ test("soldier_sync is sent every combat scan with the full field set", () => {
   for (const key of [
     "positionState",
     "movementMode",
+    "isMoving",
     "facing",
     "stress",
     "grenadeCount",
