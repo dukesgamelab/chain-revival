@@ -741,19 +741,19 @@
 			"camera_variants": {
 				"0": {
 					"depth_offset": 0.0,
-					"facet": "WWAR_s",
+					"facet": "WWAQ_s",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
 					"letter": "s",
-					"path": "sprites/coc_tiles/WWAR_s.png",
+					"path": "sprites/coc_tiles/WWAQ_s.png",
 					"render_offset": [
 						0.0,
 						0.0
 					],
-					"source_family": "WWAR"
+					"source_family": "WWAQ"
 				},
 				"180": {
 					"depth_offset": 0.0,
@@ -773,14 +773,14 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WWAQ_s",
+					"facet": "WWAQ_w",
 					"fallback": false,
 					"hotspot": [
 						-50.0,
 						-73.0
 					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WWAQ_s.png",
+					"letter": "w",
+					"path": "sprites/coc_tiles/WWAQ_w.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -1261,21 +1261,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "SWAQ_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/SWAQ_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "SWAQ_n",
 					"fallback": false,
 					"hotspot": [
@@ -1284,6 +1269,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/SWAQ_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "SWAQ_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/SWAQ_s.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -1341,21 +1341,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "SWAR_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/SWAR_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "SWAR_n",
 					"fallback": false,
 					"hotspot": [
@@ -1364,6 +1349,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/SWAR_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "SWAR_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/SWAR_s.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -2476,21 +2476,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WWAQ_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WWAQ_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "WWAQ_n",
 					"fallback": false,
 					"hotspot": [
@@ -2499,6 +2484,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/WWAQ_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "WWAQ_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/WWAQ_s.png",
 					"render_offset": [
 						0.0,
 						0.0
@@ -2556,21 +2556,6 @@
 				},
 				"270": {
 					"depth_offset": 0.0,
-					"facet": "WWAR_s",
-					"fallback": false,
-					"hotspot": [
-						-50.0,
-						-73.0
-					],
-					"letter": "s",
-					"path": "sprites/coc_tiles/WWAR_s.png",
-					"render_offset": [
-						0.0,
-						0.0
-					]
-				},
-				"90": {
-					"depth_offset": 0.0,
 					"facet": "WWAR_n",
 					"fallback": false,
 					"hotspot": [
@@ -2579,6 +2564,21 @@
 					],
 					"letter": "n",
 					"path": "sprites/coc_tiles/WWAR_n.png",
+					"render_offset": [
+						0.0,
+						0.0
+					]
+				},
+				"90": {
+					"depth_offset": 0.0,
+					"facet": "WWAR_s",
+					"fallback": false,
+					"hotspot": [
+						-50.0,
+						-73.0
+					],
+					"letter": "s",
+					"path": "sprites/coc_tiles/WWAR_s.png",
 					"render_offset": [
 						0.0,
 						0.0

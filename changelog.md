@@ -19,6 +19,7 @@ Copy this into website patch notes when cutting the next release build. Remove i
 - The enemy's deployment zone is highlighted on the map during the deployment countdown (Phase 48)
 - The server now only sends each player the enemy soldiers they can see, so a modified game can't reveal hidden enemies or their destinations (Phase 48)
 - Fixed a reconnected player getting no further match updates and having every order refused ("Join a side before issuing orders") (Phase 48)
+- Fixed some walls not turning with the camera - interior half walls (like in the Big House on Farm Fight) and door frames now show the right piece at every camera angle
 
 ---
 
@@ -399,10 +400,11 @@ All migrations in `server/sql/`, numbered 001-033. All have been run in Supabase
 - **Corner cover presentation polish** - still to check: how far the corner fire step plus the 0.5-tile lean pushes the sprite toward the wall, and whether the Face command feels clunky along walls (clicks snap to 8 directions).
 - **Bullet hits never stun or wound**: a rifle hit kills at 60% (lethality 0.6) and otherwise does nothing lasting; stun only comes from grenades. Richard expected hits to sometimes stun. Combat balance decision.
 - **Grenade stuns feel ineffective**: Richard reports never landing a stun without getting shot, even a few tiles away. Stunned soldiers cannot fire (checked on client and server). Main cause found and fixed: in single-player a thrower shot during the 1.8s fuse lost his grenade. Remaining possibilities: other enemies, throws landing outside the 2-tile blast or behind a wall. The stun hold also reuses the normal prone idle after the ~2s knockdown, so it can look like the stun ended early. Next occurrence: read the game log ("stunned by grenade blast" / "killed by grenade blast" lines). Consider a clearer stunned pose or marker.
-- **Wall rotation on camera turn**: Some wall sprites don't rotate correctly with the camera. Reported by tester on The Fortress map - needs investigation in facet rotation system.
+- **Soldiers shooting through walls**: USA soldier #2 was seen firing at and hitting targets through a wall in a multiplayer Farm Fight match (recordings 2026-11-05 23-08-35 and 23-12-18). Present on `develop`, so not caused by the wall rotation fix, which only changed which sprite is drawn. Not yet investigated: could be line of fire / cover code (client `cover_system.gd` or the server's shared combat code), wrong `blocks_los`/`blocks_bullets` data for that wall piece, or a legitimate shot through a doorway or over a low wall.
 
 ### Fixed Bugs (for reference)
 
+- **Wall rotation on camera turn**: Some wall pieces kept their old look when the camera turned (Big House on Farm Fight, The Fortress). Two sets of camera variants in `map_asset_registry.json` were wrong. LIHW interior half walls drew the same half-piece at 0 and 180 and the wrong diagonal at 270, and the door frames (WWAQ/WWAR/SWAQ/SWAR) still had their 90/270 sprites in the old n/s order that the other walls were moved off, so frames drew on the doorway side of the tile. Fixed the registry entries and added regression checks to `facet_camera_rotation_tests`.
 - **No effective fog of war** (Phase 48): Both teams were visible from across the map, including at deployment. The client drew unspotted enemies as ghosts in 1v1, and the server sent every soldier to every client. Fixed by hiding unspotted enemies in every mode and filtering every server message per team.
 - **Reconnect on game close** (Phase 46): Countdown was stuck at 90s, and a player who closed the game had no way back (room showed "In Game", host's lobby got deleted on relaunch). Fixed with a working countdown and a lobby Rejoin button. Note: local `npm run dev` needs `SUPABASE_URL` set or logins can't be verified, everyone joins as a guest, and the reconnect window never opens.
 
