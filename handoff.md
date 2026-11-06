@@ -85,40 +85,37 @@ Enabled on: `player_profiles`, `match_history`, `regiments`, `regiment_members`,
 - **Remote:** GitHub, user `dukesgamelab`
 - **No Claude attribution.** Never add `Co-Authored-By` lines or any Claude/Anthropic references to commits or PRs. All commits must appear as solely by `dukesgamelab`.
 
-## Current Work - Phase 47 Sim Parity (branch: sim-parity)
+## Current Work - Phase 48 Fog of War (branch: fog-of-war)
 
-Goal: multiplayer plays the same as single-player. Single-player (GDScript) is the reference; the server's TypeScript copy of the rules is brought in line with it. Full plan and checklist: [docs/sim-parity-plan.md](docs/sim-parity-plan.md).
+Goal: you only see, and your game only receives, the enemies your side has spotted. Full plan, decisions and checklist: [docs/fog-of-war-plan.md](docs/fog-of-war-plan.md). Spotting rules and what each side is sent: [game-systems.md](game-systems.md) "Spotting and Fog of War".
 
-**No SQL migrations needed.**
+**No SQL migrations needed.** Server and client must ship together (wire protocol change).
 
 | Step | What | Status |
 |---|---|---|
-| 1 | Soldier sync - server sends every soldier's stance, facing, stress, grenades, ammo, stun and Fire At state every 0.5s | Done, tested in a local 1v1 |
-| 2 | Parity test harness - shared rule fixtures run by both sides | Done |
-| 3 | Fix known server drift (auto-target bonuses, grenade blast walls, wall-hugger suppression, deployment lock, AI clock; 3 items turned out not to be drift) | Done |
-| 4 | Message and reconnect fixes (grenade reply name, opponent status text, forfeit result, reconnect loop) | Done |
+| 1 | Server per-team sending: each team gets its own soldiers plus spotted enemies, no enemy paths/ammo/grenades; reveals carry full state | Done, tested |
+| 2 | Client: hide unspotted enemies in every mode, 8s last-known markers, step-by-step enemy movement, hidden-shooter tracers, enemy deployment zone tint | Done, tested headless |
+| 3 | Local 1v1 check with two clients | **Not done yet** |
 
-**Status:** code complete, all tests pass except the two pre-existing failures below. Ready for a PR to `develop`.
+**Decisions (Richard, 2026-11-05):** fading marker ~8s; normal spotting from the start plus the enemy deployment zone tint during the countdown; a hidden shooter/thrower gives a tracer and marker from his cell but stays hidden; same rules in single-player.
 
-**Before the release build:** one local 1v1 reconnect check with two clients - cut one player's network for ~10s mid-match (should rejoin with the battlefield intact) and press Retreat (should not try to reconnect). Optional: close-and-rejoin from the lobby, and a disconnect past 90s (back to lobby, result recorded). Skipped for now because the risk is low: the server's only mid-match welcome is the reconnect path, which always sends `reconnected: true`, and the worst case (back to lobby) is no worse than the old behavior.
+**Also fixed:** a reconnecting player was never re-attached to the match (`index.ts` resume path), so after the reconnect snapshot they got no match messages and their orders were refused. This is live in v0.22.9, since the security hardening removed the attach-on-connect.
 
 **Key files:**
-- `server/src/match.ts` - `broadcastSoldierSync()`, deployment lock in `handleFireAt` / `handleGrenade`, `holdClientTeam()` for reconnect-window results
-- `server/src/perception.ts`, `grenade_system.ts`, `combat_system.ts` - drift fixes
-- `scripts/network/authoritative_sync.gd` - `apply_soldier_sync()`
-- `scripts/network/network_client.gd` - reconnect loop, `_strip_foreign_status()`
-- `scripts/core/main.gd` - `_on_network_soldier_sync()`, `_on_network_match_snapshot()`
-- `scripts/tests/parity/*.json` - shared fixtures (format in its README)
-- `server/tests/parity.test.ts` and `scripts/tests/parity_tests.tscn` - the two parity runners
-- `server/tests/sim_parity_drift.test.ts` - drift fixes that need the full server flow
+- `server/src/fog_filter.ts` - one filter per message type (`FogView`)
+- `server/src/match.ts` - `sendPerTeam()`, `sendOrderResult()`, `sendVisibilityUpdate()` (reveals), tick order (spotting before movement goes out)
+- `scripts/core/main.gd` - `_fog_visual_for_enemy`, `_note_enemy_fog_transition`, `_mark_hidden_enemy_action`, `_refresh_enemy_deployment_overlay`
+- `scripts/effects/last_known_markers.gd`, `scripts/effects/deployment_zone_overlay.gd`
+- `scripts/soldiers/soldier.gd` - `chase_remote_step()` / `end_remote_chase()` (enemy steps without a path), `make_ghost_copy()`
+- `scripts/network/authoritative_sync.gd` - hidden snapshot entries, `apply_revealed()`, hidden shooter cells, body cells
 
-**Parity tests:** `cd server && npm test` runs the server side (fixtures marked `knownDrift` show as TODO; none right now). Client side: `Godot --headless --path . res://scripts/tests/parity_tests.tscn`.
+**Tests:** `server/tests/fog_of_war.test.ts`, `scripts/tests/fog_of_war_tests.tscn`.
 
-**Release note:** server and client must ship together. A 0.22.9 client on the new server loses stress decay (it read stress from `scenario_time`).
+**Local 1v1 check (before the PR is merged):** neither side sees the other's soldiers at deployment, but the enemy zone tint shows and clears when deployment ends; an enemy walking into view appears where he really is and moves smoothly (watch for choppy steps - the fallback is to send the next few cells); one walking out leaves a marker that fades in ~8s; a shot from out of sight shows a tracer from his cell and a marker while he stays hidden; reconnect mid-match shows only spotted enemies and orders work.
 
-**Pre-existing test failures (not from this work):** server "lethality is applied to hit chance" still expects the pre-Phase 44 value 0.9; client "Pinned (not panicked) soldier can still throw" in gameplay_foundation_tests.
+**Pre-existing test failures (not from this work):** server "lethality is applied to hit chance" still expects the pre-Phase 44 value 0.9; client "Pinned (not panicked) soldier can still throw" in gameplay_foundation_tests; 3 in engagement_firing_presentation_tests (aim hold, fidget, exposed prone) and 4 in ai_commander_tests (MoveCommand, SQUAD scope, ThrowGrenadeCommand, lone defender). The last two suites fail the same way on a clean `develop` (checked 2026-11-05).
 
-**Previous work:** security lockdown and hardening (PRs #8, #9, #10, plus the reconnect-takeover hotfix) shipped in v0.22.9-alpha and are deployed. Fog of war is Phase 48.
+**Previous work:** Phase 47 sim parity ([docs/sim-parity-plan.md](docs/sim-parity-plan.md)) was merged to `develop` on 2026-11-05 as PR #11 and has not been released. Its in-game reconnect check is still open. Phases 47 and 48 both change the wire protocol, so shipping them together as one release (0.23.0) needs only one forced client update. Security lockdown and hardening (PRs #8, #9, #10, plus the reconnect-takeover hotfix) shipped in v0.22.9-alpha and are deployed.
 
 ## Deployment
 

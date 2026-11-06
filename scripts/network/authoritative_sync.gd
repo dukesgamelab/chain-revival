@@ -72,6 +72,13 @@ static func apply_snapshot(game_state: GameStateClass, snapshot: Dictionary) -> 
 		var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
 		if soldier == null:
 			continue
+		## Fog of war: an enemy this team can't see comes as a roster entry only. Keep the
+		## soldier, drop any stale route, and place him only if he is dead (bodies are public).
+		if entry.has("known") and not bool(entry.get("known", true)):
+			soldier.clear_path()
+			if bool(entry.get("isDead", false)):
+				_apply_hidden_death(soldier, entry)
+			continue
 		soldier.grid_position = _cell(entry.get("gridPosition", entry.get("grid_position", {})))
 		soldier.facing_direction = _cell(entry.get("facing", {}))
 		if soldier.facing_direction == Vector2i.ZERO:
@@ -125,6 +132,55 @@ static func apply_snapshot(game_state: GameStateClass, snapshot: Dictionary) -> 
 			soldier.grenade_count = int(
 				entry.get("grenadeCount", entry.get("grenade_count", soldier.grenade_count))
 			)
+
+
+static func _apply_hidden_death(soldier: SoldierState, entry: Dictionary) -> void:
+	if entry.has("gridPosition"):
+		soldier.grid_position = _cell(entry.get("gridPosition", {}))
+	var facing := _cell(entry.get("facing", {}))
+	if facing != Vector2i.ZERO:
+		soldier.facing_direction = FacingDirection.from_step(facing)
+	soldier.stance_at_death = int(entry.get("stanceAtDeath", soldier.position_state))
+	var family := str(entry.get("deathSpriteFamily", ""))
+	if not family.is_empty():
+		soldier.death_sprite_family = family
+	if not soldier.is_dead:
+		soldier.mark_killed()
+
+
+## Fog of war: full state for enemies this team has just spotted (visibility_update
+## `revealed`). Applied before the visible list so the view appears where he really is.
+## Returns the keys ("team:soldier") of the soldiers updated.
+static func apply_revealed(game_state: GameStateClass, payload: Dictionary) -> Array[String]:
+	var keys: Array[String] = []
+	if game_state == null:
+		return keys
+	for raw in payload.get("revealed", []):
+		if not raw is Dictionary:
+			continue
+		var entry: Dictionary = raw
+		var soldier: SoldierState = game_state.get_soldier(
+			int(entry.get("teamId", -1)), int(entry.get("soldierId", -1))
+		)
+		if soldier == null or soldier.is_dead:
+			continue
+		soldier.clear_path()
+		soldier.grid_position = _cell(entry.get("gridPosition", {}))
+		var facing := _cell(entry.get("facing", {}))
+		if facing != Vector2i.ZERO:
+			soldier.facing_direction = FacingDirection.from_step(facing)
+		soldier.position_state = int(entry.get("positionState", soldier.position_state))
+		soldier.clear_pending_position()
+		soldier.movement_mode = int(entry.get("movementMode", soldier.movement_mode))
+		soldier.move_speed_mult = float(entry.get("moveSpeedMult", 1.0))
+		soldier.stress = float(entry.get("stress", soldier.stress))
+		soldier.stunned_until_msec = int(entry.get("stunnedUntilMsec", soldier.stunned_until_msec))
+		soldier.fire_control_state = int(entry.get("fireControlState", soldier.fire_control_state))
+		soldier.engaged_target_team_id = int(entry.get("engagedTargetTeamId", -1))
+		soldier.engaged_target_soldier_id = int(entry.get("engagedTargetSoldierId", -1))
+		soldier.sustained_fire = bool(entry.get("sustainedFire", false))
+		keys.append("%d:%d" % [soldier.team_id, soldier.soldier_id])
+	return keys
 
 
 ## Periodic server soldier state. Returns one entry per soldier that changed:
@@ -224,6 +280,14 @@ static func apply_combat_shots(game_state: GameStateClass, payload: Dictionary) 
 		if not shot.fired:
 			continue
 		var shooter: SoldierState = game_state.get_soldier(shot.shooter_team_id, shot.shooter_id)
+		## Fog of war: a hidden enemy shooter comes with only the cell he fired from.
+		if shooter != null and bool(raw.get("shooterHidden", false)):
+			if raw.has("shooterCell"):
+				shooter.clear_path()
+				shooter.grid_position = _cell(raw.get("shooterCell", {}))
+			shooter.last_shot_msec = SimulationClock.get_ticks_msec()
+			shooter.last_fired_msec = shooter.last_shot_msec
+			shooter = null
 		if shooter != null:
 			var facing := _cell(raw.get("facing", {}))
 			if facing != Vector2i.ZERO:
@@ -240,6 +304,10 @@ static func apply_combat_shots(game_state: GameStateClass, payload: Dictionary) 
 		if target != null and not target.is_dead and (raw.has("targetStress") or raw.has("target_stress")):
 			target.stress = float(raw.get("targetStress", raw.get("target_stress", target.stress)))
 		if shot.killed and target != null and not target.is_dead:
+			## Killed out of our sight: the server says where the body lies.
+			if raw.has("targetCell"):
+				target.clear_path()
+				target.grid_position = _cell(raw.get("targetCell", {}))
 			target.stance_at_death = int(
 				raw.get("stanceAtDeath", raw.get("stance_at_death", target.position_state))
 			)
@@ -267,6 +335,10 @@ static func apply_grenade_explode(game_state: GameStateClass, payload: Dictionar
 		var soldier_id := int(raw.get("soldierId", raw.get("soldier_id", -1)))
 		var soldier: SoldierState = game_state.get_soldier(team_id, soldier_id)
 		if soldier != null and not soldier.is_dead:
+			## Deaths are public: the body lies where he fell, even if we never saw him.
+			if raw.has("cell"):
+				soldier.clear_path()
+				soldier.grid_position = _cell(raw.get("cell", {}))
 			soldier.mark_killed()
 			_clear_engagements_on_dead(game_state, soldier)
 

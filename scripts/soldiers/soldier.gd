@@ -52,6 +52,10 @@ const _look_ahead_threshold: float = 30.0
 var _previous_grid_pos: Vector2i = Vector2i.ZERO
 var _is_dead: bool = false
 var _speed_multiplier: float = 1.0
+## Fog of war (MP): enemy steps arrive one at a time with no path; hold the run at the
+## newest cell until the next step or end_remote_chase().
+var _remote_chase: bool = false
+var _remote_catch_up: float = 1.0
 var _applied_position_state: int = -1
 var _facing_from_cell: Vector2i = Vector2i.ZERO
 var _last_applied_facing: Vector2i = FacingDirection.NORTH
@@ -862,6 +866,8 @@ func refresh_movement_visual() -> void:
 
 func stop_movement() -> void:
 	var was_moving := _is_moving
+	_remote_chase = false
+	_remote_catch_up = 1.0
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
@@ -882,6 +888,8 @@ func _finish_presentation_move() -> void:
 	## Arrived at the final chase cell after sim already cleared is_moving.
 	if not _is_moving:
 		return
+	_remote_chase = false
+	_remote_catch_up = 1.0
 	_is_moving = false
 	_path.clear()
 	_path_index = 0
@@ -942,6 +950,73 @@ func follow_path(path: Array[Vector2i], speed_multiplier: float = 1.0) -> void:
 	set_process(true)
 
 
+## Fog of war (MP): the server sends a seen enemy's steps but never his path. Extend the
+## chase one cell per step; at the newest cell the run holds instead of settling, so the
+## clip does not restart every tile.
+func chase_remote_step(from_cell: Vector2i, to_cell: Vector2i, speed_multiplier: float = 1.0) -> void:
+	if _is_dead or _blocks_locomotion() or from_cell == to_cell:
+		return
+	if _remote_chase and _is_moving and not _path.is_empty():
+		if _path[_path.size() - 1] == to_cell:
+			return
+		var was_holding := _path_index >= _path.size()
+		_path.append(to_cell)
+		_settled_path_end = to_cell
+		if was_holding:
+			_previous_grid_pos = _path[_path_index - 1]
+			_move_target_world = IsometricGrid.grid_to_world(to_cell)
+			var step_delta := to_cell - _previous_grid_pos
+			_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
+			_update_locomotion_visual(step_delta, true)
+		## Falling behind the server: hurry so the view does not trail by tiles.
+		_remote_catch_up = 1.5 if _path.size() - _path_index > 2 else 1.0
+		set_process(true)
+		return
+	var path: Array[Vector2i] = [from_cell, to_cell]
+	_remote_chase = true
+	_remote_catch_up = 1.0
+	follow_path(path, speed_multiplier if speed_multiplier > 0.0 else 1.0)
+	if not _is_moving:
+		_remote_chase = false
+
+
+## The enemy's move ended on the server: let the chase finish its last cell, then settle.
+func end_remote_chase() -> void:
+	if not _remote_chase:
+		return
+	_remote_chase = false
+	_remote_catch_up = 1.0
+	if _is_moving and _path_index >= _path.size():
+		_finish_presentation_move()
+
+
+func is_remote_chasing() -> bool:
+	return _remote_chase
+
+
+## Fog of war: jump a view (usually hidden) to a cell, e.g. where a hidden enemy fired from.
+func place_at_cell(cell: Vector2i, facing: Vector2i = Vector2i.ZERO) -> void:
+	stop_movement()
+	_set_world_position_from_cell(cell)
+	if facing != Vector2i.ZERO:
+		_apply_facing(facing, cell)
+
+
+## Frozen translucent copy of the current frame, for the last-known marker. The holder
+## sits where the view stands so it y-sorts like a soldier. The caller adds it to the scene.
+func make_ghost_copy() -> Node2D:
+	var holder := Node2D.new()
+	holder.position = position
+	holder.modulate = GHOST_MODULATE
+	var ghost := _anim.duplicate() as AnimatedSprite2D
+	ghost.stop()
+	ghost.animation = _anim.animation
+	ghost.frame = _anim.frame
+	ghost.modulate = Color.WHITE
+	holder.add_child(ghost)
+	return holder
+
+
 func _process(delta: float) -> void:
 	## Standing fidget wait is presentation-only and must tick even when not translating.
 	_tick_standing_idle_wait(delta)
@@ -974,7 +1049,7 @@ func _process(delta: float) -> void:
 		_apply_facing(FacingDirection.from_step(step_delta), _previous_grid_pos)
 		_update_locomotion_visual(step_delta, true)
 
-	var move_amount := move_speed * _speed_multiplier * delta
+	var move_amount := move_speed * _speed_multiplier * _remote_catch_up * delta
 	if move_amount >= distance:
 		_arrive_at_chase_cell()
 	else:
@@ -995,12 +1070,14 @@ func _process(delta: float) -> void:
 func _arrive_at_chase_cell() -> void:
 	position = _move_target_world
 	if _path.is_empty() or _path_index >= _path.size():
-		_finish_presentation_move()
+		if not _remote_chase:
+			_finish_presentation_move()
 		return
 	_previous_grid_pos = _path[_path_index]
 	_path_index += 1
 	if _path_index >= _path.size():
-		_finish_presentation_move()
+		if not _remote_chase:
+			_finish_presentation_move()
 		return
 	_move_target_world = IsometricGrid.grid_to_world(_path[_path_index])
 	var step_delta := _path[_path_index] - _previous_grid_pos

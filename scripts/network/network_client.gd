@@ -724,10 +724,15 @@ func _on_grenade_thrown(payload: Dictionary) -> void:
 	result.status_message = str(payload.get("statusMessage", payload.get("status_message", "")))
 	result.refresh_views = result.success
 	if result.success:
-		result.throw_orders.append({
+		var throw_order := {
 			"team_id": int(payload.get("throwerTeamId", payload.get("thrower_team_id", -1))),
 			"soldier_id": int(payload.get("throwerId", payload.get("thrower_id", -1))),
-		})
+			"target_cell": AuthoritativeSyncClass._cell(payload.get("targetCell", {})),
+		}
+		## Fog of war: a hidden enemy thrower comes with only the cell he threw from.
+		if bool(payload.get("throwerHidden", false)) and payload.has("throwerCell"):
+			throw_order["cell"] = AuthoritativeSyncClass._cell(payload.get("throwerCell", {}))
+		result.throw_orders.append(throw_order)
 		## Apply facing and halt if present.
 		var facing: Vector2i = AuthoritativeSyncClass._cell(payload.get("facing", {}))
 		if facing != Vector2i.ZERO:

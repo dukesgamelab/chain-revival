@@ -45,6 +45,8 @@ export const GRENADE_STUN_MIN_SEC = 5.0;
 export interface GrenadeKillEntry {
   teamId: number;
   soldierId: number;
+  /** Where the body lies. Deaths are public, so this goes to both teams. */
+  cell: Vec2i;
 }
 
 export interface GrenadeStunEntry {
@@ -239,7 +241,7 @@ export function resolveGrenade(
       if (!isFriendly) {
         onSoldierKilled(state.scenario, thrower.teamId, soldier);
       }
-      killed.push({ teamId: soldier.teamId, soldierId: soldier.soldierId });
+      killed.push({ teamId: soldier.teamId, soldierId: soldier.soldierId, cell: { ...soldier.gridPosition } });
       const killMsg = isFriendly
         ? `${teamDisplayName(soldier.teamId)} Soldier ${soldier.soldierId} killed by FRIENDLY grenade!`
         : `${teamDisplayName(soldier.teamId)} Soldier ${soldier.soldierId} killed by grenade blast.`;

@@ -66,6 +66,20 @@ import {
   type VisibilityUpdatePayload,
 } from "./types";
 import { ReplayRecorder, type ReplayData } from "./replay_recorder";
+import {
+  FogView,
+  filterCombatShots,
+  filterForeignGrenadeThrown,
+  filterForeignResult,
+  filterGrenadeExplode,
+  filterMovementTick,
+  filterSnapshot,
+  filterSoldierSync,
+  filterTargetSync,
+  filterVisibility,
+} from "./fog_filter";
+import type { SoldierState } from "./soldier_state";
+import { soldierKey } from "./grid";
 
 export type MatchPhase = "created" | "running" | "paused" | "ended";
 
@@ -144,6 +158,8 @@ export class LocalMatch {
   visibilitySends = 0;
   private aiFramework: AiCommanderFramework | null = null;
   private readonly replay = new ReplayRecorder();
+  /** Fog of war: the enemies each team was last told it can see, for spotting reveals. */
+  private sentVisible = new Map<number, Set<string>>();
 
   private waitForBothSides = true;
   private matchStarted = false;
@@ -161,6 +177,7 @@ export class LocalMatch {
     const map = MapData.loadFromRepo(mapId);
     this.gameState = new GameState(map, options.scenarioTimeSec);
     this.replay.captureInitialState(this.gameState);
+    this.sentVisible = this.currentVisibleSets();
     // Start paused, waiting for both sides to connect.
     this.phase = "created";
     this.waitForBothSides = true;
@@ -306,7 +323,15 @@ export class LocalMatch {
 
   sendSnapshot(ws: WebSocket): void {
     this.snapshotSends += 1;
-    ws.send(JSON.stringify(this.gameState.getSnapshot(this.phase)));
+    let teamId: number | null = null;
+    for (const client of this.clients.values()) {
+      if (client.ws === ws) {
+        teamId = client.teamId;
+        break;
+      }
+    }
+    const view = new FogView(this.gameState, teamId);
+    ws.send(JSON.stringify(filterSnapshot(this.gameState.getSnapshot(this.phase), this.gameState, view)));
   }
 
   pauseSimulation(): void {
@@ -467,7 +492,7 @@ export class LocalMatch {
     const deploymentLocked = this.deploymentRemainingSec > 0;
     const result = executeMove(this.gameState, intent, client.teamId, deploymentLocked);
     const payload = toMoveResultPayload(this.matchId, intent.requestId, result);
-    this.broadcast(payload);
+    this.sendOrderResult(client.teamId, payload);
     console.log(
       "Move %s team=%d soldier=%d success=%s",
       intent.requestId,
@@ -513,7 +538,7 @@ export class LocalMatch {
       return;
     }
     const result = executeFace(this.gameState, intent, client.teamId);
-    this.broadcast(toFaceResultPayload(this.matchId, intent.requestId, result));
+    this.sendOrderResult(client.teamId, toFaceResultPayload(this.matchId, intent.requestId, result));
     console.log(
       "Face %s team=%d soldier=%d success=%s",
       intent.requestId,
@@ -568,7 +593,7 @@ export class LocalMatch {
       return;
     }
     const result = executePosition(this.gameState, intent, client.teamId);
-    this.broadcast(toPositionResultPayload(this.matchId, intent.requestId, result));
+    this.sendOrderResult(client.teamId, toPositionResultPayload(this.matchId, intent.requestId, result));
     console.log(
       "Position %s team=%d soldier=%d success=%s",
       intent.requestId,
@@ -617,7 +642,7 @@ export class LocalMatch {
       return;
     }
     const result = executeFireControl(this.gameState, intent, client.teamId);
-    this.broadcast(toFireControlResultPayload(this.matchId, intent.requestId, result));
+    this.sendOrderResult(client.teamId, toFireControlResultPayload(this.matchId, intent.requestId, result));
   }
 
   handleFireAt(clientId: string, intent: FireAtCommandIntent): void {
@@ -679,7 +704,7 @@ export class LocalMatch {
       return;
     }
     const result = executeFireAt(this.gameState, intent, client.teamId);
-    this.broadcast(toFireAtResultPayload(this.matchId, intent.requestId, result));
+    this.sendOrderResult(client.teamId, toFireAtResultPayload(this.matchId, intent.requestId, result));
   }
 
   /** Enable AI for the specified teams. Call after match creation. */
@@ -719,7 +744,10 @@ export class LocalMatch {
       return;
     }
     const result = executeGrenade(this.gameState, intent, client.teamId);
-    this.broadcast(result);
+    const issuerTeamId = client.teamId;
+    this.sendPerTeam(result, (view) =>
+      view.viewerTeamId === issuerTeamId ? result : filterForeignGrenadeThrown(result, this.gameState, view),
+    );
   }
 
   /**
@@ -729,6 +757,12 @@ export class LocalMatch {
   simulationTick(tickId: number, _tickMsec: number): void {
     const movement = processMovementTick(this.gameState);
     this.gameState.timers.pollDue(this.clock);
+    // Spotting before movement goes out: a step that brings an enemy into view arrives
+    // with his reveal, and a step that takes him out of view is never sent.
+    const perception = this.gameState.perception.processTick(this.gameState, tickId);
+    if (perception.visibilityChanged) {
+      this.sendVisibilityUpdate(tickId);
+    }
     if (movement.movementSteps.length > 0 || movement.movementCompletions.length > 0) {
       this.movementTickSends += 1;
       const payload: MovementTickPayload = {
@@ -739,19 +773,7 @@ export class LocalMatch {
         movementSteps: movement.movementSteps,
         movementCompletions: movement.movementCompletions,
       };
-      this.broadcast(payload);
-    }
-    const perception = this.gameState.perception.processTick(this.gameState, tickId);
-    if (perception.visibilityChanged) {
-      this.visibilitySends += 1;
-      const vis: VisibilityUpdatePayload = {
-        type: "visibility_update",
-        matchId: this.matchId,
-        simMsec: this.clock.getTicksMsec(),
-        tickId,
-        sides: this.gameState.perception.visibilityPayload(),
-      };
-      this.broadcast(vis);
+      this.sendPerTeam(payload, (view) => filterMovementTick(payload, view));
     }
     if (perception.targetUpdates.length > 0) {
       const targets: TargetSyncPayload = {
@@ -761,7 +783,7 @@ export class LocalMatch {
         tickId,
         targetUpdates: perception.targetUpdates,
       };
-      this.broadcast(targets);
+      this.sendPerTeam(targets, (view) => filterTargetSync(targets, view));
     }
     // Deployment phase: count down, broadcast time, skip combat/scenario.
     if (this.deploymentRemainingSec > 0) {
@@ -807,7 +829,7 @@ export class LocalMatch {
           stunned: explosion.stunned,
           messages: explosion.messages,
         };
-        this.broadcast(payload);
+        this.sendPerTeam(payload, (view) => filterGrenadeExplode(payload, view));
       }
 
       const combat = processCombatTick(this.gameState);
@@ -819,7 +841,7 @@ export class LocalMatch {
           tickId,
           shots: combat.shots,
         };
-        this.broadcast(payload);
+        this.sendPerTeam(payload, (view) => filterCombatShots(payload, this.gameState, view));
       }
 
       // Recover from stun after expiry
@@ -987,7 +1009,7 @@ export class LocalMatch {
    * stress decay, stun recovery, grenade counts). Grid position rides movement_tick.
    */
   private broadcastSoldierSync(): void {
-    this.broadcast({
+    const payload = {
       type: "soldier_sync",
       matchId: this.matchId,
       simMsec: this.clock.getTicksMsec(),
@@ -1008,7 +1030,76 @@ export class LocalMatch {
           engagedTargetSoldierId: s.engagedTargetSoldierId,
           sustainedFire: s.sustainedFire,
         })),
-    });
+    };
+    this.sendPerTeam(payload, (view) => filterSoldierSync(payload, view));
+  }
+
+  private currentVisibleSets(): Map<number, Set<string>> {
+    const sets = new Map<number, Set<string>>();
+    for (const [teamId, visible] of this.gameState.perception.visibleByTeam) {
+      sets.set(teamId, new Set(visible));
+    }
+    return sets;
+  }
+
+  /** Each team gets its own visible list, plus full state for enemies it just spotted. */
+  private sendVisibilityUpdate(tickId: number): void {
+    this.visibilitySends += 1;
+    const vis: VisibilityUpdatePayload = {
+      type: "visibility_update",
+      matchId: this.matchId,
+      simMsec: this.clock.getTicksMsec(),
+      tickId,
+      sides: this.gameState.perception.visibilityPayload(),
+    };
+    const now = this.currentVisibleSets();
+    const revealedByTeam = new Map<number, SoldierState[]>();
+    for (const [teamId, visible] of now) {
+      const before = this.sentVisible.get(teamId) ?? new Set<string>();
+      revealedByTeam.set(
+        teamId,
+        this.gameState.soldiers.filter((s) => {
+          const key = soldierKey(s.teamId, s.soldierId);
+          return visible.has(key) && !before.has(key);
+        }),
+      );
+    }
+    this.sentVisible = now;
+    this.sendPerTeam(vis, (view) =>
+      filterVisibility(vis, view, view.viewerTeamId === null ? [] : revealedByTeam.get(view.viewerTeamId) ?? []),
+    );
+  }
+
+  /** The issuing team gets the full result; the other team only what it can see. */
+  private sendOrderResult<T extends { success: boolean; statusMessage: string }>(
+    issuerTeamId: number,
+    payload: T,
+  ): void {
+    this.sendPerTeam(payload, (view) =>
+      view.viewerTeamId === issuerTeamId ? payload : filterForeignResult(payload, view),
+    );
+  }
+
+  /**
+   * Fog of war send: the replay records the full payload once, and each client gets what
+   * its team may see (null = nothing). The filtered text is built once per team.
+   */
+  private sendPerTeam(payload: unknown, build: (view: FogView) => unknown): void {
+    this.replay.recordBroadcast(payload);
+    const byTeam = new Map<number | null, string | null>();
+    for (const client of this.clients.values()) {
+      if (client.ws.readyState !== client.ws.OPEN) {
+        continue;
+      }
+      if (!byTeam.has(client.teamId)) {
+        const filtered = build(new FogView(this.gameState, client.teamId));
+        byTeam.set(client.teamId, filtered === null ? null : JSON.stringify(filtered));
+      }
+      const text = byTeam.get(client.teamId);
+      if (text !== null && text !== undefined) {
+        client.ws.send(text);
+      }
+    }
   }
 
   private broadcast(payload: unknown): void {
