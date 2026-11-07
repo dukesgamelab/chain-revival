@@ -44,6 +44,8 @@ class LossResult extends RefCounted:
 	var corner_peek: bool = false
 	var peek_side: int = CoverSystem.PeekSide.NONE
 	var corner_cell: Vector2i = Vector2i(-999, -999)
+	## Target leaning out of his corner (corner-to-corner): lighter cover than normal.
+	var target_leaning: bool = false
 
 
 ## Corner-to-corner: when the direct line is blocked, soldiers hugging a corner lean out
@@ -93,6 +95,7 @@ static func evaluate(
 			if t != to_cell and peek.cover_type == CoverSystem.CoverType.NONE:
 				peek.cover_type = CoverSystem.CoverType.MODERATE
 				peek.status = Status.COVER
+				peek.target_leaning = true
 			return peek
 	return direct
 

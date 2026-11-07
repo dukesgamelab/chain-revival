@@ -52,6 +52,8 @@ export interface LosResult {
   cornerPeek: boolean;
   peekSide: number;
   cornerCell: Vec2i;
+  /** Target leaning out of his corner (corner-to-corner): lighter cover than normal. */
+  targetLeaning: boolean;
 }
 
 export interface CoverResult {
@@ -79,6 +81,7 @@ export function emptyLos(): LosResult {
     cornerPeek: false,
     peekSide: PEEK_NONE,
     cornerCell: { ...MISSING },
+    targetLeaning: false,
   };
 }
 
@@ -716,6 +719,7 @@ export function evaluate(
       if (!vecEq(t, to) && peek.coverType === COVER_NONE) {
         peek.coverType = COVER_MODERATE;
         peek.status = LOS_COVER;
+        peek.targetLeaning = true;
       }
       return peek;
     }

@@ -317,5 +317,36 @@
     "expect": {
       "chance": 0.0186
     }
+  },
+  {
+    "name": "hit_corner_to_corner_lean_cover",
+    "map": {
+      "width": 40,
+      "height": 40,
+      "objects": [{ "type": "wall_straight", "from": [13, 21], "to": [17, 21] }]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [18, 21],
+        "facing": [-1, 0],
+        "weapon": "m1_garand"
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [12, 21],
+        "facing": [1, 0]
+      }
+    ],
+    "query": {
+      "kind": "hit_chance",
+      "shooter": [1, 1],
+      "target": [2, 1]
+    },
+    "expect": {
+      "chance": 0.1389
+    }
   }
 ]

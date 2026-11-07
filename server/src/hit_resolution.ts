@@ -1,6 +1,6 @@
 /** Hit polynomial + situational stack — CombatSystem.hit_chance / _final_hit_chance. */
 
-import { coverMultiplierForRange } from "./cover_policy";
+import { coverMultiplierForRange, leanCoverMultiplierForRange } from "./cover_policy";
 import { euclidean } from "./grid";
 import type { LosResult } from "./los";
 import { COVER_COMPLETE, COVER_MODERATE } from "./map_objects";
@@ -78,7 +78,7 @@ export function finalHitChance(
   let moveApproachMult = 1;
   const inCover = los.coverType === COVER_MODERATE || los.coverType === COVER_COMPLETE;
   if (inCover) {
-    coverMult = coverMultiplierForRange(dist);
+    coverMult = los.targetLeaning ? leanCoverMultiplierForRange(dist) : coverMultiplierForRange(dist);
     chance = base * coverMult;
   } else {
     openGroundMult = OPEN_GROUND_HIT_MULT;

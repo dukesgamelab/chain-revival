@@ -18,6 +18,9 @@ const INIT_KILLED_PROBABILITY := 20
 
 ## TUNED optional per-obstruction strength. Original treats wall/hedge identically (= 1.0).
 const DEFAULT_OBJECT_COVER_STRENGTH := 1.0
+## TUNED: a target leaning out of a corner to fire is only half behind it, so at range he
+## keeps this much of his hit chance instead of cover_hit_multiplier (corner-to-corner duels).
+const DEFAULT_LEAN_COVER_HIT_MULTIPLIER := 0.25
 
 ## Eight compass offsets stored on the target (N, NE, E, SE, S, SW, W, NW).
 const DIR8_OFFSETS: Array[Vector2i] = [
@@ -45,6 +48,7 @@ var cover_hit_multiplier: float = INIT_COVER_HIT_MULTIPLIER
 var cover_range_limit: int = INIT_COVER_RANGE_LIMIT
 ## TUNED — multiplies the recovered curve; default 1.0 (no type differentiation).
 var object_cover_strength: float = DEFAULT_OBJECT_COVER_STRENGTH
+var lean_cover_hit_multiplier: float = DEFAULT_LEAN_COVER_HIT_MULTIPLIER
 var stack_mode: int = StackMode.FIRST
 
 
@@ -63,6 +67,7 @@ func reset_to_defaults() -> void:
 	cover_hit_multiplier = INIT_COVER_HIT_MULTIPLIER
 	cover_range_limit = INIT_COVER_RANGE_LIMIT
 	object_cover_strength = DEFAULT_OBJECT_COVER_STRENGTH
+	lean_cover_hit_multiplier = DEFAULT_LEAN_COVER_HIT_MULTIPLIER
 	stack_mode = StackMode.FIRST
 
 
@@ -79,6 +84,11 @@ func cover_multiplier_for_range(combat_range: float) -> float:
 		mult = (cover_hit_multiplier - 1.0) * (r - 1.0) / limit + 1.0
 		mult = maxf(mult, INIT_COVER_NEAR_FLOOR)
 	return clampf(mult * object_cover_strength, 0.0, 1.0)
+
+
+## Cover curve for a target leaning out of a corner: never stronger than lean_cover_hit_multiplier.
+func lean_cover_multiplier_for_range(combat_range: float) -> float:
+	return maxf(cover_multiplier_for_range(combat_range), lean_cover_hit_multiplier)
 
 
 func apply_hit_modifier(
@@ -150,6 +160,8 @@ func apply_config(section: Dictionary) -> void:
 		cover_range_limit = int(section.cover_range_limit)
 	if section.has("object_cover_strength"):
 		object_cover_strength = float(section.object_cover_strength)
+	if section.has("lean_cover_hit_multiplier"):
+		lean_cover_hit_multiplier = float(section.lean_cover_hit_multiplier)
 	if section.has("stack_mode"):
 		var mode := str(section.stack_mode).to_lower()
 		if mode == "count" or mode == "1":

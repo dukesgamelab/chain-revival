@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { cornerPeekCells, cornerWatchFacing, evaluate, LOS_BLOCKED, type LosOccupant } from "../src/los";
 import { MapData } from "../src/map_data";
 import { COVER_MODERATE } from "../src/map_objects";
+import { coverMultiplierForRange, LEAN_COVER_HIT_MULTIPLIER, leanCoverMultiplierForRange } from "../src/cover_policy";
 import { POSITION_UP, vec, type Vec2i } from "../src/types";
 
 // Building perimeter x 10..20, y 10..14; front wall is row 14.
@@ -162,4 +163,32 @@ test("Farm Fight: no shooting through the stables or farmhouse walls", () => {
   assert.equal(evaluate(vec(22, 42), vec(37, 41), map, null).status, LOS_BLOCKED);
   // Out of a room through its south wall.
   assert.equal(evaluate(vec(21, 45), vec(23, 61), map, null).status, LOS_BLOCKED);
+});
+
+// Corner-to-corner standoff (Farm Fight Store Rooms): two soldiers at the ends of a wall
+// counted each other as in full cover and traded ~40 shots at 0.3% with no hits.
+test("a target leaning out of his corner gets lighter cover than normal", () => {
+  const map = MapData.empty(40, 40);
+  for (let x = 13; x <= 17; x++) {
+    map.placeObject(vec(x, 21), "wall_straight", "SWAL");
+  }
+  const occ = [occupant(vec(18, 21), vec(-1, 0)), occupant(vec(12, 21), vec(1, 0))];
+  const los = evaluate(vec(18, 21), vec(12, 21), map, occ);
+  assert.notEqual(los.status, LOS_BLOCKED);
+  assert.equal(los.coverType, COVER_MODERATE);
+  assert.equal(los.targetLeaning, true);
+  assert.equal(leanCoverMultiplierForRange(6), LEAN_COVER_HIT_MULTIPLIER);
+  assert.equal(LEAN_COVER_HIT_MULTIPLIER, 0.25);
+  // Close in, the normal ramp is already lighter, so it wins.
+  assert.equal(leanCoverMultiplierForRange(1), coverMultiplierForRange(1));
+  assert.equal(leanCoverMultiplierForRange(3), coverMultiplierForRange(3));
+});
+
+test("normal cover is unchanged: not leaning, full strength at range", () => {
+  const map = MapData.empty(40, 40);
+  map.placeObject(vec(11, 20), "haybail");
+  const los = evaluate(vec(5, 20), vec(12, 20), map, null);
+  assert.equal(los.coverType, COVER_MODERATE);
+  assert.equal(los.targetLeaning, false);
+  assert.equal(coverMultiplierForRange(7), 0.005);
 });

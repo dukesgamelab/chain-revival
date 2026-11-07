@@ -114,6 +114,7 @@
 		"cover_hit_multiplier": 0.005,
 		"cover_range_limit": 5,
 		"object_cover_strength": 1.0,
+		"lean_cover_hit_multiplier": 0.25,
 		"moderate_hit_mult": 0.5,
 		"moderate_visibility_mult": 0.65,
 		"stack_mode": "first"

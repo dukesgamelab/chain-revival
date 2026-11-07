@@ -944,6 +944,30 @@ func _test_no_shooting_through_walls() -> void:
 			% [LOSSystemClass.status_name(los.status), los.corner_peek, los.corner_cell],
 		)
 
+	## Corner-to-corner standoff: a target leaning out of his corner gets lighter cover;
+	## normal cover (haybale) does not. Mirrors server corner_peek.test.ts.
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	for x in range(13, 18):
+		map_data.set_object(Vector2i(x, 21), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	var lean_los := LOSSystemClass.evaluate(Vector2i(18, 21), Vector2i(12, 21), map_data, null)
+	_assert(
+		"Corner-to-corner target leaning out gets lean cover",
+		lean_los.status != LOSSystemClass.Status.BLOCKED and lean_los.target_leaning
+		and lean_los.cover_type == CoverSystemClass.CoverType.MODERATE,
+		"status=%s leaning=%s cover=%s"
+		% [LOSSystemClass.status_name(lean_los.status), lean_los.target_leaning, lean_los.cover_type],
+	)
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	map_data.set_object(Vector2i(11, 20), MapObjectRegistryClass.TYPE_HAYBAIL)
+	var hay_los := LOSSystemClass.evaluate(Vector2i(5, 20), Vector2i(12, 20), map_data, null)
+	_assert(
+		"Normal cover is not lean cover",
+		hay_los.cover_type == CoverSystemClass.CoverType.MODERATE and not hay_los.target_leaning,
+		"cover=%s leaning=%s" % [hay_los.cover_type, hay_los.target_leaning],
+	)
+
 	## The real spots on Farm Fight (server test uses the same cells).
 	var farm := MapDataClass.load_from_file("res://maps/ff_farm.json")
 	var farm_pairs: Array = [
@@ -1397,6 +1421,18 @@ func _test_policy_defaults_unchanged() -> void:
 		is_equal_approx(GameplayPolicies.cover.cover_hit_multiplier, 0.005),
 	)
 	_assert("Cover range limit is 5", GameplayPolicies.cover.cover_range_limit == 5)
+	_assert(
+		"Lean cover hit multiplier is 0.25",
+		is_equal_approx(GameplayPolicies.cover.lean_cover_hit_multiplier, 0.25),
+	)
+	_assert(
+		"Lean cover is 0.25 at range, normal ramp up close",
+		is_equal_approx(GameplayPolicies.cover.lean_cover_multiplier_for_range(6.0), 0.25)
+		and is_equal_approx(
+			GameplayPolicies.cover.lean_cover_multiplier_for_range(3.0),
+			GameplayPolicies.cover.cover_multiplier_for_range(3.0)
+		),
+	)
 	_assert("LOS peek adjacency unchanged", GameplayPolicies.los.peek_adjacency_chebyshev == 1)
 	_assert(
 		"Base fire cycle is 5.0s",

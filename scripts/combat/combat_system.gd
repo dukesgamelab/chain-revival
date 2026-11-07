@@ -1727,7 +1727,10 @@ static func _final_hit_chance(
 	)
 	## Cover curve when covered; open-ground bonus + movement/angle only when not.
 	if in_cover:
-		cover_mult = GameplayPolicies.cover.cover_multiplier_for_range(dist)
+		if los.target_leaning:
+			cover_mult = GameplayPolicies.cover.lean_cover_multiplier_for_range(dist)
+		else:
+			cover_mult = GameplayPolicies.cover.cover_multiplier_for_range(dist)
 		chance = base_chance * cover_mult
 	else:
 		open_ground_mult = GameplayPolicies.hit.open_ground_hit_mult
