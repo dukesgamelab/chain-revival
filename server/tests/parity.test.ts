@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { applySuppressionFromShot } from "../src/combat_system";
 import { GameState } from "../src/game_state";
-import { resolveGrenade } from "../src/grenade_system";
+import { grenadeThrowRefusal, resolveGrenade } from "../src/grenade_system";
 import { finalHitChance } from "../src/hit_resolution";
 import { coverCheck, cornerWatchFacing, evaluate } from "../src/los";
 import { MapData } from "../src/map_data";
@@ -141,6 +141,8 @@ function evaluateQuery(state: GameState, q: Fixture["query"]): Record<string, un
         .sort((a, b) => a[0] * 10 + a[1] - (b[0] * 10 + b[1]));
       return { stunned, killed: result.killed.map((e) => [e.teamId, e.soldierId]) };
     }
+    case "grenade_throw":
+      return { refusal: grenadeThrowRefusal(state.map, soldier(state, q.thrower).gridPosition, cell(q.cell as Pair)) };
     case "auto_target": {
       const s = soldier(state, q.shooter);
       const enemyTeam = s.teamId === TEAM_USA ? TEAM_GERMANY : TEAM_USA;

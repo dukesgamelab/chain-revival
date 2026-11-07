@@ -1789,6 +1789,8 @@ func _try_survival_grenade(
 			> GameplayPolicies.grenade.throw_range
 		):
 			continue
+		if CombatSystem.grenade_throw_refusal(game_state.map_data, soldier.grid_position, impact) != "":
+			continue
 		var cmd := GrenadeCommandClass.new()
 		cmd.team_id = soldier.team_id
 		cmd.soldier_id = soldier.soldier_id
@@ -1961,6 +1963,8 @@ func _try_grenade(game_state, submit_command: Callable, visible: Array) -> void:
 			CombatSystem.grenade_throw_distance(soldier.grid_position, impact)
 			> GameplayPolicies.grenade.throw_range
 		):
+			continue
+		if CombatSystem.grenade_throw_refusal(game_state.map_data, soldier.grid_position, impact) != "":
 			continue
 		var cmd := GrenadeCommandClass.new()
 		cmd.team_id = soldier.team_id

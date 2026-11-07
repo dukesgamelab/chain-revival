@@ -835,6 +835,118 @@ static func corner_peek_cells(cell: Vector2i, map_data: MapData) -> Array[Vector
 
 
 ## Wall tip (1 closed ortho) or building corner (2 adjacent closed). Not a mid-run face.
+## ---- Physical line of fire ----
+## Walls are full unit squares: tall (height 2) or impassable tiles, trees included. Low walls
+## (height 1, _HG_Climb) are shoot-over cover, not walls. Mirrored in server los.ts isShotWall.
+static func is_shot_wall(map_data: MapData, cell: Vector2i) -> bool:
+	if map_data == null or not map_data.is_in_bounds(cell) or not map_data.has_object(cell):
+		return false
+	return (
+		map_data.obstruction_height(cell) >= 2
+		or map_data.terrain_class(cell) == MapData.TerrainClass.NO_PASS
+	)
+
+
+## First wall the segment between two tile centres passes through, or (-999, -999). Exact
+## integer maths in doubled coordinates (centres even, tile edges odd). Touching a wall's edge
+## or corner is allowed; passing between two walls that meet diagonally is not.
+## Mirrored in server los.ts firstWallOnSegment.
+static func first_wall_on_segment(a: Vector2i, b: Vector2i, map_data: MapData) -> Vector2i:
+	var best := Vector2i(-999, -999)
+	if a == b or map_data == null:
+		return best
+	var ax := 2 * a.x
+	var ay := 2 * a.y
+	var dx := 2 * (b.x - a.x)
+	var dy := 2 * (b.y - a.y)
+	## Entry parameter t = num / den of the earliest hit so far.
+	var best_num := 1
+	var best_den := 1
+	for y in range(mini(a.y, b.y), maxi(a.y, b.y) + 1):
+		for x in range(mini(a.x, b.x), maxi(a.x, b.x) + 1):
+			var cell := Vector2i(x, y)
+			if not is_shot_wall(map_data, cell):
+				continue
+			## Liang-Barsky against the open square (2x-1, 2x+1) x (2y-1, 2y+1).
+			var lo_num := 0
+			var lo_den := 1
+			var hi_num := 1
+			var hi_den := 1
+			var inside := true
+			for axis in [[ax, dx, 2 * x], [ay, dy, 2 * y]]:
+				var p: int = axis[0]
+				var d: int = axis[1]
+				var c: int = axis[2]
+				if d == 0:
+					inside = inside and c - 1 < p and p < c + 1
+					continue
+				var s := signi(d)
+				var n1 := s * (c - 1 - p)
+				var n2 := s * (c + 1 - p)
+				var den := absi(d)
+				var enter := mini(n1, n2)
+				var leave := maxi(n1, n2)
+				if enter * lo_den > lo_num * den:
+					lo_num = enter
+					lo_den = den
+				if leave * hi_den < hi_num * den:
+					hi_num = leave
+					hi_den = den
+			if inside and lo_num * hi_den < hi_num * lo_den and lo_num * best_den < best_num * lo_den:
+				best = cell
+				best_num = lo_num
+				best_den = lo_den
+	## Seams: a lattice point of the doubled segment with both coordinates odd is a tile corner.
+	var g := _gcd_i(dx, dy)
+	var sx := signi(dx)
+	var sy := signi(dy)
+	for k in range(1, g):
+		@warning_ignore("integer_division")
+		var vx: int = ax + (k * dx) / g
+		@warning_ignore("integer_division")
+		var vy: int = ay + (k * dy) / g
+		if vx % 2 == 0 or vy % 2 == 0:
+			continue
+		@warning_ignore("integer_division")
+		var side1 := Vector2i((vx + sx) / 2, (vy - sy) / 2)
+		@warning_ignore("integer_division")
+		var side2 := Vector2i((vx - sx) / 2, (vy + sy) / 2)
+		if is_shot_wall(map_data, side1) and is_shot_wall(map_data, side2) and k * best_den < best_num * g:
+			best = side1
+			best_num = k
+			best_den = g
+	return best
+
+
+## No shooting through walls: from his own tile, or (allow_lean) from a tile he can lean into
+## at a corner or wall tip, the line to the target must not pass through a wall. Returns the
+## wall in the way of the direct line, or (-999, -999) when some line is clear.
+## Mirrored in server los.ts shotLineWall.
+static func shot_line_wall(
+	from_cell: Vector2i,
+	to_cell: Vector2i,
+	map_data: MapData,
+	allow_lean: bool,
+) -> Vector2i:
+	var wall := first_wall_on_segment(from_cell, to_cell, map_data)
+	if wall.x == -999 or not allow_lean:
+		return wall
+	for lean in corner_peek_cells(from_cell, map_data):
+		if lean != to_cell and first_wall_on_segment(lean, to_cell, map_data).x == -999:
+			return Vector2i(-999, -999)
+	return wall
+
+
+static func _gcd_i(a: int, b: int) -> int:
+	var x := absi(a)
+	var y := absi(b)
+	while y != 0:
+		var t := x % y
+		x = y
+		y = t
+	return x
+
+
 static func _is_structure_corner_or_wall_tip(map_data: MapData, wall_cell: Vector2i) -> bool:
 	var ortho: Array[Vector2i] = [
 		Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),

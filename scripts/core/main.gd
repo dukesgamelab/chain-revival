@@ -1282,6 +1282,7 @@ func _update_grenade_preview() -> void:
 		in_bounds
 		and CombatSystem.grenade_throw_distance(shooter.grid_position, target_cell)
 		<= CombatSystem.GRENADE_THROW_RANGE
+		and CombatSystem.grenade_throw_refusal(_map_data, shooter.grid_position, target_cell) == ""
 	)
 	var hits_friendly := (
 		in_range

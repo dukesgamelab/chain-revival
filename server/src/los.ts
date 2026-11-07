@@ -674,6 +674,119 @@ export function cornerPeekCells(cell: Vec2i, map: MapData): Vec2i[] {
   return out;
 }
 
+
+// ---- Physical line of fire -------------------------------------------------------------
+// Walls are full unit squares: tall (height 2) or impassable tiles. Low walls (height 1,
+// _HG_Climb) are shoot-over cover, not walls. Port of CoverSystem.is_shot_wall.
+export function isShotWall(map: MapData, cell: Vec2i): boolean {
+  if (!map.isInBounds(cell) || !map.hasObject(cell)) {
+    return false;
+  }
+  return map.obstructionHeight(cell) >= 2 || map.terrainClass(cell) === TERRAIN_NO_PASS;
+}
+
+function gcd(a: number, b: number): number {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+  while (y !== 0) {
+    [x, y] = [y, x % y];
+  }
+  return x;
+}
+
+// First wall the segment between two tile centres passes through, or null. Exact integer
+// maths in doubled coordinates (centres even, tile edges odd). Touching a wall's edge or
+// corner is allowed; passing between two walls that meet diagonally is not.
+// Port of CoverSystem.first_wall_on_segment.
+export function firstWallOnSegment(a: Vec2i, b: Vec2i, map: MapData): Vec2i | null {
+  if (vecEq(a, b)) {
+    return null;
+  }
+  const ax = 2 * a.x;
+  const ay = 2 * a.y;
+  const dx = 2 * (b.x - a.x);
+  const dy = 2 * (b.y - a.y);
+  // Entry parameter t = num / den of the best (earliest) hit so far.
+  let bestCell: Vec2i | null = null;
+  let bestNum = 1;
+  let bestDen = 1;
+  for (let y = Math.min(a.y, b.y); y <= Math.max(a.y, b.y); y++) {
+    for (let x = Math.min(a.x, b.x); x <= Math.max(a.x, b.x); x++) {
+      const cell = vec(x, y);
+      if (!isShotWall(map, cell)) {
+        continue;
+      }
+      // Liang-Barsky against the open square (2x-1, 2x+1) x (2y-1, 2y+1).
+      let loNum = 0;
+      let loDen = 1;
+      let hiNum = 1;
+      let hiDen = 1;
+      let inside = true;
+      for (const [p, d, c] of [[ax, dx, 2 * x], [ay, dy, 2 * y]]) {
+        if (d === 0) {
+          inside = inside && c - 1 < p && p < c + 1;
+          continue;
+        }
+        const s = Math.sign(d);
+        const n1 = s * (c - 1 - p);
+        const n2 = s * (c + 1 - p);
+        const den = Math.abs(d);
+        const enter = Math.min(n1, n2);
+        const exit = Math.max(n1, n2);
+        if (enter * loDen > loNum * den) {
+          loNum = enter;
+          loDen = den;
+        }
+        if (exit * hiDen < hiNum * den) {
+          hiNum = exit;
+          hiDen = den;
+        }
+      }
+      if (inside && loNum * hiDen < hiNum * loDen && loNum * bestDen < bestNum * loDen) {
+        bestCell = cell;
+        bestNum = loNum;
+        bestDen = loDen;
+      }
+    }
+  }
+  // Seams: a lattice point of the doubled segment with both coordinates odd is a tile corner.
+  const g = gcd(dx, dy);
+  const sx = Math.sign(dx);
+  const sy = Math.sign(dy);
+  for (let k = 1; k < g; k++) {
+    const vx = ax + (k * dx) / g;
+    const vy = ay + (k * dy) / g;
+    if (vx % 2 === 0 || vy % 2 === 0) {
+      continue;
+    }
+    const side1 = vec((vx + sx) / 2, (vy - sy) / 2);
+    const side2 = vec((vx - sx) / 2, (vy + sy) / 2);
+    if (isShotWall(map, side1) && isShotWall(map, side2) && k * bestDen < bestNum * g) {
+      bestCell = side1;
+      bestNum = k;
+      bestDen = g;
+    }
+  }
+  return bestCell;
+}
+
+// No shooting through walls: from his own tile, or (allowLean) from a tile he can lean into
+// at a corner or wall tip, the line to the target must not pass through a wall. Returns the
+// wall in the way of the direct line, or null when some line is clear.
+// Port of CoverSystem.shot_line_wall.
+export function shotLineWall(from: Vec2i, to: Vec2i, map: MapData, allowLean: boolean): Vec2i | null {
+  const wall = firstWallOnSegment(from, to, map);
+  if (wall === null || !allowLean) {
+    return wall;
+  }
+  for (const lean of cornerPeekCells(from, map)) {
+    if (!vecEq(lean, to) && firstWallOnSegment(lean, to, map) === null) {
+      return null;
+    }
+  }
+  return wall;
+}
+
 function lineTouches(from: Vec2i, to: Vec2i, cells: Vec2i[]): boolean {
   return lineCellsBetween(from, to).some((c) => cells.some((x) => vecEq(c, x)));
 }
@@ -710,7 +823,8 @@ export function evaluate(
       if ((vecEq(f, from) && vecEq(t, to)) || lineTouches(f, t, [from, to])) {
         continue;
       }
-      const peek = evaluateDirect(f, t, map, occupants);
+      // The lean tiles are the whole lean: no second lean from them.
+      const peek = evaluateDirect(f, t, map, occupants, false);
       if (peek.status === LOS_BLOCKED || peek.targetUsingWallCover) {
         continue;
       }
@@ -732,6 +846,7 @@ function evaluateDirect(
   to: Vec2i,
   map: MapData,
   occupants: LosOccupant[] | null = null,
+  allowLean = true,
 ): LosResult {
   const result = emptyLos();
   if (!map.isInBounds(from) || !map.isInBounds(to)) {
@@ -756,6 +871,15 @@ function evaluateDirect(
     result.status = LOS_BLOCKED;
     result.blockingCell = block.blockingCell;
     result.blockingType = block.blockingType;
+    return result;
+  }
+  // The tile scan above has tolerances (wall-end lean, target hugging a wall, graze
+  // exemptions); none of them may put the shot through a wall.
+  const wallCell = shotLineWall(from, to, map, allowLean);
+  if (wallCell !== null) {
+    result.status = LOS_BLOCKED;
+    result.blockingCell = wallCell;
+    result.blockingType = map.getObjectDef(wallCell)?.typeId ?? "terrain";
     return result;
   }
   if (result.cornerPeek && !result.targetUsingWallCover) {

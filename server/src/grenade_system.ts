@@ -6,8 +6,8 @@
 import type { GameState } from "./game_state";
 import { towardCell } from "./facing";
 import { combatRange } from "./hit_resolution";
-import { lineCellsBetween } from "./grid";
-import { isCompleteCoverWall, tileBlocksVision } from "./los";
+import { firstWallOnSegment, isShotWall } from "./los";
+import type { MapData } from "./map_data";
 import type { SoldierState } from "./soldier_state";
 import { LETHALITY_MULTIPLIER } from "./hit_resolution";
 import { onSoldierKilled } from "./scenario_rules";
@@ -109,21 +109,28 @@ export function stunDurationAtDistance(distance: number): number {
  * CombatSystem._grenade_blast_blocked: no wall-hugging cover exception, no corner
  * peeks, and soldiers never shield each other.
  */
+// Walls stop fragments the same way they stop bullets: no line through a wall tile
+// (los.ts isShotWall / firstWallOnSegment). A blast inside a wall reaches nobody.
 function blastBlocked(from: Vec2i, to: Vec2i, state: GameState): boolean {
   if (from.x === to.x && from.y === to.y) {
     return false;
   }
-  const map = state.map;
-  for (const cell of lineCellsBetween(from, to)) {
-    const def = map.getObjectDef(cell);
-    if (def === null && !map.hasObject(cell)) {
-      continue;
-    }
-    if (isCompleteCoverWall(def) || tileBlocksVision(map, cell, def, false, false)) {
-      return true;
-    }
+  if (isShotWall(state.map, from)) {
+    return true;
   }
-  return false;
+  return firstWallOnSegment(from, to, state.map) !== null;
+}
+
+/** Why a throw is refused ("" when it is fine): no grenades onto or through a wall. Low walls,
+ *  doorways and windows do not stop a throw. Mirrors CombatSystem.grenade_throw_refusal. */
+export function grenadeThrowRefusal(map: MapData, from: Vec2i, to: Vec2i): string {
+  if (isShotWall(map, to)) {
+    return "Cannot throw onto a wall.";
+  }
+  if (firstWallOnSegment(from, to, map) !== null) {
+    return "No clear throw - a wall is in the way.";
+  }
+  return "";
 }
 
 // --- Throw validation ---
@@ -174,6 +181,11 @@ export function executeGrenade(
   const throwDistance = chebyshev(soldier.gridPosition, targetCell);
   if (throwDistance > GRENADE_THROW_RANGE) {
     result.statusMessage = "Target is out of grenade range.";
+    return result;
+  }
+  const refusal = grenadeThrowRefusal(state.map, soldier.gridPosition, targetCell);
+  if (refusal !== "") {
+    result.statusMessage = refusal;
     return result;
   }
 

@@ -1108,6 +1108,11 @@ static func execute_grenade(
 	)
 	if throw_distance > GameplayPolicies.grenade.throw_range:
 		return ActionResult.fail("Target is out of grenade range.")
+	var refusal := CombatSystem.grenade_throw_refusal(
+		game_state.map_data, soldier.grid_position, cmd.target_cell
+	)
+	if refusal != "":
+		return ActionResult.fail(refusal)
 	## Friendly fire is allowed - player takes the risk. AI checks separately.
 
 	var result := ActionResult.new()

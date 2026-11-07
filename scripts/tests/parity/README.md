@@ -35,6 +35,7 @@ Each `*.json` file is an array of cases:
 | `hit_chance` | `shooter`, `target` | `chance` (4 dp) |
 | `suppression` | `shooter`, `target` | `gain` (2 dp) |
 | `grenade` | `thrower`, `cell` | `stunned` (`[team, id, durationSec]`, sorted), `killed` (always empty: kills are forced off) |
+| `grenade_throw` | `thrower`, `cell` | `refusal` ("" when the throw is allowed) |
 | `auto_target` | `shooter` | `target` (`[team, id]` or null) |
 | `arrival_facing` | `cell` | `facing` (`[x, y]` or null) |
 

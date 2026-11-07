@@ -85,6 +85,8 @@ then: if range <= 2 tiles, floor at 0.92
 
 **Cover types:** NONE, MODERATE (obstruction in adjacent cell toward shooter), COMPLETE (wall - blocks all shots).
 
+**No shooting through walls:** walls are full tiles - anything height 2 or impassable (building walls, trees). A shot is legal only if the line between tile centres, from the shooter's tile or one tile he can lean into at a corner or wall tip, reaches the target (or the target's lean tile, corner-to-corner) without entering a wall tile. Touching a wall's edge or corner is fine; passing between two walls that meet diagonally is not. Low walls (height 1) are shoot-over cover, not walls. A soldier pressed against the far side of a wall cannot be shot or suppressed through it. Server `los.ts` `shotLineWall`, client `CoverSystem.shot_line_wall`.
+
 **Cover detection:** 8-directional compass lookup. The cell adjacent to the target, toward the shooter, is checked for an obstruction.
 
 **Cover hit multiplier curve:**
@@ -141,7 +143,9 @@ When NOT in cover, hit chance gets 1.15x bonus plus movement modifiers:
 
 **Friendly fire:** Enabled - grenades can kill and stun same-team soldiers. The throw preview line turns yellow (warning) when friendlies are in the blast radius. AI avoids friendly fire automatically.
 
-**Wall blocking:** Blast is blocked by walls (stricter than shot LOS - no cover exceptions, no corner peeks).
+**Wall blocking:** Blast is blocked by walls, using the same wall line test as shots (no corner peeks). A blast never starts inside a wall.
+
+**Throw path:** a grenade cannot be thrown onto a wall tile or along a line that passes through a wall (same test as shots, no lean). Low walls, doorways and windows do not stop a throw. Deliberate change from OG, which only checked the blast. Server `grenadeThrowRefusal`, client `CombatSystem.grenade_throw_refusal`; the AI uses the same check.
 
 ## Suppression and Stress
 

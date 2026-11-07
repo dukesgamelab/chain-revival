@@ -2453,18 +2453,23 @@ static func _grenade_blast_blocked(
 		return false
 	if from_cell == to_cell:
 		return false
-	var line: Array[Vector2i] = CoverSystemClass.line_cells_between(from_cell, to_cell)
-	for cell in line:
-		if cell == from_cell or cell == to_cell:
-			continue
-		var object_def = map_data.get_object_def(cell)
-		if object_def == null and not map_data.has_object(cell):
-			continue
-		if CoverSystemClass.is_complete_cover_wall(object_def):
-			return true
-		if CoverSystemClass.tile_blocks_vision(map_data, cell, object_def, false, false):
-			return true
-	return false
+	## Walls stop fragments the same way they stop bullets: no line through a wall tile.
+	## A blast inside a wall reaches nobody. Mirrors server grenade_system.ts blastBlocked.
+	if CoverSystemClass.is_shot_wall(map_data, from_cell):
+		return true
+	return CoverSystemClass.first_wall_on_segment(from_cell, to_cell, map_data).x != -999
+
+
+## Why a throw is refused ("" when it is fine): no grenades onto or through a wall. Low walls,
+## doorways and windows do not stop a throw. Mirrors server grenadeThrowRefusal.
+static func grenade_throw_refusal(map_data, from_cell: Vector2i, to_cell: Vector2i) -> String:
+	if map_data == null:
+		return ""
+	if CoverSystemClass.is_shot_wall(map_data, to_cell):
+		return "Cannot throw onto a wall."
+	if CoverSystemClass.first_wall_on_segment(from_cell, to_cell, map_data).x != -999:
+		return "No clear throw - a wall is in the way."
+	return ""
 
 
 static func _abort_pending_grenade_throw(

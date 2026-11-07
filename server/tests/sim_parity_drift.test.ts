@@ -58,7 +58,7 @@ function duel(map: MapData, shooterCell = vec(15, 5), targetCell = vec(15, 11)) 
   return { state, shooter, target };
 }
 
-test("wall-hugging target still takes suppression from a fired shot", () => {
+test("no shot and no suppression through the wall a target is hugging", () => {
   const map = MapData.empty(30, 30);
   for (let x = 10; x <= 20; x++) map.placeObject(vec(x, 10), "wall_straight");
   const { state, shooter, target } = duel(map);
@@ -66,12 +66,10 @@ test("wall-hugging target still takes suppression from a fired shot", () => {
   beginFirePrep(state, shooter, 6);
   advanceSim(state, 5000);
   const shot = resolveShot(state, shooter, target, true);
-  assert.equal(shot.fired, true);
-  assert.equal(shot.hadCover, true, "wall protects from the hit");
-  assert.equal(shot.hit, false);
+  assert.equal(shot.blocked, true);
+  assert.equal(shot.fired, false);
   // Same value as the suppression_wall_hugging_target parity fixture (GDScript reference).
-  assert.ok(Math.abs(target.stress - 67.86) < 0.01, `stress ${target.stress}`);
-  assert.equal(shot.targetStress, target.stress);
+  assert.equal(target.stress, 0);
 });
 
 test("grenades are refused during deployment, as grenade_thrown to the issuer only", () => {

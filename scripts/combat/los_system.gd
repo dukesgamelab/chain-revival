@@ -87,7 +87,8 @@ static func evaluate(
 			var line := CoverSystem.line_cells_between(f, t)
 			if line.has(from_cell) or line.has(to_cell):
 				continue
-			var peek := _evaluate_direct(f, t, map_data, game_state)
+			## The lean tiles are the whole lean: no second lean from them.
+			var peek := _evaluate_direct(f, t, map_data, game_state, false)
 			if peek.status == Status.BLOCKED or peek.target_using_wall_cover:
 				continue
 			peek.corner_peek = true
@@ -105,6 +106,7 @@ static func _evaluate_direct(
 	to_cell: Vector2i,
 	map_data: MapData,
 	game_state: GameState = null,
+	allow_lean: bool = true,
 ) -> LossResult:
 	var result := LossResult.new()
 	if map_data == null or not map_data.is_in_bounds(from_cell) or not map_data.is_in_bounds(to_cell):
@@ -143,6 +145,17 @@ static func _evaluate_direct(
 		result.blocking_type = block.blocking_type_id
 		if result.blocking_type.is_empty():
 			result.blocking_type = MapObjectRegistry.DEFAULT_BLOCKED_TYPE
+		_log_evaluation(from_cell, to_cell, map_data, result, game_state)
+		return result
+
+	## The tile scan above has tolerances (wall-end lean, target hugging a wall, graze
+	## exemptions); none of them may put the shot through a wall. Mirrors server los.ts.
+	var wall_cell := CoverSystem.shot_line_wall(from_cell, to_cell, map_data, allow_lean)
+	if wall_cell.x != -999:
+		result.status = Status.BLOCKED
+		result.blocking_cell = wall_cell
+		var wall_def := map_data.get_object_def(wall_cell)
+		result.blocking_type = wall_def.type_id if wall_def != null else MapObjectRegistry.DEFAULT_BLOCKED_TYPE
 		_log_evaluation(from_cell, to_cell, map_data, result, game_state)
 		return result
 

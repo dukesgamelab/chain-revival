@@ -244,5 +244,204 @@
       "killed": [],
       "stunned": [[1, 2, 5], [2, 1, 5]]
     }
+  },
+  {
+    "name": "grenade_blast_on_wall_tile",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [{ "type": "wall_straight", "from": [10, 15], "to": [20, 15] }]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 5],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [15, 14],
+        "facing": [1, 0],
+        "stance": "down"
+      },
+      {
+        "team": 2,
+        "id": 2,
+        "cell": [15, 16],
+        "facing": [1, 0],
+        "stance": "down"
+      }
+    ],
+    "query": {
+      "kind": "grenade",
+      "thrower": [1, 1],
+      "cell": [15, 15]
+    },
+    "expect": {
+      "killed": [],
+      "stunned": []
+    }
+  },
+  {
+    "name": "grenade_sealed_diagonal",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [{ "type": "wall_straight", "at": [15, 14] }, { "type": "wall_straight", "at": [16, 15] }]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 5],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [16, 14],
+        "facing": [1, 0],
+        "stance": "down"
+      }
+    ],
+    "query": {
+      "kind": "grenade",
+      "thrower": [1, 1],
+      "cell": [15, 15]
+    },
+    "expect": {
+      "killed": [],
+      "stunned": []
+    }
+  },
+  {
+    "name": "grenade_one_side_corner_reaches",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [{ "type": "wall_straight", "at": [15, 14] }]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [5, 5],
+        "facing": [1, 0]
+      },
+      {
+        "team": 2,
+        "id": 1,
+        "cell": [16, 14],
+        "facing": [1, 0],
+        "stance": "down"
+      }
+    ],
+    "query": {
+      "kind": "grenade",
+      "thrower": [1, 1],
+      "cell": [15, 15]
+    },
+    "expect": {
+      "killed": [],
+      "stunned": [[2, 1, 5]]
+    }
+  },
+  {
+    "name": "grenade_throw_through_wall",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [{ "type": "wall_straight", "from": [10, 10], "to": [10, 20] }]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [8, 15],
+        "facing": [1, 0]
+      }
+    ],
+    "query": {
+      "kind": "grenade_throw",
+      "thrower": [1, 1],
+      "cell": [12, 15]
+    },
+    "expect": {
+      "refusal": "No clear throw - a wall is in the way."
+    }
+  },
+  {
+    "name": "grenade_throw_through_doorway",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [{ "type": "wall_straight", "from": [10, 10], "to": [10, 14] }, { "type": "wall_straight", "from": [10, 16], "to": [10, 20] }]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [8, 15],
+        "facing": [1, 0]
+      }
+    ],
+    "query": {
+      "kind": "grenade_throw",
+      "thrower": [1, 1],
+      "cell": [12, 15]
+    },
+    "expect": {
+      "refusal": ""
+    }
+  },
+  {
+    "name": "grenade_throw_onto_wall",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [{ "type": "wall_straight", "from": [10, 10], "to": [10, 20] }]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [8, 15],
+        "facing": [1, 0]
+      }
+    ],
+    "query": {
+      "kind": "grenade_throw",
+      "thrower": [1, 1],
+      "cell": [10, 15]
+    },
+    "expect": {
+      "refusal": "Cannot throw onto a wall."
+    }
+  },
+  {
+    "name": "grenade_throw_over_low_wall",
+    "map": {
+      "width": 30,
+      "height": 30,
+      "objects": [{ "type": "haybail", "from": [10, 10], "to": [10, 20] }]
+    },
+    "soldiers": [
+      {
+        "team": 1,
+        "id": 1,
+        "cell": [8, 15],
+        "facing": [1, 0]
+      }
+    ],
+    "query": {
+      "kind": "grenade_throw",
+      "thrower": [1, 1],
+      "cell": [12, 15]
+    },
+    "expect": {
+      "refusal": ""
+    }
   }
 ]

@@ -277,12 +277,12 @@
       "target": [2, 1]
     },
     "expect": {
-      "blockingCell": null,
+      "blockingCell": [15, 10],
       "cornerCell": null,
       "cornerPeek": false,
-      "coverType": 2,
+      "coverType": 0,
       "peekSide": 0,
-      "status": 1,
+      "status": 2,
       "targetUsingWallCover": true
     }
   },

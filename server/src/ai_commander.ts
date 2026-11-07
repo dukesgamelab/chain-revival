@@ -7,7 +7,7 @@
 import type { GameState } from "./game_state";
 import type { SoldierState } from "./soldier_state";
 import { evaluateTargetCover } from "./los";
-import { GRENADE_THROW_RANGE } from "./grenade_system";
+import { GRENADE_THROW_RANGE, grenadeThrowRefusal } from "./grenade_system";
 import {
   chebyshev,
   MATCH_ID,
@@ -1144,6 +1144,7 @@ export class AiCommander {
     for (const soldier of this.livingSoldiers(state)) {
       if (soldier.grenadeCount <= 0 || soldier.hasPendingGrenade()) continue;
       if (chebyshev(soldier.gridPosition, impact) > GRENADE_THROW_RANGE) continue;
+      if (grenadeThrowRefusal(state.map, soldier.gridPosition, impact) !== "") continue;
       this.submitAi(submit, {
         type: "grenade_command",
         matchId: MATCH_ID,

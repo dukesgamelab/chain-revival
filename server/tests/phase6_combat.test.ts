@@ -280,7 +280,7 @@ test("cover lowers hit chance versus open ground", () => {
   assert.ok(coverShot.hitFinal < openShot.hitFinal);
 });
 
-test("complete wall-hug fires without a hit roll", () => {
+test("a wall hugger cannot be shot through the wall", () => {
   const state = emptyState();
   pair(state, vec(4, 4), vec(4, 8));
   state.map.placeObject(vec(4, 7), "wall_straight", "SWAL");
@@ -288,10 +288,12 @@ test("complete wall-hug fires without a hit roll", () => {
   advanceSim(state, 5000);
   state.rng.forceChance = true;
   const beforeCalls = state.rng.callCount;
+  const ammoBefore = usa(state).ammoCurrent;
   const shot = resolveShot(state, usa(state), ger(state), true);
-  assert.equal(shot.fired, true);
+  assert.equal(shot.blocked, true);
+  assert.equal(shot.fired, false);
   assert.equal(shot.hit, false);
-  assert.equal(shot.killed, false);
+  assert.equal(usa(state).ammoCurrent, ammoBefore);
   assert.equal(state.rng.callCount, beforeCalls);
 });
 

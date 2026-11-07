@@ -166,6 +166,9 @@ func _evaluate(game_state: GameState, query: Dictionary) -> Dictionary:
 			for raw in result.killed:
 				killed.append([int(raw.team_id), int(raw.soldier_id)])
 			return {"stunned": stunned, "killed": killed}
+		"grenade_throw":
+			var throw_from := _soldier(game_state, query.thrower).grid_position
+			return {"refusal": CombatSystem.grenade_throw_refusal(game_state.map_data, throw_from, _cell(query.cell))}
 		"auto_target":
 			var shooter := _soldier(game_state, query.shooter)
 			var best: SoldierState = null

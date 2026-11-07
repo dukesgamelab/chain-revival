@@ -45,6 +45,7 @@ func _ready() -> void:
 	_test_wall_cover_fixture()
 	_test_corner_peek_around_wall_end()
 	_test_no_shooting_through_walls()
+	_test_no_grenades_through_walls()
 	_test_corner_idle_at_wall_end()
 	_test_directional_cover()
 	_test_rng_seed_reproducibility()
@@ -866,20 +867,19 @@ func _test_corner_peek_around_wall_end() -> void:
 		% [LOSSystemClass.status_name(blocked_los.status), blocked_los.blocking_type],
 	)
 
-	## Bresenham diagonal cut: line misses the corner cell the shooter leans on, then
-	## hits the next tile of the wall run. Allowed only while the line crosses the run at
-	## the wall end; one full tile further along it is a shot through the wall.
+	## Lean past the wall end: allowed while the line clears the wall tiles; any line that
+	## clips a wall tile (even the wall end itself) is a shot through the wall.
 	for cell in map_data.get_object_cells():
 		map_data.clear_object(cell)
 	var cut_corner := Vector2i(11, 10)
 	map_data.set_object(cut_corner, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
 	map_data.set_object(Vector2i(12, 10), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
 	map_data.set_object(Vector2i(13, 10), MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
-	var cut_shooter := Vector2i(12, 11)
-	var cut_target := Vector2i(10, 7)
+	var cut_shooter := Vector2i(11, 11)
+	var cut_target := Vector2i(10, 6)
 	var cut_los := LOSSystemClass.evaluate(cut_shooter, cut_target, map_data, null)
 	_assert(
-		"Corner peek survives Bresenham diagonal cut past wall end",
+		"Corner peek past the wall end still fires",
 		cut_los.status != LOSSystemClass.Status.BLOCKED,
 		"status=%s peek=%s block_line=%s"
 		% [
@@ -889,7 +889,7 @@ func _test_corner_peek_around_wall_end() -> void:
 		],
 	)
 	_assert(
-		"Diagonal-cut corner peek sets lean side",
+		"Wall-end corner peek sets lean side",
 		cut_los.corner_peek and cut_los.peek_side != CoverSystemClass.PeekSide.NONE,
 		"peek=%s side=%s cell=%s" % [cut_los.corner_peek, cut_los.peek_side, cut_los.corner_cell],
 	)
@@ -975,6 +975,10 @@ func _test_no_shooting_through_walls() -> void:
 		[Vector2i(21, 37), Vector2i(10, 35)], ## through the middle of a house wall
 		[Vector2i(22, 42), Vector2i(37, 41)],
 		[Vector2i(21, 45), Vector2i(23, 61)], ## out of a room through its south wall
+		[Vector2i(42, 46), Vector2i(44, 47)], ## Store Rooms door frame (match 2026-11-07)
+		[Vector2i(44, 47), Vector2i(42, 46)],
+		[Vector2i(42, 44), Vector2i(44, 47)],
+		[Vector2i(44, 47), Vector2i(42, 44)],
 	]
 	for pair in farm_pairs:
 		var farm_los := LOSSystemClass.evaluate(pair[0], pair[1], farm, null)
@@ -983,6 +987,28 @@ func _test_no_shooting_through_walls() -> void:
 			farm_los.status == LOSSystemClass.Status.BLOCKED,
 			"status=%s peek=%s corner=%s"
 			% [LOSSystemClass.status_name(farm_los.status), farm_los.corner_peek, farm_los.corner_cell],
+		)
+
+
+func _test_no_grenades_through_walls() -> void:
+	## Farm Fight match 2026-11-07, Store Rooms: west wall x=43, doorway (43,45).
+	## Mirrors server grenade_walls.test.ts.
+	_bootstrap()
+	var farm := MapDataClass.load_from_file("res://maps/ff_farm.json")
+	var through := "No clear throw - a wall is in the way."
+	var cases: Array = [
+		[Vector2i(44, 44), Vector2i(42, 42), through], ## out through the west wall (match-ending kill)
+		[Vector2i(44, 44), Vector2i(41, 44), through],
+		[Vector2i(43, 45), Vector2i(43, 49), "Cannot throw onto a wall."], ## onto the SW corner
+		[Vector2i(44, 46), Vector2i(42, 44), ""], ## out of the doorway
+		[Vector2i(44, 45), Vector2i(41, 45), ""],
+	]
+	for c in cases:
+		var refusal := CombatSystem.grenade_throw_refusal(farm, c[0], c[1])
+		_assert(
+			"Grenade throw %s -> %s" % [c[0], c[1]],
+			refusal == c[2],
+			"refusal='%s' expected='%s'" % [refusal, c[2]],
 		)
 
 
