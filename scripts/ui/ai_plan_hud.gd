@@ -9,18 +9,17 @@ const AiCommanderFrameworkClass := preload("res://scripts/ai/ai_commander_framew
 var _label: Label
 var _game_state: GameStateClass = null
 var _framework: AiCommanderFrameworkClass = null
+var _user_visible: bool = false
 
 
 func _ready() -> void:
-	if BuildConfig.is_survival_playtest():
-		visible = false
-		return
 	CocUiTheme.apply_to(self)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _label == null:
 		_ensure_label()
 	_label.add_theme_color_override("font_color", Color(0.85, 0.75, 0.2))
 	_label.add_theme_font_size_override("font_size", 11)
+	visible = false
 	refresh()
 
 
@@ -36,9 +35,6 @@ func bind_framework(framework: AiCommanderFrameworkClass, game_state: GameStateC
 
 
 func refresh() -> void:
-	if BuildConfig.is_survival_playtest():
-		visible = false
-		return
 	_ensure_label()
 	if _framework != null and _framework.has_commanders():
 		var lines := _framework.debug_lines(_game_state)
@@ -47,7 +43,7 @@ func refresh() -> void:
 			_label.text = ""
 			return
 		_label.text = "\n".join(lines)
-		visible = true
+		visible = _user_visible
 		return
 
 	## Fallback: Phase 3 plan-only display before framework spins up.
@@ -76,7 +72,12 @@ func refresh() -> void:
 		_label.text = ""
 		return
 	_label.text = "\n".join(lines2)
-	visible = true
+	visible = _user_visible
+
+
+func toggle_visibility() -> void:
+	_user_visible = not _user_visible
+	refresh()
 
 
 func _ensure_label() -> void:
