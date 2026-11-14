@@ -318,6 +318,7 @@ func _fill_how_to_play_page(page: VBoxContainer) -> void:
 	_howto_row(page, "Right-drag or middle-drag", "Pan")
 	_howto_row(page, "Q / E", "Rotate the view (or use Rotate Left / Right)")
 	_howto_row(page, "Center", "Jump the camera back to your fireteam")
+	_howto_row(page, "~", "Show or hide the debug log")
 
 	_howto_heading(page, "Giving Orders")
 	_howto_body(

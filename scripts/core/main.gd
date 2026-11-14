@@ -1715,9 +1715,6 @@ func _on_retreat_requested() -> void:
 func _refresh_ai_plan_hud() -> void:
 	if _ai_plan_hud == null:
 		return
-	if BuildConfig.is_survival_playtest():
-		_ai_plan_hud.visible = false
-		return
 	if _ai_plan_hud.has_method("bind_framework"):
 		_ai_plan_hud.bind_framework(_ai_framework, _game_state)
 	elif _ai_plan_hud.has_method("bind_game_state"):
@@ -1745,6 +1742,15 @@ func _on_ammo_adjust_requested(soldier_id: int, delta: int) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
+		if (
+			event.keycode == KEY_QUOTELEFT
+			or event.physical_keycode == KEY_QUOTELEFT
+			or event.unicode == 96
+			or event.unicode == 126
+		):
+			_ai_plan_hud.toggle_visibility()
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_ESCAPE:
 			_toggle_pause_menu()
 			get_viewport().set_input_as_handled()
