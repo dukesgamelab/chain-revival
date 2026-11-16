@@ -8,6 +8,8 @@ export interface ClientRecord {
   assignedSide: SideName | null;
   /** Supabase user ID, set when the client sends an authToken with hello. */
   userId: string | null;
+  /** Development-only guest id. Never a Supabase user, and never written to production. */
+  devGuestId: string | null;
   /** Regiment ID for regimental match team assignment. */
   regimentId: string | null;
 }
@@ -32,9 +34,16 @@ export function getTeamSize(): number {
 }
 
 export function registerClient(ws: WebSocket, clientId: string): ClientRecord {
-  const record: ClientRecord = { ws, clientId, assignedSide: null, userId: null, regimentId: null };
+  const record: ClientRecord = { ws, clientId, assignedSide: null, userId: null, devGuestId: null, regimentId: null };
   clients.set(clientId, record);
   return record;
+}
+
+export function setClientDevGuestId(clientId: string, devGuestId: string): void {
+  const record = clients.get(clientId);
+  if (record) {
+    record.devGuestId = devGuestId;
+  }
 }
 
 export function setClientUserId(clientId: string, userId: string): void {
@@ -125,6 +134,13 @@ export function sideCount(side: SideName): number {
 }
 
 /** Find a client by Supabase user ID. Returns undefined if not found. */
+export function getClientByDevGuestId(devGuestId: string): ClientRecord | undefined {
+  for (const [, record] of clients) {
+    if (record.devGuestId === devGuestId) return record;
+  }
+  return undefined;
+}
+
 export function getClientByUserId(userId: string): ClientRecord | undefined {
   for (const [, record] of clients) {
     if (record.userId === userId) return record;

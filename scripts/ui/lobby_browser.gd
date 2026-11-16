@@ -14,6 +14,8 @@ const LEADERBOARD_SCENE := "res://scenes/leaderboard.tscn"
 const REGIMENT_SCENE := "res://scenes/regiment_browser.tscn"
 const ADMIN_SCENE := "res://scenes/admin_browser.tscn"
 const LobbyClientClass := preload("res://scripts/network/lobby_client.gd")
+const DevLobbyClientClass := preload("res://scripts/network/dev_lobby_client.gd")
+const DevGuestScript := preload("res://scripts/network/dev_guest.gd")
 const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
 const RegimentBrowserScript := preload("res://scripts/ui/regiment_browser.gd")
 const AdminBrowserScript := preload("res://scripts/ui/admin_browser.gd")
@@ -25,6 +27,9 @@ const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd
 const ONLINE_SERVER_URL := "wss://chain-revival-ax0q1g.fly.dev"
 
 static func _effective_server_url() -> String:
+	## Guests always use the local or dev_server.txt address, never production.
+	if DevGuestScript.is_enabled():
+		return NetworkClient.server_url
 	if NetworkClient.server_url_overridden:
 		return NetworkClient.server_url
 	return ONLINE_SERVER_URL
@@ -45,6 +50,7 @@ var _max_rooms: int = 8
 
 
 var _lobby_client: Node
+var _dev_lobby: Node
 var _status_label: Label
 var _refresh_button: Button
 var _leaderboard_button: Button
@@ -98,8 +104,18 @@ func _ready() -> void:
 	_generate_room_config(_max_rooms)
 	_build_ui()
 	_connect_signals()
-	_fetch_max_rooms()
-	_lobby_client.list_lobbies()
+	if DevGuestScript.is_enabled():
+		_dev_lobby = DevLobbyClientClass.new()
+		add_child(_dev_lobby)
+		_dev_lobby.lobbies_listed.connect(_on_lobbies_listed)
+		_dev_lobby.lobby_created.connect(_on_lobby_created)
+		_dev_lobby.lobby_joined.connect(_on_lobby_joined)
+		_dev_lobby.lobby_deleted.connect(_on_lobby_deleted)
+		_dev_lobby.lobby_error.connect(_on_lobby_error)
+		_set_status("Dev guest %s. Rooms stay on the development server." % DevGuestScript.display_name, Color.GREEN)
+	else:
+		_fetch_max_rooms()
+	_refresh_rooms()
 
 	_refresh_timer = Timer.new()
 	_refresh_timer.wait_time = 5.0
@@ -166,12 +182,12 @@ func _rebuild_room_grid() -> void:
 		var row_panel := _build_room_row(_room_config[i])
 		_room_vbox.add_child(row_panel)
 		_room_vbox.move_child(row_panel, header_idx + 1 + i)
-	_lobby_client.list_lobbies()
+	_refresh_rooms()
 
 
 func _exit_tree() -> void:
 	if not _hosted_lobby_id.is_empty():
-		_lobby_client.delete_lobby(_hosted_lobby_id)
+		_release_hosted_room()
 	_joined_lobby_id = ""
 
 
@@ -717,14 +733,17 @@ func _on_briefing_confirm() -> void:
 	if map_idx >= 0 and map_idx < MapDataClass.MULTIPLAYER_MAPS.size():
 		map_id = MapDataClass.MULTIPLAYER_MAPS[map_idx]["id"]
 	var team_size := _get_briefing_team_size()
-	var match_name := "%s's Game" % SupabaseAuth.display_name
+	var match_name := "%s's Game" % (_local_player_name())
 	var length_idx := _briefing_length_dropdown.selected
 	var match_length_sec: int = MATCH_LENGTH_OPTIONS[clampi(length_idx, 0, MATCH_LENGTH_OPTIONS.size() - 1)]
 	var host_regiment_id := SupabaseAuth.regiment_id if _briefing_room_type == "regimental" else ""
 	_active_room_number = room_number
 	_close_briefing()
 	_set_status("Creating game in Room %d..." % room_number, Color.WHITE)
-	_lobby_client.create_lobby(match_name, _effective_server_url(), map_id, team_size, room_number, match_length_sec, host_regiment_id)
+	if DevGuestScript.is_enabled():
+		_dev_lobby.host_room(room_number, match_name, map_id, team_size, match_length_sec, _effective_server_url())
+	else:
+		_lobby_client.create_lobby(match_name, _effective_server_url(), map_id, team_size, room_number, match_length_sec, host_regiment_id)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -763,7 +782,7 @@ func _on_room_action(room_number: int) -> void:
 	if not lobby.is_empty():
 		var host_id: String = lobby.get("host_id", "")
 		var lobby_id: String = lobby.get("id", "")
-		var is_mine := host_id == SupabaseAuth.user_id or lobby_id == _joined_lobby_id
+		var is_mine := host_id == _local_player_id() or lobby_id == _joined_lobby_id
 		if is_mine:
 			_on_cancel_hosted()
 			return
@@ -786,7 +805,10 @@ func _on_room_action(room_number: int) -> void:
 			var lobby_id: String = lobby.get("id", "")
 			_active_room_number = room_number
 			_set_status("Joining Room %d..." % room_number, Color.WHITE)
-			_lobby_client.join_lobby(lobby_id)
+			if DevGuestScript.is_enabled():
+				_dev_lobby.join_room(room_number)
+			else:
+				_lobby_client.join_lobby(lobby_id)
 		else:
 			_set_status("That room has a match in progress.", Color.ORANGE)
 
@@ -797,7 +819,7 @@ func _on_room_action(room_number: int) -> void:
 
 func _on_refresh_pressed() -> void:
 	_set_status("Refreshing...", Color.WHITE)
-	_lobby_client.list_lobbies()
+	_refresh_rooms()
 
 
 func _on_leaderboard_pressed() -> void:
@@ -820,7 +842,7 @@ func _on_back_pressed() -> void:
 
 
 func _on_auto_refresh() -> void:
-	_lobby_client.list_lobbies()
+	_refresh_rooms()
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -833,13 +855,16 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 		for lobby_dict in lobbies:
 			var lobby: Dictionary = lobby_dict
 			var lobby_status: String = lobby.get("status", "")
-			if lobby.get("host_id", "") == SupabaseAuth.user_id:
+			if lobby.get("host_id", "") == _local_player_id():
 				if lobby_status == "waiting":
 					_hosted_lobby_id = lobby.get("id", "")
 					var rn_val = lobby.get("room_number", 0)
 					_active_room_number = int(rn_val) if rn_val != null else 0
 				elif lobby_status == "in_progress" and not _is_rejoinable(lobby):
-					_lobby_client.delete_lobby(lobby.get("id", ""))
+					if DevGuestScript.is_enabled() and _dev_lobby != null:
+						_dev_lobby.leave_room()
+					else:
+						_lobby_client.delete_lobby(str(lobby.get("id", "")))
 				break
 
 	## Forget the rejoin record once its lobby is no longer running.
@@ -906,7 +931,7 @@ func _on_lobbies_listed(lobbies: Array) -> void:
 			var lobby: Dictionary = _room_rows[rn].get("lobby", {})
 			if not lobby.is_empty() and lobby.get("status", "") == "waiting":
 				var host_id: String = lobby.get("host_id", "")
-				if host_id != SupabaseAuth.user_id:
+				if host_id != _local_player_id():
 					waiting_count += 1
 		if waiting_count > 0:
 			_set_status("%d room(s) with games waiting" % waiting_count, Color.WHITE)
@@ -937,7 +962,7 @@ func _update_room_row(room_number: int, lobby: Dictionary) -> void:
 		var status: String = lobby.get("status", "waiting")
 		var host_id: String = lobby.get("host_id", "")
 		var lobby_id: String = lobby.get("id", "")
-		var is_mine: bool = host_id == SupabaseAuth.user_id or lobby_id == _joined_lobby_id
+		var is_mine: bool = host_id == _local_player_id() or lobby_id == _joined_lobby_id
 		var current: int = lobby.get("current_players", 1)
 		var max_p: int = lobby.get("max_players", 2)
 		var ts: int = lobby.get("team_size", 1)
@@ -980,7 +1005,7 @@ func _on_lobby_created(lobby: Dictionary) -> void:
 	_hosted_lobby_id = lobby.get("id", "")
 	var max_p: int = lobby.get("max_players", 2)
 	_set_status("Game created! Waiting for players (1/%d)..." % max_p, Color.GREEN)
-	_lobby_client.list_lobbies()
+	_refresh_rooms()
 
 
 func _on_lobby_joined(lobby: Dictionary) -> void:
@@ -999,7 +1024,7 @@ func _on_lobby_joined(lobby: Dictionary) -> void:
 		var current: int = lobby.get("current_players", 1)
 		var max_p: int = lobby.get("max_players", 2)
 		_set_status("Joined! Waiting for players (%d/%d)..." % [current, max_p], Color.GREEN)
-		_lobby_client.list_lobbies()
+		_refresh_rooms()
 
 
 func _on_lobby_error(msg: String) -> void:
@@ -1013,7 +1038,7 @@ func _on_lobby_deleted() -> void:
 	_hosted_lobby_id = ""
 	_active_room_number = 0
 	_set_status("Left the room.", Color.WHITE)
-	_lobby_client.list_lobbies()
+	_refresh_rooms()
 
 
 func _on_cancel_hosted() -> void:
@@ -1021,16 +1046,50 @@ func _on_cancel_hosted() -> void:
 		_joined_lobby_id = ""
 		_active_room_number = 0
 		_set_status("Left the room.", Color.WHITE)
-		_lobby_client.list_lobbies()
+		if DevGuestScript.is_enabled() and _dev_lobby != null:
+			_dev_lobby.leave_room()
+		else:
+			_refresh_rooms()
 		return
 	if _hosted_lobby_id.is_empty():
 		return
-	_lobby_client.delete_lobby(_hosted_lobby_id)
+	_release_hosted_room()
 
 
 # ─────────────────────────────────────────────────────────────────────────
 # Game transition
 # ─────────────────────────────────────────────────────────────────────────
+
+func _local_player_id() -> String:
+	if DevGuestScript.is_enabled():
+		return DevGuestScript.player_id
+	return SupabaseAuth.user_id
+
+
+func _local_player_name() -> String:
+	if DevGuestScript.is_enabled():
+		return DevGuestScript.display_name
+	return SupabaseAuth.display_name
+
+
+func _refresh_rooms() -> void:
+	if DevGuestScript.is_enabled():
+		if _dev_lobby != null:
+			_dev_lobby.list_rooms()
+		return
+	_lobby_client.list_lobbies()
+
+
+func _release_hosted_room() -> void:
+	if _hosted_lobby_id.is_empty():
+		return
+	if DevGuestScript.is_enabled():
+		if _dev_lobby != null:
+			_dev_lobby.leave_room()
+		_hosted_lobby_id = ""
+		return
+	_lobby_client.delete_lobby(_hosted_lobby_id)
+
 
 func _start_multiplayer(server_url: String, map_id: String = "", team_size: int = 1, match_length_sec: int = 900, lobby_id: String = "") -> void:
 	if _starting_match:
@@ -1102,7 +1161,7 @@ func _rejoin_match() -> void:
 	_starting_match = false
 	_set_status("Could not rejoin - that match has ended.", Color.ORANGE)
 	_refresh_timer.start()
-	_lobby_client.list_lobbies()
+	_refresh_rooms()
 
 
 func _rejoin_confirmed() -> bool:

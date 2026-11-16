@@ -15,6 +15,7 @@ var is_training: bool = false
 var match_length_sec: int = 0
 var is_regimental: bool = false
 const CLIENT_NAME := "Godot Client"
+const DevGuestScript := preload("res://scripts/network/dev_guest.gd")
 const DEFAULT_CONNECT_TIMEOUT_SEC := 5.0
 const DEFAULT_SIDE_REQUEST_TIMEOUT_SEC := 5.0
 const DEFAULT_SNAPSHOT_TIMEOUT_SEC := 5.0
@@ -451,9 +452,12 @@ func _on_disconnected() -> void:
 
 func _send_hello() -> void:
 	var hello := {"type": "hello", "clientName": CLIENT_NAME}
-	# Attach the Supabase auth token when the user is signed in so the
-	# server can identify them.  LAN play works fine without it.
-	if SupabaseAuth.is_signed_in and not SupabaseAuth.access_token.is_empty():
+	# Dev guests never send the shared Supabase session. Each process has its
+	# own temporary id, so two windows on one PC are different players.
+	if DevGuestScript.is_enabled():
+		hello["clientName"] = DevGuestScript.display_name
+		hello["devGuestId"] = DevGuestScript.player_id
+	elif SupabaseAuth.is_signed_in and not SupabaseAuth.access_token.is_empty():
 		hello["authToken"] = SupabaseAuth.access_token
 		if SupabaseAuth.is_admin:
 			hello["isAdmin"] = true
@@ -573,6 +577,9 @@ func _handle_message(message: Dictionary) -> void:
 			var success: bool = bool(message.get("success", false))
 			var reason := str(message.get("reason", ""))
 			kick_result_received.emit(success, reason)
+		"dev_guest_rejected":
+			GameLog.log_system("[NetworkClient] Dev guest rejected: %s" % str(message.get("reason", "")))
+			disconnect_from_server()
 		"kicked":
 			var reason := str(message.get("reason", "Kicked by admin"))
 			GameLog.log_system("[NetworkClient] Kicked from server: %s" % reason)

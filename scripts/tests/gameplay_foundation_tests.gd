@@ -75,6 +75,7 @@ func _ready() -> void:
 	_test_scenario_clock_and_scoring()
 	_test_timed_deployment_zone_lock()
 	_test_build_config_editor_is_development()
+	_test_dev_guest_id_shape()
 	_test_sustained_fire_suppression_mult()
 	_test_panicked_grenade_rejected()
 	_test_stress_band_labels()
@@ -2663,6 +2664,24 @@ func _test_scenario_clock_and_scoring() -> void:
 		timed.end_cause == ScenarioEndCauseClass.TIME_GONE,
 		"cause=%s" % timed.end_cause,
 	)
+
+
+func _test_dev_guest_id_shape() -> void:
+	_assert(
+		"dev guest id accepts a process-local id",
+		preload("res://scripts/network/dev_guest.gd").is_valid_player_id("dev-guest-4242-ab12cd34"),
+	)
+	_assert(
+		"dev guest id rejects a normal account id",
+		not preload("res://scripts/network/dev_guest.gd").is_valid_player_id("550e8400-e29b-41d4-a716-446655440000"),
+	)
+	_assert("dev guest id rejects an empty string", not preload("res://scripts/network/dev_guest.gd").is_valid_player_id(""))
+	var guest_requested := false
+	for arg in OS.get_cmdline_args() + OS.get_cmdline_user_args():
+		if arg == "--dev-guest":
+			guest_requested = true
+	if not guest_requested and not FileAccess.file_exists("res://dev_guest.txt"):
+		_assert("dev guest mode stays off without the local switch", not preload("res://scripts/network/dev_guest.gd").is_enabled())
 
 
 func _test_build_config_editor_is_development() -> void:

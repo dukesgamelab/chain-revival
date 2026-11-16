@@ -13,6 +13,7 @@ const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 const AutoUpdaterClass := preload("res://scripts/network/auto_updater.gd")
+const DevGuestScript := preload("res://scripts/network/dev_guest.gd")
 
 @onready var _single_player_button: Button = $Center/Panel/Margin/VBox/SinglePlayerButton
 @onready var _multiplayer_button: Button = $Center/Panel/Margin/VBox/MultiplayerButton
@@ -48,12 +49,35 @@ func _ready() -> void:
 	_add_auth_ui()
 	_hide_dev_tools_unless_signed_in()
 	_add_lan_button()
+	_add_dev_guest_button()
 	_add_leaderboard_button()
 	_add_version_label()
 	_add_settings_button()
 	_add_quit_button()
 	_show_first_launch_hint()
 	_check_for_updates()
+
+
+func _add_dev_guest_button() -> void:
+	if not DevGuestScript.is_enabled():
+		return
+	var vbox := get_node_or_null("Center/Panel/Margin/VBox") as VBoxContainer
+	if vbox == null:
+		return
+	var guest_btn := Button.new()
+	guest_btn.text = "Dev Multiplayer (%s)" % DevGuestScript.display_name
+	guest_btn.custom_minimum_size = Vector2(400, 44)
+	guest_btn.add_theme_font_size_override("font_size", 20)
+	guest_btn.pressed.connect(_on_dev_guest_pressed)
+	var multi_idx := _multiplayer_button.get_index()
+	vbox.add_child(guest_btn)
+	vbox.move_child(guest_btn, multi_idx + 1)
+
+
+func _on_dev_guest_pressed() -> void:
+	if BuildConfig.is_survival_playtest() or not DevGuestScript.is_enabled():
+		return
+	get_tree().change_scene_to_file(LOBBY_BROWSER_SCENE)
 
 
 func _add_lan_button() -> void:

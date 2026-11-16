@@ -21,6 +21,7 @@ import {
   bothSidesAssigned,
   getAssignedClients,
   getClient,
+  getClientByDevGuestId,
   getClientByUserId,
   getTeamSize,
   parseSideName,
@@ -28,12 +29,14 @@ import {
   removeClient,
   requestSide,
   resetSides,
+  setClientDevGuestId,
   setClientRegimentId,
   setClientUserId,
   setTeamSize,
   sideCount,
 } from "./side_ownership";
 import { recordMatchResult, recordPlayerResult, distributeCoPP, getPlayerFlags, setActiveMatch, clearActiveMatch, saveReplay, finishAllLobbies } from "./supabase_client";
+import { clearDevRooms, devGuestsAllowed, handleDevLobbyHttp, isValidDevGuestId } from "./dev_lobby";
 import {
   MATCH_ID,
   sideToTeamId,
@@ -62,6 +65,9 @@ function handleMatchEnded(info: MatchEndedInfo): void {
   pendingReconnects.clear();
 
   finishAllLobbies().catch(err => console.error("[MatchEnd] Lobby cleanup failed:", err));
+  if (devGuestsAllowed()) {
+    clearDevRooms();
+  }
 
   const usaUserIds: string[] = [];
   const germanyUserIds: string[] = [];
@@ -291,12 +297,43 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       typeof message.clientName === "string" ? message.clientName : "Unknown client";
     console.log("Hello from %s (%s)", clientName, clientId);
 
+    // Development guests are a separate identity from Supabase. Production
+    // servers (ALLOW_DEV_GUESTS unset) reject them instead of treating the
+    // connection as an authenticated player.
+    const rawDevGuestId = typeof message.devGuestId === "string" ? message.devGuestId : "";
+    if (rawDevGuestId !== "") {
+      if (!devGuestsAllowed() || !isValidDevGuestId(rawDevGuestId)) {
+        console.log("[Hello] Rejected dev guest from %s", clientName);
+        sendJson(ws, { type: "dev_guest_rejected", reason: "Dev guests are disabled on this server." });
+        ws.close();
+        return;
+      }
+      if (typeof message.authToken === "string" && message.authToken !== "") {
+        console.log("[Hello] Rejected dev guest %s because it also sent an auth token", rawDevGuestId);
+        sendJson(ws, { type: "dev_guest_rejected", reason: "Dev guests cannot use a production session." });
+        ws.close();
+        return;
+      }
+      if (!pendingReconnects.has(rawDevGuestId)) {
+        const existingGuest = getClientByDevGuestId(rawDevGuestId);
+        if (existingGuest && existingGuest.clientId !== clientId) {
+          console.log("[Hello] Duplicate dev guest %s, kicking old client %s", rawDevGuestId, existingGuest.clientId);
+          sendJson(existingGuest.ws, { type: "kicked", reason: "Connected from another session" });
+          removeClient(existingGuest.clientId);
+          match.removeClient(existingGuest.clientId);
+          existingGuest.ws.close();
+        }
+      }
+      setClientDevGuestId(clientId, rawDevGuestId);
+      console.log("Dev guest %s (%s)", rawDevGuestId, clientName);
+    }
+
     // Optional Supabase auth: if the client sends an authToken, verify it
     // and associate the user ID with this connection.  LAN play works
-    // without a token.
+    // without a token. Dev guests never enter this path.
     let userId: string | null = null;
     let takeover: { side: SideName; teamId: number } | null = null;
-    if (typeof message.authToken === "string" && message.authToken !== "") {
+    if (rawDevGuestId === "" && typeof message.authToken === "string" && message.authToken !== "") {
       userId = getUserId(message.authToken);
       if (userId !== null) {
         const flags = await getPlayerFlags(userId);
@@ -770,6 +807,9 @@ if (hasBuilds) {
 }
 
 async function serveStatic(req: import("node:http").IncomingMessage, res: import("node:http").ServerResponse) {
+  if (await handleDevLobbyHttp(req, res)) {
+    return;
+  }
   const url = req.url ?? "/";
 
   if (url === "/health") {
@@ -858,6 +898,9 @@ const wss = new WebSocketServer({ server: httpServer, maxPayload: 64 * 1024 });
 
 httpServer.listen(PORT, HOST, () => {
   console.log(`Chain Revival multiplayer server running on ws://${HOST}:${PORT}`);
+  console.log(devGuestsAllowed()
+    ? "Dev guests enabled. Guest identities are accepted and are not written to Supabase."
+    : "Dev guests disabled. Set ALLOW_DEV_GUESTS=1 to test with local guest clients.");
   console.log(`Authoritative match ${MATCH_ID} ready`);
   if (HOST === "0.0.0.0") {
     console.log("LAN enabled — other machines can connect using this PC's IP address.");
