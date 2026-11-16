@@ -332,6 +332,32 @@ export async function saveReplay(params: SaveReplayParams): Promise<void> {
  * Mark all in_progress lobbies as finished.
  * Called when a match ends so the lobby grid doesn't show stale entries.
  */
+const LOBBY_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function patchLobbyMember(lobbyId: string, userId: string, body: Record<string, unknown>): Promise<void> {
+  if (!isConfigured() || !LOBBY_ID_PATTERN.test(lobbyId) || !LOBBY_ID_PATTERN.test(userId)) return;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/lobby_members?lobby_id=eq.${lobbyId}&user_id=eq.${userId}`,
+      { method: "PATCH", headers: headers(), body: JSON.stringify(body) },
+    );
+    if (!res.ok && res.status !== 404) {
+      console.error("[Supabase] lobby member update failed (%d)", res.status);
+    }
+  } catch (err) {
+    console.error("[Supabase] lobby member update error:", err);
+  }
+}
+
+/** The game server is the authority for which side a room member is on. */
+export async function setLobbyMemberSide(lobbyId: string, userId: string, side: "USA" | "GERMANY"): Promise<void> {
+  await patchLobbyMember(lobbyId, userId, { side, connected: true });
+}
+
+export async function setLobbyMemberConnected(lobbyId: string, userId: string, connected: boolean): Promise<void> {
+  await patchLobbyMember(lobbyId, userId, { connected });
+}
+
 export async function finishAllLobbies(): Promise<void> {
   if (!isConfigured()) return;
   try {

@@ -17,6 +17,7 @@ import {
 } from "./match";
 import { getUserId } from "./supabase_auth";
 import {
+  type ClientRecord,
   type SideName,
   bothSidesAssigned,
   getAssignedClients,
@@ -30,13 +31,14 @@ import {
   requestSide,
   resetSides,
   setClientDevGuestId,
+  setClientLobbyId,
   setClientRegimentId,
   setClientUserId,
   setTeamSize,
   sideCount,
 } from "./side_ownership";
-import { recordMatchResult, recordPlayerResult, distributeCoPP, getPlayerFlags, setActiveMatch, clearActiveMatch, saveReplay, finishAllLobbies } from "./supabase_client";
-import { clearDevRooms, devGuestsAllowed, handleDevLobbyHttp, isValidDevGuestId } from "./dev_lobby";
+import { recordMatchResult, recordPlayerResult, distributeCoPP, getPlayerFlags, setActiveMatch, clearActiveMatch, saveReplay, finishAllLobbies, setLobbyMemberConnected, setLobbyMemberSide } from "./supabase_client";
+import { clearDevRooms, devGuestsAllowed, handleDevLobbyHttp, isValidDevGuestId, setDevPlayerConnected, setDevPlayerSide } from "./dev_lobby";
 import {
   MATCH_ID,
   sideToTeamId,
@@ -279,6 +281,29 @@ function broadcastToAssigned(payload: unknown, excludeClientId?: string): void {
   }
 }
 
+function publishLobbySide(clientId: string, side: SideName): void {
+  const record = getClient(clientId);
+  if (!record) return;
+  if (record.devGuestId) {
+    setDevPlayerSide(record.devGuestId, side);
+    return;
+  }
+  if (record.userId && record.lobbyId) {
+    void setLobbyMemberSide(record.lobbyId, record.userId, side);
+  }
+}
+
+function publishLobbyDisconnect(record: ClientRecord | undefined): void {
+  if (!record) return;
+  if (record.devGuestId) {
+    setDevPlayerConnected(record.devGuestId, false);
+    return;
+  }
+  if (record.userId && record.lobbyId) {
+    void setLobbyMemberConnected(record.lobbyId, record.userId, false);
+  }
+}
+
 async function handleMessage(ws: WebSocket, clientId: string, raw: string): Promise<void> {
   const message = safeParseJson(raw);
   if (message === null) {
@@ -295,6 +320,10 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
     ensureFreshMatch();
     const clientName =
       typeof message.clientName === "string" ? message.clientName : "Unknown client";
+    const lobbyId = typeof message.lobbyId === "string" ? message.lobbyId : "";
+    if (/^[A-Za-z0-9-]{1,80}$/.test(lobbyId)) {
+      setClientLobbyId(clientId, lobbyId);
+    }
     console.log("Hello from %s (%s)", clientName, clientId);
 
     // Development guests are a separate identity from Supabase. Production
@@ -425,6 +454,7 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
       if (sideResult.ok) {
         match.setClientTeam(clientId, resume.teamId);
         console.log("[Reconnect] Player %s reconnected as %s (new clientId=%s)", userId, resume.side, clientId);
+        publishLobbySide(clientId, resume.side);
 
         sendJson(ws, {
           type: "welcome",
@@ -625,6 +655,7 @@ async function handleMessage(ws: WebSocket, clientId: string, raw: string): Prom
 
     const teamId = sideToTeamId(result.side);
     match.setClientTeam(clientId, teamId);
+    publishLobbySide(clientId, result.side);
     sendJson(ws, {
       type: "side_assigned",
       side: result.side,
@@ -919,6 +950,7 @@ wss.on("connection", (ws: WebSocket) => {
 
   ws.on("close", () => {
     const record = getClient(clientId);
+    publishLobbyDisconnect(record);
     const disconnectedSide = record?.assignedSide ?? null;
     const disconnectedUserId = record?.userId ?? null;
     console.log("[Disconnect] clientId=%s userId=%s side=%s matchPhase=%s",

@@ -7,6 +7,7 @@ signal lobby_created(lobby: Dictionary)
 signal lobby_joined(lobby: Dictionary)
 signal lobby_deleted()
 signal lobby_error(msg: String)
+signal presence_listed(players: Array)
 
 const DevGuestScript := preload("res://scripts/network/dev_guest.gd")
 
@@ -14,6 +15,7 @@ var _http_list: HTTPRequest
 var _http_host: HTTPRequest
 var _http_join: HTTPRequest
 var _http_leave: HTTPRequest
+var _http_presence: HTTPRequest
 var _queued: Array[Dictionary] = []
 var _flush_scheduled := false
 
@@ -23,6 +25,7 @@ func _ready() -> void:
 	_http_host = _make_http("_on_host_response")
 	_http_join = _make_http("_on_join_response")
 	_http_leave = _make_http("_on_leave_response")
+	_http_presence = _make_http("_on_presence_response")
 
 
 func list_rooms() -> void:
@@ -57,6 +60,21 @@ func leave_room() -> void:
 		"devGuestId": DevGuestScript.player_id,
 	})
 	_request(_http_leave, HTTPClient.METHOD_POST, "/dev/lobby/leave", body)
+
+
+func touch_presence() -> void:
+	var body := JSON.stringify({
+		"devGuestId": DevGuestScript.player_id,
+		"displayName": DevGuestScript.display_name,
+	})
+	_request(_http_presence, HTTPClient.METHOD_POST, "/dev/lobby/presence", body)
+
+
+func leave_presence() -> void:
+	var body := JSON.stringify({
+		"devGuestId": DevGuestScript.player_id,
+	})
+	_request(_http_presence, HTTPClient.METHOD_POST, "/dev/lobby/presence/leave", body)
 
 
 func _request(http: HTTPRequest, method: int, path: String, body: String) -> void:
@@ -101,6 +119,9 @@ func _on_list_response(result: int, response_code: int, _headers: PackedStringAr
 		return
 	var rooms: Variant = parsed.get("rooms", [])
 	lobbies_listed.emit(rooms if rooms is Array else [])
+	var online: Variant = parsed.get("online", [])
+	if online is Array:
+		presence_listed.emit(online)
 
 
 func _on_host_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
@@ -119,6 +140,15 @@ func _on_join_response(result: int, response_code: int, _headers: PackedStringAr
 	var room: Variant = parsed.get("room", {})
 	if room is Dictionary:
 		lobby_joined.emit(room)
+
+
+func _on_presence_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	var parsed := _parse_object(result, response_code, body)
+	if parsed.is_empty():
+		return
+	var online: Variant = parsed.get("online", [])
+	if online is Array:
+		presence_listed.emit(online)
 
 
 func _on_leave_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:

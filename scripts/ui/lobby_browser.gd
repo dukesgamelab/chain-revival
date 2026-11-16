@@ -14,6 +14,7 @@ const LEADERBOARD_SCENE := "res://scenes/leaderboard.tscn"
 const REGIMENT_SCENE := "res://scenes/regiment_browser.tscn"
 const ADMIN_SCENE := "res://scenes/admin_browser.tscn"
 const LobbyClientClass := preload("res://scripts/network/lobby_client.gd")
+const LobbyRosterScript := preload("res://scripts/network/lobby_roster.gd")
 const DevLobbyClientClass := preload("res://scripts/network/dev_lobby_client.gd")
 const DevGuestScript := preload("res://scripts/network/dev_guest.gd")
 const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
@@ -52,6 +53,10 @@ var _max_rooms: int = 8
 var _lobby_client: Node
 var _dev_lobby: Node
 var _status_label: Label
+var _online_label: Label
+var _presence_rows: Array = []
+var _members_by_lobby: Dictionary = {}
+var _presence_timer: Timer
 var _refresh_button: Button
 var _leaderboard_button: Button
 var _regiments_button: Button
@@ -112,6 +117,7 @@ func _ready() -> void:
 		_dev_lobby.lobby_joined.connect(_on_lobby_joined)
 		_dev_lobby.lobby_deleted.connect(_on_lobby_deleted)
 		_dev_lobby.lobby_error.connect(_on_lobby_error)
+		_dev_lobby.presence_listed.connect(_on_presence_listed)
 		_set_status("Dev guest %s. Rooms stay on the development server." % DevGuestScript.display_name, Color.GREEN)
 	else:
 		_fetch_max_rooms()
@@ -122,6 +128,15 @@ func _ready() -> void:
 	_refresh_timer.timeout.connect(_on_auto_refresh)
 	add_child(_refresh_timer)
 	_refresh_timer.start()
+	_presence_timer = Timer.new()
+	_presence_timer.wait_time = 10.0
+	_presence_timer.timeout.connect(_refresh_roster)
+	add_child(_presence_timer)
+	_presence_timer.start()
+	_refresh_roster()
+	if not DevGuestScript.is_enabled():
+		SupabaseRealtime.subscribe_changes("lobby_presence", _on_presence_change)
+		SupabaseRealtime.subscribe_changes("lobby_members", _on_member_change)
 
 
 func _generate_room_config(count: int) -> void:
@@ -186,9 +201,16 @@ func _rebuild_room_grid() -> void:
 
 
 func _exit_tree() -> void:
+	_stop_lobby_presence()
+	if not DevGuestScript.is_enabled():
+		SupabaseRealtime.unsubscribe_changes("lobby_presence", _on_presence_change)
+		SupabaseRealtime.unsubscribe_changes("lobby_members", _on_member_change)
+	if _starting_match:
+		return
 	if not _hosted_lobby_id.is_empty():
 		_release_hosted_room()
-	_joined_lobby_id = ""
+	elif not _joined_lobby_id.is_empty():
+		_leave_joined_room()
 
 
 
@@ -240,6 +262,18 @@ func _build_ui() -> void:
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status_label.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(_status_label)
+
+	var online_scroll := ScrollContainer.new()
+	online_scroll.custom_minimum_size = Vector2(0, 72)
+	online_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox.add_child(online_scroll)
+	_online_label = Label.new()
+	_online_label.text = "Online — checking who is here"
+	_online_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_online_label.custom_minimum_size = Vector2(760, 0)
+	_online_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_online_label.add_theme_font_size_override("font_size", 14)
+	online_scroll.add_child(_online_label)
 
 	# Room grid header
 	_room_header = _build_grid_header()
@@ -326,7 +360,7 @@ func _build_grid_header() -> HBoxContainer:
 
 	var col_players := Label.new()
 	col_players.text = "Players"
-	col_players.custom_minimum_size = Vector2(65, 0)
+	col_players.custom_minimum_size = Vector2(240, 0)
 	col_players.add_theme_font_size_override("font_size", 15)
 	col_players.add_theme_color_override("font_color", hdr_color)
 	header.add_child(col_players)
@@ -382,8 +416,10 @@ func _build_room_row(room_cfg: Dictionary) -> PanelContainer:
 	# Players
 	var players_label := Label.new()
 	players_label.text = "--"
-	players_label.custom_minimum_size = Vector2(65, 0)
-	players_label.add_theme_font_size_override("font_size", 18)
+	players_label.custom_minimum_size = Vector2(240, 0)
+	players_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	players_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	players_label.add_theme_font_size_override("font_size", 14)
 	inner_row.add_child(players_label)
 
 	# Action button
@@ -764,6 +800,8 @@ func _connect_signals() -> void:
 	_lobby_client.lobby_error.connect(_on_lobby_error)
 	_lobby_client.lobby_deleted.connect(_on_lobby_deleted)
 	_lobby_client.player_profile_fetched.connect(_on_player_profile_fetched)
+	_lobby_client.presence_listed.connect(_on_presence_listed)
+	_lobby_client.members_listed.connect(_on_members_listed)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -843,6 +881,7 @@ func _on_back_pressed() -> void:
 
 func _on_auto_refresh() -> void:
 	_refresh_rooms()
+	_refresh_roster()
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -970,7 +1009,7 @@ func _update_room_row(room_number: int, lobby: Dictionary) -> void:
 		if _is_rejoinable(lobby):
 			desc_label.text = "Your match in progress"
 			type_label.text = "%dv%d" % [ts, ts]
-			players_label.text = "%d/%d" % [current, max_p]
+			players_label.text = _player_count_text(lobby, current, max_p)
 			action_btn.text = "Rejoin"
 			action_btn.disabled = _starting_match
 			return
@@ -986,8 +1025,8 @@ func _update_room_row(room_number: int, lobby: Dictionary) -> void:
 		# Type column — show team size format
 		type_label.text = "%dv%d" % [ts, ts]
 
-		# Players
-		players_label.text = "%d/%d" % [current, max_p]
+		# Players come from the room membership rows, not a count kept by this screen.
+		players_label.text = _player_count_text(lobby, current, max_p)
 
 		# Action button
 		if is_mine:
@@ -1043,13 +1082,14 @@ func _on_lobby_deleted() -> void:
 
 func _on_cancel_hosted() -> void:
 	if not _joined_lobby_id.is_empty():
+		var leaving_id := _joined_lobby_id
 		_joined_lobby_id = ""
 		_active_room_number = 0
 		_set_status("Left the room.", Color.WHITE)
 		if DevGuestScript.is_enabled() and _dev_lobby != null:
 			_dev_lobby.leave_room()
 		else:
-			_refresh_rooms()
+			_lobby_client.leave_lobby(leaving_id)
 		return
 	if _hosted_lobby_id.is_empty():
 		return
@@ -1103,12 +1143,14 @@ func _start_multiplayer(server_url: String, map_id: String = "", team_size: int 
 	NetworkClient.selected_map_id = map_id
 	NetworkClient.selected_team_size = team_size
 	NetworkClient.match_length_sec = match_length_sec
+	NetworkClient.selected_lobby_id = lobby_id
 	var room_type := _get_room_type(_active_room_number)
 	NetworkClient.is_training = room_type == "training"
 	NetworkClient.is_regimental = room_type == "regimental"
 	var connected := await NetworkClient.connect_and_wait()
 	if not connected:
 		_starting_match = false
+		NetworkClient.selected_lobby_id = ""
 		_set_status("Could not connect to game server.", Color.RED)
 		_refresh_timer.start()
 		return
@@ -1140,6 +1182,7 @@ func _rejoin_match() -> void:
 	NetworkClient.match_length_sec = 0
 	NetworkClient.is_training = false
 	NetworkClient.is_regimental = false
+	NetworkClient.selected_lobby_id = str(_rejoin.get("lobby_id", ""))
 	if await NetworkClient.connect_and_wait():
 		var deadline_msec := Time.get_ticks_msec() + int(REJOIN_WAIT_SEC * 1000.0)
 		while Time.get_ticks_msec() < deadline_msec:
@@ -1156,6 +1199,7 @@ func _rejoin_match() -> void:
 		get_tree().change_scene_to_file(MAIN_SCENE)
 		return
 	NetworkClient.disconnect_from_server()
+	NetworkClient.selected_lobby_id = ""
 	RejoinStoreClass.clear()
 	_rejoin = {}
 	_starting_match = false
@@ -1175,6 +1219,120 @@ func _rejoin_confirmed() -> bool:
 # ─────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────
+
+func _refresh_roster() -> void:
+	if DevGuestScript.is_enabled():
+		if _dev_lobby != null:
+			_dev_lobby.touch_presence()
+		return
+	_lobby_client.touch_presence()
+	_lobby_client.list_presence()
+	_lobby_client.list_members()
+
+
+func _stop_lobby_presence() -> void:
+	if _presence_timer != null:
+		_presence_timer.stop()
+	if DevGuestScript.is_enabled():
+		if _dev_lobby != null:
+			_dev_lobby.leave_presence()
+		return
+	_lobby_client.leave_presence()
+
+
+func _leave_joined_room() -> void:
+	var leaving_id := _joined_lobby_id
+	_joined_lobby_id = ""
+	if leaving_id.is_empty():
+		return
+	if DevGuestScript.is_enabled():
+		if _dev_lobby != null:
+			_dev_lobby.leave_room()
+		return
+	_lobby_client.leave_lobby(leaving_id)
+
+
+func _on_presence_listed(players: Array) -> void:
+	_presence_rows = players
+	_render_online()
+
+
+func _on_members_listed(members: Array) -> void:
+	_members_by_lobby.clear()
+	for row in members:
+		if not row is Dictionary:
+			continue
+		var lobby_id := str(row.get("lobby_id", ""))
+		if lobby_id.is_empty():
+			continue
+		if not _members_by_lobby.has(lobby_id):
+			_members_by_lobby[lobby_id] = []
+		(_members_by_lobby[lobby_id] as Array).append(row)
+	_rerender_rosters()
+
+
+func _on_presence_change(event_name: String, record: Dictionary, old_record: Dictionary) -> void:
+	_presence_rows = _merge_row(_presence_rows, event_name, record, old_record, "user_id")
+	_render_online()
+
+
+func _on_member_change(event_name: String, record: Dictionary, old_record: Dictionary) -> void:
+	var source := record if not record.is_empty() else old_record
+	var lobby_id := str(source.get("lobby_id", ""))
+	if lobby_id.is_empty():
+		return
+	var current: Array = _members_by_lobby.get(lobby_id, [])
+	_members_by_lobby[lobby_id] = _merge_row(current, event_name, record, old_record, "user_id")
+	_rerender_rosters()
+
+
+func _merge_row(rows: Array, event_name: String, record: Dictionary, old_record: Dictionary, id_key: String) -> Array:
+	var source := record if not record.is_empty() else old_record
+	var row_id := str(source.get(id_key, ""))
+	if row_id.is_empty():
+		return rows
+	var next: Array = []
+	var found := false
+	for existing in rows:
+		if not existing is Dictionary:
+			continue
+		if str(existing.get(id_key, "")) == row_id:
+			found = true
+			if event_name != "DELETE":
+				next.append(source)
+		else:
+			next.append(existing)
+	if not found and event_name != "DELETE":
+		next.append(source)
+	return next
+
+
+func _render_online() -> void:
+	if _online_label == null:
+		return
+	_online_label.text = LobbyRosterScript.online_text(_presence_rows, int(Time.get_unix_time_from_system()))
+
+
+func _rerender_rosters() -> void:
+	for room_number in _room_rows:
+		var row: Dictionary = _room_rows[room_number]
+		_update_room_row(int(room_number), row.get("lobby", {}))
+
+
+func _player_count_text(lobby: Dictionary, current: int, max_players: int) -> String:
+	var roster := LobbyRosterScript.room_roster(str(lobby.get("status", "")), _members_for(lobby))
+	var count := "%d/%d" % [current, max_players]
+	if roster.is_empty():
+		return count
+	return "%s\n%s" % [count, roster]
+
+
+func _members_for(lobby: Dictionary) -> Array:
+	var embedded: Variant = lobby.get("players", [])
+	if embedded is Array and not (embedded as Array).is_empty():
+		return embedded
+	return _members_by_lobby.get(str(lobby.get("id", "")), [])
+
 
 func _get_room_type(room_number: int) -> String:
 	for cfg in _room_config:

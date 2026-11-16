@@ -9,9 +9,25 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 export const DEV_GUEST_ID_PATTERN = /^dev-guest-[A-Za-z0-9_-]{6,64}$/;
 const ROOM_MIN = 1;
 const ROOM_MAX = 16;
-const TEAM_SIZES = [1, 2, 4];
+const TEAM_SIZES = [1, 2, 3, 5];
 const MATCH_LENGTHS = [600, 900, 1200];
 const MAP_ID_PATTERN = /^[a-zA-Z0-9_-]{1,40}$/;
+const ONLINE_MS = 30_000;
+const DROP_MS = 90_000;
+
+export interface DevPlayer {
+  id: string;
+  display_name: string;
+  side: "USA" | "GERMANY" | null;
+  connected: boolean;
+}
+
+export interface DevPresence {
+  id: string;
+  display_name: string;
+  connected: boolean;
+  last_seen: number;
+}
 
 export interface DevRoom {
   id: string;
@@ -27,9 +43,15 @@ export interface DevRoom {
   map_id: string;
   match_length_sec: number;
   guest_ids: string[];
+  players: DevPlayer[];
 }
 
-const rooms = new Map<number, DevRoom>();
+interface StoredRoom extends Omit<DevRoom, "guest_ids" | "current_players"> {
+  players: DevPlayer[];
+}
+
+const rooms = new Map<number, StoredRoom>();
+const presence = new Map<string, DevPresence>();
 
 export function devGuestsAllowed(): boolean {
   return process.env.ALLOW_DEV_GUESTS === "1";
@@ -39,12 +61,93 @@ export function isValidDevGuestId(id: string): boolean {
   return DEV_GUEST_ID_PATTERN.test(id);
 }
 
-export function listDevRooms(): DevRoom[] {
+export function listDevRooms(now = Date.now()): DevRoom[] {
+  sweepDevLobby(now);
   return [...rooms.values()].map(publicRoom);
+}
+
+export function listDevOnline(now = Date.now()): DevPresence[] {
+  sweepDevLobby(now);
+  return [...presence.values()].map((row) => ({ ...row }));
 }
 
 export function clearDevRooms(): void {
   rooms.clear();
+}
+
+export function clearDevLobbyState(): void {
+  rooms.clear();
+  presence.clear();
+}
+
+export function touchDevPresence(
+  devGuestId: string,
+  displayName: string,
+  now = Date.now(),
+): { ok: true } | { ok: false; error: string } {
+  if (!isValidDevGuestId(devGuestId)) {
+    return { ok: false, error: "Invalid dev guest id" };
+  }
+  presence.set(devGuestId, {
+    id: devGuestId,
+    display_name: cleanName(displayName),
+    connected: true,
+    last_seen: now,
+  });
+  sweepDevLobby(now);
+  return { ok: true };
+}
+
+export function leaveDevPresence(devGuestId: string, now = Date.now()): { ok: true } | { ok: false; error: string } {
+  if (!isValidDevGuestId(devGuestId)) {
+    return { ok: false, error: "Invalid dev guest id" };
+  }
+  const row = presence.get(devGuestId);
+  if (row) {
+    row.connected = false;
+    row.last_seen = now;
+  }
+  return { ok: true };
+}
+
+export function setDevPlayerSide(devGuestId: string, side: "USA" | "GERMANY"): void {
+  if (!isValidDevGuestId(devGuestId)) return;
+  for (const room of rooms.values()) {
+    const player = room.players.find((entry) => entry.id === devGuestId);
+    if (!player) continue;
+    player.side = side;
+    player.connected = true;
+  }
+}
+
+export function setDevPlayerConnected(devGuestId: string, connected: boolean): void {
+  if (!isValidDevGuestId(devGuestId)) return;
+  for (const room of rooms.values()) {
+    const player = room.players.find((entry) => entry.id === devGuestId);
+    if (player) player.connected = connected;
+  }
+}
+
+export function sweepDevLobby(now = Date.now()): void {
+  for (const [id, row] of presence) {
+    if (now - row.last_seen > DROP_MS) {
+      presence.delete(id);
+      continue;
+    }
+    if (now - row.last_seen > ONLINE_MS) {
+      row.connected = false;
+    }
+  }
+  for (const [roomNumber, room] of rooms) {
+    const host = presence.get(room.host_id);
+    const hostGone = room.status === "waiting" && host !== undefined && now - host.last_seen > DROP_MS;
+    if (hostGone) {
+      rooms.delete(roomNumber);
+      continue;
+    }
+    if (room.status !== "waiting") continue;
+    room.players = room.players.filter((player) => player.id === room.host_id || presenceOnline(player.id, now));
+  }
 }
 
 export function hostDevRoom(input: {
@@ -56,7 +159,7 @@ export function hostDevRoom(input: {
   teamSize: number;
   matchLengthSec: number;
   serverUrl: string;
-}): { ok: true; room: DevRoom } | { ok: false; error: string } {
+}, now = Date.now()): { ok: true; room: DevRoom } | { ok: false; error: string } {
   if (!isValidDevGuestId(input.devGuestId)) {
     return { ok: false, error: "Invalid dev guest id" };
   }
@@ -77,26 +180,32 @@ export function hostDevRoom(input: {
     return { ok: false, error: "Invalid server URL" };
   }
   dropGuest(input.devGuestId);
-  const room: DevRoom = {
+  const name = cleanName(input.displayName);
+  const room: StoredRoom = {
     id: `dev-room-${input.roomNumber}`,
     host_id: input.devGuestId,
-    host_display_name: cleanName(input.displayName),
+    host_display_name: name,
     match_name: cleanName(input.matchName),
     status: "waiting",
-    current_players: 1,
     team_size: input.teamSize,
     max_players: input.teamSize * 2,
     room_number: input.roomNumber,
     server_url: serverUrl,
     map_id: input.mapId,
     match_length_sec: input.matchLengthSec,
-    guest_ids: [input.devGuestId],
+    players: [playerRow(input.devGuestId, name)],
   };
   rooms.set(input.roomNumber, room);
+  touchDevPresence(input.devGuestId, name, now);
   return { ok: true, room: publicRoom(room) };
 }
 
-export function joinDevRoom(devGuestId: string, displayName: string, roomNumber: number): { ok: true; room: DevRoom } | { ok: false; error: string } {
+export function joinDevRoom(
+  devGuestId: string,
+  displayName: string,
+  roomNumber: number,
+  now = Date.now(),
+): { ok: true; room: DevRoom } | { ok: false; error: string } {
   if (!isValidDevGuestId(devGuestId)) {
     return { ok: false, error: "Invalid dev guest id" };
   }
@@ -104,10 +213,14 @@ export function joinDevRoom(devGuestId: string, displayName: string, roomNumber:
   if (!room || room.status !== "waiting") {
     return { ok: false, error: "That room is not open" };
   }
-  if (room.guest_ids.includes(devGuestId)) {
+  const existing = room.players.find((player) => player.id === devGuestId);
+  if (existing) {
+    existing.connected = true;
+    existing.display_name = cleanName(displayName);
+    touchDevPresence(devGuestId, displayName, now);
     return { ok: true, room: publicRoom(room) };
   }
-  if (room.current_players >= room.max_players) {
+  if (room.players.length >= room.max_players) {
     return { ok: false, error: "That room is full" };
   }
   dropGuest(devGuestId);
@@ -115,14 +228,12 @@ export function joinDevRoom(devGuestId: string, displayName: string, roomNumber:
   if (!target || target.status !== "waiting") {
     return { ok: false, error: "That room is not open" };
   }
-  target.guest_ids.push(devGuestId);
-  target.current_players = target.guest_ids.length;
-  if (target.current_players >= target.max_players) {
+  const name = cleanName(displayName);
+  target.players.push(playerRow(devGuestId, name));
+  if (target.players.length >= target.max_players) {
     target.status = "in_progress";
   }
-  if (displayName.trim() !== "" && target.host_display_name === "") {
-    target.host_display_name = cleanName(displayName);
-  }
+  touchDevPresence(devGuestId, name, now);
   return { ok: true, room: publicRoom(target) };
 }
 
@@ -136,7 +247,8 @@ export function leaveDevRoom(devGuestId: string): { ok: true } | { ok: false; er
 
 export async function handleDevLobbyHttp(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
   const url = (req.url ?? "").split("?")[0];
-  if (url !== "/dev/lobby" && url !== "/dev/lobby/host" && url !== "/dev/lobby/join" && url !== "/dev/lobby/leave") {
+  const routes = ["/dev/lobby", "/dev/lobby/host", "/dev/lobby/join", "/dev/lobby/leave", "/dev/lobby/presence", "/dev/lobby/presence/leave"];
+  if (!routes.includes(url)) {
     return false;
   }
   if (!devGuestsAllowed()) {
@@ -144,7 +256,8 @@ export async function handleDevLobbyHttp(req: IncomingMessage, res: ServerRespon
     return true;
   }
   if (url === "/dev/lobby" && req.method === "GET") {
-    sendJson(res, 200, { rooms: listDevRooms() });
+    const now = Date.now();
+    sendJson(res, 200, { rooms: listDevRooms(now), online: listDevOnline(now) });
     return true;
   }
   if (req.method !== "POST") {
@@ -157,10 +270,21 @@ export async function handleDevLobbyHttp(req: IncomingMessage, res: ServerRespon
     return true;
   }
   const devGuestId = typeof body.devGuestId === "string" ? body.devGuestId : "";
+  const displayName = typeof body.displayName === "string" ? body.displayName : "";
+  if (url === "/dev/lobby/presence") {
+    const result = touchDevPresence(devGuestId, displayName);
+    sendJson(res, result.ok ? 200 : 400, result.ok ? { ok: true, online: listDevOnline() } : { error: result.error });
+    return true;
+  }
+  if (url === "/dev/lobby/presence/leave") {
+    const result = leaveDevPresence(devGuestId);
+    sendJson(res, result.ok ? 200 : 400, result.ok ? { ok: true } : { error: result.error });
+    return true;
+  }
   if (url === "/dev/lobby/host") {
     const result = hostDevRoom({
       devGuestId,
-      displayName: typeof body.displayName === "string" ? body.displayName : "",
+      displayName,
       roomNumber: Number(body.roomNumber),
       matchName: typeof body.matchName === "string" ? body.matchName : "",
       mapId: typeof body.mapId === "string" ? body.mapId : "",
@@ -172,7 +296,7 @@ export async function handleDevLobbyHttp(req: IncomingMessage, res: ServerRespon
     return true;
   }
   if (url === "/dev/lobby/join") {
-    const result = joinDevRoom(devGuestId, typeof body.displayName === "string" ? body.displayName : "", Number(body.roomNumber));
+    const result = joinDevRoom(devGuestId, displayName, Number(body.roomNumber));
     sendJson(res, result.ok ? 200 : 400, result.ok ? { room: result.room } : { error: result.error });
     return true;
   }
@@ -181,27 +305,37 @@ export async function handleDevLobbyHttp(req: IncomingMessage, res: ServerRespon
   return true;
 }
 
+function playerRow(id: string, displayName: string): DevPlayer {
+  return { id, display_name: displayName, side: null, connected: true };
+}
+
+function presenceOnline(id: string, now: number): boolean {
+  const row = presence.get(id);
+  return row !== undefined && row.connected && now - row.last_seen <= ONLINE_MS;
+}
+
 function dropGuest(devGuestId: string): void {
   for (const [roomNumber, room] of rooms) {
-    if (!room.guest_ids.includes(devGuestId)) {
+    const player = room.players.find((entry) => entry.id === devGuestId);
+    if (!player) continue;
+    if (room.status === "in_progress") {
+      player.connected = false;
       continue;
     }
     if (room.host_id === devGuestId) {
       rooms.delete(roomNumber);
       continue;
     }
-    room.guest_ids = room.guest_ids.filter((id) => id !== devGuestId);
-    room.current_players = room.guest_ids.length;
-    if (room.status === "in_progress") {
-      room.status = "waiting";
-    }
+    room.players = room.players.filter((entry) => entry.id !== devGuestId);
   }
 }
 
-function publicRoom(room: DevRoom): DevRoom {
+function publicRoom(room: StoredRoom): DevRoom {
   return {
     ...room,
-    guest_ids: [...room.guest_ids],
+    current_players: room.players.length,
+    guest_ids: room.players.map((player) => player.id),
+    players: room.players.map((player) => ({ ...player })),
   };
 }
 

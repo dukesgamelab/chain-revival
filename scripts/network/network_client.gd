@@ -11,6 +11,7 @@ var server_url: String = DEFAULT_SERVER_URL
 var server_url_overridden: bool = false
 var selected_map_id: String = ""
 var selected_team_size: int = 1
+var selected_lobby_id: String = ""
 var is_training: bool = false
 var match_length_sec: int = 0
 var is_regimental: bool = false
@@ -474,6 +475,8 @@ func _send_hello() -> void:
 	if is_regimental and not SupabaseAuth.regiment_id.is_empty():
 		hello["regimentId"] = SupabaseAuth.regiment_id
 		hello["isRegimental"] = true
+	if not selected_lobby_id.is_empty():
+		hello["lobbyId"] = selected_lobby_id
 	send_json(hello)
 	GameLog.log_system("[NetworkClient] Sent hello to server.")
 

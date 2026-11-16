@@ -12,6 +12,8 @@ export interface ClientRecord {
   devGuestId: string | null;
   /** Regiment ID for regimental match team assignment. */
   regimentId: string | null;
+  /** Lobby row this connection came from. Empty for matches that did not start in a room. */
+  lobbyId: string | null;
 }
 
 /** How many players each side needs before the match can start. */
@@ -34,7 +36,7 @@ export function getTeamSize(): number {
 }
 
 export function registerClient(ws: WebSocket, clientId: string): ClientRecord {
-  const record: ClientRecord = { ws, clientId, assignedSide: null, userId: null, devGuestId: null, regimentId: null };
+  const record: ClientRecord = { ws, clientId, assignedSide: null, userId: null, devGuestId: null, regimentId: null, lobbyId: null };
   clients.set(clientId, record);
   return record;
 }
@@ -50,6 +52,13 @@ export function setClientUserId(clientId: string, userId: string): void {
   const record = clients.get(clientId);
   if (record) {
     record.userId = userId;
+  }
+}
+
+export function setClientLobbyId(clientId: string, lobbyId: string): void {
+  const record = clients.get(clientId);
+  if (record) {
+    record.lobbyId = lobbyId;
   }
 }
 

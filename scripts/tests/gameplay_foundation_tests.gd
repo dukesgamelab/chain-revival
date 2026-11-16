@@ -79,6 +79,7 @@ func _ready() -> void:
 	_test_update_version_order()
 	_test_updater_swap_replaces_exe_and_pck()
 	_test_updater_failed_copy_keeps_install()
+	_test_lobby_roster_formatting()
 	_test_sustained_fire_suppression_mult()
 	_test_panicked_grenade_rejected()
 	_test_stress_band_labels()
@@ -2870,6 +2871,42 @@ func _run_updater_swap(include_new_pck: bool) -> Dictionary:
 	}
 	updater._remove_dir_recursive(root)
 	return result
+
+
+func _test_lobby_roster_formatting() -> void:
+	var roster := preload("res://scripts/network/lobby_roster.gd")
+	var now := int(Time.get_unix_time_from_system())
+	var recent := Time.get_datetime_string_from_unix_time(now - 40, false)
+	var players := [
+		{"user_id": "alex", "display_name": "Alex", "connected": true},
+		{"user_id": "alex", "display_name": "Alex", "connected": true},
+		{"user_id": "sam", "display_name": "Sam", "connected": false},
+		{"user_id": "late", "display_name": "Late", "connected": true, "last_seen": recent},
+		{"id": "old", "display_name": "Old", "connected": true, "last_seen": "2020-01-01T00:00:00"},
+	]
+	var online := roster.unique_online(players, now)
+	_assert("online list keeps one row per player", online.size() == 3, str(online.size()))
+	_assert("a duplicate account does not create a second online row", str(online[0]["display_name"]) != str(online[1]["display_name"]))
+	var text := roster.online_text(players, now)
+	_assert("online text names the connected player", text.contains("Alex — Online"))
+	_assert("online text names the disconnected player", text.contains("Sam — Disconnected"))
+	_assert("a heartbeat older than 30 seconds shows as disconnected", text.contains("Late — Disconnected"))
+	_assert("a stale session is left out of the online list", not text.contains("Old"))
+	var waiting := roster.room_roster("waiting", [
+		{"user_id": "alex", "display_name": "Alex", "side": null, "connected": true},
+		{"user_id": "sam", "display_name": "Sam", "side": null, "connected": true},
+	])
+	_assert("waiting players are labeled waiting", waiting.contains("Alex — waiting") and waiting.contains("Sam — waiting"))
+	var playing := roster.room_roster("in_progress", [
+		{"user_id": "alex", "display_name": "Alex", "side": "USA", "connected": true},
+		{"user_id": "sam", "display_name": "Sam", "side": "GERMANY", "connected": false},
+		{"user_id": "pat", "display_name": "Pat", "side": null, "connected": true},
+		{"user_id": "alex", "display_name": "Alex Copy", "side": "GERMANY", "connected": true},
+	])
+	_assert("an active player shows the USA side", playing.contains("Alex — USA"))
+	_assert("an active player shows the German side", playing.contains("Sam — Germany · disconnected"))
+	_assert("a player still choosing a side is labeled", playing.contains("Pat — choosing side"))
+	_assert("a repeated room member is not listed twice", playing.count("Alex") == 1)
 
 
 func _write_updater_text(path: String, text: String) -> void:

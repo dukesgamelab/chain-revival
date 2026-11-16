@@ -11,6 +11,8 @@ signal lobby_deleted()
 signal lobby_error(msg: String)
 signal chat_messages_received(messages: Array)
 signal player_profile_fetched(profile: Dictionary)
+signal presence_listed(players: Array)
+signal members_listed(members: Array)
 
 var _http_list: HTTPRequest
 var _http_create: HTTPRequest
@@ -21,6 +23,12 @@ var _http_cleanup: HTTPRequest
 var _http_chat_send: HTTPRequest
 var _http_chat_fetch: HTTPRequest
 var _http_profile: HTTPRequest
+var _http_presence_touch: HTTPRequest
+var _http_presence_leave: HTTPRequest
+var _http_presence_list: HTTPRequest
+var _http_members_list: HTTPRequest
+var _http_member_leave: HTTPRequest
+var _roster_unavailable := false
 
 ## Stashed create args while we clean up old lobbies first.
 var _pending_match_name: String = ""
@@ -42,6 +50,11 @@ func _ready() -> void:
 	_http_chat_send = _make_http("_on_chat_send_response")
 	_http_chat_fetch = _make_http("_on_chat_fetch_response")
 	_http_profile = _make_http("_on_profile_response")
+	_http_presence_touch = _make_http("_on_presence_touch_response")
+	_http_presence_leave = _make_http("_on_presence_leave_response")
+	_http_presence_list = _make_http("_on_presence_list_response")
+	_http_members_list = _make_http("_on_members_list_response")
+	_http_member_leave = _make_http("_on_member_leave_response")
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -119,6 +132,43 @@ func fetch_player_profile(user_id: String) -> void:
 		return
 	var url := "%s/rest/v1/player_profiles?id=eq.%s&select=id,display_name,rank,prestige_points,games_played,games_won,total_kills,regiment_id,regiments(name,tag)" % [SupabaseAuth.SUPABASE_URL, user_id]
 	_http_profile.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
+
+
+## Heartbeat for the signed-in account. The database keeps one row per user.
+func touch_presence() -> void:
+	if _roster_unavailable or not _check_auth_quiet():
+		return
+	var url := "%s/rest/v1/rpc/touch_lobby_presence" % SupabaseAuth.SUPABASE_URL
+	_http_presence_touch.request(url, _bearer_headers(), HTTPClient.METHOD_POST, "{}")
+
+
+func leave_presence() -> void:
+	if _roster_unavailable or not _check_auth_quiet():
+		return
+	var url := "%s/rest/v1/rpc/leave_lobby_presence" % SupabaseAuth.SUPABASE_URL
+	_http_presence_leave.request(url, _bearer_headers(), HTTPClient.METHOD_POST, "{}")
+
+
+func list_presence() -> void:
+	if _roster_unavailable or not _check_auth_quiet():
+		return
+	var url := "%s/rest/v1/lobby_presence?select=user_id,display_name,last_seen,connected&order=display_name.asc" % SupabaseAuth.SUPABASE_URL
+	_http_presence_list.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
+
+
+func list_members() -> void:
+	if _roster_unavailable or not _check_auth_quiet():
+		return
+	var url := "%s/rest/v1/lobby_members?select=lobby_id,user_id,display_name,side,connected&order=display_name.asc" % SupabaseAuth.SUPABASE_URL
+	_http_members_list.request(url, _bearer_headers(), HTTPClient.METHOD_GET)
+
+
+## Leave a waiting room. The database removes the membership and frees the seat.
+func leave_lobby(lobby_id: String) -> void:
+	if not _check_auth():
+		return
+	var url := "%s/rest/v1/rpc/leave_lobby" % SupabaseAuth.SUPABASE_URL
+	_http_member_leave.request(url, _bearer_headers(), HTTPClient.METHOD_POST, JSON.stringify({"p_lobby_id": lobby_id}))
 
 
 ## Fetch the last 50 chat messages. The UI deduplicates by ID.
@@ -216,6 +266,49 @@ func _on_profile_response(result: int, response_code: int, _headers: PackedStrin
 
 func _on_chat_send_response(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
 	pass
+
+
+func _on_presence_touch_response(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+	_note_roster_response("presence heartbeat", result, response_code)
+
+
+func _on_presence_leave_response(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+	_note_roster_response("presence leave", result, response_code)
+
+
+func _on_presence_list_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if not _note_roster_response("presence list", result, response_code):
+		return
+	presence_listed.emit(_parse_body_array(body))
+
+
+func _on_members_list_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if not _note_roster_response("member list", result, response_code):
+		return
+	members_listed.emit(_parse_body_array(body))
+
+
+func _on_member_leave_response(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or (response_code != 200 and response_code != 204):
+		lobby_error.emit("Failed to leave lobby (HTTP %d)" % response_code)
+		return
+	lobby_deleted.emit()
+
+
+func _note_roster_response(action: String, result: int, response_code: int) -> bool:
+	if result == HTTPRequest.RESULT_SUCCESS and (response_code == 200 or response_code == 204):
+		return true
+	if response_code == 404:
+		if not _roster_unavailable:
+			_roster_unavailable = true
+			GameLog.log_system("[Lobby] Roster tables are not available yet. Run server/sql/034_lobby_roster.sql.")
+		return false
+	GameLog.log_system("[Lobby] %s failed (result %s, HTTP %d)" % [action, result, response_code])
+	return false
+
+
+func _check_auth_quiet() -> bool:
+	return SupabaseAuth.is_signed_in
 
 
 func _on_chat_fetch_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
