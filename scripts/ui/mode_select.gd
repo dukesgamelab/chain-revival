@@ -955,16 +955,24 @@ func _on_update_check_complete(update_available: bool) -> void:
 	vbox.add_child(_update_progress_label)
 
 	_update_dialog.add_child(vbox)
-	_update_dialog.add_cancel_button("Skip")
+	_update_dialog.add_cancel_button("Later")
 	add_child(_update_dialog)
 	_update_dialog.confirmed.connect(_on_update_confirmed)
+	_update_dialog.canceled.connect(_on_update_deferred)
 	_update_dialog.popup_centered()
 
 
+func _on_update_deferred() -> void:
+	GameLog.log_system("[AutoUpdater] Update deferred until a later launch")
+
+
 func _on_update_confirmed() -> void:
-	if _updater == null:
+	if _updater == null or _update_dialog == null:
 		return
 	_update_dialog.get_ok_button().disabled = true
+	var cancel := _update_dialog.get_cancel_button()
+	if cancel != null:
+		cancel.disabled = true
 	_update_progress_label.text = "Downloading update..."
 	# Reshow dialog since confirmed auto-hides it
 	_update_dialog.popup_centered()
@@ -982,3 +990,6 @@ func _on_update_failed(reason: String) -> void:
 		_update_progress_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
 	if _update_dialog != null:
 		_update_dialog.get_ok_button().disabled = false
+		var cancel := _update_dialog.get_cancel_button()
+		if cancel != null:
+			cancel.disabled = false

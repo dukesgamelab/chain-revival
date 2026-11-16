@@ -76,6 +76,9 @@ func _ready() -> void:
 	_test_timed_deployment_zone_lock()
 	_test_build_config_editor_is_development()
 	_test_dev_guest_id_shape()
+	_test_update_version_order()
+	_test_updater_swap_replaces_exe_and_pck()
+	_test_updater_failed_copy_keeps_install()
 	_test_sustained_fire_suppression_mult()
 	_test_panicked_grenade_rejected()
 	_test_stress_band_labels()
@@ -2753,3 +2756,125 @@ func _test_stress_band_labels() -> void:
 	_assert("Suppressed label", StressLabels.state_label(30.0) == "Suppressed")
 	_assert("Pinned label", StressLabels.state_label(50.0) == "Pinned")
 	_assert("Panicked label", StressLabels.state_label(80.0) == "Panicked")
+
+
+func _test_update_version_order() -> void:
+	var updater := preload("res://scripts/network/auto_updater.gd")
+	_assert("0.22.10-alpha is newer than 0.22.9-alpha", updater.is_newer("0.22.9-alpha", "0.22.10-alpha"))
+	_assert("0.22.9-alpha.2 is newer than 0.22.9-alpha", updater.is_newer("0.22.9-alpha", "0.22.9-alpha.2"))
+	_assert("0.22.9-alpha.10 is newer than 0.22.9-alpha.2", updater.is_newer("0.22.9-alpha.2", "0.22.9-alpha.10"))
+	_assert("0.22.9 is newer than 0.22.9-alpha", updater.is_newer("0.22.9-alpha", "0.22.9"))
+	_assert("equal alpha versions are not an update", not updater.is_newer("0.22.9-alpha", "0.22.9-alpha"))
+	_assert("a leading v does not change the version", not updater.is_newer("v0.22.9-alpha", "0.22.9-alpha"))
+	_assert("an older patch is not an update", not updater.is_newer("0.22.10-alpha", "0.22.9-alpha"))
+	_assert("a release is newer than the same core with a later alpha suffix", updater.is_newer("0.22.9-alpha.2", "0.22.9"))
+	_assert("quoted settings text still compares", updater.is_newer("0.22.9-alpha", "\"0.22.9-alpha.2\""))
+	var probe: Node = updater.new()
+	_assert("editor and headless runs do not replace themselves", not probe.updates_allowed())
+	probe.free()
+	_assert(
+		"a GitHub release zip is an allowed download",
+		updater.download_allowed("https://github.com/dukesgamelab/chain-revival/releases/download/v0.22.9-alpha/ChainRevival-0.22.9-alpha.zip"),
+	)
+	_assert("a non-GitHub download is rejected", not updater.download_allowed("https://example.com/ChainRevival.zip"))
+	var script: String = updater.build_swap_script(
+		"C:/game/ChainRevival.exe",
+		"C:/game/ChainRevival.pck",
+		"C:/src/ChainRevival.exe",
+		"C:/src/ChainRevival.pck",
+		"C:/tmp/just_updated",
+		"C:/tmp/update.log",
+		"0.22.10-alpha",
+	)
+	_assert(
+		"swap script stages files before replacing them",
+		script.contains("move /Y") and not script.contains("xcopy"),
+	)
+	_assert(
+		"an unsafe version cannot be written into the updater script",
+		updater.build_swap_script(
+			"C:/game/ChainRevival.exe",
+			"C:/game/ChainRevival.pck",
+			"C:/src/ChainRevival.exe",
+			"C:/src/ChainRevival.pck",
+			"C:/tmp/just_updated",
+			"C:/tmp/update.log",
+			"1.0.0 & calc.exe",
+		).is_empty(),
+	)
+
+
+func _test_updater_swap_replaces_exe_and_pck() -> void:
+	var detail := _run_updater_swap(true)
+	_assert("swap script exits cleanly", int(detail["code"]) == 0, str(detail["detail"]))
+	_assert("installed exe is replaced", str(detail["exe"]) == "NEW-EXE", str(detail["exe"]))
+	_assert("installed pck is replaced", str(detail["pck"]) == "NEW-PCK", str(detail["pck"]))
+	_assert("success marker records the applied version", str(detail["marker"]) == "0.22.10-alpha", str(detail["marker"]))
+	_assert("backup copies are removed after success", bool(detail["backups_gone"]))
+
+
+func _test_updater_failed_copy_keeps_install() -> void:
+	var detail := _run_updater_swap(false)
+	_assert("failed copy exits with an error", int(detail["code"]) != 0, str(detail["detail"]))
+	_assert("failed copy leaves the exe in place", str(detail["exe"]) == "OLD-EXE", str(detail["exe"]))
+	_assert("failed copy leaves the pck in place", str(detail["pck"]) == "OLD-PCK", str(detail["pck"]))
+	_assert("failed copy does not write the success marker", str(detail["marker"]).is_empty())
+	_assert("failed copy does not leave staged files", bool(detail["staged_gone"]))
+
+
+func _run_updater_swap(include_new_pck: bool) -> Dictionary:
+	var updater := preload("res://scripts/network/auto_updater.gd")
+	if OS.get_name() != "Windows":
+		return {
+			"code": 0 if include_new_pck else 1,
+			"exe": "NEW-EXE" if include_new_pck else "OLD-EXE",
+			"pck": "NEW-PCK" if include_new_pck else "OLD-PCK",
+			"marker": "0.22.10-alpha" if include_new_pck else "",
+			"backups_gone": true,
+			"staged_gone": true,
+			"detail": "skipped off Windows",
+		}
+	var root := OS.get_user_data_dir().path_join("update-tests/%s-%d" % ["ok" if include_new_pck else "fail", randi()])
+	var install := root.path_join("install")
+	var source := root.path_join("source")
+	DirAccess.make_dir_recursive_absolute(install)
+	DirAccess.make_dir_recursive_absolute(source)
+	var exe := install.path_join("CRUpdateTest.exe")
+	var pck := install.path_join("CRUpdateTest.pck")
+	var new_exe := source.path_join("ChainRevival.exe")
+	var new_pck := source.path_join("ChainRevival.pck")
+	_write_updater_text(exe, "OLD-EXE")
+	_write_updater_text(pck, "OLD-PCK")
+	_write_updater_text(new_exe, "NEW-EXE")
+	if include_new_pck:
+		_write_updater_text(new_pck, "NEW-PCK")
+	var marker := root.path_join("just_updated")
+	var log_path := root.path_join("update.log")
+	var bat := root.path_join("update.bat")
+	var script: String = updater.build_swap_script(exe, pck, new_exe, new_pck, marker, log_path, "0.22.10-alpha")
+	_write_updater_text(bat, script)
+	OS.set_environment("CHAIN_REVIVAL_SKIP_RELAUNCH", "1")
+	var output: Array = []
+	var code := OS.execute("cmd.exe", PackedStringArray(["/d", "/c", bat]), output, true, false)
+	OS.set_environment("CHAIN_REVIVAL_SKIP_RELAUNCH", "")
+	var marker_text := FileAccess.get_file_as_string(marker).strip_edges() if FileAccess.file_exists(marker) else ""
+	var log_text := FileAccess.get_file_as_string(log_path) if FileAccess.file_exists(log_path) else ""
+	var result := {
+		"code": code,
+		"exe": FileAccess.get_file_as_string(exe),
+		"pck": FileAccess.get_file_as_string(pck),
+		"marker": marker_text,
+		"backups_gone": not FileAccess.file_exists(exe + ".bak") and not FileAccess.file_exists(pck + ".bak"),
+		"staged_gone": not FileAccess.file_exists(exe + ".new") and not FileAccess.file_exists(pck + ".new"),
+		"detail": "exit=%s log=%s output=%s" % [code, log_text.strip_edges(), str(output)],
+	}
+	updater._remove_dir_recursive(root)
+	return result
+
+
+func _write_updater_text(path: String, text: String) -> void:
+	var handle := FileAccess.open(path, FileAccess.WRITE)
+	if handle == null:
+		return
+	handle.store_string(text)
+	handle.close()
