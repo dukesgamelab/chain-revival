@@ -60,6 +60,16 @@ var _fire_at_engaged: bool = false
 var _usa_score_total: int = 0
 var _ger_score_total: int = 0
 
+## Design sizes in the scenes stay at the original 18px row. These scales
+## enlarge the bottom bar; width is clamped so the row still fits the viewport.
+const TOOLBAR_WIDTH_SCALE := 1.6
+const TOOLBAR_HEIGHT_SCALE := 1.85
+const TOOLBAR_MAX_HEIGHT_RATIO := 0.32
+var _toolbar_scale := Vector2.ONE
+var _toolbar_base_width := -1.0
+var _toolbar_base_height := -1.0
+var _applying_toolbar := false
+
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -70,8 +80,6 @@ func _ready() -> void:
 	var ui := get_parent()
 	if ui != null:
 		_status_hud = ui.get_node_or_null("StatusHud") as StatusHud
-	## Bottom toolbar height follows content (no dead strip under buttons).
-	call_deferred("_snap_flush_to_bottom")
 	_squad_row.move_mode_toggled.connect(_on_squad_move_mode_toggled)
 	_squad_row.fire_at_toggled.connect(_on_squad_fire_at_toggled)
 	_squad_row.face_toggled.connect(_on_squad_face_toggled)
@@ -113,6 +121,7 @@ func _ready() -> void:
 				toolbar.add_child(spacer)
 				var admin_btn := Button.new()
 				admin_btn.text = "Admin"
+				admin_btn.custom_minimum_size = Vector2(64, 18)
 				admin_btn.pressed.connect(_show_admin_kick_popup)
 				toolbar.add_child(admin_btn)
 
@@ -128,6 +137,9 @@ func _ready() -> void:
 
 	_select_soldier(1, false, false)
 	_refresh_deployment_stage_label(true)
+	if not get_viewport().size_changed.is_connected(_apply_toolbar_metrics):
+		get_viewport().size_changed.connect(_apply_toolbar_metrics)
+	_apply_toolbar_metrics()
 
 
 func _process(delta: float) -> void:
@@ -251,6 +263,73 @@ func get_top_left_tools_rect() -> Rect2:
 	return Rect2(left, top, maxf(right - left, 1.0), maxf(bottom - top, 1.0))
 
 
+## Enlarge the bottom command bar. Scene sizes stay the original metrics;
+## this reapplies from those bases when the viewport changes.
+func _apply_toolbar_metrics() -> void:
+	if _applying_toolbar:
+		return
+	var host := %BottomHost as Control
+	var left := %LeftPanel as Control
+	if host == null or left == null:
+		return
+	_applying_toolbar = true
+	if _toolbar_base_width < 0.0:
+		var measured_width := host.get_combined_minimum_size().x
+		var measured_height := left.get_combined_minimum_size().y
+		if measured_width < 400.0 or measured_height < 40.0:
+			_applying_toolbar = false
+			call_deferred("_apply_toolbar_metrics")
+			return
+		_toolbar_base_width = measured_width
+		_toolbar_base_height = measured_height
+	var view := get_viewport_rect().size
+	if view.x < 64.0 or view.y < 64.0:
+		view = Vector2(1920, 1080)
+	var width_cap := (view.x - 8.0) / _toolbar_base_width
+	var height_cap := (view.y * TOOLBAR_MAX_HEIGHT_RATIO) / _toolbar_base_height
+	var scale_x := clampf(minf(TOOLBAR_WIDTH_SCALE, width_cap), 1.0, 2.2)
+	var scale_y := clampf(minf(TOOLBAR_HEIGHT_SCALE, height_cap), 1.0, 2.4)
+	_toolbar_scale = Vector2(scale_x, scale_y)
+	_scale_toolbar_control(host, scale_x, scale_y)
+	CocUiTheme.apply_grenade_layout_scale(scale_x, scale_y)
+	_snap_flush_to_bottom()
+	_applying_toolbar = false
+
+
+func _scale_toolbar_control(node: Node, scale_x: float, scale_y: float) -> void:
+	if node is Control:
+		var control := node as Control
+		if not control.has_meta(&"toolbar_base_min"):
+			control.set_meta(&"toolbar_base_min", control.custom_minimum_size)
+		var base_min: Vector2 = control.get_meta(&"toolbar_base_min")
+		if base_min != Vector2.ZERO:
+			control.custom_minimum_size = Vector2(base_min.x * scale_x, base_min.y * scale_y)
+		_scale_toolbar_font(control, scale_x)
+	for child in node.get_children():
+		_scale_toolbar_control(child, scale_x, scale_y)
+
+
+func _scale_toolbar_font(control: Control, scale_x: float) -> void:
+	var items: PackedStringArray = PackedStringArray()
+	if control is RichTextLabel:
+		items = PackedStringArray(["normal_font_size"])
+	elif control is Label or control is Button or control is LineEdit:
+		items = PackedStringArray(["font_size"])
+	for item in items:
+		var meta_key := "toolbar_base_%s" % item
+		if not control.has_meta(meta_key):
+			var base := 0
+			if control.has_theme_font_size_override(item):
+				base = control.get_theme_font_size(item)
+			else:
+				base = CocUiTheme.FONT_SIZE
+			control.set_meta(meta_key, base)
+		var stored := int(control.get_meta(meta_key))
+		if stored > 0:
+			var sized := maxi(int(round(float(stored) * scale_x)), stored)
+			control.add_theme_font_size_override(item, sized)
+
+
 ## Pin bottom bar flush; left + chat share one height so their tops align.
 func _snap_flush_to_bottom() -> void:
 	var host := %BottomHost as Control
@@ -263,7 +342,7 @@ func _snap_flush_to_bottom() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	## Keep chat log short enough that ChatSide can match LeftPanel height.
 	if chat_log != null:
-		chat_log.custom_minimum_size = Vector2(280, 56)
+		chat_log.custom_minimum_size = Vector2(280.0 * _toolbar_scale.x, 56.0 * _toolbar_scale.y)
 		chat_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	chat.custom_minimum_size.y = 0.0
 	left.size_flags_vertical = Control.SIZE_FILL
