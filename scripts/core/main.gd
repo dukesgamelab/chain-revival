@@ -669,24 +669,17 @@ func _present_movement_tick_result(result: ActionResultClass) -> void:
 	if result == null:
 		return
 	_debug_sync_calls_this_tick = 0
-	var networked := GameModeManager.is_local_multiplayer()
 	## Per-tick movement: chase position only. Do NOT invalidate fog every step —
 	## that forced player-visibility rebuilds while many AI units marched (late-game hitch).
-	## MP: follow_path already owns the run; chasing each server tick restarts the last step.
+	## Offline and multiplayer share this. follow_path(full path) on an idle sprite
+	## snaps back to path[0] and rubber-bands a chase that already finished visually.
 	for step in result.movement_steps:
 		var step_view: Soldier = _get_view(int(step.team_id), int(step.soldier_id))
 		var step_state: SoldierState = _game_state.get_soldier(int(step.team_id), int(step.soldier_id))
 		if step_view == null or step_state == null:
 			continue
-		if networked:
-			## Replica (or a missed move_result) never started the chase — start it once.
-			if not step_view.is_moving() and step_state.is_moving and step_state.current_path.size() > 1:
-				step_view.sync_locomotion_mode_from_state(step_state)
-				step_view.follow_path(step_state.current_path, step_state.move_speed_mult)
-			_debug_sync_calls_this_tick += 1
-		else:
-			step_view.sync_movement_chase_from_state(step_state)
-			_debug_sync_calls_this_tick += 1
+		step_view.sync_movement_chase_from_state(step_state)
+		_debug_sync_calls_this_tick += 1
 
 	var had_completion := false
 	var local_completion := false

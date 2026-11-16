@@ -29,6 +29,7 @@ func _ready() -> void:
 	_bootstrap()
 	_test_fortress_map_loads()
 	_test_soldier_movement()
+	_test_movement_reliability()
 	_test_human_move_ignores_fireteam_cohesion()
 	_test_prone_walk_stands_instead_of_reject()
 	_test_stunned_soldier_cannot_move()
@@ -236,6 +237,89 @@ func _test_soldier_movement() -> void:
 		soldier.grid_position == target,
 		"expected %s got %s" % [target, soldier.grid_position],
 	)
+
+
+func _test_movement_reliability() -> void:
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var soldier := game_state.get_soldier(Team.USA, 1)
+	soldier.grid_position = Vector2i(10, 20)
+	soldier.clear_path()
+	var far := Vector2i(14, 20)
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = soldier.soldier_id
+	cmd.target_cell = far
+	cmd.movement_mode = MovementModeClass.RUN
+	cmd.scope = MoveCommandClass.Scope.SINGLE
+	var first := ActionResolverClass.execute_move(game_state, cmd, _path_context(map_data))
+	_assert("first run-to succeeds", first.success, first.status_message)
+	_assert("first run-to has a path", soldier.current_path.size() >= 3, str(soldier.current_path.size()))
+	var kept_path: Array[Vector2i] = soldier.current_path.duplicate()
+	soldier.move_accum_msec = 40
+	var again := ActionResolverClass.execute_move(game_state, cmd, _path_context(map_data))
+	_assert("re-click of the same tile succeeds", again.success, again.status_message)
+	_assert("re-click does not emit a new move order", again.move_orders.is_empty())
+	_assert("re-click keeps the path", soldier.current_path == kept_path)
+	_assert("re-click keeps step progress", soldier.move_accum_msec == 40, str(soldier.move_accum_msec))
+
+	var next_cell: Vector2i = kept_path[1]
+	cmd.target_cell = next_cell
+	var redirect := ActionResolverClass.execute_move(game_state, cmd, _path_context(map_data))
+	_assert("redirect onto the current next cell succeeds", redirect.success, redirect.status_message)
+	_assert(
+		"redirect keeps step progress when the next cell is unchanged",
+		soldier.move_accum_msec == 40,
+		str(soldier.move_accum_msec),
+	)
+	_assert("redirect path still steps toward that cell", soldier.current_path[1] == next_cell)
+
+	var turned: Array[Vector2i] = [soldier.grid_position, soldier.grid_position + Vector2i(0, 1)]
+	soldier.assign_path(turned, soldier.move_speed_mult)
+	_assert("a new next cell resets step progress", soldier.move_accum_msec == 0)
+
+	var blocked_next := soldier.grid_position + Vector2i(1, 0)
+	map_data.set_object(blocked_next, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	_assert("wall blocks the next cell", map_data.is_blocked(blocked_next))
+	var into_wall: Array[Vector2i] = [soldier.grid_position, blocked_next]
+	soldier.assign_path(into_wall, 2.0)
+	var stayed := soldier.grid_position
+	soldier.move_accum_msec = soldier.move_step_cost_msec
+	var tick := ActionResolverClass.process_movement_tick(game_state)
+	_assert("blocked step does not change the cell", soldier.grid_position == stayed)
+	_assert("blocked step stops the move", not soldier.is_moving)
+	_assert("blocked step reports a completion", not tick.movement_completions.is_empty())
+	_assert("blocked step reports no tile advance", tick.movement_steps.is_empty())
+
+	var fireteam := game_state.session.get_fireteam(Team.USA)
+	var line := Vector2i(10, 22)
+	for i in range(mini(4, fireteam.soldiers.size())):
+		var member: SoldierState = fireteam.soldiers[i]
+		member.grid_position = line + Vector2i(i, 0)
+		member.clear_path()
+	var squad := MoveCommandClass.new()
+	squad.team_id = Team.USA
+	squad.target_cell = Vector2i(16, 22)
+	squad.movement_mode = MovementModeClass.RUN
+	squad.scope = MoveCommandClass.Scope.SQUAD
+	var squad_first := ActionResolverClass.execute_move(game_state, squad, _path_context(map_data))
+	_assert("squad run-to succeeds", squad_first.success, squad_first.status_message)
+	for member in fireteam.soldiers:
+		if member.is_moving:
+			member.move_accum_msec = 25
+	var squad_again := ActionResolverClass.execute_move(game_state, squad, _path_context(map_data))
+	_assert("squad re-click succeeds", squad_again.success, squad_again.status_message)
+	_assert("squad re-click does not emit move orders", squad_again.move_orders.is_empty())
+	for member in fireteam.soldiers:
+		if member.current_path.size() > 1:
+			_assert(
+				"squad re-click keeps step progress for soldier %d" % member.soldier_id,
+				member.move_accum_msec == 25,
+				str(member.move_accum_msec),
+			)
 
 
 func _test_human_move_ignores_fireteam_cohesion() -> void:

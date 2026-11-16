@@ -31,6 +31,7 @@ func _ready() -> void:
 	await _test_prone_aim_hold_faces_target_cell()
 	await _test_hold_fire_clears_aim()
 	await _test_fire_at_will_idle_not_aiming()
+	_test_canceled_path_stops_chase_in_place()
 	print("")
 	print("Engagement firing presentation: %d passed, %d failed" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
@@ -315,3 +316,27 @@ func _test_fire_at_will_idle_not_aiming() -> void:
 	)
 	soldier.queue_free()
 	await get_tree().process_frame
+
+
+func _test_canceled_path_stops_chase_in_place() -> void:
+	var soldier := _new_soldier()
+	var state := SoldierStateClass.new()
+	state.soldier_id = 1
+	state.team_id = Team.USA
+	state.grid_position = Vector2i(20, 20)
+	state.facing_direction = FacingDirection.EAST
+	state.position_state = PositionState.UP
+	var path: Array[Vector2i] = [Vector2i(20, 20), Vector2i(21, 20), Vector2i(22, 20)]
+	state.assign_path(path, 2.0)
+	soldier.follow_path(path, 2.0)
+	var chased := IsometricGrid.grid_to_world(Vector2i(20, 20)) + Vector2(48, 0)
+	soldier.position = chased
+	state.clear_path()
+	soldier.sync_from_state(state, false, Soldier.FogVisual.REVEALED, true)
+	_assert("canceled path stops the visual chase", not soldier.is_moving())
+	_assert(
+		"canceled path does not snap the sprite back to the cell",
+		soldier.position.distance_to(chased) < 1.0,
+		"pos=%s chased=%s" % [soldier.position, chased],
+	)
+	soldier.queue_free()

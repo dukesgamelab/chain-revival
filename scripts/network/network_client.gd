@@ -478,12 +478,17 @@ func _receive_packets() -> void:
 	while _socket.get_available_packet_count() > 0:
 		var packet := _socket.get_packet()
 		var text := packet.get_string_from_utf8()
-		GameLog.log_system("[NetworkClient] Received: %s" % text)
 		var parsed: Variant = _parse_json_object(text)
 		if parsed == null:
 			GameLog.log_system("[NetworkClient] Message is not valid JSON object.")
 			continue
-		_handle_message(parsed as Dictionary)
+		var message := parsed as Dictionary
+		## movement_tick arrives up to 20 Hz. Dumping the payload stalls the game thread.
+		if str(message.get("type", "")) == "movement_tick":
+			_handle_message(message)
+			continue
+		GameLog.log_system("[NetworkClient] Received: %s" % text)
+		_handle_message(message)
 
 
 func _parse_json_object(text: String) -> Variant:

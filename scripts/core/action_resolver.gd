@@ -481,6 +481,9 @@ static func execute_move(
 			):
 				## Keep squad members inside the zone during timed deployment.
 				continue
+			if _is_already_heading_to(squad_soldier, member_target):
+				ordered_count += 1
+				continue
 			var assigned := false
 			if not lead_path.is_empty() and lead_start.x > -900:
 				assigned = _assign_translated_squad_path(
@@ -583,10 +586,12 @@ static func execute_move(
 		var peer_positions := _living_fireteam_positions(fireteam, soldier_state.soldier_id)
 		single_target = _clamp_cell_to_fireteam_cohesion(single_target, peer_positions)
 
-	if soldier_state.is_moving and not soldier_state.current_path.is_empty():
-		if soldier_state.current_path[soldier_state.current_path.size() - 1] == single_target:
-			result.refresh_views = false
-			return result
+	if _is_already_heading_to(soldier_state, single_target):
+		result.refresh_views = false
+		return result.set_status(
+			"%s Soldier %d is already moving to %s."
+			% [Team.display_name(cmd.team_id), cmd.soldier_id, single_target]
+		)
 
 	if not _assign_move_path(
 		game_state, context, fireteam, soldier_state,
@@ -1221,6 +1226,15 @@ static func _nearest_walkable_near(map_data: MapData, origin: Vector2i, radius: 
 	return best
 
 
+static func _is_already_heading_to(state: SoldierState, target: Vector2i) -> bool:
+	return (
+		state != null
+		and state.is_moving
+		and not state.current_path.is_empty()
+		and state.current_path[state.current_path.size() - 1] == target
+	)
+
+
 static func _assign_move_path(
 	game_state: GameStateClass,
 	context: CommandContext,
@@ -1261,9 +1275,6 @@ static func _assign_move_path(
 	for i in range(1, path.size()):
 		if game_state.map_data.is_blocked(path[i]):
 			return false
-
-	if state.is_moving:
-		state.clear_path()
 
 	state.movement_mode = mode
 	var speed_mult := (
@@ -1337,8 +1348,6 @@ static func _assign_translated_squad_path(
 	## Refuse and let the caller full-pathfind to member_target instead.
 	if member_target.x > -900 and path[path.size() - 1] != member_target:
 		return false
-	if state.is_moving:
-		state.clear_path()
 	state.movement_mode = mode
 	var speed_mult := (
 		MovementModeClass.speed_multiplier(mode)

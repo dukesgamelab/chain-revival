@@ -503,12 +503,13 @@ func sync_from_state(
 		_refresh_id_marker(state)
 		return
 	elif _is_moving:
-		## Presentation settle only (sim already stopped). Snap — never block aim hold
-		## across camera rotates when world projection jumps.
-		_path.clear()
-		_path_index = 0
-		_is_moving = false
-		_set_world_position_from_cell(state.grid_position)
+		## Sim dropped the path (blocked step or cancel). Stop the run in place.
+		## Snap only when the sprite is already on the authoritative cell.
+		var cell_world := IsometricGrid.grid_to_world(state.grid_position)
+		var on_cell := position.distance_to(cell_world) <= 2.0
+		stop_movement()
+		if on_cell:
+			_set_world_position_from_cell(state.grid_position)
 	else:
 		_set_world_position_from_cell_if_needed(state.grid_position)
 	_facing_from_cell = state.grid_position

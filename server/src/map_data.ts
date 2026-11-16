@@ -54,6 +54,8 @@ export class MapData {
     gmPoints: number;
   }>;
   private readonly blocked = new Set<string>();
+  /** Matches Godot MapData.apply_terrain_gameplay. When false, terrain does not block. */
+  applyTerrainGameplay = true;
   private readonly team1SpawnSet: Set<string>;
   private readonly team2SpawnSet: Set<string>;
   private readonly tiles = new Map<string, TileGameplay>();
@@ -104,6 +106,7 @@ export class MapData {
     const team1 = cellsFromJson(raw.team_1_spawn_points);
     const team2 = cellsFromJson(raw.team_2_spawn_points);
     const map = new MapData(mapId, width, height, blockedTiles, team1, team2);
+    map.applyTerrainGameplay = raw.apply_terrain_gameplay !== false;
     // Parse metadata from map JSON.
     const meta = raw.metadata;
     if (typeof meta === "object" && meta !== null) {
@@ -198,10 +201,18 @@ export class MapData {
   }
 
   isBlocked(cell: Vec2i): boolean {
+    // Same rules as scripts/map/map_data.gd is_blocked. CLIMB is impassable.
+    if (!this.applyTerrainGameplay) {
+      return false;
+    }
     if (!this.isInBounds(cell)) {
       return true;
     }
-    return this.blocked.has(vecKey(cell));
+    const terrain = this.terrainClass(cell);
+    if (terrain === TERRAIN_NO_PASS || terrain === TERRAIN_CLIMB) {
+      return true;
+    }
+    return this.obstructionHeight(cell) >= 1;
   }
 
   isWalkable(cell: Vec2i): boolean {
