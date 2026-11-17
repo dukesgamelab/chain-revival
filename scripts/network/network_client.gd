@@ -11,10 +11,12 @@ var server_url: String = DEFAULT_SERVER_URL
 var server_url_overridden: bool = false
 var selected_map_id: String = ""
 var selected_team_size: int = 1
+var selected_lobby_id: String = ""
 var is_training: bool = false
 var match_length_sec: int = 0
 var is_regimental: bool = false
 const CLIENT_NAME := "Godot Client"
+const DevGuestScript := preload("res://scripts/network/dev_guest.gd")
 const DEFAULT_CONNECT_TIMEOUT_SEC := 5.0
 const DEFAULT_SIDE_REQUEST_TIMEOUT_SEC := 5.0
 const DEFAULT_SNAPSHOT_TIMEOUT_SEC := 5.0
@@ -451,9 +453,12 @@ func _on_disconnected() -> void:
 
 func _send_hello() -> void:
 	var hello := {"type": "hello", "clientName": CLIENT_NAME}
-	# Attach the Supabase auth token when the user is signed in so the
-	# server can identify them.  LAN play works fine without it.
-	if SupabaseAuth.is_signed_in and not SupabaseAuth.access_token.is_empty():
+	# Dev guests never send the shared Supabase session. Each process has its
+	# own temporary id, so two windows on one PC are different players.
+	if DevGuestScript.is_enabled():
+		hello["clientName"] = DevGuestScript.display_name
+		hello["devGuestId"] = DevGuestScript.player_id
+	elif SupabaseAuth.is_signed_in and not SupabaseAuth.access_token.is_empty():
 		hello["authToken"] = SupabaseAuth.access_token
 		if SupabaseAuth.is_admin:
 			hello["isAdmin"] = true
@@ -470,6 +475,8 @@ func _send_hello() -> void:
 	if is_regimental and not SupabaseAuth.regiment_id.is_empty():
 		hello["regimentId"] = SupabaseAuth.regiment_id
 		hello["isRegimental"] = true
+	if not selected_lobby_id.is_empty():
+		hello["lobbyId"] = selected_lobby_id
 	send_json(hello)
 	GameLog.log_system("[NetworkClient] Sent hello to server.")
 
@@ -478,12 +485,17 @@ func _receive_packets() -> void:
 	while _socket.get_available_packet_count() > 0:
 		var packet := _socket.get_packet()
 		var text := packet.get_string_from_utf8()
-		GameLog.log_system("[NetworkClient] Received: %s" % text)
 		var parsed: Variant = _parse_json_object(text)
 		if parsed == null:
 			GameLog.log_system("[NetworkClient] Message is not valid JSON object.")
 			continue
-		_handle_message(parsed as Dictionary)
+		var message := parsed as Dictionary
+		## movement_tick arrives up to 20 Hz. Dumping the payload stalls the game thread.
+		if str(message.get("type", "")) == "movement_tick":
+			_handle_message(message)
+			continue
+		GameLog.log_system("[NetworkClient] Received: %s" % text)
+		_handle_message(message)
 
 
 func _parse_json_object(text: String) -> Variant:
@@ -568,6 +580,9 @@ func _handle_message(message: Dictionary) -> void:
 			var success: bool = bool(message.get("success", false))
 			var reason := str(message.get("reason", ""))
 			kick_result_received.emit(success, reason)
+		"dev_guest_rejected":
+			GameLog.log_system("[NetworkClient] Dev guest rejected: %s" % str(message.get("reason", "")))
+			disconnect_from_server()
 		"kicked":
 			var reason := str(message.get("reason", "Kicked by admin"))
 			GameLog.log_system("[NetworkClient] Kicked from server: %s" % reason)

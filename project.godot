@@ -32,6 +32,7 @@ GameplayPolicies="*res://scripts/gameplay_policies/gameplay_policies.gd"
 GameRandom="*res://scripts/core/game_random.gd"
 DeterministicRNG="*res://scripts/core/deterministic_rng.gd"
 SimulationClock="*res://scripts/core/simulation_clock.gd"
+MCPRuntime="*uid://c0vs1uls478wi"
 
 [debug]
 
@@ -43,6 +44,10 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/size/mode=2
 window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
 
 [game]
 

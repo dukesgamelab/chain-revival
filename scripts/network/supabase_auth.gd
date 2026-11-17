@@ -52,6 +52,7 @@ var _refresh_timer: Timer
 ## How many seconds before token expiry we trigger a refresh.
 const REFRESH_MARGIN_SEC := 60.0
 const SESSION_SAVE_PATH := "user://supabase_session.json"
+const DevGuestScript := preload("res://scripts/network/dev_guest.gd")
 
 
 func _ready() -> void:
@@ -66,6 +67,9 @@ func _ready() -> void:
 	_refresh_timer.timeout.connect(_on_refresh_timer)
 	add_child(_refresh_timer)
 
+	if DevGuestScript.is_enabled():
+		GameLog.log_system("[SupabaseAuth] Dev guest mode: not loading or sharing the saved account.")
+		return
 	if SUPABASE_URL == "" or SUPABASE_ANON_KEY == "":
 		push_warning("[SupabaseAuth] Credentials not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in supabase_auth.gd")
 	else:
@@ -77,6 +81,9 @@ func _ready() -> void:
 # ─────────────────────────────────────────────────────────────────────────
 
 func sign_up(email: String, password: String, p_display_name: String = "") -> void:
+	if DevGuestScript.is_enabled():
+		sign_up_failed.emit("Dev guest mode is on. Remove dev_guest.txt or --dev-guest to use a real account.")
+		return
 	if not _check_config():
 		sign_up_failed.emit("Supabase not configured")
 		return
@@ -90,6 +97,9 @@ func sign_up(email: String, password: String, p_display_name: String = "") -> vo
 
 
 func sign_in(email: String, password: String) -> void:
+	if DevGuestScript.is_enabled():
+		sign_in_failed.emit("Dev guest mode is on. Remove dev_guest.txt or --dev-guest to use a real account.")
+		return
 	if not _check_config():
 		sign_in_failed.emit("Supabase not configured")
 		return
@@ -279,6 +289,8 @@ func _clear_session() -> void:
 
 
 func _save_session() -> void:
+	if DevGuestScript.is_enabled():
+		return
 	var data := {
 		"access_token": access_token,
 		"refresh_token": refresh_token,

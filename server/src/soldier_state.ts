@@ -193,9 +193,22 @@ export class SoldierState {
     if (this.isDead) {
       return;
     }
+    let preservedAccum = 0;
+    if (
+      this.isMoving &&
+      path.length > 1 &&
+      this.pathIndex > 0 &&
+      this.pathIndex < this.currentPath.length &&
+      path[0].x === this.gridPosition.x &&
+      path[0].y === this.gridPosition.y &&
+      path[1].x === this.currentPath[this.pathIndex].x &&
+      path[1].y === this.currentPath[this.pathIndex].y
+    ) {
+      preservedAccum = this.moveAccumMsec;
+    }
     this.currentPath = path.map((cell) => ({ ...cell }));
     this.moveSpeedMult = speedMult;
-    this.moveAccumMsec = 0;
+    this.moveAccumMsec = preservedAccum;
     this.pathIndex = 1;
     this.isMoving = this.currentPath.length > 1;
     if (this.isMoving) {

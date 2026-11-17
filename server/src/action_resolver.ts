@@ -113,11 +113,11 @@ export function executeMove(
     return fail(resolved.message);
   }
 
-  if (soldier.isMoving && soldier.currentPath.length > 0) {
-    const dest = soldier.currentPath[soldier.currentPath.length - 1];
-    if (vecEq(dest, target)) {
-      return emptyAction();
-    }
+  if (alreadyHeadingTo(soldier, target)) {
+    return emptyAction(
+      true,
+      `Soldier ${cmd.soldierId} is already moving to (${target.x}, ${target.y})`,
+    );
   }
 
   const result = emptyAction();
@@ -170,13 +170,17 @@ function executeSquadMove(
 
   for (const soldier of orderable) {
     const resolved = resolveMoveOrder(soldier, cmd.movementMode, now);
-    standUpForLocomotion(soldier, resolved.mode, result);
     const memberRef = formationRefs.get(soldier.soldierId) as Vec2i;
     const offset = vec(memberRef.x - anchorPos.x, memberRef.y - anchorPos.y);
     const memberTarget = squadRelativeCell(gameState, squadTarget, offset);
     if (deploymentLocked && !gameState.map.isDeploymentCell(cmd.teamId, memberTarget)) {
       continue;
     }
+    if (alreadyHeadingTo(soldier, memberTarget)) {
+      ordered += 1;
+      continue;
+    }
+    standUpForLocomotion(soldier, resolved.mode, result);
     let assigned = false;
     if (leadPath.length > 0 && leadStart.x > -900) {
       assigned = assignTranslatedSquadPath(
@@ -306,11 +310,8 @@ function assignMovePath(
   if (vecEq(target, start) || !gameState.map.isWalkable(target)) {
     return false;
   }
-  if (soldier.isMoving && soldier.currentPath.length > 0) {
-    const dest = soldier.currentPath[soldier.currentPath.length - 1];
-    if (vecEq(dest, target)) {
-      return false;
-    }
+  if (alreadyHeadingTo(soldier, target)) {
+    return false;
   }
   const path = findPath(gameState.map, start, target);
   if (path.length < 2) {
@@ -321,14 +322,18 @@ function assignMovePath(
       return false;
     }
   }
-  if (soldier.isMoving) {
-    soldier.clearPath();
-  }
   soldier.movementMode = mode;
   const speedMult = speedMultiplier(mode) * movementModifier(soldier.stress);
   soldier.assignPath(path, speedMult);
   pushMoveOrder(result, soldier, path, speedMult);
   return true;
+}
+
+function alreadyHeadingTo(soldier: SoldierState, target: Vec2i): boolean {
+  if (!soldier.isMoving || soldier.currentPath.length === 0) {
+    return false;
+  }
+  return vecEq(soldier.currentPath[soldier.currentPath.length - 1], target);
 }
 
 function assignTranslatedSquadPath(
@@ -375,9 +380,6 @@ function assignTranslatedSquadPath(
   }
   if (!vecEq(path[path.length - 1], memberTarget)) {
     return false;
-  }
-  if (soldier.isMoving) {
-    soldier.clearPath();
   }
   soldier.movementMode = mode;
   const speedMult = speedMultiplier(mode) * movementModifier(soldier.stress);

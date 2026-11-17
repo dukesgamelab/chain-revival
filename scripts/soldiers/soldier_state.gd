@@ -409,9 +409,19 @@ func movement_heading() -> Vector2i:
 func assign_path(path: Array[Vector2i], speed_mult: float = 1.0) -> void:
 	if is_dead:
 		return
+	var preserved_accum := 0
+	if (
+		is_moving
+		and path.size() > 1
+		and path_index > 0
+		and path_index < current_path.size()
+		and path[0] == grid_position
+		and current_path[path_index] == path[1]
+	):
+		preserved_accum = move_accum_msec
 	current_path = path.duplicate()
 	move_speed_mult = speed_mult
-	move_accum_msec = 0
+	move_accum_msec = preserved_accum
 	path_index = 1
 	is_moving = current_path.size() > 1
 	if is_moving:

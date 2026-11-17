@@ -42,6 +42,14 @@ var _pg_configs: Array[Dictionary] = []
 ## Listeners: keyed by "<table>:<filter_value>" -> Array of Callables.
 var _listeners: Dictionary = {}
 
+## Separate channel so a missing roster table cannot drop chat.
+var _lobby_topic := "realtime:lobby"
+var _lobby_configs: Array[Dictionary] = []
+var _lobby_listeners: Dictionary = {}
+var _lobby_joined := false
+var _lobby_joining := false
+var _lobby_join_ref := ""
+
 
 func _ready() -> void:
 	_heartbeat_timer = Timer.new()
@@ -73,6 +81,7 @@ func _process(_delta: float) -> void:
 			connection_state_changed.emit(true)
 			_heartbeat_timer.start()
 			_join_channel()
+			_join_lobby_channel()
 		while _ws.get_available_packet_count() > 0:
 			var pkt := _ws.get_packet()
 			_handle_message(pkt.get_string_from_utf8())
@@ -82,6 +91,8 @@ func _process(_delta: float) -> void:
 			_connected = false
 			_joined = false
 			_joining = false
+			_lobby_joined = false
+			_lobby_joining = false
 			_heartbeat_timer.stop()
 			connection_state_changed.emit(false)
 		_ws = null
@@ -132,6 +143,46 @@ func subscribe(table: String, filter: String, callback: Callable) -> void:
 		_join_channel()
 
 
+## Subscribe to insert, update, and delete on a table. The callback receives
+## the event name, the new record, and the previous record.
+func subscribe_changes(table: String, callback: Callable) -> void:
+	if not _lobby_listeners.has(table):
+		_lobby_listeners[table] = []
+	var listeners: Array = _lobby_listeners[table]
+	if callback not in listeners:
+		listeners.append(callback)
+	for existing in _lobby_configs:
+		if existing.get("table", "") == table:
+			return
+	_lobby_configs.append({
+		"event": "*",
+		"schema": "public",
+		"table": table,
+	})
+	if _lobby_joined:
+		_leave_lobby_channel()
+		_join_lobby_channel()
+	elif _connected:
+		_join_lobby_channel()
+
+
+func unsubscribe_changes(table: String, callback: Callable) -> void:
+	if _lobby_listeners.has(table):
+		var listeners: Array = _lobby_listeners[table]
+		listeners.erase(callback)
+		if listeners.is_empty():
+			_lobby_listeners.erase(table)
+	var still_used := _lobby_listeners.has(table)
+	if not still_used:
+		for i in range(_lobby_configs.size() - 1, -1, -1):
+			if _lobby_configs[i].get("table", "") == table:
+				_lobby_configs.remove_at(i)
+	if _lobby_joined:
+		_leave_lobby_channel()
+		if not _lobby_configs.is_empty():
+			_join_lobby_channel()
+
+
 ## Remove a specific callback for a table/filter combo.
 func unsubscribe(table: String, filter: String, callback: Callable) -> void:
 	var key := "%s:%s" % [table, filter]
@@ -177,6 +228,8 @@ func disconnect_from_realtime() -> void:
 	_connected = false
 	_joined = false
 	_joining = false
+	_lobby_joined = false
+	_lobby_joining = false
 	_subscription_ids.clear()
 	connection_state_changed.emit(false)
 
@@ -272,6 +325,44 @@ func _join_channel() -> void:
 	})
 
 
+func _join_lobby_channel() -> void:
+	if _lobby_joining or _lobby_joined or not _connected:
+		return
+	if _lobby_configs.is_empty():
+		return
+	_lobby_joining = true
+	_lobby_join_ref = _next_ref()
+	_send_json({
+		"topic": _lobby_topic,
+		"event": "phx_join",
+		"payload": {
+			"config": {
+				"postgres_changes": _lobby_configs,
+				"broadcast": {"ack": false, "self": false},
+				"presence": {"enabled": false},
+				"private": false,
+			},
+			"access_token": SupabaseAuth.access_token,
+		},
+		"ref": _lobby_join_ref,
+		"join_ref": _lobby_join_ref,
+	})
+
+
+func _leave_lobby_channel() -> void:
+	if not _lobby_joined and not _lobby_joining:
+		return
+	_send_json({
+		"topic": _lobby_topic,
+		"event": "phx_leave",
+		"payload": {},
+		"ref": _next_ref(),
+		"join_ref": _lobby_join_ref,
+	})
+	_lobby_joined = false
+	_lobby_joining = false
+
+
 func _leave_channel() -> void:
 	if not _joined and not _joining:
 		return
@@ -312,15 +403,27 @@ func _handle_message(text: String) -> void:
 		return
 	var event: String = data.get("event", "")
 
+	var topic := str(data.get("topic", ""))
 	match event:
 		"phx_reply":
-			_handle_reply(data)
+			if topic == _lobby_topic:
+				_handle_lobby_reply(data)
+			else:
+				_handle_reply(data)
 		"postgres_changes":
 			_handle_postgres_changes(data)
 		"phx_error":
-			_handle_channel_error()
+			if topic == _lobby_topic:
+				_lobby_joined = false
+				_lobby_joining = false
+			else:
+				_handle_channel_error()
 		"phx_close":
-			_handle_channel_close()
+			if topic == _lobby_topic:
+				_lobby_joined = false
+				_lobby_joining = false
+			else:
+				_handle_channel_close()
 		"system":
 			pass  # Could log system messages if needed.
 
@@ -347,12 +450,31 @@ func _handle_reply(data: Dictionary) -> void:
 		_joining = false
 
 
+func _handle_lobby_reply(data: Dictionary) -> void:
+	var payload: Dictionary = data.get("payload", {})
+	var status: String = payload.get("status", "")
+	if status == "ok" and _lobby_joining:
+		_lobby_joining = false
+		_lobby_joined = true
+	elif status == "error":
+		var response: Dictionary = payload.get("response", {})
+		push_warning("[SupabaseRealtime] Lobby join error: %s" % str(response.get("reason", "")))
+		_lobby_joining = false
+		_lobby_joined = false
+
+
 func _handle_postgres_changes(data: Dictionary) -> void:
 	var payload: Dictionary = data.get("payload", {})
 	var inner_data: Dictionary = payload.get("data", {})
-	var record: Dictionary = inner_data.get("record", {})
+	var record: Dictionary = {}
+	var old_record: Dictionary = {}
+	if inner_data.get("record", null) is Dictionary:
+		record = inner_data.get("record")
+	if inner_data.get("old_record", null) is Dictionary:
+		old_record = inner_data.get("old_record")
 	var table: String = inner_data.get("table", "")
 	var change_type: String = inner_data.get("type", "")
+	_dispatch_lobby_change(table, change_type, record, old_record)
 
 	if change_type != "INSERT" or record.is_empty():
 		return
@@ -378,6 +500,15 @@ func _handle_postgres_changes(data: Dictionary) -> void:
 			for cb: Callable in callbacks:
 				if cb.is_valid():
 					cb.call(record)
+
+
+func _dispatch_lobby_change(table: String, event_name: String, record: Dictionary, old_record: Dictionary) -> void:
+	if not _lobby_listeners.has(table):
+		return
+	var callbacks: Array = _lobby_listeners[table]
+	for callback: Callable in callbacks:
+		if callback.is_valid():
+			callback.call(event_name, record, old_record)
 
 
 func _record_matches_filter(record: Dictionary, filter: String) -> bool:

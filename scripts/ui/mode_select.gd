@@ -13,6 +13,7 @@ const LeaderboardScript := preload("res://scripts/ui/leaderboard.gd")
 const MatchConfigClass := preload("res://scripts/core/match_config.gd")
 const MatchConfigStoreClass := preload("res://scripts/core/match_config_store.gd")
 const AutoUpdaterClass := preload("res://scripts/network/auto_updater.gd")
+const DevGuestScript := preload("res://scripts/network/dev_guest.gd")
 
 @onready var _single_player_button: Button = $Center/Panel/Margin/VBox/SinglePlayerButton
 @onready var _multiplayer_button: Button = $Center/Panel/Margin/VBox/MultiplayerButton
@@ -48,12 +49,35 @@ func _ready() -> void:
 	_add_auth_ui()
 	_hide_dev_tools_unless_signed_in()
 	_add_lan_button()
+	_add_dev_guest_button()
 	_add_leaderboard_button()
 	_add_version_label()
 	_add_settings_button()
 	_add_quit_button()
 	_show_first_launch_hint()
 	_check_for_updates()
+
+
+func _add_dev_guest_button() -> void:
+	if not DevGuestScript.is_enabled():
+		return
+	var vbox := get_node_or_null("Center/Panel/Margin/VBox") as VBoxContainer
+	if vbox == null:
+		return
+	var guest_btn := Button.new()
+	guest_btn.text = "Dev Multiplayer (%s)" % DevGuestScript.display_name
+	guest_btn.custom_minimum_size = Vector2(400, 44)
+	guest_btn.add_theme_font_size_override("font_size", 20)
+	guest_btn.pressed.connect(_on_dev_guest_pressed)
+	var multi_idx := _multiplayer_button.get_index()
+	vbox.add_child(guest_btn)
+	vbox.move_child(guest_btn, multi_idx + 1)
+
+
+func _on_dev_guest_pressed() -> void:
+	if BuildConfig.is_survival_playtest() or not DevGuestScript.is_enabled():
+		return
+	get_tree().change_scene_to_file(LOBBY_BROWSER_SCENE)
 
 
 func _add_lan_button() -> void:
@@ -931,16 +955,24 @@ func _on_update_check_complete(update_available: bool) -> void:
 	vbox.add_child(_update_progress_label)
 
 	_update_dialog.add_child(vbox)
-	_update_dialog.add_cancel_button("Skip")
+	_update_dialog.add_cancel_button("Later")
 	add_child(_update_dialog)
 	_update_dialog.confirmed.connect(_on_update_confirmed)
+	_update_dialog.canceled.connect(_on_update_deferred)
 	_update_dialog.popup_centered()
 
 
+func _on_update_deferred() -> void:
+	GameLog.log_system("[AutoUpdater] Update deferred until a later launch")
+
+
 func _on_update_confirmed() -> void:
-	if _updater == null:
+	if _updater == null or _update_dialog == null:
 		return
 	_update_dialog.get_ok_button().disabled = true
+	var cancel := _update_dialog.get_cancel_button()
+	if cancel != null:
+		cancel.disabled = true
 	_update_progress_label.text = "Downloading update..."
 	# Reshow dialog since confirmed auto-hides it
 	_update_dialog.popup_centered()
@@ -958,3 +990,6 @@ func _on_update_failed(reason: String) -> void:
 		_update_progress_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
 	if _update_dialog != null:
 		_update_dialog.get_ok_button().disabled = false
+		var cancel := _update_dialog.get_cancel_button()
+		if cancel != null:
+			cancel.disabled = false

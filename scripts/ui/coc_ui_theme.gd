@@ -47,6 +47,7 @@ static var _inset_style_cached: StyleBoxTexture
 static var _chat_panel_cached: StyleBoxFlat
 static var _chat_input_cached: StyleBoxFlat
 static var _textures_ready: bool = false
+static var _grenade_layout_scale := Vector2.ONE
 
 
 static func get_theme() -> Theme:
@@ -249,7 +250,30 @@ static func grenade_button_style(pressed: bool, hover: bool, disabled: bool = fa
 	var sb := _style_from_texture(tex, 2, content_l, content_t)
 	sb.content_margin_right = content_r
 	_grenade_styles[key] = sb
+	_apply_stored_grenade_scale(sb, pressed)
 	return sb
+
+
+## Grow the grenade icon's reserved inset with the toolbar. The button texture
+## stretches with the control; the inset keeps the count beside the icon.
+static func apply_grenade_layout_scale(scale_x: float, scale_y: float) -> void:
+	_grenade_layout_scale = Vector2(maxf(scale_x, 1.0), maxf(scale_y, 1.0))
+	_ensure_textures()
+	for key in _grenade_styles.keys():
+		var style := _grenade_styles[key] as StyleBoxTexture
+		if style == null:
+			continue
+		_apply_stored_grenade_scale(style, str(key).begins_with("1"))
+
+
+static func _apply_stored_grenade_scale(style: StyleBoxTexture, pressed: bool) -> void:
+	var scale := _grenade_layout_scale
+	var inset_left := 27.0 if pressed else 26.0
+	var inset_right := 4.0 if pressed else 5.0
+	style.content_margin_left = inset_left * scale.x
+	style.content_margin_right = inset_right * scale.x
+	style.content_margin_top = maxf(1.0, scale.y)
+	style.content_margin_bottom = maxf(1.0, scale.y)
 
 
 static func _style_key(pressed: bool, hover: bool, disabled: bool) -> String:

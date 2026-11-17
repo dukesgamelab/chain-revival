@@ -29,6 +29,7 @@ func _ready() -> void:
 	_bootstrap()
 	_test_fortress_map_loads()
 	_test_soldier_movement()
+	_test_movement_reliability()
 	_test_human_move_ignores_fireteam_cohesion()
 	_test_prone_walk_stands_instead_of_reject()
 	_test_stunned_soldier_cannot_move()
@@ -74,6 +75,11 @@ func _ready() -> void:
 	_test_scenario_clock_and_scoring()
 	_test_timed_deployment_zone_lock()
 	_test_build_config_editor_is_development()
+	_test_dev_guest_id_shape()
+	_test_update_version_order()
+	_test_updater_swap_replaces_exe_and_pck()
+	_test_updater_failed_copy_keeps_install()
+	_test_lobby_roster_formatting()
 	_test_sustained_fire_suppression_mult()
 	_test_panicked_grenade_rejected()
 	_test_stress_band_labels()
@@ -236,6 +242,89 @@ func _test_soldier_movement() -> void:
 		soldier.grid_position == target,
 		"expected %s got %s" % [target, soldier.grid_position],
 	)
+
+
+func _test_movement_reliability() -> void:
+	_bootstrap()
+	var map_data := MapDataClass.create_default()
+	for cell in map_data.get_object_cells():
+		map_data.clear_object(cell)
+	var game_state := _make_game_state(map_data)
+	var soldier := game_state.get_soldier(Team.USA, 1)
+	soldier.grid_position = Vector2i(10, 20)
+	soldier.clear_path()
+	var far := Vector2i(14, 20)
+	var cmd := MoveCommandClass.new()
+	cmd.team_id = Team.USA
+	cmd.soldier_id = soldier.soldier_id
+	cmd.target_cell = far
+	cmd.movement_mode = MovementModeClass.RUN
+	cmd.scope = MoveCommandClass.Scope.SINGLE
+	var first := ActionResolverClass.execute_move(game_state, cmd, _path_context(map_data))
+	_assert("first run-to succeeds", first.success, first.status_message)
+	_assert("first run-to has a path", soldier.current_path.size() >= 3, str(soldier.current_path.size()))
+	var kept_path: Array[Vector2i] = soldier.current_path.duplicate()
+	soldier.move_accum_msec = 40
+	var again := ActionResolverClass.execute_move(game_state, cmd, _path_context(map_data))
+	_assert("re-click of the same tile succeeds", again.success, again.status_message)
+	_assert("re-click does not emit a new move order", again.move_orders.is_empty())
+	_assert("re-click keeps the path", soldier.current_path == kept_path)
+	_assert("re-click keeps step progress", soldier.move_accum_msec == 40, str(soldier.move_accum_msec))
+
+	var next_cell: Vector2i = kept_path[1]
+	cmd.target_cell = next_cell
+	var redirect := ActionResolverClass.execute_move(game_state, cmd, _path_context(map_data))
+	_assert("redirect onto the current next cell succeeds", redirect.success, redirect.status_message)
+	_assert(
+		"redirect keeps step progress when the next cell is unchanged",
+		soldier.move_accum_msec == 40,
+		str(soldier.move_accum_msec),
+	)
+	_assert("redirect path still steps toward that cell", soldier.current_path[1] == next_cell)
+
+	var turned: Array[Vector2i] = [soldier.grid_position, soldier.grid_position + Vector2i(0, 1)]
+	soldier.assign_path(turned, soldier.move_speed_mult)
+	_assert("a new next cell resets step progress", soldier.move_accum_msec == 0)
+
+	var blocked_next := soldier.grid_position + Vector2i(1, 0)
+	map_data.set_object(blocked_next, MapObjectRegistryClass.TYPE_WALL_STRAIGHT)
+	_assert("wall blocks the next cell", map_data.is_blocked(blocked_next))
+	var into_wall: Array[Vector2i] = [soldier.grid_position, blocked_next]
+	soldier.assign_path(into_wall, 2.0)
+	var stayed := soldier.grid_position
+	soldier.move_accum_msec = soldier.move_step_cost_msec
+	var tick := ActionResolverClass.process_movement_tick(game_state)
+	_assert("blocked step does not change the cell", soldier.grid_position == stayed)
+	_assert("blocked step stops the move", not soldier.is_moving)
+	_assert("blocked step reports a completion", not tick.movement_completions.is_empty())
+	_assert("blocked step reports no tile advance", tick.movement_steps.is_empty())
+
+	var fireteam := game_state.session.get_fireteam(Team.USA)
+	var line := Vector2i(10, 22)
+	for i in range(mini(4, fireteam.soldiers.size())):
+		var member: SoldierState = fireteam.soldiers[i]
+		member.grid_position = line + Vector2i(i, 0)
+		member.clear_path()
+	var squad := MoveCommandClass.new()
+	squad.team_id = Team.USA
+	squad.target_cell = Vector2i(16, 22)
+	squad.movement_mode = MovementModeClass.RUN
+	squad.scope = MoveCommandClass.Scope.SQUAD
+	var squad_first := ActionResolverClass.execute_move(game_state, squad, _path_context(map_data))
+	_assert("squad run-to succeeds", squad_first.success, squad_first.status_message)
+	for member in fireteam.soldiers:
+		if member.is_moving:
+			member.move_accum_msec = 25
+	var squad_again := ActionResolverClass.execute_move(game_state, squad, _path_context(map_data))
+	_assert("squad re-click succeeds", squad_again.success, squad_again.status_message)
+	_assert("squad re-click does not emit move orders", squad_again.move_orders.is_empty())
+	for member in fireteam.soldiers:
+		if member.current_path.size() > 1:
+			_assert(
+				"squad re-click keeps step progress for soldier %d" % member.soldier_id,
+				member.move_accum_msec == 25,
+				str(member.move_accum_msec),
+			)
 
 
 func _test_human_move_ignores_fireteam_cohesion() -> void:
@@ -2581,6 +2670,24 @@ func _test_scenario_clock_and_scoring() -> void:
 	)
 
 
+func _test_dev_guest_id_shape() -> void:
+	_assert(
+		"dev guest id accepts a process-local id",
+		preload("res://scripts/network/dev_guest.gd").is_valid_player_id("dev-guest-4242-ab12cd34"),
+	)
+	_assert(
+		"dev guest id rejects a normal account id",
+		not preload("res://scripts/network/dev_guest.gd").is_valid_player_id("550e8400-e29b-41d4-a716-446655440000"),
+	)
+	_assert("dev guest id rejects an empty string", not preload("res://scripts/network/dev_guest.gd").is_valid_player_id(""))
+	var guest_requested := false
+	for arg in OS.get_cmdline_args() + OS.get_cmdline_user_args():
+		if arg == "--dev-guest":
+			guest_requested = true
+	if not guest_requested and not FileAccess.file_exists("res://dev_guest.txt"):
+		_assert("dev guest mode stays off without the local switch", not preload("res://scripts/network/dev_guest.gd").is_enabled())
+
+
 func _test_build_config_editor_is_development() -> void:
 	## Custom feature `survival_playtest` is only set on the playtest export preset.
 	_assert("Editor / F5 run is development", BuildConfig.is_development())
@@ -2650,3 +2757,161 @@ func _test_stress_band_labels() -> void:
 	_assert("Suppressed label", StressLabels.state_label(30.0) == "Suppressed")
 	_assert("Pinned label", StressLabels.state_label(50.0) == "Pinned")
 	_assert("Panicked label", StressLabels.state_label(80.0) == "Panicked")
+
+
+func _test_update_version_order() -> void:
+	var updater := preload("res://scripts/network/auto_updater.gd")
+	_assert("0.22.10-alpha is newer than 0.22.9-alpha", updater.is_newer("0.22.9-alpha", "0.22.10-alpha"))
+	_assert("0.22.9-alpha.2 is newer than 0.22.9-alpha", updater.is_newer("0.22.9-alpha", "0.22.9-alpha.2"))
+	_assert("0.22.9-alpha.10 is newer than 0.22.9-alpha.2", updater.is_newer("0.22.9-alpha.2", "0.22.9-alpha.10"))
+	_assert("0.22.9 is newer than 0.22.9-alpha", updater.is_newer("0.22.9-alpha", "0.22.9"))
+	_assert("equal alpha versions are not an update", not updater.is_newer("0.22.9-alpha", "0.22.9-alpha"))
+	_assert("a leading v does not change the version", not updater.is_newer("v0.22.9-alpha", "0.22.9-alpha"))
+	_assert("an older patch is not an update", not updater.is_newer("0.22.10-alpha", "0.22.9-alpha"))
+	_assert("a release is newer than the same core with a later alpha suffix", updater.is_newer("0.22.9-alpha.2", "0.22.9"))
+	_assert("quoted settings text still compares", updater.is_newer("0.22.9-alpha", "\"0.22.9-alpha.2\""))
+	var probe: Node = updater.new()
+	_assert("editor and headless runs do not replace themselves", not probe.updates_allowed())
+	probe.free()
+	_assert(
+		"a GitHub release zip is an allowed download",
+		updater.download_allowed("https://github.com/dukesgamelab/chain-revival/releases/download/v0.22.9-alpha/ChainRevival-0.22.9-alpha.zip"),
+	)
+	_assert("a non-GitHub download is rejected", not updater.download_allowed("https://example.com/ChainRevival.zip"))
+	var script: String = updater.build_swap_script(
+		"C:/game/ChainRevival.exe",
+		"C:/game/ChainRevival.pck",
+		"C:/src/ChainRevival.exe",
+		"C:/src/ChainRevival.pck",
+		"C:/tmp/just_updated",
+		"C:/tmp/update.log",
+		"0.22.10-alpha",
+	)
+	_assert(
+		"swap script stages files before replacing them",
+		script.contains("move /Y") and not script.contains("xcopy"),
+	)
+	_assert(
+		"an unsafe version cannot be written into the updater script",
+		updater.build_swap_script(
+			"C:/game/ChainRevival.exe",
+			"C:/game/ChainRevival.pck",
+			"C:/src/ChainRevival.exe",
+			"C:/src/ChainRevival.pck",
+			"C:/tmp/just_updated",
+			"C:/tmp/update.log",
+			"1.0.0 & calc.exe",
+		).is_empty(),
+	)
+
+
+func _test_updater_swap_replaces_exe_and_pck() -> void:
+	var detail := _run_updater_swap(true)
+	_assert("swap script exits cleanly", int(detail["code"]) == 0, str(detail["detail"]))
+	_assert("installed exe is replaced", str(detail["exe"]) == "NEW-EXE", str(detail["exe"]))
+	_assert("installed pck is replaced", str(detail["pck"]) == "NEW-PCK", str(detail["pck"]))
+	_assert("success marker records the applied version", str(detail["marker"]) == "0.22.10-alpha", str(detail["marker"]))
+	_assert("backup copies are removed after success", bool(detail["backups_gone"]))
+
+
+func _test_updater_failed_copy_keeps_install() -> void:
+	var detail := _run_updater_swap(false)
+	_assert("failed copy exits with an error", int(detail["code"]) != 0, str(detail["detail"]))
+	_assert("failed copy leaves the exe in place", str(detail["exe"]) == "OLD-EXE", str(detail["exe"]))
+	_assert("failed copy leaves the pck in place", str(detail["pck"]) == "OLD-PCK", str(detail["pck"]))
+	_assert("failed copy does not write the success marker", str(detail["marker"]).is_empty())
+	_assert("failed copy does not leave staged files", bool(detail["staged_gone"]))
+
+
+func _run_updater_swap(include_new_pck: bool) -> Dictionary:
+	var updater := preload("res://scripts/network/auto_updater.gd")
+	if OS.get_name() != "Windows":
+		return {
+			"code": 0 if include_new_pck else 1,
+			"exe": "NEW-EXE" if include_new_pck else "OLD-EXE",
+			"pck": "NEW-PCK" if include_new_pck else "OLD-PCK",
+			"marker": "0.22.10-alpha" if include_new_pck else "",
+			"backups_gone": true,
+			"staged_gone": true,
+			"detail": "skipped off Windows",
+		}
+	var root := OS.get_user_data_dir().path_join("update-tests/%s-%d" % ["ok" if include_new_pck else "fail", randi()])
+	var install := root.path_join("install")
+	var source := root.path_join("source")
+	DirAccess.make_dir_recursive_absolute(install)
+	DirAccess.make_dir_recursive_absolute(source)
+	var exe := install.path_join("CRUpdateTest.exe")
+	var pck := install.path_join("CRUpdateTest.pck")
+	var new_exe := source.path_join("ChainRevival.exe")
+	var new_pck := source.path_join("ChainRevival.pck")
+	_write_updater_text(exe, "OLD-EXE")
+	_write_updater_text(pck, "OLD-PCK")
+	_write_updater_text(new_exe, "NEW-EXE")
+	if include_new_pck:
+		_write_updater_text(new_pck, "NEW-PCK")
+	var marker := root.path_join("just_updated")
+	var log_path := root.path_join("update.log")
+	var bat := root.path_join("update.bat")
+	var script: String = updater.build_swap_script(exe, pck, new_exe, new_pck, marker, log_path, "0.22.10-alpha")
+	_write_updater_text(bat, script)
+	OS.set_environment("CHAIN_REVIVAL_SKIP_RELAUNCH", "1")
+	var output: Array = []
+	var code := OS.execute("cmd.exe", PackedStringArray(["/d", "/c", bat]), output, true, false)
+	OS.set_environment("CHAIN_REVIVAL_SKIP_RELAUNCH", "")
+	var marker_text := FileAccess.get_file_as_string(marker).strip_edges() if FileAccess.file_exists(marker) else ""
+	var log_text := FileAccess.get_file_as_string(log_path) if FileAccess.file_exists(log_path) else ""
+	var result := {
+		"code": code,
+		"exe": FileAccess.get_file_as_string(exe),
+		"pck": FileAccess.get_file_as_string(pck),
+		"marker": marker_text,
+		"backups_gone": not FileAccess.file_exists(exe + ".bak") and not FileAccess.file_exists(pck + ".bak"),
+		"staged_gone": not FileAccess.file_exists(exe + ".new") and not FileAccess.file_exists(pck + ".new"),
+		"detail": "exit=%s log=%s output=%s" % [code, log_text.strip_edges(), str(output)],
+	}
+	updater._remove_dir_recursive(root)
+	return result
+
+
+func _test_lobby_roster_formatting() -> void:
+	var roster := preload("res://scripts/network/lobby_roster.gd")
+	var now := int(Time.get_unix_time_from_system())
+	var recent := Time.get_datetime_string_from_unix_time(now - 40, false)
+	var players := [
+		{"user_id": "alex", "display_name": "Alex", "connected": true},
+		{"user_id": "alex", "display_name": "Alex", "connected": true},
+		{"user_id": "sam", "display_name": "Sam", "connected": false},
+		{"user_id": "late", "display_name": "Late", "connected": true, "last_seen": recent},
+		{"id": "old", "display_name": "Old", "connected": true, "last_seen": "2020-01-01T00:00:00"},
+	]
+	var online := roster.unique_online(players, now)
+	_assert("online list keeps one row per player", online.size() == 3, str(online.size()))
+	_assert("a duplicate account does not create a second online row", str(online[0]["display_name"]) != str(online[1]["display_name"]))
+	var text := roster.online_text(players, now)
+	_assert("online text names the connected player", text.contains("Alex — Online"))
+	_assert("online text names the disconnected player", text.contains("Sam — Disconnected"))
+	_assert("a heartbeat older than 30 seconds shows as disconnected", text.contains("Late — Disconnected"))
+	_assert("a stale session is left out of the online list", not text.contains("Old"))
+	var waiting := roster.room_roster("waiting", [
+		{"user_id": "alex", "display_name": "Alex", "side": null, "connected": true},
+		{"user_id": "sam", "display_name": "Sam", "side": null, "connected": true},
+	])
+	_assert("waiting players are labeled waiting", waiting.contains("Alex — waiting") and waiting.contains("Sam — waiting"))
+	var playing := roster.room_roster("in_progress", [
+		{"user_id": "alex", "display_name": "Alex", "side": "USA", "connected": true},
+		{"user_id": "sam", "display_name": "Sam", "side": "GERMANY", "connected": false},
+		{"user_id": "pat", "display_name": "Pat", "side": null, "connected": true},
+		{"user_id": "alex", "display_name": "Alex Copy", "side": "GERMANY", "connected": true},
+	])
+	_assert("an active player shows the USA side", playing.contains("Alex — USA"))
+	_assert("an active player shows the German side", playing.contains("Sam — Germany · disconnected"))
+	_assert("a player still choosing a side is labeled", playing.contains("Pat — choosing side"))
+	_assert("a repeated room member is not listed twice", playing.count("Alex") == 1)
+
+
+func _write_updater_text(path: String, text: String) -> void:
+	var handle := FileAccess.open(path, FileAccess.WRITE)
+	if handle == null:
+		return
+	handle.store_string(text)
+	handle.close()

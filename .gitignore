@@ -2,11 +2,19 @@
 .claude/
 CLAUDE.md
 
+# Local Cursor MCP config
+.cursor/mcp.json
+
+# Local Godot MCP editor addon (not part of the game)
+/addons/
+/godot_mcp_config.json
+
 # Godot 4+ specific ignores
 .godot/
 *.uid
 /android/
 dev_server.txt
+dev_guest.txt
 
 # Node server
 server/node_modules/

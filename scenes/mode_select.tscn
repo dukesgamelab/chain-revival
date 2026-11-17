@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://cmodselect001"]
 
-[ext_resource type="Script" path="res://scripts/ui/mode_select.gd" id="1_mode"]
+[ext_resource type="Script" uid="uid://c5x8r4ow8ych4" path="res://scripts/ui/mode_select.gd" id="1_mode"]
 
-[node name="ModeSelect" type="Control"]
+[node name="ModeSelect" type="Control" unique_id=709476533]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_mode")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=862632626]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.12, 0.18, 0.14, 1)
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="." unique_id=807254665]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,95 +28,95 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="PanelContainer" parent="Center"]
+[node name="Panel" type="PanelContainer" parent="Center" unique_id=1329446269]
 layout_mode = 2
 
-[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+[node name="Margin" type="MarginContainer" parent="Center/Panel" unique_id=321187612]
 layout_mode = 2
 theme_override_constants/margin_left = 48
 theme_override_constants/margin_top = 32
 theme_override_constants/margin_right = 48
 theme_override_constants/margin_bottom = 32
 
-[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin" unique_id=1856244661]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Title" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="Title" type="Label" parent="Center/Panel/Margin/VBox" unique_id=907326065]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Chain Revival"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="Subtitle" type="Label" parent="Center/Panel/Margin/VBox" unique_id=1377784597]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Main Menu"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="Center/Panel/Margin/VBox"]
+[node name="Spacer" type="Control" parent="Center/Panel/Margin/VBox" unique_id=436187826]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 
-[node name="SinglePlayerButton" type="Button" parent="Center/Panel/Margin/VBox"]
+[node name="SinglePlayerButton" type="Button" parent="Center/Panel/Margin/VBox" unique_id=404368729]
 custom_minimum_size = Vector2(400, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Single Player"
 
-[node name="SurvivalModeButton" type="Button" parent="Center/Panel/Margin/VBox"]
+[node name="SurvivalModeButton" type="Button" parent="Center/Panel/Margin/VBox" unique_id=463412656]
 custom_minimum_size = Vector2(400, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Survival Mode: 1 v All"
 
-[node name="TutorialButton" type="Button" parent="Center/Panel/Margin/VBox"]
+[node name="TutorialButton" type="Button" parent="Center/Panel/Margin/VBox" unique_id=643560491]
 custom_minimum_size = Vector2(400, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Tutorial"
 
-[node name="HowToPlayButton" type="Button" parent="Center/Panel/Margin/VBox"]
+[node name="HowToPlayButton" type="Button" parent="Center/Panel/Margin/VBox" unique_id=1990454034]
 custom_minimum_size = Vector2(400, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "How to Play"
 
-[node name="MultiplayerButton" type="Button" parent="Center/Panel/Margin/VBox"]
+[node name="MultiplayerButton" type="Button" parent="Center/Panel/Margin/VBox" unique_id=57897160]
 custom_minimum_size = Vector2(400, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Multiplayer"
 
-[node name="DevBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+[node name="DevBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox" unique_id=1638604591]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="DevLabel" type="Label" parent="Center/Panel/Margin/VBox/DevBox"]
+[node name="DevLabel" type="Label" parent="Center/Panel/Margin/VBox/DevBox" unique_id=1031187007]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Developer"
 horizontal_alignment = 1
 
-[node name="OfflineQuickButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
+[node name="OfflineQuickButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox" unique_id=1102576473]
 custom_minimum_size = Vector2(400, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Offline Quick Start (1v1, hotseat — no AI)"
 
-[node name="OfflineQuickAiButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
+[node name="OfflineQuickAiButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox" unique_id=948319589]
 custom_minimum_size = Vector2(400, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Offline Quick Start (1v1 vs AI)"
 
-[node name="EditorButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
+[node name="EditorButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox" unique_id=497602346]
 custom_minimum_size = Vector2(400, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Map Editor"
 
-[node name="AssetAnimEditorButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox"]
+[node name="AssetAnimEditorButton" type="Button" parent="Center/Panel/Margin/VBox/DevBox" unique_id=864009203]
 custom_minimum_size = Vector2(400, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
