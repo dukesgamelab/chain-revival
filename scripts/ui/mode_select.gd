@@ -970,7 +970,7 @@ func _on_update_confirmed() -> void:
 	if _updater == null or _update_dialog == null:
 		return
 	_update_dialog.get_ok_button().disabled = true
-	var cancel := _update_dialog.get_cancel_button()
+	var cancel: Button = _update_dialog.get_cancel_button()
 	if cancel != null:
 		cancel.disabled = true
 	_update_progress_label.text = "Downloading update..."
@@ -990,6 +990,6 @@ func _on_update_failed(reason: String) -> void:
 		_update_progress_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
 	if _update_dialog != null:
 		_update_dialog.get_ok_button().disabled = false
-		var cancel := _update_dialog.get_cancel_button()
+		var cancel: Button = _update_dialog.get_cancel_button()
 		if cancel != null:
 			cancel.disabled = false
